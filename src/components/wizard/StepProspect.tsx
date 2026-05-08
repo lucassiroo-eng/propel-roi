@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Link as LinkIcon, Mail, Phone, CheckCircle, Circle } from "lucide-react";
+import { Loader2, Link as LinkIcon, Mail, Phone, CheckCircle, Circle, ChevronDown, ChevronRight, Eye } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { getPersonaConfig } from "@/lib/personaConfig";
-import type { ProspectData, AirtableSuggestion } from "@/hooks/useWizardSession";
+import type { ProspectData, AirtableSuggestion, AirtableEmail, AirtableCall } from "@/hooks/useWizardSession";
 
 const SEATS_MIN = 10;
 const SEATS_MAX = 5000;
@@ -59,47 +61,6 @@ const SECTORS = [
   { value: "Utilities", key: "sector.utilities" },
 ];
 
-function mapCountry(raw: string): "ES" | "FR" {
-  const lower = (raw ?? "").toLowerCase();
-  if (lower.includes("spain") || lower === "es") return "ES";
-  if (lower.includes("france") || lower === "fr") return "FR";
-  return "ES";
-}
-
-function mapSector(industry: string): { value: string; approximate: boolean } {
-  if (!industry) return { value: "", approximate: false };
-  const lower = industry.toLowerCase();
-  const exact = SECTORS.find(s => s.value.toLowerCase().includes(lower) || lower.includes(s.value.toLowerCase()));
-  if (exact) return { value: exact.value, approximate: false };
-  const words = lower.split(/[\s,&/]+/).filter(w => w.length > 2);
-  let bestScore = 0, bestSector = "";
-  for (const s of SECTORS) {
-    const sWords = s.value.toLowerCase().split(/[\s,&/]+/).filter(w => w.length > 2);
-    const score = words.filter(w => sWords.some(sw => sw.includes(w) || w.includes(sw))).length;
-    if (score > bestScore) { bestScore = score; bestSector = s.value; }
-  }
-  if (bestScore > 0) return { value: bestSector, approximate: true };
-  const keywordMap: Record<string, string> = {
-    tech: "Software & IT Services", saas: "Software & IT Services", software: "Software & IT Services",
-    hotel: "Hospitality", restaurant: "Hospitality", hospital: "Health Care Equipment & Services",
-    pharma: "Health Care Equipment & Services", bank: "Banking & Insurance", insurance: "Banking & Insurance",
-    fintech: "Banking & Insurance", retail: "Retailing", ecommerce: "Retailing",
-    logistics: "Transportation", shipping: "Transportation", manufacture: "Machinery",
-    industrial: "Machinery", food: "Food, Beverage & Tobacco", media: "Media & Entertainment",
-    entertainment: "Media & Entertainment", education: "Education", school: "Education",
-    university: "Education", energy: "Energy", oil: "Energy", gas: "Energy",
-    construction: "Construction & Engineering", building: "Construction & Engineering",
-    legal: "Legal Services", law: "Legal Services", consult: "Research & Consulting Services",
-    ngo: "Non-Profit Organisation", nonprofit: "Non-Profit Organisation",
-    automotive: "Automobiles & Components", car: "Automobiles & Components",
-    real_estate: "Real Estate", property: "Real Estate",
-  };
-  for (const [kw, sector] of Object.entries(keywordMap)) {
-    if (lower.includes(kw)) return { value: sector, approximate: true };
-  }
-  return { value: "", approximate: false };
-}
-
 interface PainInfo { pain_id: string; pain_statement: string; persona: string; }
 
 interface Props {
@@ -110,11 +71,64 @@ interface Props {
   onPainsAutoSelected: (painIds: string[], suggestions: AirtableSuggestion[]) => void;
 }
 
+function EmailCard({ email }: { email: AirtableEmail }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      <button
+        className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:bg-muted/30 transition-colors"
+        onClick={() => setOpen(o => !o)}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground truncate">{email.subject || "(no subject)"}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            {email.from} · {email.date?.slice(0, 10)}
+          </p>
+        </div>
+        {open ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-3 border-t border-border bg-muted/20">
+          <p className="text-sm text-foreground whitespace-pre-wrap mt-2 leading-relaxed">{email.body || "(empty)"}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CallCard({ call }: { call: AirtableCall }) {
+  const [open, setOpen] = useState(false);
+  const mins = Math.round((call.duration_seconds ?? 0) / 60);
+  return (
+    <div className="border border-border rounded-lg overflow-hidden">
+      <button
+        className="w-full text-left px-4 py-3 flex items-center justify-between gap-2 hover:bg-muted/30 transition-colors"
+        onClick={() => setOpen(o => !o)}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">{call.owner || "Call"}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {call.date?.slice(0, 10)}{mins > 0 ? ` · ${mins} min` : ""}
+          </p>
+        </div>
+        {open ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-3 border-t border-border bg-muted/20">
+          <p className="text-sm text-foreground whitespace-pre-wrap mt-2 leading-relaxed">{call.transcript || "(no transcript)"}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPainsAutoSelected }: Props) {
   const { t, i18n } = useTranslation();
   const [fetching, setFetching] = useState(false);
   const [sectorApproximate, setSectorApproximate] = useState(false);
   const [painMap, setPainMap] = useState<Record<string, PainInfo>>({});
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogTab, setDialogTab] = useState<"emails" | "calls">("emails");
 
   useEffect(() => {
     supabase
@@ -159,9 +173,10 @@ export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPa
         if (emailMatch && !data.contact_email) updates.contact_email = emailMatch[0];
       }
       if (result.stats) updates.airtable_stats = result.stats;
+      if (result.emails?.length) updates.airtable_emails = result.emails;
+      if (result.calls?.length) updates.airtable_calls = result.calls;
       if (result.suggestions?.length) {
         updates.airtable_suggestions = result.suggestions;
-        // Auto-select all detected pains immediately
         onPainsAutoSelected(
           result.suggestions.map((s: any) => s.pain_id),
           result.suggestions,
@@ -182,15 +197,18 @@ export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPa
   }
 
   const stats = data.airtable_stats;
+  const emails = data.airtable_emails ?? [];
+  const calls = data.airtable_calls ?? [];
   const suggestions = data.airtable_suggestions ?? [];
 
-  // Group suggestions by persona for display
   const grouped: Record<string, AirtableSuggestion[]> = {};
   suggestions.forEach(s => {
     const persona = painMap[s.pain_id]?.persona ?? "Other";
     if (!grouped[persona]) grouped[persona] = [];
     grouped[persona].push(s);
   });
+
+  const hasContent = emails.length > 0 || calls.length > 0;
 
   return (
     <div className="space-y-5">
@@ -237,9 +255,7 @@ export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPa
         )}
 
         <div className="space-y-2">
-          <div className="flex items-center min-h-[24px]">
-            <Label htmlFor="company">{t("prospect.company_name")}</Label>
-          </div>
+          <Label htmlFor="company">{t("prospect.company_name")}</Label>
           <Input
             id="company"
             placeholder={t("prospect.company_placeholder")}
@@ -249,7 +265,7 @@ export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPa
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-2 min-h-[24px]">
+          <div className="flex items-center gap-2">
             <Label>{t("prospect.sector")}</Label>
             {sectorApproximate && data.sector && (
               <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-amber-600 border-amber-300 bg-amber-50">
@@ -324,16 +340,43 @@ export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPa
         </div>
       </div>
 
-      {/* ── Inline pain detection (appears after Fetch) ──────────────── */}
+      {/* ── Emails & Calls viewer button ─────────────────────────────── */}
+      {hasContent && (
+        <div className="flex gap-2">
+          {emails.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-xs"
+              onClick={() => { setDialogTab("emails"); setDialogOpen(true); }}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <Mail className="h-3.5 w-3.5" /> {emails.length} emails
+            </Button>
+          )}
+          {calls.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 text-xs"
+              onClick={() => { setDialogTab("calls"); setDialogOpen(true); }}
+            >
+              <Eye className="h-3.5 w-3.5" />
+              <Phone className="h-3.5 w-3.5" /> {calls.length} calls
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* ── Inline pain detection ────────────────────────────────────── */}
       {suggestions.length > 0 && (
         <div className="space-y-3 pt-2 border-t border-border">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">{t("pains.detected")}</h3>
             <span className="text-xs text-muted-foreground">
-              {selectedPains.filter(id => suggestions.some(s => s.pain_id === id)).length}/{suggestions.length} selected · uncheck to remove
+              {selectedPains.filter(id => suggestions.some(s => s.pain_id === id)).length}/{suggestions.length} selected
             </span>
           </div>
-
           <div className="space-y-3">
             {Object.entries(grouped).map(([persona, items]) => {
               const { color, Icon } = getPersonaConfig(persona);
@@ -373,6 +416,47 @@ export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPa
           </div>
         </div>
       )}
+
+      {/* ── Emails & Calls dialog ────────────────────────────────────── */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <span>{data.company_name || "Deal"} — Discovery content</span>
+              <div className="flex gap-1.5 ml-auto">
+                <button
+                  onClick={() => setDialogTab("emails")}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    dialogTab === "emails"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  <Mail className="h-3 w-3" /> {emails.length} emails
+                </button>
+                <button
+                  onClick={() => setDialogTab("calls")}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    dialogTab === "calls"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  <Phone className="h-3 w-3" /> {calls.length} calls
+                </button>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 pr-2">
+            <div className="space-y-2 pb-2">
+              {dialogTab === "emails"
+                ? emails.map((e, i) => <EmailCard key={i} email={e} />)
+                : calls.map((c, i) => <CallCard key={i} call={c} />)
+              }
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

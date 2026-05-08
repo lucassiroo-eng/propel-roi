@@ -2,8 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useWizardSession } from "@/hooks/useWizardSession";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { StepProspect } from "@/components/wizard/StepProspect";
-import { StepAiAssist } from "@/components/wizard/StepAiAssist";
-import { StepPains } from "@/components/wizard/StepPains";
 import { StepQuantify } from "@/components/wizard/StepQuantify";
 import { StepOffering } from "@/components/wizard/StepOffering";
 import { StepReview } from "@/components/wizard/StepReview";
@@ -11,8 +9,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-// Steps: 0=Prospect, 1=AI Assist (manual fallback), 2=Pains, 3=Quantify, 4=Offering, 5=Review
-const TOTAL_STEPS = 5;
+// Steps: 0=Prospect, 1=Quantify, 2=Offering, 3=Review
+const TOTAL_STEPS = 4;
 
 export default function Session() {
   const { id } = useParams<{ id: string }>();
@@ -34,24 +32,11 @@ export default function Session() {
 
   const canNext =
     step === 0 ? !!state.prospect.company_name :
-    step === 1 ? false :
-    step === 2 ? !!state.selectedPains.length :
+    step === 1 ? !!state.selectedPains.length :
     true;
 
   const handleNext = async () => {
-    if (step === 0) {
-      // If pains were detected via Airtable, skip AI Assist → go straight to Quantify
-      if (state.prospect.airtable_suggestions?.length) {
-        await save();
-        setStep(3);
-      } else {
-        // No Airtable data — go to manual AI Assist
-        await save();
-        setStep(1);
-      }
-      return;
-    }
-    if (step === 4) {
+    if (step === 2) {
       await save();
       toast.success(t("toast.session_saved"));
       navigate("/");
@@ -65,7 +50,7 @@ export default function Session() {
       step={step}
       saving={saving}
       onBack={step === 0 ? () => navigate("/") : goBack}
-      onNext={step === 1 ? undefined : handleNext}
+      onNext={handleNext}
       canNext={canNext}
       companyName={state.prospect.company_name}
       totalSteps={TOTAL_STEPS}
@@ -99,39 +84,6 @@ export default function Session() {
         />
       )}
       {step === 1 && (
-        <StepAiAssist
-          country={state.prospect.country}
-          sector={state.prospect.sector}
-          hubspotNotes={state.prospect.hubspot_notes}
-          companyName={state.prospect.company_name}
-          airtableSuggestions={state.prospect.airtable_suggestions}
-          airtableStats={state.prospect.airtable_stats}
-          onSuggest={(painIds, suggestions) => {
-            updateState(prev => ({
-              ...prev,
-              selectedPains: [...new Set([...prev.selectedPains, ...painIds])],
-              aiSuggestions: suggestions,
-            }));
-            setStep(3);
-          }}
-          onSkip={() => setStep(3)}
-        />
-      )}
-      {step === 2 && (
-        <StepPains
-          selectedPains={state.selectedPains}
-          aiSuggestions={state.aiSuggestions}
-          onToggle={(painId) =>
-            updateState(prev => ({
-              ...prev,
-              selectedPains: prev.selectedPains.includes(painId)
-                ? prev.selectedPains.filter(p => p !== painId)
-                : [...prev.selectedPains, painId],
-            }))
-          }
-        />
-      )}
-      {step === 3 && (
         <StepQuantify
           hubspotNotes={state.prospect.hubspot_notes}
           selectedPains={state.selectedPains}
@@ -159,7 +111,7 @@ export default function Session() {
           }
         />
       )}
-      {step === 4 && (
+      {step === 2 && (
         <StepOffering
           country={state.prospect.country}
           seats={state.prospect.seats}
@@ -175,7 +127,7 @@ export default function Session() {
           }
         />
       )}
-      {step === 5 && (
+      {step === 3 && (
         <StepReview state={state} sessionId={currentSessionId} />
       )}
     </WizardShell>
