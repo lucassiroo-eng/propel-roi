@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Link as LinkIcon, Mail, Phone } from "lucide-react";
+import { Loader2, Link as LinkIcon, Mail, Phone, CheckCircle, Circle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ProspectData } from "@/hooks/useWizardSession";
+import { getPersonaConfig } from "@/lib/personaConfig";
+import type { ProspectData, AirtableSuggestion } from "@/hooks/useWizardSession";
 
 const SEATS_MIN = 10;
 const SEATS_MAX = 5000;
@@ -98,15 +100,35 @@ function mapSector(industry: string): { value: string; approximate: boolean } {
   return { value: "", approximate: false };
 }
 
+interface PainInfo { pain_id: string; pain_statement: string; persona: string; }
+
 interface Props {
   data: ProspectData;
   onChange: (d: Partial<ProspectData>) => void;
+  selectedPains: string[];
+  onTogglePain: (painId: string) => void;
+  onPainsAutoSelected: (painIds: string[], suggestions: AirtableSuggestion[]) => void;
 }
 
-export function StepProspect({ data, onChange }: Props) {
+export function StepProspect({ data, onChange, selectedPains, onTogglePain, onPainsAutoSelected }: Props) {
   const { t, i18n } = useTranslation();
   const [fetching, setFetching] = useState(false);
   const [sectorApproximate, setSectorApproximate] = useState(false);
+  const [painMap, setPainMap] = useState<Record<string, PainInfo>>({});
+
+  useEffect(() => {
+    supabase
+      .from("pain_library")
+      .select("pain_id, pain_statement, persona")
+      .eq("is_archived", false)
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, PainInfo> = {};
+          data.forEach((p: any) => { map[p.pain_id] = p; });
+          setPainMap(map);
+        }
+      });
+  }, []);
 
   async function handleFetch() {
     if (!data.hubspot_deal_url) {
@@ -137,14 +159,21 @@ export function StepProspect({ data, onChange }: Props) {
         if (emailMatch && !data.contact_email) updates.contact_email = emailMatch[0];
       }
       if (result.stats) updates.airtable_stats = result.stats;
-      if (result.suggestions?.length) updates.airtable_suggestions = result.suggestions;
+      if (result.suggestions?.length) {
+        updates.airtable_suggestions = result.suggestions;
+        // Auto-select all detected pains immediately
+        onPainsAutoSelected(
+          result.suggestions.map((s: any) => s.pain_id),
+          result.suggestions,
+        );
+      }
 
       onChange(updates);
 
       const ec = result.stats?.email_count ?? 0;
       const cc = result.stats?.call_count ?? 0;
       const pc = result.suggestions?.length ?? 0;
-      toast.success(`${ec} emails, ${cc} calls · ${pc} pains detected — continue to review`);
+      toast.success(`${ec} emails, ${cc} calls · ${pc} pains detected`);
     } catch (err: any) {
       toast.error(t("prospect.hubspot_error", { message: err.message ?? "Unknown" }));
     } finally {
@@ -153,6 +182,15 @@ export function StepProspect({ data, onChange }: Props) {
   }
 
   const stats = data.airtable_stats;
+  const suggestions = data.airtable_suggestions ?? [];
+
+  // Group suggestions by persona for display
+  const grouped: Record<string, AirtableSuggestion[]> = {};
+  suggestions.forEach(s => {
+    const persona = painMap[s.pain_id]?.persona ?? "Other";
+    if (!grouped[persona]) grouped[persona] = [];
+    grouped[persona].push(s);
+  });
 
   return (
     <div className="space-y-5">
@@ -285,6 +323,56 @@ export function StepProspect({ data, onChange }: Props) {
           />
         </div>
       </div>
+
+      {/* ── Inline pain detection (appears after Fetch) ──────────────── */}
+      {suggestions.length > 0 && (
+        <div className="space-y-3 pt-2 border-t border-border">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">{t("pains.detected")}</h3>
+            <span className="text-xs text-muted-foreground">
+              {selectedPains.filter(id => suggestions.some(s => s.pain_id === id)).length}/{suggestions.length} selected · uncheck to remove
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {Object.entries(grouped).map(([persona, items]) => {
+              const { color, Icon } = getPersonaConfig(persona);
+              return (
+                <div key={persona} className="space-y-1.5">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-white"
+                    style={{ backgroundColor: color }}
+                  >
+                    <Icon className="h-3 w-3" /> {persona}
+                  </span>
+                  {items.map(s => {
+                    const isSelected = selectedPains.includes(s.pain_id);
+                    const pain = painMap[s.pain_id];
+                    return (
+                      <Card
+                        key={s.pain_id}
+                        className={`cursor-pointer transition-colors ${isSelected ? "border-primary/50 bg-accent/50" : "opacity-50"}`}
+                        style={{ borderLeft: `3px solid ${color}` }}
+                        onClick={() => onTogglePain(s.pain_id)}
+                      >
+                        <CardContent className="py-2.5 px-4 flex items-start gap-3">
+                          <div className={`mt-0.5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground/30"}`}>
+                            {isSelected ? <CheckCircle className="h-4 w-4" /> : <Circle className="h-4 w-4" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            {pain && <p className="text-sm font-medium text-foreground mb-0.5">{pain.pain_statement}</p>}
+                            <p className="text-xs text-muted-foreground italic">{s.rationale}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,13 +6,12 @@ import { StepAiAssist } from "@/components/wizard/StepAiAssist";
 import { StepPains } from "@/components/wizard/StepPains";
 import { StepQuantify } from "@/components/wizard/StepQuantify";
 import { StepOffering } from "@/components/wizard/StepOffering";
-
 import { StepReview } from "@/components/wizard/StepReview";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-// Steps: 0=Prospect, 1=AI Assist, 2=Pains, 3=Quantify, 4=Offering, 5=Review
+// Steps: 0=Prospect, 1=AI Assist (manual fallback), 2=Pains, 3=Quantify, 4=Offering, 5=Review
 const TOTAL_STEPS = 5;
 
 export default function Session() {
@@ -33,16 +32,32 @@ export default function Session() {
     );
   }
 
-  const canNext = step === 0 ? !!state.prospect.company_name : step === 1 ? false : step === 2 ? !!state.selectedPains.length : true;
+  const canNext =
+    step === 0 ? !!state.prospect.company_name :
+    step === 1 ? false :
+    step === 2 ? !!state.selectedPains.length :
+    true;
 
   const handleNext = async () => {
-    if (step === 4) { // step 4 = Review (last step)
+    if (step === 0) {
+      // If pains were detected via Airtable, skip AI Assist → go straight to Quantify
+      if (state.prospect.airtable_suggestions?.length) {
+        await save();
+        setStep(3);
+      } else {
+        // No Airtable data — go to manual AI Assist
+        await save();
+        setStep(1);
+      }
+      return;
+    }
+    if (step === 4) {
       await save();
       toast.success(t("toast.session_saved"));
       navigate("/");
-    } else {
-      goNext();
+      return;
     }
+    goNext();
   };
 
   return (
@@ -65,6 +80,22 @@ export default function Session() {
               prospect: { ...prev.prospect, ...partial },
             }))
           }
+          selectedPains={state.selectedPains}
+          onTogglePain={(painId) =>
+            updateState(prev => ({
+              ...prev,
+              selectedPains: prev.selectedPains.includes(painId)
+                ? prev.selectedPains.filter(p => p !== painId)
+                : [...prev.selectedPains, painId],
+            }))
+          }
+          onPainsAutoSelected={(painIds, suggestions) =>
+            updateState(prev => ({
+              ...prev,
+              selectedPains: [...new Set([...prev.selectedPains, ...painIds])],
+              aiSuggestions: suggestions,
+            }))
+          }
         />
       )}
       {step === 1 && (
@@ -81,7 +112,7 @@ export default function Session() {
               selectedPains: [...new Set([...prev.selectedPains, ...painIds])],
               aiSuggestions: suggestions,
             }));
-            setStep(3); // skip StepPains → go directly to Quantify
+            setStep(3);
           }}
           onSkip={() => setStep(3)}
         />
