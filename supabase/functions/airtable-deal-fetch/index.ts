@@ -146,12 +146,13 @@ Deno.serve(async (req) => {
     if (!airtableToken) throw new Error("AIRTABLE_PAT not configured");
 
     // Fetch Airtable data in parallel
+    // filterByFormula must use field NAMES (not IDs) in curly braces
     const [dealRecords, emailRecords, callRecords] = await Promise.all([
-      airtableGet(airtableToken, DEALS_TABLE, `{${F.DEAL_ID}}="${dealId}"`,
+      airtableGet(airtableToken, DEALS_TABLE, `{deal_id}="${dealId}"`,
         [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE]),
-      airtableGet(airtableToken, EMAILS_TABLE, `{${F.EMAIL_DEAL_ID}}="${dealId}"`,
+      airtableGet(airtableToken, EMAILS_TABLE, `{DEAL_ID}="${dealId}"`,
         [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
-      airtableGet(airtableToken, CALLS_TABLE, `{${F.CALL_DEAL_ID}}="${dealId}"`,
+      airtableGet(airtableToken, CALLS_TABLE, `{Deal_ID}="${dealId}"`,
         [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
     ]);
 

@@ -12,8 +12,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-// Steps: 0=Prospect, 1=AI Assist, 2=Pains, 3=Quantify, 4=Offering, 5=Benchmarks, 6=Review
-const TOTAL_STEPS = 6;
+// Steps: 0=Prospect, 1=AI Assist, 2=Pains, 3=Quantify, 4=Offering, 5=Review
+const TOTAL_STEPS = 5;
 
 export default function Session() {
   const { id } = useParams<{ id: string }>();
@@ -33,10 +33,10 @@ export default function Session() {
     );
   }
 
-  const canNext = step === 0 ? !!state.prospect.company_name : step === 1 ? false : true;
+  const canNext = step === 0 ? !!state.prospect.company_name : step === 1 ? false : step === 2 ? !!state.selectedPains.length : true;
 
   const handleNext = async () => {
-    if (step === TOTAL_STEPS - 1) {
+    if (step === 4) { // step 4 = Review (last step)
       await save();
       toast.success(t("toast.session_saved"));
       navigate("/");
@@ -81,9 +81,9 @@ export default function Session() {
               selectedPains: [...new Set([...prev.selectedPains, ...painIds])],
               aiSuggestions: suggestions,
             }));
-            goNext();
+            setStep(3); // skip StepPains → go directly to Quantify
           }}
-          onSkip={() => goNext()}
+          onSkip={() => setStep(3)}
         />
       )}
       {step === 2 && (
