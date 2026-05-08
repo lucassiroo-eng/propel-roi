@@ -40,6 +40,14 @@ export default function Session() {
       await save();
       toast.success(t("toast.session_saved"));
       navigate("/");
+    } else if (step === 0 && state.prospect.airtable_suggestions?.length) {
+      // Skip AI Assist: apply Airtable suggestions directly and go to Pains
+      updateState(prev => ({
+        ...prev,
+        selectedPains: [...new Set([...prev.selectedPains, ...state.prospect.airtable_suggestions!.map(s => s.pain_id)])],
+        aiSuggestions: state.prospect.airtable_suggestions!,
+      }));
+      setStep(2);
     } else {
       goNext();
     }

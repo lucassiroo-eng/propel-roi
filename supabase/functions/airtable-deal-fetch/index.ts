@@ -1,0 +1,242 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const AIRTABLE_BASE = "appIfs2C59eVeLK4F";
+const EMAILS_TABLE  = "tbltDfeem4cNwMSH5";
+const CALLS_TABLE   = "tblWIll52EKR6uNXL";
+const DEALS_TABLE   = "tblulFcSI0mDBw4lC";
+
+// Field IDs
+const F = {
+  // Emails
+  EMAIL_DEAL_ID:   "fldfAYgZSaMKpkUiQ",
+  EMAIL_DATE:      "fldnjzpuJ1EQA07fs",
+  EMAIL_SUBJECT:   "flde9kJJBWnvGLFUJ",
+  EMAIL_BODY:      "fldfMJGnnztv22QOU", // Body_Clean preferred
+  EMAIL_BODY_RAW:  "fldpI4RZHIaGGmypO",
+  EMAIL_DIRECTION: "fldgVFAB67dnusgrc",
+  EMAIL_FROM:      "fldNCbgEgv9OnRzBz",
+  // Calls
+  CALL_DEAL_ID:    "fldOohHE8LHDLIi78",
+  CALL_DATE:       "fldprzFHalU4krLd9",
+  CALL_TRANSCRIPT: "fldlwhTfx6cRJmAWk",
+  CALL_DURATION:   "fld5daifQ2AIbRyDw",
+  CALL_OWNER:      "fldeQ0Krs1q4goD3w",
+  // Deals
+  DEAL_ID:         "fldrcgvqiDVDL3kjy",
+  DEAL_NAME:       "fldmzbnbry8FhewfQ",
+  DEAL_AMOUNT:     "fldZpeaD7omYo5e1t",
+  DEAL_STAGE:      "fldR0leyMGyTt6D0V",
+  DEAL_CONTACTS:   "fldAWYnaWPT082VvP",
+  DEAL_PAE:        "fldumEE2afuU3K0nn",
+};
+
+function extractDealId(urlOrId: string): string {
+  const m = urlOrId.match(/\/deal\/(\d+)/);
+  if (m) return m[1];
+  return urlOrId.trim().replace(/\D/g, "") || urlOrId.trim();
+}
+
+async function airtableGet(token: string, tableId: string, formula: string, fieldIds: string[]) {
+  const p = new URLSearchParams({ filterByFormula: formula, pageSize: "100" });
+  fieldIds.forEach((f, i) => p.append(`fields[${i}]`, f));
+  const res = await fetch(
+    `https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}?${p}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  if (!res.ok) throw new Error(`Airtable ${tableId}: ${res.status}`);
+  return (await res.json()).records ?? [];
+}
+
+const suggestPainsTool = {
+  name: "suggest_pains",
+  description: "Return suggested pains based on discovery notes",
+  parameters: {
+    type: "object",
+    properties: {
+      suggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            pain_id: { type: "string" },
+            rationale: { type: "string" },
+          },
+          required: ["pain_id", "rationale"],
+        },
+      },
+    },
+    required: ["suggestions"],
+  },
+};
+
+async function runPainMapping(
+  apiKey: string,
+  painList: string,
+  notes: string,
+  country: string,
+  sector: string,
+  language: string
+): Promise<Array<{ pain_id: string; rationale: string }> | null> {
+  const langMap: Record<string, string> = { es: "Spanish", fr: "French", en: "English" };
+  const langName = langMap[language] || "English";
+
+  const systemPrompt = `You are a deterministic Factorial HR pain-matching engine. Your only job is to map discovery notes from emails and calls to the pains in the Factorial Pains Library, using the trigger phrases attached to each pain as the matching signal.
+
+Read the discovery notes and identify every pain from the library that has evidence in the notes. A pain is a match when the notes contain phrases, symptoms or situations that align with the pain's trigger phrases — explicitly or as a paraphrase.
+
+Available pains (each includes trigger phrases to guide matching):
+${painList}
+
+Rules:
+- Only return pain_ids from the list above
+- Match based on trigger phrases — if the notes contain phrases or symptoms listed in a pain's triggers, select that pain
+- Never invent or modify pain_ids
+- Consider the prospect's country (${country || "unknown"}) and sector (${sector || "unknown"})
+- Write the rationale for each suggestion in ${langName} — keep it to 1 short sentence`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const res = await fetch(
+      "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages",
+      {
+        method: "POST",
+        headers: { "api-key": apiKey, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-opus-4-6",
+          max_tokens: 1024,
+          temperature: 0,
+          system: systemPrompt,
+          messages: [{ role: "user", content: `Discovery notes from emails and calls:\n${notes}` }],
+          tools: [{ name: suggestPainsTool.name, description: suggestPainsTool.description, input_schema: suggestPainsTool.parameters }],
+          tool_choice: { type: "tool", name: "suggest_pains" },
+        }),
+        signal: controller.signal,
+      }
+    );
+    clearTimeout(timeout);
+    if (!res.ok) { console.error("Azure error:", res.status); return null; }
+    const data = await res.json();
+    return data.content?.find((b: any) => b.type === "tool_use")?.input?.suggestions ?? [];
+  } catch (err) {
+    clearTimeout(timeout);
+    console.error("Azure call failed:", err);
+    return null;
+  }
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+
+  try {
+    const { deal_url, country = "ES", sector = "", language = "en" } = await req.json();
+    if (!deal_url) return new Response(JSON.stringify({ error: "deal_url required" }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
+
+    const dealId = extractDealId(deal_url);
+    const airtableToken = Deno.env.get("AIRTABLE_PAT");
+    if (!airtableToken) throw new Error("AIRTABLE_PAT not configured");
+
+    // Fetch Airtable data in parallel
+    const [dealRecords, emailRecords, callRecords] = await Promise.all([
+      airtableGet(airtableToken, DEALS_TABLE, `{${F.DEAL_ID}}="${dealId}"`,
+        [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE]),
+      airtableGet(airtableToken, EMAILS_TABLE, `{${F.EMAIL_DEAL_ID}}="${dealId}"`,
+        [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
+      airtableGet(airtableToken, CALLS_TABLE, `{${F.CALL_DEAL_ID}}="${dealId}"`,
+        [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
+    ]);
+
+    const dealFields = dealRecords[0]?.fields ?? {};
+
+    const emails = emailRecords
+      .map((r: any) => ({
+        date:      r.fields[F.EMAIL_DATE] ?? "",
+        subject:   r.fields[F.EMAIL_SUBJECT] ?? "",
+        body:      r.fields[F.EMAIL_BODY] ?? r.fields[F.EMAIL_BODY_RAW] ?? "",
+        direction: r.fields[F.EMAIL_DIRECTION] ?? "",
+        from:      r.fields[F.EMAIL_FROM] ?? "",
+      }))
+      .filter((e: any) => e.body || e.subject)
+      .sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+    const calls = callRecords
+      .map((r: any) => ({
+        date:             r.fields[F.CALL_DATE] ?? "",
+        transcript:       r.fields[F.CALL_TRANSCRIPT] ?? "",
+        duration_seconds: r.fields[F.CALL_DURATION] ?? 0,
+        owner:            r.fields[F.CALL_OWNER] ?? "",
+      }))
+      .filter((c: any) => c.transcript)
+      .sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+    // Build combined notes for AI
+    const parts: string[] = [];
+    if (emails.length > 0) {
+      parts.push(`## Emails (${emails.length})\n` + emails.slice(-20).map((e: any) =>
+        `[${e.date?.slice(0,10)}] ${e.subject}\n${e.body.slice(0, 600)}`
+      ).join("\n\n---\n"));
+    }
+    if (calls.length > 0) {
+      parts.push(`## Call transcripts (${calls.length})\n` + calls.slice(-8).map((c: any) =>
+        `[${c.date?.slice(0,10)}] ${c.owner}\n${c.transcript.slice(0, 1200)}`
+      ).join("\n\n---\n"));
+    }
+    const combinedNotes = parts.join("\n\n");
+
+    // Get pain library + run AI mapping
+    let suggestions: Array<{ pain_id: string; rationale: string }> = [];
+    const azureKey = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
+
+    if (combinedNotes && azureKey) {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const { data: pains } = await supabase
+        .from("pain_library")
+        .select("pain_id, persona, pain_statement, trigger_phrases")
+        .eq("is_archived", false)
+        .order("display_order");
+
+      const painList = (pains ?? [])
+        .map((p: any) => {
+          let line = `- ${p.pain_id}: [${p.persona}] ${p.pain_statement}`;
+          if (p.trigger_phrases) line += `\n  Triggers: ${p.trigger_phrases}`;
+          return line;
+        })
+        .join("\n");
+
+      const raw = await runPainMapping(azureKey, painList, combinedNotes, country, sector, language);
+      const validIds = new Set((pains ?? []).map((p: any) => p.pain_id));
+      suggestions = (raw ?? []).filter((s) => validIds.has(s.pain_id));
+    }
+
+    return new Response(JSON.stringify({
+      deal_id: dealId,
+      deal: {
+        name:          dealFields[F.DEAL_NAME] ?? "",
+        amount:        dealFields[F.DEAL_AMOUNT] ?? null,
+        stage:         dealFields[F.DEAL_STAGE] ?? "",
+        contacts_info: dealFields[F.DEAL_CONTACTS] ?? "",
+        pae:           dealFields[F.DEAL_PAE] ?? "",
+      },
+      emails,
+      calls,
+      suggestions,
+      stats: { email_count: emails.length, call_count: calls.length },
+    }), { headers: { ...CORS, "Content-Type": "application/json" } });
+
+  } catch (err: any) {
+    console.error("airtable-deal-fetch error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+});
