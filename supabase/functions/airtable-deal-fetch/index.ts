@@ -13,7 +13,6 @@ const DEALS_TABLE   = "tblulFcSI0mDBw4lC";
 // Field IDs
 const F = {
   // Emails
-  EMAIL_DEAL_ID:   "fldfAYgZSaMKpkUiQ",
   EMAIL_DATE:      "fldnjzpuJ1EQA07fs",
   EMAIL_SUBJECT:   "flde9kJJBWnvGLFUJ",
   EMAIL_BODY:      "fldfMJGnnztv22QOU", // Body_Clean preferred
@@ -21,7 +20,6 @@ const F = {
   EMAIL_DIRECTION: "fldgVFAB67dnusgrc",
   EMAIL_FROM:      "fldNCbgEgv9OnRzBz",
   // Calls
-  CALL_DEAL_ID:    "fldOohHE8LHDLIi78",
   CALL_DATE:       "fldprzFHalU4krLd9",
   CALL_TRANSCRIPT: "fldlwhTfx6cRJmAWk",
   CALL_DURATION:   "fld5daifQ2AIbRyDw",
@@ -33,6 +31,8 @@ const F = {
   DEAL_STAGE:      "fldR0leyMGyTt6D0V",
   DEAL_CONTACTS:   "fldAWYnaWPT082VvP",
   DEAL_PAE:        "fldumEE2afuU3K0nn",
+  DEAL_EMAILS:     "fldyjtBPuOzC55vhB", // multipleRecordLinks → Emails table
+  DEAL_CALLS:      "fldkhI54DtjnRqsNp", // multipleRecordLinks → Calls table
 };
 
 function extractDealId(urlOrId: string): string {
@@ -45,7 +45,7 @@ function extractDealId(urlOrId: string): string {
 }
 
 async function airtableGet(token: string, tableId: string, formula: string, fieldIds: string[]) {
-  const p = new URLSearchParams({ filterByFormula: formula, pageSize: "100" });
+  const p = new URLSearchParams({ filterByFormula: formula, pageSize: "100", returnFieldsByFieldId: "true" });
   fieldIds.forEach((f, i) => p.append(`fields[${i}]`, f));
   const res = await fetch(
     `https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}?${p}`,
@@ -53,6 +53,14 @@ async function airtableGet(token: string, tableId: string, formula: string, fiel
   );
   if (!res.ok) throw new Error(`Airtable ${tableId}: ${res.status}`);
   return (await res.json()).records ?? [];
+}
+
+async function airtableGetByRecordIds(token: string, tableId: string, recordIds: string[], fieldIds: string[]) {
+  if (!recordIds.length) return [];
+  const formula = recordIds.length === 1
+    ? `RECORD_ID()="${recordIds[0]}"`
+    : `OR(${recordIds.map(id => `RECORD_ID()="${id}"`).join(",")})`;
+  return airtableGet(token, tableId, formula, fieldIds);
 }
 
 const suggestPainsTool = {
@@ -145,18 +153,22 @@ Deno.serve(async (req) => {
     const airtableToken = Deno.env.get("AIRTABLE_PAT");
     if (!airtableToken) throw new Error("AIRTABLE_PAT not configured");
 
-    // Fetch Airtable data in parallel
-    // filterByFormula must use field NAMES (not IDs) in curly braces
-    const [dealRecords, emailRecords, callRecords] = await Promise.all([
-      airtableGet(airtableToken, DEALS_TABLE, `{deal_id}="${dealId}"`,
-        [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE]),
-      airtableGet(airtableToken, EMAILS_TABLE, `{DEAL_ID}="${dealId}"`,
-        [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
-      airtableGet(airtableToken, CALLS_TABLE, `{Deal_ID}="${dealId}"`,
-        [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
-    ]);
+    // Step 1: fetch Deal record (includes linked Email/Call record IDs)
+    const dealRecords = await airtableGet(airtableToken, DEALS_TABLE, `{deal_id}="${dealId}"`,
+      [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE, F.DEAL_EMAILS, F.DEAL_CALLS]);
 
     const dealFields = dealRecords[0]?.fields ?? {};
+
+    // Step 2: follow multipleRecordLinks to fetch Emails and Calls
+    const emailRecordIds: string[] = dealFields[F.DEAL_EMAILS] ?? [];
+    const callRecordIds: string[]  = dealFields[F.DEAL_CALLS]  ?? [];
+
+    const [emailRecords, callRecords] = await Promise.all([
+      airtableGetByRecordIds(airtableToken, EMAILS_TABLE, emailRecordIds,
+        [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
+      airtableGetByRecordIds(airtableToken, CALLS_TABLE, callRecordIds,
+        [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
+    ]);
 
     const emails = emailRecords
       .map((r: any) => ({

@@ -46,9 +46,14 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col relative" style={{ background: "linear-gradient(135deg, #fdf0f3 0%, #f5f0fd 40%, #f0f4fd 70%, #fdf0f7 100%)" }}>
+      {/* Blobs */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #f9a8b8 0%, transparent 70%)" }} />
+        <div className="absolute top-1/2 -right-24 w-80 h-80 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #c4b5fd 0%, transparent 70%)" }} />
+      </div>
       {/* Top bar */}
-      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-4 py-3">
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-white/60 px-4 py-3">
         <div className={`${maxW} mx-auto space-y-3`}>
           {/* Company name + language + save indicator */}
           <div className="flex items-center justify-between">
@@ -93,16 +98,17 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
                 <div key={key} className="flex items-center flex-1 min-w-0">
                   <div className="flex flex-col items-center w-full gap-0.5">
                     <div
-                      className={`
-                        w-full h-1 rounded-full transition-colors
-                        ${isActive ? "bg-primary" : isDone ? "bg-primary/40" : "bg-border"}
-                      `}
+                      className="w-full h-1 rounded-full transition-colors"
+                      style={{
+                        background: isActive ? "#e05c75" : isDone ? "rgba(224,92,117,0.3)" : "rgba(0,0,0,0.08)"
+                      }}
                     />
                     <span
-                      className={`
-                        text-[9px] leading-tight text-center truncate w-full
-                        ${isActive ? "text-primary font-semibold" : isDone ? "text-muted-foreground" : "text-muted-foreground/50"}
-                      `}
+                      className="text-[9px] leading-tight text-center truncate w-full"
+                      style={{
+                        color: isActive ? "#e05c75" : isDone ? "#9ca3af" : "#d1d5db",
+                        fontWeight: isActive ? 600 : 400,
+                      }}
                     >
                       {t(key)}
                     </span>
@@ -115,12 +121,12 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
       </header>
 
       {/* Content */}
-      <main className={`flex-1 px-4 py-6 ${maxW} mx-auto w-full overflow-y-auto`}>
+      <main className={`relative z-10 flex-1 px-4 py-6 ${maxW} mx-auto w-full overflow-y-auto`}>
         {children}
       </main>
 
       {/* Footer nav */}
-      <footer className="sticky bottom-0 bg-background/95 backdrop-blur border-t px-4 py-3">
+      <footer className="sticky bottom-0 z-10 bg-white/80 backdrop-blur border-t border-white/60 px-4 py-3">
         <div className={`flex gap-3 ${maxW} mx-auto`}>
           <Button variant="outline" onClick={onBack} className="flex-1">
             <ArrowLeft className="h-4 w-4 mr-1" />
