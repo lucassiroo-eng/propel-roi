@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Factorial Brand — DM Sans variable font */
+@font-face {
+  font-family: 'DM Sans';
+  src: url('/fonts/DMSans-VariableFont_opsz_wght.ttf') format('truetype-variations'),
+       url('/fonts/DMSans-VariableFont_opsz_wght.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DM Sans';
+  src: url('/fonts/DMSans-Italic-VariableFont_opsz_wght.ttf') format('truetype-variations'),
+       url('/fonts/DMSans-Italic-VariableFont_opsz_wght.ttf') format('truetype');
+  font-weight: 100 1000;
+  font-style: italic;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    /* Factorial palette — Radical Red + Midnight */
+    --background: 240 20% 99%;       /* #FAFAFC */
+    --foreground: 240 24% 19%;       /* #25253D Midnight */
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 24% 19%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 24% 19%;
+
+    /* Radical Red #FF355E */
+    --primary: 347 100% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 14% 96%;       /* #F6F6F8 ink-50 */
+    --secondary-foreground: 240 24% 19%;
+
+    --muted: 240 14% 96%;
+    --muted-foreground: 240 6% 49%;  /* #6C6C7D ink-500 */
+
+    --accent: 347 100% 95%;         /* light red tint #FFE3EA */
+    --accent-foreground: 347 88% 42%; /* dark red */
+
+    --destructive: 347 100% 60%;    /* Radical Red as destructive */
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 167 93% 35%;         /* Viridian #07A2AD */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 37 100% 67%;         /* Sunbeam #FFC155 */
+    --warning-foreground: 240 24% 19%;
+
+    --border: 240 13% 91%;          /* #E6E6EC */
+    --input: 240 13% 91%;
+    --ring: 347 100% 60%;           /* Radical Red */
+
+    --radius: 0.375rem;             /* 6px — brand sm radius */
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 6% 49%;
+    --sidebar-primary: 347 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 347 100% 95%;
+    --sidebar-accent-foreground: 347 88% 42%;
+    --sidebar-border: 240 13% 91%;
+    --sidebar-ring: 347 100% 60%;
+  }
+
+  .dark {
+    --background: 240 24% 8%;
+    --foreground: 210 20% 96%;
+
+    --card: 240 24% 12%;
+    --card-foreground: 210 20% 96%;
+
+    --popover: 240 24% 12%;
+    --popover-foreground: 210 20% 96%;
+
+    --primary: 347 100% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 14% 18%;
+    --secondary-foreground: 210 20% 96%;
+
+    --muted: 240 14% 18%;
+    --muted-foreground: 240 6% 60%;
+
+    --accent: 347 40% 20%;
+    --accent-foreground: 347 100% 80%;
+
+    --destructive: 347 62% 30%;
+    --destructive-foreground: 210 20% 96%;
+
+    --success: 167 70% 30%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 37 70% 40%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 240 14% 18%;
+    --input: 240 14% 18%;
+    --ring: 347 100% 60%;
+
+    --sidebar-background: 240 24% 8%;
+    --sidebar-foreground: 240 6% 60%;
+    --sidebar-primary: 347 100% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 347 40% 20%;
+    --sidebar-accent-foreground: 347 100% 80%;
+    --sidebar-border: 240 14% 18%;
+    --sidebar-ring: 347 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.01em;
+  }
+}
