@@ -36,9 +36,12 @@ const F = {
 };
 
 function extractDealId(urlOrId: string): string {
-  const m = urlOrId.match(/\/deal\/(\d+)/);
+  // Match last numeric segment in URL path (handles /deal/ID and /record/0-3/ID formats)
+  const m = urlOrId.match(/\/(\d{6,})\/?(?:\?.*)?$/);
   if (m) return m[1];
-  return urlOrId.trim().replace(/\D/g, "") || urlOrId.trim();
+  // Plain numeric ID
+  if (/^\d+$/.test(urlOrId.trim())) return urlOrId.trim();
+  return urlOrId.trim();
 }
 
 async function airtableGet(token: string, tableId: string, formula: string, fieldIds: string[]) {

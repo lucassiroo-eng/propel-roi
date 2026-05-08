@@ -40,14 +40,6 @@ export default function Session() {
       await save();
       toast.success(t("toast.session_saved"));
       navigate("/");
-    } else if (step === 0 && state.prospect.airtable_suggestions?.length) {
-      // Skip AI Assist: apply Airtable suggestions directly and go to Pains
-      updateState(prev => ({
-        ...prev,
-        selectedPains: [...new Set([...prev.selectedPains, ...state.prospect.airtable_suggestions!.map(s => s.pain_id)])],
-        aiSuggestions: state.prospect.airtable_suggestions!,
-      }));
-      setStep(2);
     } else {
       goNext();
     }
@@ -81,6 +73,8 @@ export default function Session() {
           sector={state.prospect.sector}
           hubspotNotes={state.prospect.hubspot_notes}
           companyName={state.prospect.company_name}
+          airtableSuggestions={state.prospect.airtable_suggestions}
+          airtableStats={state.prospect.airtable_stats}
           onSuggest={(painIds, suggestions) => {
             updateState(prev => ({
               ...prev,
