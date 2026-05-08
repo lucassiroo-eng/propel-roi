@@ -128,6 +128,7 @@ export function StepProspect({ data, onChange }: Props) {
 
       const updates: Partial<ProspectData> = {};
       if (result.deal?.name) updates.deal_name = result.deal.name;
+      if (result.deal?.company_name && !data.company_name) updates.company_name = result.deal.company_name;
       if (result.deal?.contacts_info) {
         const ci = result.deal.contacts_info;
         const nameMatch = ci.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);

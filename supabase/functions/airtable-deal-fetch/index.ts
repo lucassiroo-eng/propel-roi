@@ -5,10 +5,11 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const AIRTABLE_BASE = "appIfs2C59eVeLK4F";
-const EMAILS_TABLE  = "tbltDfeem4cNwMSH5";
-const CALLS_TABLE   = "tblWIll52EKR6uNXL";
-const DEALS_TABLE   = "tblulFcSI0mDBw4lC";
+const AIRTABLE_BASE    = "appIfs2C59eVeLK4F";
+const EMAILS_TABLE     = "tbltDfeem4cNwMSH5";
+const CALLS_TABLE      = "tblWIll52EKR6uNXL";
+const DEALS_TABLE      = "tblulFcSI0mDBw4lC";
+const COMPANIES_TABLE  = "tbluzghXeuw8yz0Qp";
 
 // Field IDs
 const F = {
@@ -33,6 +34,9 @@ const F = {
   DEAL_PAE:        "fldumEE2afuU3K0nn",
   DEAL_EMAILS:     "fldyjtBPuOzC55vhB", // multipleRecordLinks → Emails table
   DEAL_CALLS:      "fldkhI54DtjnRqsNp", // multipleRecordLinks → Calls table
+  DEAL_COMPANY:    "fldnUWd12DHIvcqtN", // multipleRecordLinks → Companies table
+  // Companies
+  COMPANY_NAME:    "fldlZRwUM2Yut46fg",
 };
 
 function extractDealId(urlOrId: string): string {
@@ -153,22 +157,30 @@ Deno.serve(async (req) => {
     const airtableToken = Deno.env.get("AIRTABLE_PAT");
     if (!airtableToken) throw new Error("AIRTABLE_PAT not configured");
 
-    // Step 1: fetch Deal record (includes linked Email/Call record IDs)
+    // Step 1: fetch Deal record (includes linked record IDs)
     const dealRecords = await airtableGet(airtableToken, DEALS_TABLE, `{deal_id}="${dealId}"`,
-      [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE, F.DEAL_EMAILS, F.DEAL_CALLS]);
+      [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE, F.DEAL_EMAILS, F.DEAL_CALLS, F.DEAL_COMPANY]);
 
     const dealFields = dealRecords[0]?.fields ?? {};
 
-    // Step 2: follow multipleRecordLinks to fetch Emails and Calls
-    const emailRecordIds: string[] = dealFields[F.DEAL_EMAILS] ?? [];
-    const callRecordIds: string[]  = dealFields[F.DEAL_CALLS]  ?? [];
+    // Step 2: follow multipleRecordLinks to fetch Emails, Calls and Company name in parallel
+    const emailRecordIds: string[]   = dealFields[F.DEAL_EMAILS]  ?? [];
+    const callRecordIds: string[]    = dealFields[F.DEAL_CALLS]   ?? [];
+    const companyRecordIds: string[] = dealFields[F.DEAL_COMPANY] ?? [];
 
-    const [emailRecords, callRecords] = await Promise.all([
+    const [emailRecords, callRecords, companyRecords] = await Promise.all([
       airtableGetByRecordIds(airtableToken, EMAILS_TABLE, emailRecordIds,
         [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
       airtableGetByRecordIds(airtableToken, CALLS_TABLE, callRecordIds,
         [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
+      airtableGetByRecordIds(airtableToken, COMPANIES_TABLE, companyRecordIds.slice(0, 1),
+        [F.COMPANY_NAME]),
     ]);
+
+    const companyNameFromTable: string = companyRecords[0]?.fields?.[F.COMPANY_NAME] ?? "";
+    // Fallback: extract from deal name (e.g. "HT Médica - from Telefonica" → "HT Médica")
+    const companyNameFromDeal = (dealFields[F.DEAL_NAME] ?? "").split(/\s*[-–]\s*(from|de)\s/i)[0].trim();
+    const companyName: string = companyNameFromTable || companyNameFromDeal;
 
     const emails = emailRecords
       .map((r: any) => ({
@@ -237,6 +249,7 @@ Deno.serve(async (req) => {
       deal_id: dealId,
       deal: {
         name:          dealFields[F.DEAL_NAME] ?? "",
+        company_name:  companyName,
         amount:        dealFields[F.DEAL_AMOUNT] ?? null,
         stage:         dealFields[F.DEAL_STAGE] ?? "",
         contacts_info: dealFields[F.DEAL_CONTACTS] ?? "",
