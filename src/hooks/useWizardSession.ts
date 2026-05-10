@@ -44,6 +44,7 @@ export interface ProspectData {
   airtable_stats?: { email_count: number; call_count: number };
   airtable_emails?: AirtableEmail[];
   airtable_calls?: AirtableCall[];
+  fetch_source?: "airtable" | "hubspot";
 }
 
 export interface PainOverride {
