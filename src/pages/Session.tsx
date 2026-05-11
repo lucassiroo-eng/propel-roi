@@ -92,7 +92,11 @@ export default function Session() {
           painOverrides={state.painOverrides}
           sector={state.prospect.sector}
           selectedModules={state.selectedModules}
+          moduleSuggestions={state.moduleSuggestions}
           roiConfig={state.roiConfig}
+          onRoiConfigChange={(config) =>
+            updateState(prev => ({ ...prev, roiConfig: config }))
+          }
           onChange={(partial) =>
             updateState(prev => ({
               ...prev,

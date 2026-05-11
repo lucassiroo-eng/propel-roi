@@ -4,14 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import {
   Check, X, Loader2, Plus, Presentation, FileDown,
   ExternalLink, Package, Star, Save, Eye,
+  ArrowLeft, ChevronDown, Info, Users, Shield, Briefcase, Quote,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { SelectedOffering, PainOverride, AddonLine, RoiConfig, WizardState } from "@/hooks/useWizardSession";
+import type { SelectedOffering, PainOverride, AddonLine, RoiConfig, WizardState, ModuleSuggestion } from "@/hooks/useWizardSession";
 import {
   type BundleRow,
   type PricingLineItem,
@@ -38,7 +38,9 @@ interface Props {
   painOverrides?: Record<string, PainOverride>;
   sector?: string;
   selectedModules?: string[];
+  moduleSuggestions?: ModuleSuggestion[];
   roiConfig?: RoiConfig;
+  onRoiConfigChange?: (config: RoiConfig) => void;
   onChange: (o: Partial<SelectedOffering>) => void;
   onModulesChange?: (modules: string[]) => void;
   sessionId?: string | null;
@@ -55,16 +57,17 @@ function getModuleColor(moduleId: string): string {
   return MODULE_CATALOG.find(m => m.id === moduleId)?.color ?? "#94A3B8";
 }
 
-const STAKEHOLDER_META: Record<Stakeholder, { label: string; color: string }> = {
-  employee: { label: "Employees", color: "#3B82F6" },
-  hr:       { label: "HR / Finance", color: "#10B981" },
-  manager:  { label: "Managers", color: "#F59E0B" },
+const STAKEHOLDER_META: Record<Stakeholder, { label: string; sublabel: string; icon: typeof Users; color: string; bg: string; border: string }> = {
+  employee: { label: "Employees",    sublabel: "~80% of seats", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
+  hr:       { label: "HR / Finance", sublabel: "~5% of seats",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  manager:  { label: "Managers",     sublabel: "~15% of seats", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
 };
 
 export function StepOffering({
   country, seats, offering, selectedPains, painOverrides = {},
-  sector = "", selectedModules = [], roiConfig, onChange,
-  onModulesChange, sessionId, state, onSave, onSaveAndExit,
+  sector = "", selectedModules = [], moduleSuggestions = [], roiConfig,
+  onRoiConfigChange, onChange, onModulesChange, sessionId, state,
+  onSave, onSaveAndExit,
 }: Props) {
   const [generatingPptx, setGeneratingPptx] = useState(false);
   const [pptxUrl, setPptxUrl] = useState<string | null>(null);
@@ -254,6 +257,22 @@ export function StepOffering({
   }
 
   const allBundleModules = selectedAnalysis?.bundleModules ?? [];
+
+  if (hypothesisOpen) {
+    return (
+      <HypothesisView
+        roiConfig={roiConfig ?? { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } }}
+        onRoiConfigChange={onRoiConfigChange ?? (() => {})}
+        configModules={configuration?.configModules ?? []}
+        moduleSuggestions={moduleSuggestions}
+        onBack={() => setHypothesisOpen(false)}
+        onSave={() => {
+          if (onSave) onSave();
+          setHypothesisOpen(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -454,7 +473,7 @@ export function StepOffering({
         <div className="grid grid-cols-3 gap-3">
           <Button variant="outline" size="lg" onClick={() => setHypothesisOpen(true)} className="gap-2">
             <Eye className="h-4 w-4" />
-            Hypothesis
+            Check Hypothesis
           </Button>
           <Button size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
             {generatingPptx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
@@ -478,30 +497,37 @@ export function StepOffering({
         )}
       </div>
 
-      {/* Hypothesis dialog — detailed ROI breakdown */}
-      <HypothesisDialog
-        open={hypothesisOpen}
-        onClose={() => setHypothesisOpen(false)}
-        roiConfig={roiConfig}
-        configModules={configuration?.configModules ?? []}
-      />
     </div>
   );
 }
 
-// ── Hypothesis Dialog: detailed module × stakeholder breakdown ──
-function HypothesisDialog({ open, onClose, roiConfig, configModules }: {
-  open: boolean;
-  onClose: () => void;
-  roiConfig?: RoiConfig;
+// ── Hypothesis View: full-screen module × stakeholder breakdown ──
+function HypothesisView({
+  roiConfig, onRoiConfigChange, configModules, moduleSuggestions, onBack, onSave,
+}: {
+  roiConfig: RoiConfig;
+  onRoiConfigChange: (config: RoiConfig) => void;
   configModules: string[];
+  moduleSuggestions: ModuleSuggestion[];
+  onBack: () => void;
+  onSave: () => void;
 }) {
-  if (!roiConfig) return null;
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const { headcounts, hourly_costs } = roiConfig;
 
-  const rows = configModules.map(moduleId => {
+  function setHeadcount(key: Stakeholder, value: number) {
+    onRoiConfigChange({ ...roiConfig, headcounts: { ...headcounts, [key]: Math.max(0, value) } });
+  }
+  function setHourlyCost(key: Stakeholder, value: number) {
+    onRoiConfigChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
+  }
+
+  const totalPeople = headcounts.employee + headcounts.hr + headcounts.manager;
+
+  const moduleRows = configModules.map(moduleId => {
     const catalog = MODULE_CATALOG.find(m => m.id === moduleId);
     const hours = getHoursForModule(moduleId);
+    const suggestion = moduleSuggestions.find(s => s.module_id === moduleId);
     const label = catalog?.label ?? moduleLabel(moduleId);
     const color = catalog?.color ?? "#94A3B8";
     const perStakeholder = (["employee", "hr", "manager"] as Stakeholder[]).map(s => ({
@@ -512,79 +538,196 @@ function HypothesisDialog({ open, onClose, roiConfig, configModules }: {
     }));
     const monthlyHours = perStakeholder.reduce((sum, s) => sum + s.totalHours, 0);
     const annualMoney = perStakeholder.reduce((sum, s) => sum + s.totalMoney, 0) * 12;
-    return { moduleId, label, color, perStakeholder, monthlyHours, annualMoney };
+    return { moduleId, label, color, suggestion, perStakeholder, monthlyHours, annualMoney };
   }).filter(r => r.monthlyHours > 0);
 
   const totals = {
-    monthlyHours: rows.reduce((s, r) => s + r.monthlyHours, 0),
-    annual: rows.reduce((s, r) => s + r.annualMoney, 0),
+    monthlyHours: moduleRows.reduce((s, r) => s + r.monthlyHours, 0),
+    annual: moduleRows.reduce((s, r) => s + r.annualMoney, 0),
   };
 
-  const fmt = (n: number) => n.toLocaleString("en", { maximumFractionDigits: 1 });
-
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>ROI Hypothesis — Time & Cost Breakdown</DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-4 pr-2">
-            {/* Assumptions */}
-            <div className="grid grid-cols-3 gap-3">
-              {(["employee", "hr", "manager"] as Stakeholder[]).map(s => (
-                <div key={s} className="rounded-lg border border-border px-3 py-2 text-center">
-                  <p className="text-xs font-semibold" style={{ color: STAKEHOLDER_META[s].color }}>{STAKEHOLDER_META[s].label}</p>
-                  <p className="text-lg font-bold tabular-nums">{headcounts[s]}</p>
-                  <p className="text-[10px] text-muted-foreground">@ €{hourly_costs[s]}/h</p>
-                </div>
-              ))}
-            </div>
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "linear-gradient(135deg, #fdf0f3 0%, #f5f0fd 40%, #f0f4fd 70%, #fdf0f7 100%)" }}>
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-white/60 px-4 py-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <Button variant="ghost" onClick={onBack} className="gap-1.5">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <h2 className="text-base font-semibold text-foreground">Check Hypothesis</h2>
+          <Button onClick={onSave} className="gap-1.5">
+            <Save className="h-4 w-4" />
+            Save
+          </Button>
+        </div>
+      </header>
 
-            {/* Detailed table */}
-            <div className="rounded-lg border border-border overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/50">
-                    <th className="text-left px-3 py-2 font-semibold text-foreground">Module</th>
-                    {(["employee", "hr", "manager"] as Stakeholder[]).map(s => (
-                      <th key={s} className="text-right px-2 py-2 font-semibold whitespace-nowrap" style={{ color: STAKEHOLDER_META[s].color }}>{STAKEHOLDER_META[s].label}</th>
-                    ))}
-                    <th className="text-right px-2 py-2 font-semibold">h/mo</th>
-                    <th className="text-right px-3 py-2 font-semibold">€/year</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, i) => (
-                    <tr key={row.moduleId} className={i % 2 === 0 ? "bg-card" : "bg-muted/20"}>
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-                          <span className="font-medium">{row.label}</span>
-                        </div>
-                      </td>
-                      {row.perStakeholder.map(ps => (
-                        <td key={ps.stakeholder} className="text-right px-2 py-2 tabular-nums text-muted-foreground">
-                          {ps.hoursPerPerson > 0 ? `${fmt(ps.totalHours)}h` : <span className="opacity-30">—</span>}
-                        </td>
-                      ))}
-                      <td className="text-right px-2 py-2 font-medium tabular-nums">{fmt(row.monthlyHours)}</td>
-                      <td className="text-right px-3 py-2 font-semibold tabular-nums text-emerald-600">€{Math.round(row.annualMoney).toLocaleString("en")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-border bg-muted/50">
-                    <td className="px-3 py-2.5 font-bold" colSpan={4}>Total</td>
-                    <td className="text-right px-2 py-2.5 font-bold tabular-nums">{fmt(totals.monthlyHours)}</td>
-                    <td className="text-right px-3 py-2.5 font-bold tabular-nums text-emerald-600">€{Math.round(totals.annual).toLocaleString("en")}</td>
-                  </tr>
-                </tfoot>
-              </table>
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-8">
+        {/* (i) Stakeholder Assumptions */}
+        <section className="space-y-3">
+          <p className="text-sm font-semibold text-foreground">Stakeholder Assumptions</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
+              const meta = STAKEHOLDER_META[key];
+              const Icon = meta.icon;
+              return (
+                <div
+                  key={key}
+                  className="rounded-xl p-4 space-y-4 transition-shadow hover:shadow-sm"
+                  style={{ backgroundColor: meta.bg, border: `1.5px solid ${meta.border}` }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: meta.color }}>
+                      <Icon className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground leading-tight">{meta.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{meta.sublabel}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">People</label>
+                      <Input
+                        type="number" min={0}
+                        className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
+                        value={headcounts[key]}
+                        onChange={e => setHeadcount(key, parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">€/hour</label>
+                      <Input
+                        type="number" min={0} step={5}
+                        className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
+                        value={hourly_costs[key]}
+                        onChange={e => setHourlyCost(key, parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-muted-foreground">
+              <strong className="text-foreground">{totalPeople}</strong> people total
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Weighted avg: <strong className="text-foreground">
+                €{totalPeople > 0 ? Math.round((headcounts.employee * hourly_costs.employee + headcounts.hr * hourly_costs.hr + headcounts.manager * hourly_costs.manager) / totalPeople) : 0}
+              </strong>/h
+            </span>
+          </div>
+        </section>
+
+        {/* (ii) Module Breakdown */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-foreground">
+              Module Breakdown
+              <span className="text-muted-foreground font-normal ml-2">{moduleRows.length} modules</span>
+            </p>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">{totals.monthlyHours.toFixed(0)}h/mo · <strong className="text-emerald-600">€{fmtEur(totals.annual)}/yr</strong></p>
             </div>
           </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+
+          <div className="space-y-2">
+            {moduleRows.map(row => {
+              const isExpanded = expandedModule === row.moduleId;
+              return (
+                <div
+                  key={row.moduleId}
+                  className="rounded-xl border overflow-hidden transition-shadow hover:shadow-sm bg-white/60"
+                  style={{ borderColor: row.color + "30", borderLeftWidth: 4, borderLeftColor: row.color }}
+                >
+                  {/* Condensed view */}
+                  <button
+                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-muted/20 transition-colors"
+                    onClick={() => setExpandedModule(isExpanded ? null : row.moduleId)}
+                  >
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: row.color + "15" }}>
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: row.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{row.label}</p>
+                      {row.suggestion?.quote && (
+                        <div className="flex items-start gap-1.5 mt-0.5">
+                          <Quote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/40" />
+                          <p className="text-[11px] text-muted-foreground italic line-clamp-1">{row.suggestion.quote}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0 mr-2">
+                      <p className="text-xs text-muted-foreground tabular-nums">{row.monthlyHours.toFixed(0)}h/mo</p>
+                      <p className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(row.annualMoney)}/yr</p>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Expanded view — per-stakeholder rows */}
+                  {isExpanded && (
+                    <div className="border-t px-4 py-3 space-y-2 bg-muted/5" style={{ borderColor: row.color + "20" }}>
+                      {row.perStakeholder.filter(ps => ps.hoursPerPerson > 0).map(ps => {
+                        const meta = STAKEHOLDER_META[ps.stakeholder];
+                        const Icon = meta.icon;
+                        return (
+                          <div key={ps.stakeholder} className="flex items-center gap-3 rounded-lg px-3 py-2.5" style={{ backgroundColor: meta.bg }}>
+                            <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
+                              <Icon className="h-3.5 w-3.5 text-white" />
+                            </div>
+                            <span className="text-sm font-medium text-foreground flex-1">{meta.label}</span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/60 transition-colors shrink-0">
+                                  <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-60 text-xs p-3" side="left">
+                                <p className="font-semibold text-foreground mb-1.5">{row.label} × {meta.label}</p>
+                                <p className="text-muted-foreground leading-relaxed">
+                                  Saves <strong>{ps.hoursPerPerson}h</strong> per person per month.
+                                  With <strong>{headcounts[ps.stakeholder]}</strong> {meta.label.toLowerCase()}: <strong>{ps.totalHours.toFixed(1)}h</strong>/month total.
+                                </p>
+                                <p className="text-muted-foreground mt-1.5">
+                                  Annual value: <strong className="text-emerald-600">€{fmtEur(ps.totalMoney * 12)}</strong>
+                                </p>
+                              </PopoverContent>
+                            </Popover>
+                            <div className="flex items-center gap-4 shrink-0">
+                              <span className="text-xs text-muted-foreground tabular-nums w-20 text-right">{ps.hoursPerPerson}h/pers/mo</span>
+                              <span className="text-sm font-semibold tabular-nums text-foreground w-16 text-right">{ps.totalHours.toFixed(1)}h/mo</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {/* Module total */}
+                      <div className="flex items-center justify-between px-3 pt-1 border-t" style={{ borderColor: row.color + "15" }}>
+                        <span className="text-xs font-medium text-muted-foreground">Module total</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-xs font-semibold tabular-nums">{row.monthlyHours.toFixed(0)}h/mo</span>
+                          <span className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(row.annualMoney)}/yr</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Grand total */}
+          <div className="rounded-xl border border-border bg-white/80 px-5 py-3 flex items-center justify-between">
+            <span className="text-sm font-bold text-foreground">Total savings</span>
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-semibold tabular-nums">{totals.monthlyHours.toFixed(0)}h/mo</span>
+              <span className="text-lg font-bold tabular-nums text-emerald-600">€{fmtEur(totals.annual)}/yr</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
