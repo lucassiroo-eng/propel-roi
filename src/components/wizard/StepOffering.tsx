@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Check, X, Loader2, Plus, Presentation, FileDown,
-  ExternalLink, Package, Star, Save, Eye,
-  ArrowLeft, ChevronDown, Info, Users, Shield, Briefcase, Quote,
+  ExternalLink, Package, Star, Save, Eye, Globe,
+  ArrowLeft, ChevronDown, Users, Shield, Briefcase, Quote,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import type { SelectedOffering, PainOverride, AddonLine, RoiConfig, WizardState, ModuleSuggestion } from "@/hooks/useWizardSession";
 import {
   type BundleRow,
@@ -25,7 +26,7 @@ import {
   MODULES_INCLUDED_IN_CORE,
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG } from "@/lib/moduleCatalog";
-import { getHoursForModule, type Stakeholder } from "@/lib/moduleHours";
+import { getHoursForModule, SAVINGS_DESCRIPTIONS, type Stakeholder } from "@/lib/moduleHours";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -395,22 +396,10 @@ export function StepOffering({
       {/* INVOICE: Unified Cost & Savings per Module  */}
       {/* ═══════════════════════════════════════════ */}
       {configuration && (() => {
-        const allModuleRows = [
-          ...allBundleModules.map(modId => ({
-            moduleId: modId,
-            label: moduleLabel(modId),
-            color: getModuleColor(modId),
-            cost: null as number | null,
-            isBundle: true,
-          })),
-          ...configuration.addonLines.map(a => ({
-            moduleId: a.module,
-            label: a.label,
-            color: getModuleColor(a.module),
-            cost: a.annual,
-            isBundle: false,
-          })),
-        ];
+        const bundleSavings = allBundleModules.reduce((acc, modId) => {
+          const s = roiSavings.perModule.find(m => m.moduleId === modId);
+          return { hours: acc.hours + (s?.monthlyHours ?? 0), money: acc.money + (s?.annualMoney ?? 0) };
+        }, { hours: 0, money: 0 });
 
         return (
           <div className="rounded-xl border border-border overflow-hidden">
@@ -422,21 +411,46 @@ export function StepOffering({
               <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">Savings/yr</span>
             </div>
 
-            {/* Module rows */}
-            {allModuleRows.map((row, i) => {
-              const saving = roiSavings.perModule.find(m => m.moduleId === row.moduleId);
+            {/* Bundle group header */}
+            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2.5 border-t border-border bg-muted/20 gap-3">
+              <span className="text-sm font-semibold text-foreground">{selectedAnalysis?.bundle.bundle_name}</span>
+              <span className="text-sm font-semibold tabular-nums text-right">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)} €</span>
+              <span className="text-xs font-semibold tabular-nums text-right text-emerald-600/70">{bundleSavings.hours.toFixed(0)}h</span>
+              <span className="text-sm font-semibold tabular-nums text-right text-emerald-600">{fmtEur(bundleSavings.money)} €</span>
+            </div>
+
+            {/* Bundle module rows (indented) */}
+            {allBundleModules.map((modId, i) => {
+              const saving = roiSavings.perModule.find(m => m.moduleId === modId);
+              const color = getModuleColor(modId);
               return (
-                <div key={row.moduleId} className={`grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t border-border/30 gap-3 ${i % 2 === 0 ? "bg-white/50" : "bg-muted/10"}`}>
+                <div key={modId} className={`grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center pl-8 pr-5 py-1.5 border-t border-border/20 gap-3 ${i % 2 === 0 ? "bg-white/40" : "bg-muted/5"}`}>
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
-                    <span className="text-sm text-foreground truncate">{row.label}</span>
-                    {row.isBundle && (
-                      <span className="text-[9px] text-muted-foreground bg-muted rounded px-1 py-0.5 shrink-0">incl.</span>
-                    )}
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-xs text-muted-foreground truncate">{moduleLabel(modId)}</span>
                   </div>
-                  <span className="text-sm tabular-nums text-right text-muted-foreground">
-                    {row.cost !== null ? `${fmtEur(row.cost)} €` : "—"}
+                  <span className="text-xs tabular-nums text-right text-muted-foreground/50">incl.</span>
+                  <span className="text-xs tabular-nums text-right text-emerald-600/50">
+                    {saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}
                   </span>
+                  <span className="text-xs tabular-nums text-right text-emerald-600/50">
+                    {saving ? `${fmtEur(saving.annualMoney)} €` : "—"}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Add-on module rows */}
+            {configuration.addonLines.map((a, i) => {
+              const saving = roiSavings.perModule.find(m => m.moduleId === a.module);
+              const color = getModuleColor(a.module);
+              return (
+                <div key={a.module} className={`grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t border-border/30 gap-3 ${i % 2 === 0 ? "bg-white/50" : "bg-muted/10"}`}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-sm text-foreground truncate">{a.label}</span>
+                  </div>
+                  <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(a.annual)} €</span>
                   <span className="text-xs tabular-nums text-right text-emerald-600/70">
                     {saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}
                   </span>
@@ -446,14 +460,6 @@ export function StepOffering({
                 </div>
               );
             })}
-
-            {/* Bundle base cost row */}
-            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t border-border bg-muted/20 gap-3">
-              <span className="text-sm text-foreground font-medium">{selectedAnalysis?.bundle.bundle_name}</span>
-              <span className="text-sm font-medium tabular-nums text-right">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)} €</span>
-              <span />
-              <span />
-            </div>
 
             {/* Totals */}
             <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 border-t-2 border-border bg-muted/40 gap-3">
@@ -502,6 +508,8 @@ export function StepOffering({
 }
 
 // ── Hypothesis View: full-screen module × stakeholder breakdown ──
+const LANG_FLAG: Record<string, string> = { en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}" };
+
 function HypothesisView({
   roiConfig, onRoiConfigChange, configModules, moduleSuggestions, onBack, onSave,
 }: {
@@ -513,7 +521,13 @@ function HypothesisView({
   onSave: () => void;
 }) {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const { i18n } = useTranslation();
   const { headcounts, hourly_costs } = roiConfig;
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+    localStorage.setItem("propel_locale", lng);
+  };
 
   function setHeadcount(key: Stakeholder, value: number) {
     onRoiConfigChange({ ...roiConfig, headcounts: { ...headcounts, [key]: Math.max(0, value) } });
@@ -556,10 +570,25 @@ function HypothesisView({
             Back
           </Button>
           <h2 className="text-base font-semibold text-foreground">Check Hypothesis</h2>
-          <Button onClick={onSave} className="gap-1.5">
-            <Save className="h-4 w-4" />
-            Save
-          </Button>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
+                  <Globe className="h-3.5 w-3.5" />
+                  {LANG_FLAG[i18n.language?.substring(0, 2)] ?? "\u{1F310}"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-32 p-1" align="end">
+                <button className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors" onClick={() => changeLanguage("en")}>{"\u{1F1EC}\u{1F1E7}"} English</button>
+                <button className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors" onClick={() => changeLanguage("es")}>{"\u{1F1EA}\u{1F1F8}"} Español</button>
+                <button className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors" onClick={() => changeLanguage("fr")}>{"\u{1F1EB}\u{1F1F7}"} Français</button>
+              </PopoverContent>
+            </Popover>
+            <Button onClick={onSave} className="gap-1.5">
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -673,33 +702,22 @@ function HypothesisView({
                       {row.perStakeholder.filter(ps => ps.hoursPerPerson > 0).map(ps => {
                         const meta = STAKEHOLDER_META[ps.stakeholder];
                         const Icon = meta.icon;
+                        const desc = SAVINGS_DESCRIPTIONS[row.moduleId]?.[ps.stakeholder] ?? "";
                         return (
-                          <div key={ps.stakeholder} className="flex items-center gap-3 rounded-lg px-3 py-2.5" style={{ backgroundColor: meta.bg }}>
-                            <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
-                              <Icon className="h-3.5 w-3.5 text-white" />
+                          <div key={ps.stakeholder} className="rounded-lg px-3 py-2.5" style={{ backgroundColor: meta.bg }}>
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
+                                <Icon className="h-3.5 w-3.5 text-white" />
+                              </div>
+                              <span className="text-sm font-medium text-foreground flex-1">{meta.label}</span>
+                              <div className="flex items-center gap-4 shrink-0">
+                                <span className="text-xs text-muted-foreground tabular-nums">{ps.hoursPerPerson}h/pers/mo</span>
+                                <span className="text-sm font-semibold tabular-nums text-emerald-600 w-20 text-right">€{fmtEur(ps.totalMoney * 12)}/yr</span>
+                              </div>
                             </div>
-                            <span className="text-sm font-medium text-foreground flex-1">{meta.label}</span>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-white/60 transition-colors shrink-0">
-                                  <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-60 text-xs p-3" side="left">
-                                <p className="font-semibold text-foreground mb-1.5">{row.label} × {meta.label}</p>
-                                <p className="text-muted-foreground leading-relaxed">
-                                  Saves <strong>{ps.hoursPerPerson}h</strong> per person per month.
-                                  With <strong>{headcounts[ps.stakeholder]}</strong> {meta.label.toLowerCase()}: <strong>{ps.totalHours.toFixed(1)}h</strong>/month total.
-                                </p>
-                                <p className="text-muted-foreground mt-1.5">
-                                  Annual value: <strong className="text-emerald-600">€{fmtEur(ps.totalMoney * 12)}</strong>
-                                </p>
-                              </PopoverContent>
-                            </Popover>
-                            <div className="flex items-center gap-4 shrink-0">
-                              <span className="text-xs text-muted-foreground tabular-nums w-20 text-right">{ps.hoursPerPerson}h/pers/mo</span>
-                              <span className="text-sm font-semibold tabular-nums text-foreground w-16 text-right">{ps.totalHours.toFixed(1)}h/mo</span>
-                            </div>
+                            {desc && (
+                              <p className="text-[11px] text-muted-foreground mt-1 ml-9 leading-relaxed">{desc}</p>
+                            )}
                           </div>
                         );
                       })}
