@@ -269,6 +269,7 @@ export function StepOffering({
   }
 
   const allBundleModules = selectedAnalysis?.bundleModules ?? [];
+  const teamFilled = roiConfig && roiConfig.headcounts.employee > 0 && roiConfig.headcounts.hr > 0 && roiConfig.headcounts.manager > 0;
 
   if (hypothesisOpen) {
     return (
@@ -415,10 +416,15 @@ export function StepOffering({
         </div>
       )}
 
+      {/* Team breakdown warning */}
+      {!teamFilled && (
+        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">{t("setup.fill_team")}</p>
+      )}
+
       {/* ═══════════════════════════════════════════ */}
       {/* INVOICE: Collapsible Cost & Savings          */}
       {/* ═══════════════════════════════════════════ */}
-      {configuration && (() => {
+      {teamFilled && configuration && (() => {
         const discPct = offering.discount_pct ?? 0;
         const discountedCost = configuration.totalAnnualCost * (1 - discPct / 100);
         const bundleSavings = allBundleModules.reduce((acc, modId) => {
