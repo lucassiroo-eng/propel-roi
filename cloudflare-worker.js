@@ -173,59 +173,56 @@ async function handleHubspot(body, env) {
     employees: deal.properties?.revised_number_of_emloyeess ?? null,
   };
 
-  // Company
+  // Fetch company, contact, and note associations in parallel (3 calls instead of 20+)
   const compAssoc = deal.associations?.companies?.results?.[0];
-  if (compAssoc) {
-    const compRes = await fetch(
-      `${BASE}/crm/v3/objects/companies/${compAssoc.id}?properties=name,country_qobra_samba,industry,country`,
-      { headers }
-    );
-    if (compRes.ok) {
-      const comp = await compRes.json();
-      result.company_name = comp.properties?.name ?? "";
-      result.country = comp.properties?.country_qobra_samba ?? comp.properties?.country ?? "";
-      result.industry = comp.properties?.industry ?? "";
-    }
-  }
-
-  // Contact
   const contactId = deal.properties?.contact_id;
-  if (contactId) {
-    const contRes = await fetch(
-      `${BASE}/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email`,
-      { headers }
-    );
-    if (contRes.ok) {
-      const cont = await contRes.json();
-      result.contact_name = [cont.properties?.firstname, cont.properties?.lastname].filter(Boolean).join(" ");
-      result.contact_email = cont.properties?.email ?? "";
-    }
+
+  const [compRes, contRes, notesAssocRes] = await Promise.all([
+    compAssoc
+      ? fetch(`${BASE}/crm/v3/objects/companies/${compAssoc.id}?properties=name,country_qobra_samba,industry,country`, { headers })
+      : null,
+    contactId
+      ? fetch(`${BASE}/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email`, { headers })
+      : null,
+    fetch(`${BASE}/crm/v3/objects/deals/${dealId}/associations/notes`, { headers }),
+  ]);
+
+  if (compRes?.ok) {
+    const comp = await compRes.json();
+    result.company_name = comp.properties?.name ?? "";
+    result.country = comp.properties?.country_qobra_samba ?? comp.properties?.country ?? "";
+    result.industry = comp.properties?.industry ?? "";
   }
 
-  // Notes
-  const notesRes = await fetch(`${BASE}/crm/v3/objects/deals/${dealId}/associations/notes`, { headers });
-  if (notesRes.ok) {
-    const notesAssoc = await notesRes.json();
-    const noteIds = (notesAssoc.results ?? []).map(r => r.id);
+  if (contRes?.ok) {
+    const cont = await contRes.json();
+    result.contact_name = [cont.properties?.firstname, cont.properties?.lastname].filter(Boolean).join(" ");
+    result.contact_email = cont.properties?.email ?? "";
+  }
+
+  // Notes — single batch read instead of N individual fetches
+  if (notesAssocRes?.ok) {
+    const notesAssoc = await notesAssocRes.json();
+    const noteIds = (notesAssoc.results ?? []).map(r => r.id).slice(0, 20);
     if (noteIds.length > 0) {
-      const fetches = noteIds.slice(0, 20).map(async (noteId) => {
-        const nr = await fetch(
-          `${BASE}/crm/v3/objects/notes/${noteId}?properties=hs_note_body,hs_createdate,hs_timestamp`,
-          { headers }
-        );
-        if (nr.ok) {
-          const note = await nr.json();
-          return {
-            id: note.id,
-            body: note.properties?.hs_note_body ?? "",
-            created_at: note.properties?.hs_timestamp ?? note.properties?.hs_createdate ?? "",
-          };
-        }
-        return null;
+      const batchRes = await fetch(`${BASE}/crm/v3/objects/notes/batch/read`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          properties: ["hs_note_body", "hs_createdate", "hs_timestamp"],
+          inputs: noteIds.map(id => ({ id })),
+        }),
       });
-      const notes = (await Promise.all(fetches)).filter(Boolean);
-      notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      result.notes = notes;
+      if (batchRes.ok) {
+        const batch = await batchRes.json();
+        const notes = (batch.results ?? []).map(n => ({
+          id: n.id,
+          body: n.properties?.hs_note_body ?? "",
+          created_at: n.properties?.hs_timestamp ?? n.properties?.hs_createdate ?? "",
+        }));
+        notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        result.notes = notes;
+      }
     }
   }
 
