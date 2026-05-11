@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
@@ -14,28 +13,11 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ProspectData, HubSpotNote, ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
-import { defaultHeadcounts, type Stakeholder } from "@/lib/moduleHours";
+import { type Stakeholder } from "@/lib/moduleHours";
 import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
 
 const WORKER = "https://noshow.lucassiroo.workers.dev";
-const SEATS_MIN = 10;
-const SEATS_MAX = 5000;
-
-function sliderToSeats(s: number): number {
-  if (s <= 0) return SEATS_MIN;
-  if (s >= 100) return SEATS_MAX;
-  const v = SEATS_MIN * Math.pow(SEATS_MAX / SEATS_MIN, s / 100);
-  if (v < 50) return Math.round(v);
-  if (v < 200) return Math.round(v / 5) * 5;
-  if (v < 500) return Math.round(v / 10) * 10;
-  return Math.round(v / 50) * 50;
-}
-function seatsToSlider(seats: number): number {
-  if (seats <= SEATS_MIN) return 0;
-  if (seats >= SEATS_MAX) return 100;
-  return 100 * Math.log(seats / SEATS_MIN) / Math.log(SEATS_MAX / SEATS_MIN);
-}
 
 function mapCountry(raw: string): "ES" | "FR" | null {
   const lower = (raw ?? "").toLowerCase().trim();
@@ -147,14 +129,13 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
   const needsAnalysis = moduleSuggestions.length === 0 && hasContent;
 
-  // Init headcounts on first render if default
+  // Sync seats from headcount sum
   useEffect(() => {
-    const isDefault = headcounts.employee === 40 && headcounts.hr === 3 && headcounts.manager === 8;
-    const isEmpty = headcounts.employee + headcounts.hr + headcounts.manager === 0;
-    if (isEmpty || isDefault) {
-      onRoiConfigChange({ ...roiConfig, headcounts: defaultHeadcounts(seats) });
+    const total = headcounts.employee + headcounts.hr + headcounts.manager;
+    if (total > 0 && total !== data.seats) {
+      onChange({ seats: total });
     }
-  }, []);
+  }, [headcounts.employee, headcounts.hr, headcounts.manager]);
 
   // Auto-trigger AI analysis when content becomes available
   useEffect(() => {
@@ -169,10 +150,6 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
   }
   function setHourlyCost(key: Stakeholder, value: number) {
     onRoiConfigChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
-  }
-  function handleSeatsChange(newSeats: number) {
-    onChange({ seats: newSeats });
-    onRoiConfigChange({ ...roiConfig, headcounts: defaultHeadcounts(newSeats) });
   }
 
   // ── Deal fetch ──
@@ -236,10 +213,6 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         const notes: HubSpotNote[] = hs.notes ?? [];
         if (notes.length > 0) updates.hubspot_notes = notes;
         onChange(updates);
-
-        if (empCount > 0) {
-          onRoiConfigChange({ ...roiConfig, headcounts: defaultHeadcounts(Math.min(Math.max(empCount, SEATS_MIN), SEATS_MAX)) });
-        }
 
         const parts = [];
         if (notes.length) parts.push(`${notes.length} notes`);
@@ -431,30 +404,10 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       />
 
       {/* ═══════════════════════════════════════════════════ */}
-      {/* BLOCK (ii): Employees + Stakeholder Breakdown      */}
+      {/* BLOCK (ii): Stakeholder Breakdown                  */}
       {/* ═══════════════════════════════════════════════════ */}
       <div className="space-y-4">
-        <p className="text-sm font-semibold text-foreground">{t("setup.employees")}</p>
-
-        {/* Slider + input */}
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground w-6 text-right">{SEATS_MIN}</span>
-          <Slider
-            min={0} max={100} step={1}
-            value={[seatsToSlider(data.seats)]}
-            onValueChange={([v]) => handleSeatsChange(sliderToSeats(v))}
-            className="flex-1"
-          />
-          <Input
-            type="number" min={1} max={10000}
-            className="w-20 h-9 text-sm text-right font-semibold tabular-nums"
-            value={data.seats}
-            onChange={e => handleSeatsChange(Math.max(1, Math.min(10000, parseInt(e.target.value) || 1)))}
-          />
-        </div>
-
-        {/* Stakeholder cards */}
-        <p className="text-xs font-medium text-muted-foreground mt-2">{t("setup.team_breakdown")}</p>
+        <p className="text-sm font-semibold text-foreground">{t("setup.team_breakdown")}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
             const meta = STAKEHOLDER_META[key];
@@ -508,6 +461,37 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
             </strong>{t("stakeholder.per_hour")}
           </span>
         </div>
+
+        {/* Extra variables */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
+            <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("setup.onboardings_per_year")}</label>
+            <Input
+              type="number" min={0}
+              className="h-9 text-center text-base font-bold tabular-nums"
+              placeholder="0"
+              value={roiConfig.onboardings_per_year || ""}
+              onChange={e => onRoiConfigChange({ ...roiConfig, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) })}
+            />
+          </div>
+          {selectedModules.includes("expenses") && (
+            <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("setup.expense_submitters")}</label>
+              <Input
+                type="number" min={0}
+                className="h-9 text-center text-base font-bold tabular-nums"
+                placeholder="0"
+                value={roiConfig.expense_submitters || ""}
+                onChange={e => onRoiConfigChange({ ...roiConfig, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) })}
+              />
+              <p className="text-[10px] text-muted-foreground">{t("setup.expense_submitters_hint")}</p>
+            </div>
+          )}
+        </div>
+
+        {totalPeople === 0 && (
+          <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">{t("setup.fill_team")}</p>
+        )}
       </div>
 
       {/* ═══════════════════════════════════════════════════ */}

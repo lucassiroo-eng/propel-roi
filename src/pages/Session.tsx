@@ -27,8 +27,10 @@ export default function Session() {
     );
   }
 
+  const { headcounts } = state.roiConfig;
+  const teamFilled = headcounts.employee > 0 && headcounts.hr > 0 && headcounts.manager > 0;
   const canNext =
-    step === 0 ? (!!state.prospect.company_name && state.selectedModules.length > 0) :
+    step === 0 ? (!!state.prospect.company_name && state.selectedModules.length > 0 && teamFilled) :
     true;
 
   const handleNext = async () => {

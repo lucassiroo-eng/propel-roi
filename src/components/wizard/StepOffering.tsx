@@ -6,9 +6,9 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Check, X, Loader2, Plus, Presentation, FileDown,
+  Check, X, Loader2, Plus, Presentation, FileDown, FileText,
   ExternalLink, Package, Star, Save, Eye, Globe,
-  ArrowLeft, ChevronDown, Users, Shield, Briefcase, Quote, Percent,
+  ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,7 @@ import { getHoursForModule, getEffectiveHours, SAVINGS_DESCRIPTIONS, type Stakeh
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Props {
   country: "ES" | "FR";
@@ -75,6 +76,7 @@ export function StepOffering({
   const [pptxUrl, setPptxUrl] = useState<string | null>(null);
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
+  const [showInvoice, setShowInvoice] = useState(false);
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -193,7 +195,10 @@ export function StepOffering({
       let modHours = 0;
       let modMoney = 0;
       for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
-        const h = hours[s] * headcounts[s];
+        const count = (modId === "expenses" && s === "employee" && roiConfig.expense_submitters)
+          ? roiConfig.expense_submitters
+          : headcounts[s];
+        const h = hours[s] * count;
         modHours += h;
         modMoney += h * hourly_costs[s];
       }
@@ -268,7 +273,7 @@ export function StepOffering({
   if (hypothesisOpen) {
     return (
       <HypothesisView
-        roiConfig={roiConfig ?? { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } }}
+        roiConfig={roiConfig ?? { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } }}
         onRoiConfigChange={onRoiConfigChange ?? (() => {})}
         configModules={configuration?.configModules ?? []}
         moduleSuggestions={moduleSuggestions}
@@ -411,9 +416,11 @@ export function StepOffering({
       )}
 
       {/* ═══════════════════════════════════════════ */}
-      {/* INVOICE: Unified Cost & Savings per Module  */}
+      {/* INVOICE: Collapsible Cost & Savings          */}
       {/* ═══════════════════════════════════════════ */}
       {configuration && (() => {
+        const discPct = offering.discount_pct ?? 0;
+        const discountedCost = configuration.totalAnnualCost * (1 - discPct / 100);
         const bundleSavings = allBundleModules.reduce((acc, modId) => {
           const s = roiSavings.perModule.find(m => m.moduleId === modId);
           return { hours: acc.hours + (s?.monthlyHours ?? 0), money: acc.money + (s?.annualMoney ?? 0) };
@@ -421,92 +428,104 @@ export function StepOffering({
 
         return (
           <div className="rounded-xl border border-border overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2.5 bg-muted/50 gap-3">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.module_header")}</span>
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right">{t("offering.cost_yr")}</span>
-              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">{t("offering.h_mo")}</span>
-              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">{t("offering.savings_yr")}</span>
-            </div>
+            {/* Summary row — always visible */}
+            <button
+              className="w-full grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 bg-muted/40 gap-3 hover:bg-muted/60 transition-colors"
+              onClick={() => setShowInvoice(!showInvoice)}
+            >
+              <span className="text-sm font-bold text-foreground flex items-center gap-2">
+                <ChevronRight className={`h-4 w-4 transition-transform ${showInvoice ? "rotate-90" : ""}`} />
+                {t("offering.total")}
+              </span>
+              <span className="text-sm font-bold tabular-nums text-right">{fmtEur(discPct > 0 ? discountedCost : configuration.totalAnnualCost)} €/yr</span>
+              <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
+              <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
+            </button>
 
-            {/* Bundle group header */}
-            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2.5 border-t border-border bg-muted/20 gap-3">
-              <span className="text-sm font-semibold text-foreground">{selectedAnalysis?.bundle.bundle_name}</span>
-              <span className="text-sm font-semibold tabular-nums text-right">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)} €</span>
-              <span className="text-xs font-semibold tabular-nums text-right text-emerald-600/70">{bundleSavings.hours.toFixed(0)}h</span>
-              <span className="text-sm font-semibold tabular-nums text-right text-emerald-600">{fmtEur(bundleSavings.money)} €</span>
-            </div>
+            {/* Expanded detail */}
+            {showInvoice && (<>
+              {/* Table header */}
+              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 bg-muted/30 border-t border-border gap-3">
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.module_header")}</span>
+                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right">{t("offering.cost_yr")}</span>
+                <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">{t("offering.h_mo")}</span>
+                <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">{t("offering.savings_yr")}</span>
+              </div>
 
-            {/* Bundle module rows (indented) */}
-            {allBundleModules.map((modId, i) => {
-              const saving = roiSavings.perModule.find(m => m.moduleId === modId);
-              const color = getModuleColor(modId);
-              return (
-                <div key={modId} className={`grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center pl-8 pr-5 py-1.5 border-t border-border/20 gap-3 ${i % 2 === 0 ? "bg-white/40" : "bg-muted/5"}`}>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                    <span className="text-xs text-muted-foreground truncate">{moduleLabel(modId)}</span>
+              {/* Bundle group header */}
+              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2.5 border-t border-border bg-muted/20 gap-3">
+                <span className="text-sm font-semibold text-foreground">{selectedAnalysis?.bundle.bundle_name}</span>
+                <span className="text-sm font-semibold tabular-nums text-right">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)} €</span>
+                <span className="text-xs font-semibold tabular-nums text-right text-emerald-600/70">{bundleSavings.hours.toFixed(0)}h</span>
+                <span className="text-sm font-semibold tabular-nums text-right text-emerald-600">{fmtEur(bundleSavings.money)} €</span>
+              </div>
+
+              {/* Bundle module rows */}
+              {allBundleModules.map((modId, i) => {
+                const saving = roiSavings.perModule.find(m => m.moduleId === modId);
+                const color = getModuleColor(modId);
+                const quote = moduleSuggestions.find(s => s.module_id === modId)?.quote;
+                return (
+                  <div key={modId} className={`border-t border-border/20 ${i % 2 === 0 ? "bg-white/40" : "bg-muted/5"}`}>
+                    <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center pl-8 pr-5 py-1.5 gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-xs text-muted-foreground truncate">{moduleLabel(modId)}</span>
+                      </div>
+                      <span className="text-xs tabular-nums text-right text-muted-foreground/50">{t("offering.incl")}</span>
+                      <span className="text-xs tabular-nums text-right text-emerald-600/50">{saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}</span>
+                      <span className="text-xs tabular-nums text-right text-emerald-600/50">{saving ? `${fmtEur(saving.annualMoney)} €` : "—"}</span>
+                    </div>
+                    {quote && (
+                      <div className="pl-11 pr-5 pb-1.5 flex items-start gap-1.5">
+                        <Quote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/30" />
+                        <p className="text-[10px] text-muted-foreground/60 italic line-clamp-1">&ldquo;{quote}&rdquo;</p>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs tabular-nums text-right text-muted-foreground/50">{t("offering.incl")}</span>
-                  <span className="text-xs tabular-nums text-right text-emerald-600/50">
-                    {saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}
-                  </span>
-                  <span className="text-xs tabular-nums text-right text-emerald-600/50">
-                    {saving ? `${fmtEur(saving.annualMoney)} €` : "—"}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {/* Add-on module rows */}
-            {configuration.addonLines.map((a, i) => {
-              const saving = roiSavings.perModule.find(m => m.moduleId === a.module);
-              const color = getModuleColor(a.module);
-              return (
-                <div key={a.module} className={`grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t border-border/30 gap-3 ${i % 2 === 0 ? "bg-white/50" : "bg-muted/10"}`}>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                    <span className="text-sm text-foreground truncate">{a.label}</span>
+              {/* Add-on module rows */}
+              {configuration.addonLines.map((a, i) => {
+                const saving = roiSavings.perModule.find(m => m.moduleId === a.module);
+                const color = getModuleColor(a.module);
+                const quote = moduleSuggestions.find(s => s.module_id === a.module)?.quote;
+                return (
+                  <div key={a.module} className={`border-t border-border/30 ${i % 2 === 0 ? "bg-white/50" : "bg-muted/10"}`}>
+                    <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-sm text-foreground truncate">{a.label}</span>
+                      </div>
+                      <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(a.annual)} €</span>
+                      <span className="text-xs tabular-nums text-right text-emerald-600/70">{saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}</span>
+                      <span className="text-sm font-medium tabular-nums text-right text-emerald-600">{saving ? `${fmtEur(saving.annualMoney)} €` : "—"}</span>
+                    </div>
+                    {quote && (
+                      <div className="pl-8 pr-5 pb-1.5 flex items-start gap-1.5">
+                        <Quote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/30" />
+                        <p className="text-[10px] text-muted-foreground/60 italic line-clamp-1">&ldquo;{quote}&rdquo;</p>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(a.annual)} €</span>
-                  <span className="text-xs tabular-nums text-right text-emerald-600/70">
-                    {saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}
-                  </span>
-                  <span className="text-sm font-medium tabular-nums text-right text-emerald-600">
-                    {saving ? `${fmtEur(saving.annualMoney)} €` : "—"}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {/* Totals */}
-            {(offering.discount_pct ?? 0) > 0 ? (<>
-              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t-2 border-border bg-muted/30 gap-3">
-                <span className="text-sm text-muted-foreground">{t("offering.subtotal")}</span>
-                <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(configuration.totalAnnualCost)} €</span>
-                <span className="text-xs tabular-nums text-right text-emerald-600/70">{roiSavings.monthlyHours.toFixed(0)}h</span>
-                <span className="text-sm tabular-nums text-right text-emerald-600/70">{fmtEur(roiSavings.annual)} €/yr</span>
-              </div>
-              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-1.5 bg-muted/30 gap-3">
-                <span className="text-sm text-rose-600">{t("offering.discount")} {offering.discount_pct}%</span>
-                <span className="text-sm font-medium tabular-nums text-right text-rose-600">−{fmtEur(configuration.totalAnnualCost * (offering.discount_pct ?? 0) / 100)} €</span>
-                <span />
-                <span />
-              </div>
-              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 bg-muted/40 gap-3">
-                <span className="text-sm font-bold text-foreground">{t("offering.total")}</span>
-                <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost * (1 - (offering.discount_pct ?? 0) / 100))} €/yr</span>
-                <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
-                <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
-              </div>
-            </>) : (
-              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 border-t-2 border-border bg-muted/40 gap-3">
-                <span className="text-sm font-bold text-foreground">{t("offering.total")}</span>
-                <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost)} €/yr</span>
-                <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
-                <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
-              </div>
-            )}
+              {/* Discount rows */}
+              {discPct > 0 && (<>
+                <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t-2 border-border bg-muted/30 gap-3">
+                  <span className="text-sm text-muted-foreground">{t("offering.subtotal")}</span>
+                  <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(configuration.totalAnnualCost)} €</span>
+                  <span /><span />
+                </div>
+                <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-1.5 bg-muted/30 gap-3">
+                  <span className="text-sm text-rose-600">{t("offering.discount")} {discPct}%</span>
+                  <span className="text-sm font-medium tabular-nums text-right text-rose-600">−{fmtEur(configuration.totalAnnualCost * discPct / 100)} €</span>
+                  <span /><span />
+                </div>
+              </>)}
+            </>)}
           </div>
         );
       })()}
@@ -515,7 +534,7 @@ export function StepOffering({
       {/* ACTION BUTTONS                             */}
       {/* ═══════════════════════════════════════════ */}
       <div className="space-y-3 pt-2">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <Button variant="outline" size="lg" onClick={() => setHypothesisOpen(true)} className="gap-2">
             <Eye className="h-4 w-4" />
             {t("offering.check_hypothesis")}
@@ -523,6 +542,10 @@ export function StepOffering({
           <Button size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
             {generatingPptx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
             {t("offering.one_pager")}
+          </Button>
+          <Button variant="outline" size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
+            <FileText className="h-4 w-4" />
+            {t("offering.detailed_doc")}
           </Button>
           <Button variant="secondary" size="lg" onClick={onSave} className="gap-2">
             <Save className="h-4 w-4" />
@@ -559,7 +582,7 @@ function HypothesisView({
   onBack: () => void;
   onSave: () => void;
 }) {
-  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const { t, i18n } = useTranslation();
   const { headcounts, hourly_costs } = roiConfig;
 
@@ -592,12 +615,17 @@ function HypothesisView({
     const suggestion = moduleSuggestions.find(s => s.module_id === moduleId);
     const label = catalog?.label ?? moduleLabel(moduleId);
     const color = catalog?.color ?? "#94A3B8";
-    const perStakeholder = (["employee", "hr", "manager"] as Stakeholder[]).map(s => ({
-      stakeholder: s,
-      hoursPerPerson: hours[s],
-      totalHours: hours[s] * headcounts[s],
-      totalMoney: hours[s] * headcounts[s] * hourly_costs[s],
-    }));
+    const perStakeholder = (["employee", "hr", "manager"] as Stakeholder[]).map(s => {
+      const count = (moduleId === "expenses" && s === "employee" && roiConfig.expense_submitters)
+        ? roiConfig.expense_submitters
+        : headcounts[s];
+      return {
+        stakeholder: s,
+        hoursPerPerson: hours[s],
+        totalHours: hours[s] * count,
+        totalMoney: hours[s] * count * hourly_costs[s],
+      };
+    });
     const monthlyHours = perStakeholder.reduce((sum, s) => sum + s.totalHours, 0);
     const annualMoney = perStakeholder.reduce((sum, s) => sum + s.totalMoney, 0) * 12;
     return { moduleId, label, color, suggestion, perStakeholder, monthlyHours, annualMoney };
@@ -607,6 +635,8 @@ function HypothesisView({
     monthlyHours: moduleRows.reduce((s, r) => s + r.monthlyHours, 0),
     annual: moduleRows.reduce((s, r) => s + r.annualMoney, 0),
   };
+
+  const selectedRow = moduleRows.find(r => r.moduleId === selectedModuleId);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "linear-gradient(135deg, #fdf0f3 0%, #f5f0fd 40%, #f0f4fd 70%, #fdf0f7 100%)" }}>
@@ -710,93 +740,48 @@ function HypothesisView({
               <p className="text-xs text-muted-foreground">{totals.monthlyHours.toFixed(0)}h/mo · <strong className="text-emerald-600">€{fmtEur(totals.annual)}/yr</strong></p>
             </div>
           </div>
-          {/* Legend */}
-          <div className="flex items-center justify-end gap-6 px-4 text-[10px] text-muted-foreground uppercase tracking-wider">
-            <span>{t("hyp.hours_saved_mo")}</span>
-            <span className="text-emerald-600">{t("hyp.annual_savings")}</span>
-          </div>
 
           <div className="space-y-2">
-            {moduleRows.map(row => {
-              const isExpanded = expandedModule === row.moduleId;
-              return (
-                <div
-                  key={row.moduleId}
-                  className="rounded-xl border overflow-hidden transition-shadow hover:shadow-sm bg-white/60"
-                  style={{ borderColor: row.color + "30", borderLeftWidth: 4, borderLeftColor: row.color }}
-                >
-                  {/* Condensed view */}
-                  <button
-                    className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-muted/20 transition-colors"
-                    onClick={() => setExpandedModule(isExpanded ? null : row.moduleId)}
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: row.color + "15" }}>
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: row.color }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground">{row.label}</p>
-                      {row.suggestion?.quote && (
-                        <div className="flex items-start gap-1.5 mt-0.5">
-                          <Quote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/40" />
-                          <p className="text-[11px] text-muted-foreground italic line-clamp-1">{row.suggestion.quote}</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="text-right shrink-0 mr-2">
-                      <p className="text-xs text-muted-foreground tabular-nums">{row.monthlyHours.toFixed(0)}h/mo</p>
-                      <p className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(row.annualMoney)}/yr</p>
-                    </div>
-                    <ChevronDown className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                  </button>
-
-                  {/* Expanded view — per-stakeholder rows */}
-                  {isExpanded && (
-                    <div className="border-t px-4 py-3 space-y-2 bg-muted/5" style={{ borderColor: row.color + "20" }}>
-                      {row.perStakeholder.filter(ps => ps.hoursPerPerson > 0).map(ps => {
+            {moduleRows.map(row => (
+              <button
+                key={row.moduleId}
+                className="w-full text-left rounded-xl border overflow-hidden transition-shadow hover:shadow-sm bg-white/60"
+                style={{ borderColor: row.color + "30", borderLeftWidth: 4, borderLeftColor: row.color }}
+                onClick={() => setSelectedModuleId(row.moduleId)}
+              >
+                <div className="px-4 py-3 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: row.color + "15" }}>
+                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: row.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{row.label}</p>
+                    {row.suggestion?.quote && (
+                      <div className="flex items-start gap-1.5 mt-0.5">
+                        <Quote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/40" />
+                        <p className="text-[11px] text-muted-foreground italic line-clamp-1">&ldquo;{row.suggestion.quote}&rdquo;</p>
+                      </div>
+                    )}
+                    {/* Per-stakeholder hours summary */}
+                    <div className="flex items-center gap-3 mt-1.5">
+                      {row.perStakeholder.filter(ps => ps.totalHours > 0).map(ps => {
                         const meta = STAKEHOLDER_META[ps.stakeholder];
                         const Icon = meta.icon;
-                        const desc = SAVINGS_DESCRIPTIONS[row.moduleId]?.[ps.stakeholder] ?? "";
                         return (
-                          <div key={ps.stakeholder} className="rounded-lg px-3 py-3" style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}` }}>
-                            <div className="flex items-center gap-3">
-                              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
-                                <Icon className="h-4 w-4 text-white" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="text-sm font-semibold text-foreground">{t(meta.labelKey)}</span>
-                              </div>
-                              <div className="flex items-center gap-3 shrink-0">
-                                <div className="flex items-center gap-1">
-                                  <Input
-                                    type="number" min={0} step={0.1}
-                                    className="w-16 h-8 text-center text-sm font-bold tabular-nums bg-white/80 border-border"
-                                    value={ps.hoursPerPerson}
-                                    onChange={e => setHoursOverride(row.moduleId, ps.stakeholder, parseFloat(e.target.value) || 0)}
-                                  />
-                                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{t("hyp.h_pers_mo")}</span>
-                                </div>
-                                <span className="text-sm font-bold tabular-nums text-emerald-600 w-24 text-right">€{fmtEur(ps.totalMoney * 12)}/yr</span>
-                              </div>
-                            </div>
-                            {desc && (
-                              <p className="text-[11px] text-muted-foreground mt-2 ml-10 leading-relaxed">{desc}</p>
-                            )}
-                          </div>
+                          <span key={ps.stakeholder} className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Icon className="h-3 w-3" style={{ color: meta.color }} />
+                            {ps.totalHours.toFixed(0)}h/mo
+                          </span>
                         );
                       })}
-                      {/* Module total */}
-                      <div className="flex items-center justify-between px-3 pt-1 border-t" style={{ borderColor: row.color + "15" }}>
-                        <span className="text-xs font-medium text-muted-foreground">{t("hyp.module_total")}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-xs font-semibold tabular-nums">{row.monthlyHours.toFixed(0)}h/mo</span>
-                          <span className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(row.annualMoney)}/yr</span>
-                        </div>
-                      </div>
                     </div>
-                  )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-xs text-muted-foreground tabular-nums">{row.monthlyHours.toFixed(0)}h/mo</p>
+                    <p className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(row.annualMoney)}/yr</p>
+                  </div>
                 </div>
-              );
-            })}
+              </button>
+            ))}
           </div>
 
           {/* Grand total */}
@@ -809,6 +794,67 @@ function HypothesisView({
           </div>
         </section>
       </main>
+
+      {/* Module detail popup */}
+      <Dialog open={!!selectedRow} onOpenChange={(v) => { if (!v) setSelectedModuleId(null); }}>
+        {selectedRow && (
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3">
+                <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: selectedRow.color }} />
+                {selectedRow.label}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedRow.suggestion?.quote && (
+              <div className="flex items-start gap-2 px-1 -mt-1">
+                <Quote className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground/40" />
+                <p className="text-xs text-muted-foreground italic leading-relaxed">&ldquo;{selectedRow.suggestion.quote}&rdquo;</p>
+              </div>
+            )}
+            <div className="space-y-3">
+              {selectedRow.perStakeholder.filter(ps => ps.hoursPerPerson > 0).map(ps => {
+                const meta = STAKEHOLDER_META[ps.stakeholder];
+                const Icon = meta.icon;
+                const desc = SAVINGS_DESCRIPTIONS[selectedRow.moduleId]?.[ps.stakeholder] ?? "";
+                return (
+                  <div key={ps.stakeholder} className="rounded-lg px-3 py-3" style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
+                        <Icon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-semibold text-foreground">{t(meta.labelKey)}</span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number" min={0} step={0.1}
+                            className="w-16 h-8 text-center text-sm font-bold tabular-nums bg-white/80 border-border"
+                            value={ps.hoursPerPerson}
+                            onChange={e => setHoursOverride(selectedRow.moduleId, ps.stakeholder, parseFloat(e.target.value) || 0)}
+                          />
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">{t("hyp.h_pers_mo")}</span>
+                        </div>
+                        <span className="text-sm font-bold tabular-nums text-emerald-600 w-24 text-right">€{fmtEur(ps.totalMoney * 12)}/yr</span>
+                      </div>
+                    </div>
+                    {desc && (
+                      <p className="text-[11px] text-muted-foreground mt-2 ml-10 leading-relaxed">{desc}</p>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="flex items-center justify-between px-3 pt-2 border-t" style={{ borderColor: selectedRow.color + "15" }}>
+                <span className="text-xs font-medium text-muted-foreground">{t("hyp.module_total")}</span>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs font-semibold tabular-nums">{selectedRow.monthlyHours.toFixed(0)}h/mo</span>
+                  <span className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(selectedRow.annualMoney)}/yr</span>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }

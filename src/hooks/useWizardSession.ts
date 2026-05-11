@@ -118,6 +118,8 @@ export interface RoiConfig {
   headcounts: { employee: number; hr: number; manager: number };
   hourly_costs: { employee: number; hr: number; manager: number };
   hours_overrides?: Record<string, Partial<Record<string, number>>>;
+  onboardings_per_year?: number;
+  expense_submitters?: number;
 }
 
 export interface WizardState {
@@ -168,7 +170,7 @@ export function useWizardSession(sessionId?: string) {
     aiSuggestions: [],
     selectedModules: [],
     moduleSuggestions: [],
-    roiConfig: { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } },
+    roiConfig: { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } },
   });
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
