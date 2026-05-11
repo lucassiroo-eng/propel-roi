@@ -39,8 +39,6 @@ const F = {
   DEAL_STAGE:      "fldR0leyMGyTt6D0V",
   DEAL_CONTACTS:   "fldAWYnaWPT082VvP",
   DEAL_PAE:        "fldumEE2afuU3K0nn",
-  DEAL_EMAILS:     "fldyjtBPuOzC55vhB",
-  DEAL_CALLS:      "fldkhI54DtjnRqsNp",
   DEAL_COMPANY:    "fldnUWd12DHIvcqtN",
   COMPANY_NAME:    "fldlZRwUM2Yut46fg",
 };
@@ -80,22 +78,22 @@ async function handleAirtable(body, env) {
 
   const dealId = extractDealId(deal_url);
 
-  const dealRecords = await airtableGet(token, DEALS_TABLE, `{deal_id}="${dealId}"`,
-    [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE, F.DEAL_EMAILS, F.DEAL_CALLS, F.DEAL_COMPANY]);
+  // Query deal info, emails, and calls in parallel by DEAL_ID
+  const [dealRecords, emailRecs, callRecs] = await Promise.all([
+    airtableGet(token, DEALS_TABLE, `{deal_id}="${dealId}"`,
+      [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE, F.DEAL_COMPANY]),
+    airtableGet(token, EMAILS_TABLE, `{DEAL_ID}="${dealId}"`,
+      [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
+    airtableGet(token, CALLS_TABLE, `{DEAL_ID}="${dealId}"`,
+      [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
+  ]);
 
   const dealFields = dealRecords[0]?.fields ?? {};
-  const emailIds = dealFields[F.DEAL_EMAILS] ?? [];
-  const callIds  = dealFields[F.DEAL_CALLS] ?? [];
-  const compIds  = dealFields[F.DEAL_COMPANY] ?? [];
+  const compIds = dealFields[F.DEAL_COMPANY] ?? [];
 
-  const [emailRecs, callRecs, compRecs] = await Promise.all([
-    airtableGetByIds(token, EMAILS_TABLE, emailIds,
-      [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
-    airtableGetByIds(token, CALLS_TABLE, callIds,
-      [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
-    airtableGetByIds(token, COMPANIES_TABLE, compIds.slice(0, 1),
-      [F.COMPANY_NAME]),
-  ]);
+  const compRecs = compIds.length > 0
+    ? await airtableGetByIds(token, COMPANIES_TABLE, compIds.slice(0, 1), [F.COMPANY_NAME])
+    : [];
 
   const companyName = compRecs[0]?.fields?.[F.COMPANY_NAME]
     ?? (dealFields[F.DEAL_NAME] ?? "").split(/\s*[-–]\s*(from|de)\s/i)[0].trim();
