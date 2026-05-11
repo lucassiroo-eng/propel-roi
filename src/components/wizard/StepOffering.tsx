@@ -26,7 +26,7 @@ import {
   MODULES_INCLUDED_IN_CORE,
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG } from "@/lib/moduleCatalog";
-import { getHoursForModule, SAVINGS_DESCRIPTIONS, type Stakeholder } from "@/lib/moduleHours";
+import { getHoursForModule, getEffectiveHours, SAVINGS_DESCRIPTIONS, type Stakeholder } from "@/lib/moduleHours";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -188,7 +188,7 @@ export function StepOffering({
     const perModule: { moduleId: string; label: string; color: string; monthlyHours: number; annualMoney: number }[] = [];
 
     for (const modId of configuration.configModules) {
-      const hours = getHoursForModule(modId);
+      const hours = getEffectiveHours(modId, roiConfig.hours_overrides);
       let modHours = 0;
       let modMoney = 0;
       for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
@@ -538,9 +538,18 @@ function HypothesisView({
 
   const totalPeople = headcounts.employee + headcounts.hr + headcounts.manager;
 
+  function setHoursOverride(moduleId: string, stakeholder: Stakeholder, value: number) {
+    const prev = roiConfig.hours_overrides ?? {};
+    const modPrev = prev[moduleId] ?? {};
+    onRoiConfigChange({
+      ...roiConfig,
+      hours_overrides: { ...prev, [moduleId]: { ...modPrev, [stakeholder]: Math.max(0, value) } },
+    });
+  }
+
   const moduleRows = configModules.map(moduleId => {
     const catalog = MODULE_CATALOG.find(m => m.id === moduleId);
-    const hours = getHoursForModule(moduleId);
+    const hours = getEffectiveHours(moduleId, roiConfig.hours_overrides);
     const suggestion = moduleSuggestions.find(s => s.module_id === moduleId);
     const label = catalog?.label ?? moduleLabel(moduleId);
     const color = catalog?.color ?? "#94A3B8";
@@ -662,6 +671,11 @@ function HypothesisView({
               <p className="text-xs text-muted-foreground">{totals.monthlyHours.toFixed(0)}h/mo · <strong className="text-emerald-600">€{fmtEur(totals.annual)}/yr</strong></p>
             </div>
           </div>
+          {/* Legend */}
+          <div className="flex items-center justify-end gap-6 px-4 text-[10px] text-muted-foreground uppercase tracking-wider">
+            <span>Hours saved/mo</span>
+            <span className="text-emerald-600">Annual savings</span>
+          </div>
 
           <div className="space-y-2">
             {moduleRows.map(row => {
@@ -704,19 +718,29 @@ function HypothesisView({
                         const Icon = meta.icon;
                         const desc = SAVINGS_DESCRIPTIONS[row.moduleId]?.[ps.stakeholder] ?? "";
                         return (
-                          <div key={ps.stakeholder} className="rounded-lg px-3 py-2.5" style={{ backgroundColor: meta.bg }}>
+                          <div key={ps.stakeholder} className="rounded-lg px-3 py-3" style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}` }}>
                             <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
-                                <Icon className="h-3.5 w-3.5 text-white" />
+                              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: meta.color }}>
+                                <Icon className="h-4 w-4 text-white" />
                               </div>
-                              <span className="text-sm font-medium text-foreground flex-1">{meta.label}</span>
-                              <div className="flex items-center gap-4 shrink-0">
-                                <span className="text-xs text-muted-foreground tabular-nums">{ps.hoursPerPerson}h/pers/mo</span>
-                                <span className="text-sm font-semibold tabular-nums text-emerald-600 w-20 text-right">€{fmtEur(ps.totalMoney * 12)}/yr</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-sm font-semibold text-foreground">{meta.label}</span>
+                              </div>
+                              <div className="flex items-center gap-3 shrink-0">
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    type="number" min={0} step={0.1}
+                                    className="w-16 h-8 text-center text-sm font-bold tabular-nums bg-white/80 border-border"
+                                    value={ps.hoursPerPerson}
+                                    onChange={e => setHoursOverride(row.moduleId, ps.stakeholder, parseFloat(e.target.value) || 0)}
+                                  />
+                                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">h/pers/mo</span>
+                                </div>
+                                <span className="text-sm font-bold tabular-nums text-emerald-600 w-24 text-right">€{fmtEur(ps.totalMoney * 12)}/yr</span>
                               </div>
                             </div>
                             {desc && (
-                              <p className="text-[11px] text-muted-foreground mt-1 ml-9 leading-relaxed">{desc}</p>
+                              <p className="text-[11px] text-muted-foreground mt-2 ml-10 leading-relaxed">{desc}</p>
                             )}
                           </div>
                         );

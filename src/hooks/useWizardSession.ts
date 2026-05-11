@@ -115,6 +115,7 @@ export interface ModuleSuggestion {
 export interface RoiConfig {
   headcounts: { employee: number; hr: number; manager: number };
   hourly_costs: { employee: number; hr: number; manager: number };
+  hours_overrides?: Record<string, Partial<Record<string, number>>>;
 }
 
 export interface WizardState {
