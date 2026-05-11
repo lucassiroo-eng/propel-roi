@@ -74,6 +74,8 @@ export interface SelectedOffering {
   bundle_annual?: number;
   // Add-on lines
   addon_lines?: AddonLine[];
+  // Discount
+  discount_pct?: number;
   // Computed totals (written by Offering, read by Review)
   total_annual_cost?: number;
   covered_pains?: string[];

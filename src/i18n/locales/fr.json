@@ -320,6 +320,8 @@
   "offering.savings_yr": "Économies/an",
   "offering.incl": "incl.",
   "offering.total": "Total",
+  "offering.subtotal": "Sous-total",
+  "offering.discount": "Remise",
   "offering.check_hypothesis": "Vérifier l'Hypothèse",
   "offering.one_pager": "1-Pager",
   "offering.save": "Enregistrer",

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Check, X, Loader2, Plus, Presentation, FileDown,
   ExternalLink, Package, Star, Save, Eye, Globe,
-  ArrowLeft, ChevronDown, Users, Shield, Briefcase, Quote,
+  ArrowLeft, ChevronDown, Users, Shield, Briefcase, Quote, Percent,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -217,14 +217,19 @@ export function StepOffering({
     const cfg = configRef.current;
     const analysis = analysisRef.current;
     if (!analysis || !cfg) return;
+    const disc = offering.discount_pct ?? 0;
+    const discountedCost = cfg.totalAnnualCost * (1 - disc / 100);
+    const netRoi = cfg.totalAnnualBenefit - discountedCost;
+    const roiPct = discountedCost > 0 ? (netRoi / discountedCost) * 100 : 0;
+    const paybackMonths = cfg.totalAnnualBenefit > 0 ? (discountedCost / cfg.totalAnnualBenefit) * 12 : 0;
     onChange({
       bundle_id: analysis.bundle.id, bundle_name: analysis.bundle.bundle_name,
       bundle_modules: analysis.bundleModules, bundle_pepm: analysis.bundlePepm, bundle_annual: analysis.bundleAnnual,
-      addon_lines: cfg.addonLines, total_annual_cost: cfg.totalAnnualCost,
+      addon_lines: cfg.addonLines, total_annual_cost: discountedCost,
       covered_pains: cfg.coveredPains, uncovered_pains: cfg.uncoveredPains,
-      total_annual_benefit: cfg.totalAnnualBenefit, net_roi: cfg.netRoi, roi_pct: cfg.roiPct, payback_months: cfg.paybackMonths,
+      total_annual_benefit: cfg.totalAnnualBenefit, net_roi: netRoi, roi_pct: roiPct, payback_months: paybackMonths,
     });
-  }, [configuration, selectedAnalysis]);
+  }, [configuration, selectedAnalysis, offering.discount_pct]);
 
   // ── Generate PPTX ──
   const handleGeneratePptx = async () => {
@@ -291,9 +296,21 @@ export function StepOffering({
           <Switch checked={offering.billing === "yearly"} onCheckedChange={(v) => onChange({ billing: v ? "yearly" : "monthly" })} />
           <span className={`text-xs ${offering.billing === "yearly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>{t("offering.yearly")}</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "business" })}>{t("offering.tier_business")}</button>
-          <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "enterprise" })}>{t("offering.tier_enterprise")}</button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "business" })}>{t("offering.tier_business")}</button>
+            <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "enterprise" })}>{t("offering.tier_enterprise")}</button>
+          </div>
+          <div className="flex items-center gap-1 border-l border-border pl-3">
+            <Percent className="h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              type="number" min={0} max={100} step={1}
+              className="w-14 h-7 text-center text-xs tabular-nums"
+              placeholder="0"
+              value={offering.discount_pct || ""}
+              onChange={e => onChange({ discount_pct: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)) })}
+            />
+          </div>
         </div>
       </div>
 
@@ -463,12 +480,33 @@ export function StepOffering({
             })}
 
             {/* Totals */}
-            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 border-t-2 border-border bg-muted/40 gap-3">
-              <span className="text-sm font-bold text-foreground">{t("offering.total")}</span>
-              <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost)} €/yr</span>
-              <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
-              <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
-            </div>
+            {(offering.discount_pct ?? 0) > 0 ? (<>
+              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t-2 border-border bg-muted/30 gap-3">
+                <span className="text-sm text-muted-foreground">{t("offering.subtotal")}</span>
+                <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(configuration.totalAnnualCost)} €</span>
+                <span className="text-xs tabular-nums text-right text-emerald-600/70">{roiSavings.monthlyHours.toFixed(0)}h</span>
+                <span className="text-sm tabular-nums text-right text-emerald-600/70">{fmtEur(roiSavings.annual)} €/yr</span>
+              </div>
+              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-1.5 bg-muted/30 gap-3">
+                <span className="text-sm text-rose-600">{t("offering.discount")} {offering.discount_pct}%</span>
+                <span className="text-sm font-medium tabular-nums text-right text-rose-600">−{fmtEur(configuration.totalAnnualCost * (offering.discount_pct ?? 0) / 100)} €</span>
+                <span />
+                <span />
+              </div>
+              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 bg-muted/40 gap-3">
+                <span className="text-sm font-bold text-foreground">{t("offering.total")}</span>
+                <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost * (1 - (offering.discount_pct ?? 0) / 100))} €/yr</span>
+                <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
+                <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
+              </div>
+            </>) : (
+              <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 border-t-2 border-border bg-muted/40 gap-3">
+                <span className="text-sm font-bold text-foreground">{t("offering.total")}</span>
+                <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost)} €/yr</span>
+                <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
+                <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
+              </div>
+            )}
           </div>
         );
       })()}
