@@ -205,6 +205,7 @@ export function useWizardSession(sessionId?: string) {
           aiSuggestions: [],
           selectedModules: (session as any).selected_modules ?? [],
           moduleSuggestions: (session as any).module_suggestions ?? [],
+          roiConfig: (session as any).roi_config ?? { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_cost: 30 },
         });
       }
       setLoading(false);

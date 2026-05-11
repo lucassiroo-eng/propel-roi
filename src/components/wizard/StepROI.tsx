@@ -27,12 +27,15 @@ function fmtMoney(n: number): string {
   return "€" + Math.round(n).toLocaleString("en");
 }
 
-export function StepROI({ selectedModules, seats, roiConfig, onChange }: Props) {
+const DEFAULT_ROI: RoiConfig = { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_cost: 30 };
+
+export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onChange }: Props) {
   const { headcounts, hourly_cost } = roiConfig;
 
   useEffect(() => {
-    const sum = headcounts.employee + headcounts.hr + headcounts.manager;
-    if (sum === 0 || (sum === 51 && seats !== 50)) {
+    const isDefault = headcounts.employee === 40 && headcounts.hr === 3 && headcounts.manager === 8;
+    const isEmpty = headcounts.employee + headcounts.hr + headcounts.manager === 0;
+    if (isEmpty || isDefault) {
       onChange({ ...roiConfig, headcounts: defaultHeadcounts(seats) });
     }
   }, []);
