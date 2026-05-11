@@ -55,7 +55,7 @@ export default function Session() {
       canNext={canNext}
       companyName={state.prospect.company_name}
       totalSteps={TOTAL_STEPS}
-      nextLabel={step === 0 ? "Generate ROI" : undefined}
+      nextLabel={step === 0 ? t("offering.generate_roi") : undefined}
       wide
     >
       {step === 0 && (

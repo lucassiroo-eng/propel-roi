@@ -58,10 +58,10 @@ function getModuleColor(moduleId: string): string {
   return MODULE_CATALOG.find(m => m.id === moduleId)?.color ?? "#94A3B8";
 }
 
-const STAKEHOLDER_META: Record<Stakeholder, { label: string; sublabel: string; icon: typeof Users; color: string; bg: string; border: string }> = {
-  employee: { label: "Employees",    sublabel: "~80% of seats", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
-  hr:       { label: "HR / Finance", sublabel: "~5% of seats",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
-  manager:  { label: "Managers",     sublabel: "~15% of seats", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
+const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: string; icon: typeof Users; color: string; bg: string; border: string }> = {
+  employee: { labelKey: "stakeholder.employee",    sublabelKey: "stakeholder.employee_sub", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
+  hr:       { labelKey: "stakeholder.hr", sublabelKey: "stakeholder.hr_sub",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  manager:  { labelKey: "stakeholder.manager",     sublabelKey: "stakeholder.manager_sub", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
 };
 
 export function StepOffering({
@@ -70,6 +70,7 @@ export function StepOffering({
   onRoiConfigChange, onChange, onModulesChange, sessionId, state,
   onSave, onSaveAndExit,
 }: Props) {
+  const { t } = useTranslation();
   const [generatingPptx, setGeneratingPptx] = useState(false);
   const [pptxUrl, setPptxUrl] = useState<string | null>(null);
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
@@ -227,15 +228,15 @@ export function StepOffering({
 
   // ── Generate PPTX ──
   const handleGeneratePptx = async () => {
-    if (!sessionId || sessionId === "new") { toast.error("Save the session first"); return; }
+    if (!sessionId || sessionId === "new") { toast.error(t("toast.save_session_first")); return; }
     setGeneratingPptx(true);
     try {
       const { error: roiErr } = await supabase.functions.invoke("roi-engine", { body: { session_id: sessionId } });
       if (roiErr) throw roiErr;
       const { data, error } = await supabase.functions.invoke("generate-pptx", { body: { session_id: sessionId } });
       if (error) throw error;
-      if (data?.pptx_url) { setPptxUrl(data.pptx_url); toast.success("ROI slide generated!"); }
-    } catch (err: any) { toast.error("Generation failed: " + err.message); }
+      if (data?.pptx_url) { setPptxUrl(data.pptx_url); toast.success(t("toast.pptx_generated")); }
+    } catch (err: any) { toast.error(t("toast.generation_failed", { message: err.message })); }
     finally { setGeneratingPptx(false); }
   };
 
@@ -254,7 +255,7 @@ export function StepOffering({
   }
 
   if (!bundles?.length) {
-    return <div className="flex justify-center py-12 text-muted-foreground text-sm">No bundles available for this country.</div>;
+    return <div className="flex justify-center py-12 text-muted-foreground text-sm">{t("offering.no_bundles")}</div>;
   }
 
   const allBundleModules = selectedAnalysis?.bundleModules ?? [];
@@ -279,20 +280,20 @@ export function StepOffering({
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold text-foreground">ROI & Offering</h2>
-        <p className="text-sm text-muted-foreground mt-1">Choose a pack, customize modules, and review the ROI</p>
+        <h2 className="text-xl font-bold text-foreground">{t("offering.roi_title")}</h2>
+        <p className="text-sm text-muted-foreground mt-1">{t("offering.roi_subtitle")}</p>
       </div>
 
       {/* Billing toggle */}
       <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className={`text-xs ${offering.billing === "monthly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>Monthly</span>
+          <span className={`text-xs ${offering.billing === "monthly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>{t("offering.monthly")}</span>
           <Switch checked={offering.billing === "yearly"} onCheckedChange={(v) => onChange({ billing: v ? "yearly" : "monthly" })} />
-          <span className={`text-xs ${offering.billing === "yearly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>Yearly</span>
+          <span className={`text-xs ${offering.billing === "yearly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>{t("offering.yearly")}</span>
         </div>
         <div className="flex items-center gap-2">
-          <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "business" })}>Business</button>
-          <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "enterprise" })}>Enterprise</button>
+          <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "business" })}>{t("offering.tier_business")}</button>
+          <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "enterprise" })}>{t("offering.tier_enterprise")}</button>
         </div>
       </div>
 
@@ -309,7 +310,7 @@ export function StepOffering({
               </div>
               <div>
                 <p className="text-sm font-bold text-foreground">Starter Operations</p>
-                <p className="text-[10px] text-muted-foreground">Core + Time essentials</p>
+                <p className="text-[10px] text-muted-foreground">{t("offering.starter_desc")}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-1 mb-3">
@@ -317,9 +318,9 @@ export function StepOffering({
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold text-foreground">{fmtEur(starterAnalysis.bundleAnnual)}</span>
-              <span className="text-xs text-muted-foreground">EUR/year</span>
+              <span className="text-xs text-muted-foreground">{t("offering.eur_year")}</span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{starterAnalysis.bundlePepm.toFixed(2)} EUR/employee/month</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{starterAnalysis.bundlePepm.toFixed(2)} {t("offering.eur_emp_month")}</p>
           </button>
         )}
         {recommendedBundle && (
@@ -328,7 +329,7 @@ export function StepOffering({
             onClick={() => selectPack(recommendedBundle.bundle.id)}
           >
             <div className="absolute -top-2.5 right-4">
-              <Badge className="bg-emerald-500 text-white text-[10px] gap-1 border-0"><Star className="h-3 w-3" /> Recommended</Badge>
+              <Badge className="bg-emerald-500 text-white text-[10px] gap-1 border-0"><Star className="h-3 w-3" /> {t("offering.recommended")}</Badge>
             </div>
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${!isStarterSelected ? "bg-primary" : "bg-muted"}`}>
@@ -336,7 +337,7 @@ export function StepOffering({
               </div>
               <div>
                 <p className="text-sm font-bold text-foreground">{recommendedBundle.bundle.bundle_name}</p>
-                <p className="text-[10px] text-muted-foreground">All recommended modules</p>
+                <p className="text-[10px] text-muted-foreground">{t("offering.all_recommended")}</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-1 mb-3">
@@ -347,9 +348,9 @@ export function StepOffering({
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-bold text-foreground">{fmtEur(recommendedBundle.bundleAnnual)}</span>
-              <span className="text-xs text-muted-foreground">EUR/year</span>
+              <span className="text-xs text-muted-foreground">{t("offering.eur_year")}</span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{recommendedBundle.bundlePepm.toFixed(2)} EUR/employee/month</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{recommendedBundle.bundlePepm.toFixed(2)} {t("offering.eur_emp_month")}</p>
           </button>
         )}
       </div>
@@ -357,7 +358,7 @@ export function StepOffering({
       {/* Module pills */}
       {selectedAnalysis && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Included modules</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.included_modules")}</p>
           <div className="flex flex-wrap gap-2">
             {allBundleModules.map(modId => (
               <div key={modId} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium bg-accent/80 text-foreground cursor-default" style={{ borderColor: getModuleColor(modId) + "40" }}>
@@ -376,7 +377,7 @@ export function StepOffering({
             <Popover open={addModuleOpen} onOpenChange={setAddModuleOpen}>
               <PopoverTrigger asChild>
                 <button className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
-                  <Plus className="h-3 w-3" /> Add
+                  <Plus className="h-3 w-3" /> {t("offering.add")}
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-64 p-2 max-h-64 overflow-y-auto" align="start">
@@ -405,10 +406,10 @@ export function StepOffering({
           <div className="rounded-xl border border-border overflow-hidden">
             {/* Table header */}
             <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2.5 bg-muted/50 gap-3">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Module</span>
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right">Cost/yr</span>
-              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">h/mo</span>
-              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">Savings/yr</span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.module_header")}</span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right">{t("offering.cost_yr")}</span>
+              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">{t("offering.h_mo")}</span>
+              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">{t("offering.savings_yr")}</span>
             </div>
 
             {/* Bundle group header */}
@@ -429,7 +430,7 @@ export function StepOffering({
                     <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                     <span className="text-xs text-muted-foreground truncate">{moduleLabel(modId)}</span>
                   </div>
-                  <span className="text-xs tabular-nums text-right text-muted-foreground/50">incl.</span>
+                  <span className="text-xs tabular-nums text-right text-muted-foreground/50">{t("offering.incl")}</span>
                   <span className="text-xs tabular-nums text-right text-emerald-600/50">
                     {saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}
                   </span>
@@ -463,7 +464,7 @@ export function StepOffering({
 
             {/* Totals */}
             <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 border-t-2 border-border bg-muted/40 gap-3">
-              <span className="text-sm font-bold text-foreground">Total</span>
+              <span className="text-sm font-bold text-foreground">{t("offering.total")}</span>
               <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost)} €/yr</span>
               <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
               <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
@@ -479,25 +480,25 @@ export function StepOffering({
         <div className="grid grid-cols-3 gap-3">
           <Button variant="outline" size="lg" onClick={() => setHypothesisOpen(true)} className="gap-2">
             <Eye className="h-4 w-4" />
-            Check Hypothesis
+            {t("offering.check_hypothesis")}
           </Button>
           <Button size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
             {generatingPptx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
-            1-Pager
+            {t("offering.one_pager")}
           </Button>
           <Button variant="secondary" size="lg" onClick={onSave} className="gap-2">
             <Save className="h-4 w-4" />
-            Save
+            {t("offering.save")}
           </Button>
         </div>
 
         {pptxUrl && (
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" asChild>
-              <a href={pptxUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-2" /> View</a>
+              <a href={pptxUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-2" /> {t("offering.view_link")}</a>
             </Button>
             <Button variant="outline" className="flex-1" asChild>
-              <a href={pptxUrl} download={`ROI-${state?.prospect.company_name || "report"}.pptx`}><FileDown className="h-4 w-4 mr-2" /> Download</a>
+              <a href={pptxUrl} download={`ROI-${state?.prospect.company_name || "report"}.pptx`}><FileDown className="h-4 w-4 mr-2" /> {t("offering.download")}</a>
             </Button>
           </div>
         )}
@@ -521,7 +522,7 @@ function HypothesisView({
   onSave: () => void;
 }) {
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { headcounts, hourly_costs } = roiConfig;
 
   const changeLanguage = (lng: string) => {
@@ -576,9 +577,9 @@ function HypothesisView({
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} className="gap-1.5">
             <ArrowLeft className="h-4 w-4" />
-            Back
+            {t("hyp.back")}
           </Button>
-          <h2 className="text-base font-semibold text-foreground">Check Hypothesis</h2>
+          <h2 className="text-base font-semibold text-foreground">{t("hyp.title")}</h2>
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
@@ -595,7 +596,7 @@ function HypothesisView({
             </Popover>
             <Button onClick={onSave} className="gap-1.5">
               <Save className="h-4 w-4" />
-              Save
+              {t("hyp.save")}
             </Button>
           </div>
         </div>
@@ -604,7 +605,7 @@ function HypothesisView({
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-8">
         {/* (i) Stakeholder Assumptions */}
         <section className="space-y-3">
-          <p className="text-sm font-semibold text-foreground">Stakeholder Assumptions</p>
+          <p className="text-sm font-semibold text-foreground">{t("hyp.stakeholder_assumptions")}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
               const meta = STAKEHOLDER_META[key];
@@ -620,13 +621,13 @@ function HypothesisView({
                       <Icon className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-foreground leading-tight">{meta.label}</p>
-                      <p className="text-[10px] text-muted-foreground">{meta.sublabel}</p>
+                      <p className="text-sm font-semibold text-foreground leading-tight">{t(meta.labelKey)}</p>
+                      <p className="text-[10px] text-muted-foreground">{t(meta.sublabelKey)}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">People</label>
+                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("stakeholder.people")}</label>
                       <Input
                         type="number" min={0}
                         className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
@@ -635,7 +636,7 @@ function HypothesisView({
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">€/hour</label>
+                      <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("stakeholder.eur_hour")}</label>
                       <Input
                         type="number" min={0} step={5}
                         className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
@@ -650,12 +651,12 @@ function HypothesisView({
           </div>
           <div className="flex items-center justify-between px-1">
             <span className="text-xs text-muted-foreground">
-              <strong className="text-foreground">{totalPeople}</strong> people total
+              <strong className="text-foreground">{totalPeople}</strong> {t("stakeholder.people_total")}
             </span>
             <span className="text-xs text-muted-foreground">
-              Weighted avg: <strong className="text-foreground">
+              {t("stakeholder.weighted_avg")} <strong className="text-foreground">
                 €{totalPeople > 0 ? Math.round((headcounts.employee * hourly_costs.employee + headcounts.hr * hourly_costs.hr + headcounts.manager * hourly_costs.manager) / totalPeople) : 0}
-              </strong>/h
+              </strong>{t("stakeholder.per_hour")}
             </span>
           </div>
         </section>
@@ -664,8 +665,8 @@ function HypothesisView({
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">
-              Module Breakdown
-              <span className="text-muted-foreground font-normal ml-2">{moduleRows.length} modules</span>
+              {t("hyp.module_breakdown")}
+              <span className="text-muted-foreground font-normal ml-2">{t("hyp.modules_count", { count: moduleRows.length })}</span>
             </p>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">{totals.monthlyHours.toFixed(0)}h/mo · <strong className="text-emerald-600">€{fmtEur(totals.annual)}/yr</strong></p>
@@ -673,8 +674,8 @@ function HypothesisView({
           </div>
           {/* Legend */}
           <div className="flex items-center justify-end gap-6 px-4 text-[10px] text-muted-foreground uppercase tracking-wider">
-            <span>Hours saved/mo</span>
-            <span className="text-emerald-600">Annual savings</span>
+            <span>{t("hyp.hours_saved_mo")}</span>
+            <span className="text-emerald-600">{t("hyp.annual_savings")}</span>
           </div>
 
           <div className="space-y-2">
@@ -724,7 +725,7 @@ function HypothesisView({
                                 <Icon className="h-4 w-4 text-white" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <span className="text-sm font-semibold text-foreground">{meta.label}</span>
+                                <span className="text-sm font-semibold text-foreground">{t(meta.labelKey)}</span>
                               </div>
                               <div className="flex items-center gap-3 shrink-0">
                                 <div className="flex items-center gap-1">
@@ -734,7 +735,7 @@ function HypothesisView({
                                     value={ps.hoursPerPerson}
                                     onChange={e => setHoursOverride(row.moduleId, ps.stakeholder, parseFloat(e.target.value) || 0)}
                                   />
-                                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">h/pers/mo</span>
+                                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">{t("hyp.h_pers_mo")}</span>
                                 </div>
                                 <span className="text-sm font-bold tabular-nums text-emerald-600 w-24 text-right">€{fmtEur(ps.totalMoney * 12)}/yr</span>
                               </div>
@@ -747,7 +748,7 @@ function HypothesisView({
                       })}
                       {/* Module total */}
                       <div className="flex items-center justify-between px-3 pt-1 border-t" style={{ borderColor: row.color + "15" }}>
-                        <span className="text-xs font-medium text-muted-foreground">Module total</span>
+                        <span className="text-xs font-medium text-muted-foreground">{t("hyp.module_total")}</span>
                         <div className="flex items-center gap-4">
                           <span className="text-xs font-semibold tabular-nums">{row.monthlyHours.toFixed(0)}h/mo</span>
                           <span className="text-sm font-bold tabular-nums text-emerald-600">€{fmtEur(row.annualMoney)}/yr</span>
@@ -762,7 +763,7 @@ function HypothesisView({
 
           {/* Grand total */}
           <div className="rounded-xl border border-border bg-white/80 px-5 py-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-foreground">Total savings</span>
+            <span className="text-sm font-bold text-foreground">{t("hyp.total_savings")}</span>
             <div className="flex items-center gap-4">
               <span className="text-sm font-semibold tabular-nums">{totals.monthlyHours.toFixed(0)}h/mo</span>
               <span className="text-lg font-bold tabular-nums text-emerald-600">€{fmtEur(totals.annual)}/yr</span>

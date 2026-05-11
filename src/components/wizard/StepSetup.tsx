@@ -61,10 +61,10 @@ function mapIndustry(raw: string): string {
   return "";
 }
 
-const STAKEHOLDER_META: Record<Stakeholder, { label: string; sublabel: string; icon: typeof Users; color: string; bg: string; border: string }> = {
-  employee: { label: "Employees",    sublabel: "~80% of seats", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
-  hr:       { label: "HR / Finance", sublabel: "~5% of seats",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
-  manager:  { label: "Managers",     sublabel: "~15% of seats", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
+const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: string; icon: typeof Users; color: string; bg: string; border: string }> = {
+  employee: { labelKey: "stakeholder.employee",    sublabelKey: "stakeholder.employee_sub", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
+  hr:       { labelKey: "stakeholder.hr", sublabelKey: "stakeholder.hr_sub",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  manager:  { labelKey: "stakeholder.manager",     sublabelKey: "stakeholder.manager_sub", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
 };
 
 // ── AI module analysis ──
@@ -205,7 +205,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
               if (emailMatch) updates.contact_email = emailMatch[0];
             }
             onChange(updates);
-            toast.success(`Airtable: ${emails.length} emails, ${calls.length} calls`);
+            toast.success(t("toast.airtable_success", { emails: emails.length, calls: calls.length }));
           }
         }
       } catch { /* fallback */ }
@@ -248,7 +248,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       setFetchPhase("done");
     } catch (err: any) {
       setFetchPhase("idle");
-      toast.error(err.message ?? "Failed to fetch deal");
+      toast.error(err.message ?? t("toast.fetch_failed"));
     } finally {
       setFetching(false);
     }
@@ -287,9 +287,9 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
       const strong = valid.filter(r => r.confidence === "strong").map(r => r.module_id);
       onSelectionChange(strong, valid);
-      toast.success(`${valid.length} modules identified`);
+      toast.success(t("toast.modules_identified", { count: valid.length }));
     } catch (err: any) {
-      toast.error(err.message ?? "Module analysis failed");
+      toast.error(err.message ?? t("toast.analysis_failed"));
     } finally {
       setAnalyzing(false);
     }
@@ -339,7 +339,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
         <p className="text-sm font-semibold text-foreground flex items-center gap-2">
           <LinkIcon className="h-4 w-4 text-primary" />
-          Import Deal
+          {t("setup.import_deal")}
         </p>
         <div className="flex gap-2">
           <Input
@@ -349,7 +349,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
             className="flex-1"
           />
           <Button variant="secondary" onClick={handleFetch} disabled={fetching || !data.hubspot_deal_url}>
-            {fetching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
+            {fetching ? <Loader2 className="h-4 w-4 animate-spin" /> : t("setup.fetch")}
           </Button>
         </div>
 
@@ -359,7 +359,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
             {fetching && (
               <Badge variant="outline" className="gap-1.5 text-xs animate-pulse">
                 {fetchPhase === "airtable" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
-                {fetchPhase === "airtable" ? "Searching Airtable..." : "Fetching HubSpot..."}
+                {fetchPhase === "airtable" ? t("setup.searching_airtable") : t("setup.fetching_hubspot")}
               </Badge>
             )}
             {source && !fetching && (
@@ -372,21 +372,21 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
                 {emails.length > 0 && (
                   <button onClick={() => setContentPopup("emails")}>
                     <Badge variant="outline" className="gap-1 text-xs hover:bg-accent cursor-pointer transition-colors">
-                      <Mail className="h-3 w-3" /> {emails.length} emails
+                      <Mail className="h-3 w-3" /> {emails.length} {t("content.emails").toLowerCase()}
                     </Badge>
                   </button>
                 )}
                 {calls.length > 0 && (
                   <button onClick={() => setContentPopup("calls")}>
                     <Badge variant="outline" className="gap-1 text-xs hover:bg-accent cursor-pointer transition-colors">
-                      <Phone className="h-3 w-3" /> {calls.length} calls
+                      <Phone className="h-3 w-3" /> {calls.length} {t("content.calls").toLowerCase()}
                     </Badge>
                   </button>
                 )}
                 {notes.length > 0 && (
                   <button onClick={() => setContentPopup("notes")}>
                     <Badge variant="outline" className="gap-1 text-xs hover:bg-accent cursor-pointer transition-colors">
-                      <FileText className="h-3 w-3" /> {notes.length} notes
+                      <FileText className="h-3 w-3" /> {notes.length} {t("content.notes").toLowerCase()}
                     </Badge>
                   </button>
                 )}
@@ -411,9 +411,9 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         {/* Manual company name if no deal */}
         {!data.deal_name && (
           <div className="space-y-1.5">
-            <Label className="text-xs">Company name *</Label>
+            <Label className="text-xs">{t("setup.company_name_label")}</Label>
             <Input
-              placeholder="Acme SL"
+              placeholder={t("prospect.company_placeholder")}
               value={data.company_name}
               onChange={e => onChange({ company_name: e.target.value })}
             />
@@ -434,7 +434,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       {/* BLOCK (ii): Employees + Stakeholder Breakdown      */}
       {/* ═══════════════════════════════════════════════════ */}
       <div className="space-y-4">
-        <p className="text-sm font-semibold text-foreground">Employees</p>
+        <p className="text-sm font-semibold text-foreground">{t("setup.employees")}</p>
 
         {/* Slider + input */}
         <div className="flex items-center gap-3">
@@ -454,7 +454,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         </div>
 
         {/* Stakeholder cards */}
-        <p className="text-xs font-medium text-muted-foreground mt-2">Team breakdown</p>
+        <p className="text-xs font-medium text-muted-foreground mt-2">{t("setup.team_breakdown")}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
             const meta = STAKEHOLDER_META[key];
@@ -470,13 +470,13 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
                     <Icon className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground leading-tight">{meta.label}</p>
-                    <p className="text-[10px] text-muted-foreground">{meta.sublabel}</p>
+                    <p className="text-sm font-semibold text-foreground leading-tight">{t(meta.labelKey)}</p>
+                    <p className="text-[10px] text-muted-foreground">{t(meta.sublabelKey)}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">People</label>
+                    <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("stakeholder.people")}</label>
                     <Input
                       type="number" min={0}
                       className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
@@ -485,7 +485,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">€/hour</label>
+                    <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("stakeholder.eur_hour")}</label>
                     <Input
                       type="number" min={0} step={5}
                       className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
@@ -500,12 +500,12 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         </div>
         <div className="flex items-center justify-between px-1">
           <span className="text-xs text-muted-foreground">
-            <strong className="text-foreground">{totalPeople}</strong> people total
+            <strong className="text-foreground">{totalPeople}</strong> {t("stakeholder.people_total")}
           </span>
           <span className="text-xs text-muted-foreground">
-            Weighted avg: <strong className="text-foreground">
+            {t("stakeholder.weighted_avg")} <strong className="text-foreground">
               €{totalPeople > 0 ? Math.round((headcounts.employee * hourly_costs.employee + headcounts.hr * hourly_costs.hr + headcounts.manager * hourly_costs.manager) / totalPeople) : 0}
-            </strong>/h
+            </strong>{t("stakeholder.per_hour")}
           </span>
         </div>
       </div>
@@ -517,25 +517,25 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">
-              Recommended Modules
+              {t("setup.recommended_modules")}
               {selectedModules.length > 0 && (
                 <span className="text-muted-foreground font-normal ml-2">
-                  {selectedModules.length} selected
+                  {t("setup.selected_count", { count: selectedModules.length })}
                 </span>
               )}
             </p>
             {!hasContent && moduleSuggestions.length === 0 && (
-              <p className="text-xs text-muted-foreground mt-0.5">No deal content — add modules manually</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("setup.no_content_hint")}</p>
             )}
           </div>
           <div className="flex items-center gap-2">
             {hasContent && (
               <Button variant="ghost" size="sm" onClick={() => { analysisStarted.current = false; runAnalysis(); }} disabled={analyzing} className="h-7 text-xs">
-                <Sparkles className="h-3.5 w-3.5 mr-1" /> Re-analyze
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> {t("setup.reanalyze")}
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => setAddOpen(true)} className="h-7 text-xs">
-              <Plus className="h-3.5 w-3.5 mr-1" /> Add
+              <Plus className="h-3.5 w-3.5 mr-1" /> {t("setup.add")}
             </Button>
           </div>
         </div>
@@ -556,7 +556,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
             ))}
             <div className="flex items-center justify-center gap-2 text-muted-foreground py-1">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-xs">Analyzing with Claude...</span>
+              <span className="text-xs">{t("setup.analyzing")}</span>
             </div>
           </div>
         )}
@@ -566,7 +566,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
           <section className="space-y-2">
             <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              Strong matches
+              {t("setup.strong_matches")}
               <Badge variant="secondary" className="text-[10px]">{strong.length}</Badge>
             </h3>
             {strong.map((s, i) => (
@@ -586,7 +586,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
           <section className="space-y-2">
             <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
-              Possible matches
+              {t("setup.possible_matches")}
               <Badge variant="secondary" className="text-[10px]">{possible.length}</Badge>
             </h3>
             {possible.map((s, i) => (
@@ -604,7 +604,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         {/* Manually added modules (no suggestion) */}
         {!analyzing && selectedModules.filter(m => !moduleSuggestions.find(s => s.module_id === m)).length > 0 && (
           <section className="space-y-2">
-            <h3 className="text-xs font-semibold text-muted-foreground">Manually added</h3>
+            <h3 className="text-xs font-semibold text-muted-foreground">{t("setup.manually_added")}</h3>
             {selectedModules.filter(m => !moduleSuggestions.find(s => s.module_id === m)).map(modId => {
               const catalog = MODULE_CATALOG.find(c => c.id === modId);
               return (
@@ -614,7 +614,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
                     <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium text-white" style={{ backgroundColor: catalog?.color ?? "#94A3B8" }}>{catalog?.category}</span>
                   </div>
                   <button onClick={() => toggleModule(modId)} className="text-muted-foreground hover:text-destructive transition-colors">
-                    <span className="text-xs">Remove</span>
+                    <span className="text-xs">{t("setup.remove")}</span>
                   </button>
                 </div>
               );
@@ -683,8 +683,9 @@ function ContentDialog({ type, emails, calls, notes, onClose }: {
   onClose: () => void;
 }) {
   const [expanded, setExpanded] = useState<number | null>(null);
+  const { t } = useTranslation();
 
-  const title = type === "emails" ? "Emails" : type === "calls" ? "Calls" : "Notes";
+  const title = type === "emails" ? t("content.emails") : type === "calls" ? t("content.calls") : t("content.notes");
   const items = type === "emails" ? (emails ?? []).map((e, i) => ({
     id: i,
     header: `${e.date} — ${e.subject}`,
@@ -736,7 +737,7 @@ function ContentDialog({ type, emails, calls, notes, onClose }: {
               </div>
             ))}
             {items.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center py-4">No items</p>
+              <p className="text-xs text-muted-foreground text-center py-4">{t("setup.no_items")}</p>
             )}
           </div>
         </ScrollArea>
@@ -753,6 +754,7 @@ function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
   onAdd: (moduleId: string) => void;
 }) {
   const [search, setSearch] = useState("");
+  const { t } = useTranslation();
 
   const filtered = useMemo(() => {
     if (!search.trim()) return modules;
@@ -772,11 +774,11 @@ function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setSearch(""); }}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Module</DialogTitle>
+          <DialogTitle>{t("setup.add_module")}</DialogTitle>
         </DialogHeader>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search modules..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder={t("setup.search_modules")} value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-5 pr-2">
@@ -799,7 +801,7 @@ function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
                 </div>
               );
             })}
-            {filtered.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">{modules.length === 0 ? "All modules already added" : "No matches"}</p>}
+            {filtered.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">{modules.length === 0 ? t("setup.all_added") : t("setup.no_matches")}</p>}
           </div>
         </ScrollArea>
       </DialogContent>
