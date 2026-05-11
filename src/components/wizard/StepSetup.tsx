@@ -207,7 +207,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         if (mappedIndustry) updates.sector = mappedIndustry;
         const empCount = parseInt(hs.employees);
         if (empCount > 0) {
-          const clamped = Math.min(Math.max(empCount, SEATS_MIN), SEATS_MAX);
+          const clamped = Math.min(Math.max(empCount, 10), 5000);
           updates.seats = clamped;
         }
         const notes: HubSpotNote[] = hs.notes ?? [];
