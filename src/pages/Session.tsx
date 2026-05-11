@@ -2,14 +2,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useWizardSession } from "@/hooks/useWizardSession";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { StepProspect } from "@/components/wizard/StepProspect";
-import { StepQuantify } from "@/components/wizard/StepQuantify";
+import { StepModules } from "@/components/wizard/StepModules";
 import { StepOffering } from "@/components/wizard/StepOffering";
 import { StepReview } from "@/components/wizard/StepReview";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-// Steps: 0=Prospect, 1=Quantify, 2=Offering, 3=Review
+// Steps: 0=Prospect, 1=Modules, 2=Offering, 3=Review
 const TOTAL_STEPS = 4;
 
 export default function Session() {
@@ -32,7 +32,7 @@ export default function Session() {
 
   const canNext =
     step === 0 ? !!state.prospect.company_name :
-    step === 1 ? !!state.selectedPains.length :
+    step === 1 ? state.selectedModules.length > 0 :
     true;
 
   const handleNext = async () => {
@@ -84,29 +84,15 @@ export default function Session() {
         />
       )}
       {step === 1 && (
-        <StepQuantify
-          hubspotNotes={state.prospect.hubspot_notes}
-          selectedPains={state.selectedPains}
-          painOverrides={state.painOverrides}
-          country={state.prospect.country}
-          seats={state.prospect.seats}
-          onOverride={(painId, override) =>
+        <StepModules
+          data={state.prospect}
+          selectedModules={state.selectedModules}
+          moduleSuggestions={state.moduleSuggestions}
+          onSelectionChange={(modules, suggestions) =>
             updateState(prev => ({
               ...prev,
-              painOverrides: { ...prev.painOverrides, [painId]: override },
-            }))
-          }
-          customPains={state.customPains}
-          onAddCustomPain={(pain) =>
-            updateState(prev => ({
-              ...prev,
-              customPains: [...prev.customPains, pain],
-            }))
-          }
-          onRemoveCustomPain={(id) =>
-            updateState(prev => ({
-              ...prev,
-              customPains: prev.customPains.filter(p => p.id !== id),
+              selectedModules: modules,
+              moduleSuggestions: suggestions,
             }))
           }
         />
@@ -119,6 +105,7 @@ export default function Session() {
           selectedPains={state.selectedPains}
           painOverrides={state.painOverrides}
           sector={state.prospect.sector}
+          selectedModules={state.selectedModules}
           onChange={(partial) =>
             updateState(prev => ({
               ...prev,

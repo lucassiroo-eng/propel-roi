@@ -63,6 +63,7 @@ interface Props {
   selectedPains: string[];
   painOverrides?: Record<string, PainOverride>;
   sector?: string;
+  selectedModules?: string[];
   onChange: (o: Partial<SelectedOffering>) => void;
 }
 
@@ -73,6 +74,7 @@ export function StepOffering({
   selectedPains,
   painOverrides = {},
   sector = "",
+  selectedModules = [],
   onChange,
 }: Props) {
   const { t, i18n } = useTranslation();
@@ -143,9 +145,19 @@ export function StepOffering({
 
   // ── Required modules ──
   const requiredModules = useMemo(() => {
+    if (selectedModules.length > 0) {
+      const mods: ReturnType<typeof deriveRequiredModules> = [
+        { module: "core", label: moduleLabel("core"), painIds: [], totalBenefit: 0 },
+      ];
+      for (const mod of selectedModules) {
+        if (mod === "core") continue;
+        mods.push({ module: mod, label: moduleLabel(mod), painIds: [], totalBenefit: 0 });
+      }
+      return mods;
+    }
     if (!painModules) return [];
     return deriveRequiredModules(selectedPains, painModules, painBenefits);
-  }, [selectedPains, painModules, painBenefits]);
+  }, [selectedModules, selectedPains, painModules, painBenefits]);
 
   const requiredModuleKeys = useMemo(
     () => requiredModules.map(rm => rm.module),

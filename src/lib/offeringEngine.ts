@@ -89,6 +89,7 @@ const MODULE_LABELS: Record<string, string> = {
   analytics: "Analytics",
   multi_entity: "Multi-entity",
   crm: "CRM",
+  headcount_planning: "Headcount Planning",
 };
 
 export function moduleLabel(canonical: string): string {

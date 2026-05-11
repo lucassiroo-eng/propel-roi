@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, Link as LinkIcon, Mail, Phone, FileText,
@@ -16,6 +15,8 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ProspectData, AirtableSuggestion, AirtableEmail, AirtableCall, HubSpotNote } from "@/hooks/useWizardSession";
+
+const WORKER = "https://noshow.lucassiroo.workers.dev";
 
 const SEATS_MIN = 10;
 const SEATS_MAX = 5000;
@@ -261,16 +262,14 @@ export function StepProspect({ data, onChange }: Props) {
       // ── Step 1: Try Airtable ──
       let airtableOk = false;
       try {
-        const { data: atResult, error: atError } = await supabase.functions.invoke("airtable-deal-fetch", {
-          body: {
-            deal_url: url,
-            country: data.country,
-            sector: data.sector,
-            language: i18n.language?.substring(0, 2) ?? "en",
-          },
+        const atRes = await fetch(`${WORKER}/airtable`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deal_url: url }),
         });
+        const atResult = atRes.ok ? await atRes.json() : null;
 
-        if (!atError && atResult && !atResult.error) {
+        if (atResult && !atResult.error) {
           const emails: AirtableEmail[] = atResult.emails ?? [];
           const calls: AirtableCall[] = atResult.calls ?? [];
 
@@ -314,12 +313,14 @@ export function StepProspect({ data, onChange }: Props) {
         setFetchPhase("hubspot");
         usedSource = "hubspot";
 
-        const { data: hsResult, error: hsError } = await supabase.functions.invoke("hubspot-deal", {
-          body: { deal_url: url },
+        const hsRes = await fetch(`${WORKER}/hubspot`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deal_url: url }),
         });
+        const hsResult = await hsRes.json();
 
-        if (hsError) throw new Error(hsError.message ?? "HubSpot fetch failed");
-        if (hsResult?.error) throw new Error(hsResult.error);
+        if (!hsRes.ok || hsResult?.error) throw new Error(hsResult?.error ?? "HubSpot fetch failed");
 
         // Fill form fields from HubSpot
         const updates: Partial<ProspectData> = { fetch_source: "hubspot" };

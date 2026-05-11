@@ -10,7 +10,7 @@ import {
 
 const STEP_KEYS = [
   "wizard.step.prospect",
-  "wizard.step.quantify",
+  "wizard.step.modules",
   "wizard.step.offering",
   "wizard.step.review",
 ];

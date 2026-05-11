@@ -106,6 +106,12 @@ export interface AiSuggestion {
   rationale: string;
 }
 
+export interface ModuleSuggestion {
+  module_id: string;
+  confidence: "strong" | "possible";
+  quote: string;
+}
+
 export interface WizardState {
   prospect: ProspectData;
   selectedPains: string[];
@@ -113,6 +119,8 @@ export interface WizardState {
   offering: SelectedOffering;
   customPains: CustomPain[];
   aiSuggestions: AiSuggestion[];
+  selectedModules: string[];
+  moduleSuggestions: ModuleSuggestion[];
 }
 
 const defaultProspect: ProspectData = {
@@ -149,6 +157,8 @@ export function useWizardSession(sessionId?: string) {
     offering: { ...defaultOffering },
     customPains: [],
     aiSuggestions: [],
+    selectedModules: [],
+    moduleSuggestions: [],
   });
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -186,6 +196,8 @@ export function useWizardSession(sessionId?: string) {
           offering: (session.selected_offering as unknown as SelectedOffering) ?? { ...defaultOffering },
           customPains: (session as any).custom_pains ?? [],
           aiSuggestions: [],
+          selectedModules: (session as any).selected_modules ?? [],
+          moduleSuggestions: (session as any).module_suggestions ?? [],
         });
       }
       setLoading(false);
