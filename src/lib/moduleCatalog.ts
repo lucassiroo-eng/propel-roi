@@ -2,15 +2,29 @@ export interface ModuleDef {
   id: string;
   label: string;
   category: string;
+  color: string;
   signals: string[];
   savings: string[];
 }
+
+export const CATEGORY_COLORS: Record<string, string> = {
+  "Core":                   "#3B82F6",
+  "Compensation & Payroll": "#10B981",
+  "Benefits & Wellbeing":   "#EC4899",
+  "Compliance":             "#EF4444",
+  "Talent & Development":   "#8B5CF6",
+  "Finance & Spend":        "#F59E0B",
+  "Strategic HR":           "#06B6D4",
+  "IT & Facilities":        "#64748B",
+  "AI":                     "#6366F1",
+};
 
 export const MODULE_CATALOG: ModuleDef[] = [
   {
     id: "core",
     label: "Core HR",
     category: "Core",
+    color: "#3B82F6",
     signals: [
       "We manage employee data in Excel / Google Sheets",
       "Employees keep emailing HR for basic info — payslips, certificates",
@@ -28,6 +42,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "time_off",
     label: "Time Off",
     category: "Core",
+    color: "#60A5FA",
     signals: [
       "We track leave in a spreadsheet and it's a mess",
       "Employees keep asking how many days they have left",
@@ -45,6 +60,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "time_tracking",
     label: "Time Tracking",
     category: "Core",
+    color: "#2563EB",
     signals: [
       "Employees fill timesheets manually and often forget",
       "We spend hours reconciling time data for payroll",
@@ -62,6 +78,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "time_planning",
     label: "Shift Management",
     category: "Core",
+    color: "#F59E0B",
     signals: [
       "Creating the weekly schedule takes hours in Excel",
       "Employees check schedules on paper or WhatsApp",
@@ -79,6 +96,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "compensations",
     label: "Compensation",
     category: "Compensation & Payroll",
+    color: "#10B981",
     signals: [
       "Salary reviews are done in Excel — everyone has a different version",
       "No visibility on salary bands across the company",
@@ -96,6 +114,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "payroll",
     label: "Payroll Connect",
     category: "Compensation & Payroll",
+    color: "#059669",
     signals: [
       "Payroll prep takes a full day before every run",
       "We manually copy data from time, leave, expenses into payroll",
@@ -112,6 +131,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "benefits",
     label: "Benefits / Flex. Retribution",
     category: "Benefits & Wellbeing",
+    color: "#EC4899",
     signals: [
       "Employees don't know what benefits they're eligible for",
       "Flexible remuneration is a nightmare in spreadsheets",
@@ -128,6 +148,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "wellhub",
     label: "Wellhub",
     category: "Benefits & Wellbeing",
+    color: "#F472B6",
     signals: [
       "We want wellness programs but managing vendors is too much work",
       "Employees ask about gym memberships and we have no answer",
@@ -142,6 +163,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "complaints",
     label: "Trust Channel",
     category: "Compliance",
+    color: "#EF4444",
     signals: [
       "We need to comply with the EU Whistleblower Directive",
       "Complaints come by email and we lose track",
@@ -158,6 +180,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "engagement",
     label: "Engagement Surveys",
     category: "Talent & Development",
+    color: "#A78BFA",
     signals: [
       "Our annual survey is in Google Forms — takes weeks to analyse",
       "Managers never see their team's results",
@@ -175,6 +198,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "performance",
     label: "Performance Management",
     category: "Talent & Development",
+    color: "#7C3AED",
     signals: [
       "Reviews are in Word docs — nobody can find last year's",
       "Managers hate the review process — too bureaucratic",
@@ -192,6 +216,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "trainings",
     label: "Training Management",
     category: "Talent & Development",
+    color: "#8B5CF6",
     signals: [
       "We track training completion in a spreadsheet",
       "Mandatory training compliance is hard to monitor",
@@ -209,6 +234,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "lms",
     label: "LMS (Content Creator)",
     category: "Talent & Development",
+    color: "#6D28D9",
     signals: [
       "We create training in PowerPoint and share it by email",
       "No way to test if employees understood the content",
@@ -225,6 +251,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "recruitment",
     label: "Recruitment (ATS)",
     category: "Talent & Development",
+    color: "#C084FC",
     signals: [
       "We manage candidates in email threads and lose track",
       "Scheduling interviews takes forever — too many emails",
@@ -242,6 +269,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "expenses",
     label: "Expense Management",
     category: "Finance & Spend",
+    color: "#F59E0B",
     signals: [
       "Employees collect paper receipts and fill Excel forms",
       "Expense reports sit on my desk for days",
@@ -259,6 +287,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "procurement",
     label: "Procurement",
     category: "Finance & Spend",
+    color: "#D97706",
     signals: [
       "Purchase orders are done by email — nobody tracks them",
       "Maverick spend — people buy without approval",
@@ -275,6 +304,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "projects",
     label: "Project Management",
     category: "Finance & Spend",
+    color: "#FBBF24",
     signals: [
       "We don't know real project cost until it's finished",
       "Time logging is in a separate tool — or not done at all",
@@ -291,6 +321,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "crm",
     label: "CRM (Talent Pool)",
     category: "Strategic HR",
+    color: "#06B6D4",
     signals: [
       "We track candidate relationships in a spreadsheet",
       "Our alumni network is just an old email list",
@@ -307,6 +338,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "headcount_planning",
     label: "Headcount Planning",
     category: "Strategic HR",
+    color: "#0891B2",
     signals: [
       "Headcount planning is a spreadsheet once a year",
       "Can't model 'what if we hire 5 more in Q3' with budget impact",
@@ -323,6 +355,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "space",
     label: "Space Management",
     category: "IT & Facilities",
+    color: "#64748B",
     signals: [
       "We don't know how many people come to the office each day",
       "Desk booking is first-come-first-served chaos",
@@ -339,6 +372,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "software_management",
     label: "Software Management",
     category: "IT & Facilities",
+    color: "#475569",
     signals: [
       "We don't know how many SaaS licenses we're paying for",
       "Tools with 50 licenses but only 10 users",
@@ -355,6 +389,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "it_inventory",
     label: "IT Inventory",
     category: "IT & Facilities",
+    color: "#94A3B8",
     signals: [
       "We track laptops and equipment in a spreadsheet",
       "When someone leaves, we forget to collect equipment",
@@ -371,6 +406,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "one",
     label: "Factorial One (AI)",
     category: "AI",
+    color: "#6366F1",
     signals: [
       "HR spends half the day answering the same questions",
       "Employees can't find policies on the intranet",
@@ -387,6 +423,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "analytics",
     label: "HR Analytics",
     category: "Core",
+    color: "#38BDF8",
     signals: [
       "No HR dashboards — we pull data into Excel each month",
       "Data-driven decisions needed but no tooling",

@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Check, Plus, Search } from "lucide-react";
-import { MODULE_CATALOG, buildModulePromptBlock } from "@/lib/moduleCatalog";
+import { Loader2, Sparkles, Check, Plus, Search, Quote } from "lucide-react";
+import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
 import type { ProspectData, ModuleSuggestion } from "@/hooks/useWizardSession";
 
@@ -25,7 +25,7 @@ const AI_TOOL = {
           properties: {
             module_id: { type: "string" as const, enum: MODULE_CATALOG.map(m => m.id) },
             confidence: { type: "string" as const, enum: ["strong", "possible"] },
-            quote: { type: "string" as const, description: "Short direct quote from deal content (max 20 words, original language)" },
+            quote: { type: "string" as const, description: "1-2 sentence quote from the deal content in its original language that justifies why this module is relevant. Must be a real passage, not invented." },
           },
           required: ["module_id", "confidence", "quote"],
         },
@@ -40,8 +40,8 @@ const SYSTEM_PROMPT = `You analyze sales conversations for Factorial HR software
 Rules:
 1. "strong" = the module or its core functionality is explicitly requested, named, or shows unmistakable buying signals (e.g. "we need a shift scheduler" → time_planning is strong)
 2. "possible" = implicit need inferred from context — company size, industry, pain described indirectly, or related discussion (e.g. "we have 200 employees across 3 offices" → space is possible)
-3. For each module, extract a SHORT direct quote (max 20 words) from the deal content IN ITS ORIGINAL LANGUAGE. This quote must appear verbatim in the source material.
-4. Do NOT hallucinate quotes. If you cannot find a verbatim quote, paraphrase the closest relevant passage and prefix with "~".
+3. For each module, include a 1-2 sentence quote from the deal content IN ITS ORIGINAL LANGUAGE that justifies the recommendation. This should be a real passage from the emails, calls, or notes — enough context for the reader to understand why the module fits.
+4. Do NOT hallucinate quotes. If you cannot find a verbatim passage, paraphrase the closest relevant section and prefix with "~".
 5. Only recommend modules with real evidence in the content. Do not pad with speculative recommendations.
 
 Available Factorial modules with buying signals and value propositions:
@@ -68,6 +68,10 @@ function buildDealContent(data: ProspectData): string {
   }
 
   return parts.join("\n\n");
+}
+
+function getModuleColor(moduleId: string): string {
+  return MODULE_CATALOG.find(m => m.id === moduleId)?.color ?? "#94A3B8";
 }
 
 export function StepModules({ data, selectedModules, moduleSuggestions, onSelectionChange }: Props) {
@@ -99,7 +103,7 @@ export function StepModules({ data, selectedModules, moduleSuggestions, onSelect
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-opus-4-6",
-          max_tokens: 2048,
+          max_tokens: 4096,
           temperature: 0,
           system: SYSTEM_PROMPT,
           messages: [{
@@ -144,7 +148,7 @@ export function StepModules({ data, selectedModules, moduleSuggestions, onSelect
   function addModule(moduleId: string) {
     onSelectionChange(
       [...selectedModules, moduleId],
-      [...moduleSuggestions, { module_id: moduleId, confidence: "possible", quote: "Manually added" }],
+      [...moduleSuggestions, { module_id: moduleId, confidence: "possible", quote: "" }],
     );
     setAddOpen(false);
   }
@@ -165,12 +169,13 @@ export function StepModules({ data, selectedModules, moduleSuggestions, onSelect
         </div>
         <div className="space-y-3">
           {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} className="border border-border rounded-lg px-4 py-4 animate-pulse">
+            <div key={i} className="border border-border rounded-lg px-4 py-4 animate-pulse" style={{ borderLeftWidth: 4, borderLeftColor: ["#3B82F6","#8B5CF6","#F59E0B","#10B981","#EC4899"][i] }}>
               <div className="flex items-center gap-3">
                 <div className="h-5 w-5 rounded bg-muted shrink-0" />
                 <div className="flex-1 space-y-2">
                   <div className="h-4 bg-muted rounded w-1/3" />
-                  <div className="h-3 bg-muted rounded w-2/3" />
+                  <div className="h-3 bg-muted rounded w-3/4" />
+                  <div className="h-3 bg-muted rounded w-1/2" />
                 </div>
               </div>
             </div>
@@ -218,7 +223,7 @@ export function StepModules({ data, selectedModules, moduleSuggestions, onSelect
       </div>
 
       {strong.length > 0 && (
-        <section className="space-y-2">
+        <section className="space-y-2.5">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             Strong matches
@@ -236,7 +241,7 @@ export function StepModules({ data, selectedModules, moduleSuggestions, onSelect
       )}
 
       {possible.length > 0 && (
-        <section className="space-y-2">
+        <section className="space-y-2.5">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
             Possible matches
@@ -269,37 +274,45 @@ function ModuleCard({ suggestion, isSelected, onToggle }: {
 }) {
   const catalog = MODULE_CATALOG.find(m => m.id === suggestion.module_id);
   const label = catalog?.label ?? moduleLabel(suggestion.module_id);
-  const isStrong = suggestion.confidence === "strong";
+  const color = catalog?.color ?? "#94A3B8";
+  const hasQuote = suggestion.quote && suggestion.quote !== "Manually added";
 
   return (
     <button
-      className={`w-full text-left rounded-lg border px-4 py-3 transition-colors border-l-4 ${
-        isStrong ? "border-l-emerald-500" : "border-l-amber-400"
-      } ${
+      className={`w-full text-left rounded-lg border transition-all ${
         isSelected
-          ? "bg-accent/50 border-primary/30"
-          : "bg-card hover:bg-muted/30 opacity-60"
+          ? "bg-accent/50 border-border shadow-sm"
+          : "bg-card hover:bg-muted/30 border-border/50 opacity-60"
       }`}
+      style={{ borderLeftWidth: 4, borderLeftColor: color }}
       onClick={onToggle}
     >
-      <div className="flex items-start gap-3">
-        <div className={`mt-0.5 shrink-0 h-5 w-5 rounded border flex items-center justify-center transition-colors ${
-          isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"
-        }`}>
-          {isSelected && <Check className="h-3 w-3" />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium text-foreground">{label}</p>
-            {catalog && (
-              <Badge variant="outline" className="text-[10px] shrink-0">{catalog.category}</Badge>
+      <div className="px-4 py-3">
+        <div className="flex items-start gap-3">
+          <div className={`mt-0.5 shrink-0 h-5 w-5 rounded border-2 flex items-center justify-center transition-colors ${
+            isSelected ? "text-white" : "border-muted-foreground/30 bg-transparent"
+          }`} style={isSelected ? { backgroundColor: color, borderColor: color } : undefined}>
+            {isSelected && <Check className="h-3 w-3" />}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-semibold text-foreground">{label}</p>
+              <span
+                className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium text-white"
+                style={{ backgroundColor: color }}
+              >
+                {catalog?.category}
+              </span>
+            </div>
+            {hasQuote && (
+              <div className="mt-2 flex gap-2">
+                <Quote className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground/40" />
+                <p className="text-[13px] text-muted-foreground leading-relaxed italic">
+                  {suggestion.quote}
+                </p>
+              </div>
             )}
           </div>
-          {suggestion.quote !== "Manually added" && (
-            <p className="text-xs text-muted-foreground mt-1 italic leading-relaxed">
-              &ldquo;{suggestion.quote}&rdquo;
-            </p>
-          )}
         </div>
       </div>
     </button>
@@ -332,7 +345,7 @@ function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setSearch(""); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Module</DialogTitle>
         </DialogHeader>
@@ -346,25 +359,40 @@ function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
           />
         </div>
         <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-4 pr-2">
-            {Object.entries(grouped).map(([category, mods]) => (
-              <div key={category}>
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
-                  {category}
-                </p>
-                <div className="space-y-0.5">
-                  {mods.map(m => (
-                    <button
-                      key={m.id}
-                      className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-accent transition-colors"
-                      onClick={() => onAdd(m.id)}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
+          <div className="space-y-5 pr-2">
+            {Object.entries(grouped).map(([category, mods]) => {
+              const catColor = CATEGORY_COLORS[category] ?? "#94A3B8";
+              return (
+                <div key={category}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: catColor }}
+                    />
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {category}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {mods.map(m => (
+                      <button
+                        key={m.id}
+                        className="text-left px-3 py-2.5 rounded-lg border border-border/50 hover:border-border hover:bg-accent/50 transition-all group"
+                        style={{ borderLeftWidth: 3, borderLeftColor: m.color }}
+                        onClick={() => onAdd(m.id)}
+                      >
+                        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                          {m.label}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                          {m.signals[0]}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {filtered.length === 0 && (
               <p className="text-sm text-muted-foreground py-4 text-center">
                 {modules.length === 0 ? "All modules already added" : "No matches"}
