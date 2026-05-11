@@ -243,7 +243,7 @@ async function handleAI(body, env) {
     {
       method: "POST",
       headers: {
-        "api-key": apiKey,
+        "Authorization": `Bearer ${apiKey}`,
         "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
