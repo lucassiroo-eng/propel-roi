@@ -111,9 +111,8 @@ export function StepModules({ data, selectedModules, moduleSuggestions, onSelect
         }),
       });
 
-      if (!res.ok) throw new Error("AI analysis failed");
-
       const aiData = await res.json();
+      if (!res.ok) throw new Error(aiData?.error ?? `AI error ${res.status}`);
       const toolBlock = aiData.content?.find((b: any) => b.type === "tool_use");
       const recs: ModuleSuggestion[] = toolBlock?.input?.recommendations ?? [];
 
