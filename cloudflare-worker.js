@@ -156,9 +156,9 @@ async function handleHubspot(body, env) {
   if (!dealId) { m = deal_url.match(/\/(\d{5,})\/?(?:\?|$)/); if (m) dealId = m[1]; }
   if (!dealId) return json({ error: "Could not extract deal ID" }, 400);
 
-  // Fetch deal
+  // 1) Single deal fetch with ALL associations (companies + contacts + notes)
   const dealRes = await fetch(
-    `${BASE}/crm/v3/objects/deals/${dealId}?properties=dealname,amount,hubspot_owner_id,contact_id,revised_number_of_emloyeess&associations=companies`,
+    `${BASE}/crm/v3/objects/deals/${dealId}?properties=dealname,amount,hubspot_owner_id,revised_number_of_emloyeess&associations=companies,contacts,notes`,
     { headers }
   );
   if (!dealRes.ok) {
@@ -173,56 +173,56 @@ async function handleHubspot(body, env) {
     employees: deal.properties?.revised_number_of_emloyeess ?? null,
   };
 
-  // Fetch company, contact, and note associations in parallel (3 calls instead of 20+)
+  // 2) Company details (sequential — avoids rate-limit burst)
   const compAssoc = deal.associations?.companies?.results?.[0];
-  const contactId = deal.properties?.contact_id;
-
-  const [compRes, contRes, notesAssocRes] = await Promise.all([
-    compAssoc
-      ? fetch(`${BASE}/crm/v3/objects/companies/${compAssoc.id}?properties=name,country_qobra_samba,industry,country`, { headers })
-      : null,
-    contactId
-      ? fetch(`${BASE}/crm/v3/objects/contacts/${contactId}?properties=firstname,lastname,email`, { headers })
-      : null,
-    fetch(`${BASE}/crm/v3/objects/deals/${dealId}/associations/notes`, { headers }),
-  ]);
-
-  if (compRes?.ok) {
-    const comp = await compRes.json();
-    result.company_name = comp.properties?.name ?? "";
-    result.country = comp.properties?.country_qobra_samba ?? comp.properties?.country ?? "";
-    result.industry = comp.properties?.industry ?? "";
+  if (compAssoc) {
+    const compRes = await fetch(
+      `${BASE}/crm/v3/objects/companies/${compAssoc.id}?properties=name,country_qobra_samba,industry,country`,
+      { headers }
+    );
+    if (compRes.ok) {
+      const comp = await compRes.json();
+      result.company_name = comp.properties?.name ?? "";
+      result.country = comp.properties?.country_qobra_samba ?? comp.properties?.country ?? "";
+      result.industry = comp.properties?.industry ?? "";
+    }
   }
 
-  if (contRes?.ok) {
-    const cont = await contRes.json();
-    result.contact_name = [cont.properties?.firstname, cont.properties?.lastname].filter(Boolean).join(" ");
-    result.contact_email = cont.properties?.email ?? "";
+  // 3) Contact details
+  const contactAssoc = deal.associations?.contacts?.results?.[0];
+  if (contactAssoc) {
+    const contRes = await fetch(
+      `${BASE}/crm/v3/objects/contacts/${contactAssoc.id}?properties=firstname,lastname,email`,
+      { headers }
+    );
+    if (contRes.ok) {
+      const cont = await contRes.json();
+      result.contact_name = [cont.properties?.firstname, cont.properties?.lastname].filter(Boolean).join(" ");
+      result.contact_email = cont.properties?.email ?? "";
+    }
   }
 
-  // Notes — single batch read instead of N individual fetches
-  if (notesAssocRes?.ok) {
-    const notesAssoc = await notesAssocRes.json();
-    const noteIds = (notesAssoc.results ?? []).map(r => r.id).slice(0, 20);
-    if (noteIds.length > 0) {
-      const batchRes = await fetch(`${BASE}/crm/v3/objects/notes/batch/read`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          properties: ["hs_note_body", "hs_createdate", "hs_timestamp"],
-          inputs: noteIds.map(id => ({ id })),
-        }),
-      });
-      if (batchRes.ok) {
-        const batch = await batchRes.json();
-        const notes = (batch.results ?? []).map(n => ({
-          id: n.id,
-          body: n.properties?.hs_note_body ?? "",
-          created_at: n.properties?.hs_timestamp ?? n.properties?.hs_createdate ?? "",
-        }));
-        notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        result.notes = notes;
-      }
+  // 4) Notes — IDs already from deal associations, single batch read
+  const noteAssocs = deal.associations?.notes?.results ?? [];
+  const noteIds = noteAssocs.map(r => r.id).slice(0, 20);
+  if (noteIds.length > 0) {
+    const batchRes = await fetch(`${BASE}/crm/v3/objects/notes/batch/read`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        properties: ["hs_note_body", "hs_createdate", "hs_timestamp"],
+        inputs: noteIds.map(id => ({ id })),
+      }),
+    });
+    if (batchRes.ok) {
+      const batch = await batchRes.json();
+      const notes = (batch.results ?? []).map(n => ({
+        id: n.id,
+        body: n.properties?.hs_note_body ?? "",
+        created_at: n.properties?.hs_timestamp ?? n.properties?.hs_createdate ?? "",
+      }));
+      notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      result.notes = notes;
     }
   }
 

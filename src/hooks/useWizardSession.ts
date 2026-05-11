@@ -114,7 +114,7 @@ export interface ModuleSuggestion {
 
 export interface RoiConfig {
   headcounts: { employee: number; hr: number; manager: number };
-  hourly_cost: number;
+  hourly_costs: { employee: number; hr: number; manager: number };
 }
 
 export interface WizardState {
@@ -165,7 +165,7 @@ export function useWizardSession(sessionId?: string) {
     aiSuggestions: [],
     selectedModules: [],
     moduleSuggestions: [],
-    roiConfig: { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_cost: 30 },
+    roiConfig: { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } },
   });
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -205,7 +205,7 @@ export function useWizardSession(sessionId?: string) {
           aiSuggestions: [],
           selectedModules: (session as any).selected_modules ?? [],
           moduleSuggestions: (session as any).module_suggestions ?? [],
-          roiConfig: (session as any).roi_config ?? { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_cost: 30 },
+          roiConfig: (session as any).roi_config ?? { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } },
         });
       }
       setLoading(false);

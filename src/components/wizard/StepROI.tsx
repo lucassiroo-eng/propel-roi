@@ -1,10 +1,10 @@
 import { useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Users, Briefcase, Shield, Euro } from "lucide-react";
+import { Users, Briefcase, Shield } from "lucide-react";
 import { MODULE_CATALOG } from "@/lib/moduleCatalog";
 import { getHoursForModule, defaultHeadcounts, type Stakeholder } from "@/lib/moduleHours";
 import type { RoiConfig } from "@/hooks/useWizardSession";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   selectedModules: string[];
@@ -13,10 +13,10 @@ interface Props {
   onChange: (config: RoiConfig) => void;
 }
 
-const STAKEHOLDER_META: Record<Stakeholder, { label: string; icon: typeof Users; color: string }> = {
-  employee: { label: "Employees",  icon: Users,     color: "#3B82F6" },
-  hr:       { label: "HR / Finance", icon: Shield,  color: "#10B981" },
-  manager:  { label: "Managers",   icon: Briefcase, color: "#F59E0B" },
+const STAKEHOLDER_META: Record<Stakeholder, { label: string; sublabel: string; icon: typeof Users; color: string; bg: string; border: string }> = {
+  employee: { label: "Employees",    sublabel: "~80% of seats", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
+  hr:       { label: "HR / Finance", sublabel: "~5% of seats",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  manager:  { label: "Managers",     sublabel: "~15% of seats", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
 };
 
 function fmt(n: number): string {
@@ -27,10 +27,11 @@ function fmtMoney(n: number): string {
   return "€" + Math.round(n).toLocaleString("en");
 }
 
-const DEFAULT_ROI: RoiConfig = { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_cost: 30 };
+const DEFAULT_ROI: RoiConfig = { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } };
 
 export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onChange }: Props) {
-  const { headcounts, hourly_cost } = roiConfig;
+  const { headcounts, hourly_costs } = roiConfig;
+  const { t } = useTranslation();
 
   useEffect(() => {
     const isDefault = headcounts.employee === 40 && headcounts.hr === 3 && headcounts.manager === 8;
@@ -44,8 +45,8 @@ export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onCha
     onChange({ ...roiConfig, headcounts: { ...headcounts, [key]: Math.max(0, value) } });
   }
 
-  function setHourlyCost(value: number) {
-    onChange({ ...roiConfig, hourly_cost: Math.max(0, value) });
+  function setHourlyCost(key: Stakeholder, value: number) {
+    onChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
   }
 
   const rows = useMemo(() => {
@@ -58,7 +59,7 @@ export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onCha
       const perStakeholder = (["employee", "hr", "manager"] as Stakeholder[]).map(s => {
         const h = hours[s];
         const totalHours = h * headcounts[s];
-        const totalMoney = totalHours * hourly_cost;
+        const totalMoney = totalHours * hourly_costs[s];
         return { stakeholder: s, hoursPerPerson: h, totalHours, totalMoney };
       });
 
@@ -67,7 +68,7 @@ export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onCha
 
       return { moduleId, label, color, perStakeholder, monthlyHours, monthlyMoney, annualMoney: monthlyMoney * 12 };
     });
-  }, [selectedModules, headcounts, hourly_cost]);
+  }, [selectedModules, headcounts, hourly_costs]);
 
   const totals = useMemo(() => {
     const monthly = rows.reduce((s, r) => s + r.monthlyMoney, 0);
@@ -75,6 +76,8 @@ export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onCha
     const monthlyHours = rows.reduce((s, r) => s + r.monthlyHours, 0);
     return { monthly, annual, monthlyHours };
   }, [rows]);
+
+  const totalPeople = headcounts.employee + headcounts.hr + headcounts.manager;
 
   return (
     <div className="space-y-6">
@@ -85,50 +88,77 @@ export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onCha
         </p>
       </div>
 
-      {/* Stakeholder config */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Stakeholder cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
           const meta = STAKEHOLDER_META[key];
           const Icon = meta.icon;
           return (
-            <div key={key} className="rounded-lg border border-border p-3 space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                <Icon className="h-3.5 w-3.5" style={{ color: meta.color }} />
-                {meta.label}
-              </Label>
-              <Input
-                type="number"
-                min={0}
-                className="h-9 text-right font-semibold tabular-nums"
-                value={headcounts[key]}
-                onChange={e => setHeadcount(key, parseInt(e.target.value) || 0)}
-              />
+            <div
+              key={key}
+              className="rounded-xl p-4 space-y-4 transition-shadow hover:shadow-sm"
+              style={{ backgroundColor: meta.bg, border: `1.5px solid ${meta.border}` }}
+            >
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: meta.color }}
+                >
+                  <Icon className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{meta.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{meta.sublabel}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    People
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
+                    value={headcounts[key]}
+                    onChange={e => setHeadcount(key, parseInt(e.target.value) || 0)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    €/hour
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={5}
+                    className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
+                    value={hourly_costs[key]}
+                    onChange={e => setHourlyCost(key, parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
             </div>
           );
         })}
-        <div className="rounded-lg border border-border p-3 space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Euro className="h-3.5 w-3.5 text-muted-foreground" />
-            Cost / hour
-          </Label>
-          <Input
-            type="number"
-            min={0}
-            className="h-9 text-right font-semibold tabular-nums"
-            value={hourly_cost}
-            onChange={e => setHourlyCost(parseFloat(e.target.value) || 0)}
-          />
-        </div>
       </div>
 
-      <div className="text-xs text-muted-foreground flex items-center gap-4">
-        <span>Total: <strong>{headcounts.employee + headcounts.hr + headcounts.manager}</strong> people</span>
-        <span>·</span>
-        <span>Based on <strong>{seats}</strong> seats</span>
+      {/* Total bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-muted/40 border border-border/50">
+        <span className="text-xs text-muted-foreground">
+          <strong className="text-foreground">{totalPeople}</strong> people total
+          {totalPeople !== seats && (
+            <span className="ml-2 text-muted-foreground/70">({seats} seats)</span>
+          )}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          Weighted avg: <strong className="text-foreground">€{totalPeople > 0 ? Math.round((headcounts.employee * hourly_costs.employee + headcounts.hr * hourly_costs.hr + headcounts.manager * hourly_costs.manager) / totalPeople) : 0}</strong>/h
+        </span>
       </div>
 
       {/* Module savings table */}
-      <div className="rounded-lg border border-border overflow-hidden">
+      <div className="rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -190,15 +220,15 @@ export function StepROI({ selectedModules, seats, roiConfig = DEFAULT_ROI, onCha
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-border p-3 text-center">
+        <div className="rounded-xl border border-border p-4 text-center">
           <p className="text-2xl font-bold tabular-nums text-foreground">{fmt(totals.monthlyHours)}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">hours saved / month</p>
         </div>
-        <div className="rounded-lg border border-border p-3 text-center">
+        <div className="rounded-xl border border-border p-4 text-center">
           <p className="text-2xl font-bold tabular-nums text-foreground">{fmtMoney(totals.monthly)}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">saved / month</p>
         </div>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-center">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 text-center">
           <p className="text-2xl font-bold tabular-nums text-emerald-600">{fmtMoney(totals.annual)}</p>
           <p className="text-[11px] text-emerald-700 mt-0.5">saved / year</p>
         </div>
