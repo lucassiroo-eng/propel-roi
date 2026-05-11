@@ -1,55 +1,39 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
   Check,
   X,
   Loader2,
-  AlertTriangle,
-  Lock,
-  Info,
   Plus,
+  Presentation,
+  FileDown,
+  ExternalLink,
+  Package,
+  Star,
+  TrendingUp,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getLocalizedPainStatement } from "@/lib/i18nHelpers";
-import type { SelectedOffering, PainOverride, AddonLine } from "@/hooks/useWizardSession";
+import { toast } from "sonner";
+import type { SelectedOffering, PainOverride, AddonLine, RoiConfig, WizardState } from "@/hooks/useWizardSession";
 import {
   type BundleRow,
   type PricingLineItem,
   type PainModuleEntry,
-  type AddonDetailsResult,
-  canonicalModule,
   moduleLabel,
-  parseModulesFromBundle,
   deriveRequiredModules,
   analyzeBundle,
   findOptimalBundle,
-  validateConfiguration,
   getAddonDetails,
   classifyPains,
-  getLineItemPrice,
-  listAvailableAddonModules,
   MODULES_INCLUDED_IN_CORE,
 } from "@/lib/offeringEngine";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from "@/components/ui/tooltip";
+import { MODULE_CATALOG } from "@/lib/moduleCatalog";
+import { getHoursForModule, type Stakeholder } from "@/lib/moduleHours";
 import {
   Popover,
   PopoverContent,
@@ -64,7 +48,19 @@ interface Props {
   painOverrides?: Record<string, PainOverride>;
   sector?: string;
   selectedModules?: string[];
+  roiConfig?: RoiConfig;
   onChange: (o: Partial<SelectedOffering>) => void;
+  onModulesChange?: (modules: string[]) => void;
+  sessionId?: string | null;
+  state?: WizardState;
+}
+
+function fmtEur(n: number): string {
+  return n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
+}
+
+function getModuleColor(moduleId: string): string {
+  return MODULE_CATALOG.find(m => m.id === moduleId)?.color ?? "#94A3B8";
 }
 
 export function StepOffering({
@@ -75,10 +71,15 @@ export function StepOffering({
   painOverrides = {},
   sector = "",
   selectedModules = [],
+  roiConfig,
   onChange,
+  onModulesChange,
+  sessionId,
+  state,
 }: Props) {
   const { t, i18n } = useTranslation();
-  const lang = i18n.language?.substring(0, 2) ?? "en";
+  const [generatingPptx, setGeneratingPptx] = useState(false);
+  const [pptxUrl, setPptxUrl] = useState<string | null>(null);
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -121,20 +122,7 @@ export function StepOffering({
     },
   });
 
-  const { data: painLibraryFull } = useQuery({
-    queryKey: ["pain_library"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pain_library")
-        .select("*")
-        .eq("is_archived", false)
-        .order("display_order");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // ── Build pain benefits map from painOverrides (single source of truth from Quantify) ──
+  // ── Pain benefits map ──
   const painBenefits = useMemo(() => {
     const map: Record<string, number> = {};
     for (const painId of selectedPains) {
@@ -143,10 +131,10 @@ export function StepOffering({
     return map;
   }, [selectedPains, painOverrides]);
 
-  // ── Required modules ──
+  // ── Required modules from selection ──
   const requiredModules = useMemo(() => {
     if (selectedModules.length > 0) {
-      const mods: ReturnType<typeof deriveRequiredModules> = [
+      const mods: { module: string; label: string; painIds: string[]; totalBenefit: number }[] = [
         { module: "core", label: moduleLabel("core"), painIds: [], totalBenefit: 0 },
       ];
       for (const mod of selectedModules) {
@@ -164,27 +152,16 @@ export function StepOffering({
     [requiredModules]
   );
 
-  // ── Bundle analyses ──
-  const bundleAnalyses = useMemo(() => {
-    if (!bundles || !lineItems || !painModules) return [];
-    return bundles
-      .filter(b => {
-        const pepm = offering.billing === "yearly"
-          ? (offering.tier === "enterprise" ? b.enterprise_pepm_yearly : b.business_pepm_yearly)
-          : (offering.tier === "enterprise" ? b.enterprise_pepm_monthly : b.business_pepm_monthly);
-        return (pepm ?? 0) > 0;
-      })
-      .map(b =>
-        analyzeBundle(
-          b, requiredModuleKeys, lineItems, offering.billing, offering.tier,
-          seats, painModules, selectedPains, painBenefits
-        )
-      )
-      .sort((a, b) => a.bundlePepm - b.bundlePepm);
-  }, [bundles, lineItems, painModules, requiredModuleKeys, offering.billing, offering.tier, seats, selectedPains, painBenefits]);
+  // ── Find Starter Operations and Recommended bundles ──
+  const starterBundle = useMemo(() => {
+    if (!bundles) return null;
+    return bundles.find(b =>
+      b.bundle_name.toLowerCase().includes("starter operations") ||
+      b.bundle_name.toLowerCase().includes("starter op")
+    ) ?? null;
+  }, [bundles]);
 
-  // ── Optimal bundle (auto-select on first load) ──
-  const optimalAnalysis = useMemo(() => {
+  const recommendedBundle = useMemo(() => {
     if (!bundles || !lineItems || !painModules) return null;
     return findOptimalBundle(
       bundles, requiredModuleKeys, lineItems, offering.billing, offering.tier,
@@ -192,30 +169,32 @@ export function StepOffering({
     );
   }, [bundles, lineItems, painModules, requiredModuleKeys, offering.billing, offering.tier, seats, selectedPains, painBenefits]);
 
-  // ── Selected bundle state ──
-  const selectedBundleId = offering.bundle_id ?? optimalAnalysis?.bundle.id ?? null;
+  const starterAnalysis = useMemo(() => {
+    if (!starterBundle || !lineItems || !painModules) return null;
+    return analyzeBundle(
+      starterBundle, requiredModuleKeys, lineItems, offering.billing, offering.tier,
+      seats, painModules, selectedPains, painBenefits
+    );
+  }, [starterBundle, lineItems, painModules, requiredModuleKeys, offering.billing, offering.tier, seats, selectedPains, painBenefits]);
 
-  const selectedAnalysis = useMemo(
-    () => bundleAnalyses.find(a => a.bundle.id === selectedBundleId) ?? optimalAnalysis,
-    [bundleAnalyses, selectedBundleId, optimalAnalysis]
-  );
+  // ── Selected pack state ──
+  const selectedBundleId = offering.bundle_id ?? recommendedBundle?.bundle.id ?? null;
+  const isStarterSelected = selectedBundleId === starterBundle?.id;
 
-  // ── Add-on toggles ──
+  const selectedAnalysis = useMemo(() => {
+    if (isStarterSelected && starterAnalysis) return starterAnalysis;
+    return recommendedBundle;
+  }, [isStarterSelected, starterAnalysis, recommendedBundle]);
+
+  // ── Add-on toggles for extra modules not in bundle ──
   const [addonToggles, setAddonToggles] = useState<Record<string, boolean>>({});
-  // Extra modules added by seller (not pain-derived)
-  const [extraModules, setExtraModules] = useState<string[]>([]);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
 
-  // Initialize addon toggles when selected bundle changes
   useEffect(() => {
     if (!selectedAnalysis) return;
     const toggles: Record<string, boolean> = {};
     for (const mod of selectedAnalysis.uncoveredRequired) {
       toggles[mod] = offering.addon_lines?.find(a => a.module === mod)?.enabled ?? true;
-    }
-    // Keep extra module toggles
-    for (const mod of extraModules) {
-      toggles[mod] = addonToggles[mod] ?? true;
     }
     setAddonToggles(toggles);
   }, [selectedAnalysis?.bundle.id]);
@@ -224,34 +203,21 @@ export function StepOffering({
   const configuration = useMemo(() => {
     if (!selectedAnalysis || !lineItems || !painModules) return null;
 
-    // Pain-required uncovered modules (not in bundle, not included-in-core)
     const painUncovered = selectedAnalysis.uncoveredRequired.filter(
       mod => !MODULES_INCLUDED_IN_CORE.has(mod)
     );
-    // Combine with seller-added extra modules (exclude those already in bundle)
-    const allAddonModules = [
-      ...painUncovered,
-      ...extraModules.filter(m =>
-        !painUncovered.includes(m) && !selectedAnalysis.bundleModules.includes(m)
-      ),
-    ];
 
-    const enabledAddons = allAddonModules.filter(
-      mod => addonToggles[mod] !== false
-    );
+    const enabledAddons = painUncovered.filter(mod => addonToggles[mod] !== false);
 
-    const addonDetailsMap: Record<string, AddonDetailsResult> = {};
-    const addonLines: AddonLine[] = allAddonModules.map(mod => {
+    const addonLines: AddonLine[] = painUncovered.map(mod => {
       const details = getAddonDetails(mod, lineItems, offering.billing, offering.tier, selectedAnalysis.effectiveSeats);
-      if (details) addonDetailsMap[mod] = details;
-      const isPainRequired = painUncovered.includes(mod);
       return {
         module: mod,
         label: moduleLabel(mod),
         architecture: details?.architecture ?? "Per seat",
         pepm: details?.pepm ?? 0,
         annual: details?.annual ?? 0,
-        pains_solved: isPainRequired ? (requiredModules.find(rm => rm.module === mod)?.painIds ?? []) : [],
+        pains_solved: [],
         enabled: addonToggles[mod] !== false,
       };
     });
@@ -259,16 +225,13 @@ export function StepOffering({
     const enabledAddonAnnual = addonLines.filter(a => a.enabled).reduce((s, a) => s + a.annual, 0);
     const totalAnnualCost = selectedAnalysis.bundleAnnual + enabledAddonAnnual;
 
-    // All modules in configuration (bundle + core-included + enabled addons)
     const configModules = [
       ...selectedAnalysis.bundleModules,
       ...enabledAddons,
     ];
 
     const { covered, uncovered } = classifyPains(selectedPains, painModules, configModules);
-
     const totalAnnualBenefit = covered.reduce((s, pid) => s + (painBenefits[pid] ?? 0), 0);
-
     const netRoi = totalAnnualBenefit - totalAnnualCost;
     const roiPct = totalAnnualCost > 0 ? (netRoi / totalAnnualCost) * 100 : 0;
     const paybackMonths = totalAnnualBenefit > 0 ? (totalAnnualCost / totalAnnualBenefit) * 12 : 0;
@@ -276,7 +239,6 @@ export function StepOffering({
     return {
       bundleModules: selectedAnalysis.bundleModules,
       addonLines,
-      addonDetailsMap,
       totalAnnualCost,
       coveredPains: covered,
       uncoveredPains: uncovered,
@@ -286,23 +248,26 @@ export function StepOffering({
       paybackMonths,
       configModules,
     };
-  }, [selectedAnalysis, addonToggles, extraModules, lineItems, painModules, offering.billing, offering.tier, selectedPains, painBenefits, requiredModules]);
+  }, [selectedAnalysis, addonToggles, lineItems, painModules, offering.billing, offering.tier, selectedPains, painBenefits]);
 
-  // ── Constraint violations ──
-  const violations = useMemo(() => {
-    if (!selectedAnalysis || !lineItems || !configuration) return [];
-    const enabledAddons = configuration.addonLines.filter(a => a.enabled).map(a => a.module);
-    return validateConfiguration({
-      bundleModules: selectedAnalysis.bundleModules,
-      addonModules: enabledAddons,
-      tier: offering.tier,
-      seats,
-      totalPepm: selectedAnalysis.bundlePepm + configuration.addonLines.filter(a => a.enabled).reduce((s, a) => s + a.pepm, 0),
-      lineItems,
-    });
-  }, [selectedAnalysis, configuration, lineItems, offering.tier, seats]);
+  // ── ROI savings from module hours (using roiConfig) ──
+  const roiSavings = useMemo(() => {
+    if (!roiConfig || !configuration) return { annual: 0, monthly: 0, monthlyHours: 0 };
+    const { headcounts, hourly_costs } = roiConfig;
+    let monthlyMoney = 0;
+    let monthlyHours = 0;
+    for (const modId of configuration.configModules) {
+      const hours = getHoursForModule(modId);
+      for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
+        const h = hours[s] * headcounts[s];
+        monthlyHours += h;
+        monthlyMoney += h * hourly_costs[s];
+      }
+    }
+    return { annual: monthlyMoney * 12, monthly: monthlyMoney, monthlyHours };
+  }, [roiConfig, configuration]);
 
-  // ── Write configuration to wizard state (ref-based to avoid stale closures) ──
+  // ── Write configuration to wizard state ──
   const configRef = useRef(configuration);
   const analysisRef = useRef(selectedAnalysis);
   configRef.current = configuration;
@@ -327,12 +292,43 @@ export function StepOffering({
       roi_pct: cfg.roiPct,
       payback_months: cfg.paybackMonths,
     });
-  }, [configuration, selectedAnalysis, onChange]);
+  }, [configuration, selectedAnalysis]);
 
-  const fmt = (n: number) =>
-    n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
-  const fmtDec = (n: number) =>
-    n.toLocaleString("es-ES", { maximumFractionDigits: 2 });
+  // ── Generate PPTX (1-pager ROI slide) ──
+  const handleGeneratePptx = async () => {
+    if (!sessionId || sessionId === "new") {
+      toast.error("Please save the session first");
+      return;
+    }
+    setGeneratingPptx(true);
+    try {
+      const { error: roiErr } = await supabase.functions.invoke("roi-engine", { body: { session_id: sessionId } });
+      if (roiErr) throw roiErr;
+      const { data, error } = await supabase.functions.invoke("generate-pptx", { body: { session_id: sessionId } });
+      if (error) throw error;
+      if (data?.pptx_url) {
+        setPptxUrl(data.pptx_url);
+        toast.success("ROI slide generated!");
+      }
+    } catch (err: any) {
+      toast.error("Generation failed: " + err.message);
+    } finally {
+      setGeneratingPptx(false);
+    }
+  };
+
+  function selectPack(bundleId: number) {
+    onChange({ bundle_id: bundleId });
+    setAddonToggles({});
+  }
+
+  function toggleModule(moduleId: string) {
+    if (!onModulesChange) return;
+    const next = selectedModules.includes(moduleId)
+      ? selectedModules.filter(m => m !== moduleId)
+      : [...selectedModules, moduleId];
+    onModulesChange(next);
+  }
 
   if (bundlesLoading) {
     return (
@@ -345,391 +341,337 @@ export function StepOffering({
   if (!bundles?.length) {
     return (
       <div className="flex justify-center py-12 text-muted-foreground text-sm">
-        {t("offering.no_bundles")}
+        No bundles available for this country.
       </div>
     );
   }
 
+  const allBundleModules = selectedAnalysis?.bundleModules ?? [];
+
   return (
-    <TooltipProvider>
-      <div className="space-y-5">
-        {/* Header */}
-        <div>
-          <h2 className="text-xl font-bold text-foreground">{t("offering.title")}</h2>
-          <p className="text-sm text-muted-foreground mt-1">{t("offering.subtitle")}</p>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-bold text-foreground">Choose Your Pack</h2>
+        <p className="text-sm text-muted-foreground mt-1">Select a pack and customize modules</p>
+      </div>
 
-        {/* Controls bar */}
-        <div className="sticky top-14 z-10 bg-background/95 backdrop-blur py-3 -mx-4 px-4 border-b border-border/50">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <span className={`text-xs ${offering.billing === "monthly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                {t("offering.monthly")}
-              </span>
-              <Switch
-                checked={offering.billing === "yearly"}
-                onCheckedChange={(v) => onChange({ billing: v ? "yearly" : "monthly" })}
-              />
-              <span className={`text-xs ${offering.billing === "yearly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                {t("offering.yearly")}
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                className={`text-xs px-2 py-1 rounded ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => onChange({ tier: "business" })}
-              >
-                {t("offering.tier_business")}
-              </button>
-              <button
-                className={`text-xs px-2 py-1 rounded ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => onChange({ tier: "enterprise" })}
-              >
-                {t("offering.tier_enterprise")}
-              </button>
-            </div>
-          </div>
+      {/* Billing toggle */}
+      <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <span className={`text-xs ${offering.billing === "monthly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+            Monthly
+          </span>
+          <Switch
+            checked={offering.billing === "yearly"}
+            onCheckedChange={(v) => onChange({ billing: v ? "yearly" : "monthly" })}
+          />
+          <span className={`text-xs ${offering.billing === "yearly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+            Yearly
+          </span>
         </div>
+        <div className="flex items-center gap-2">
+          <button
+            className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            onClick={() => onChange({ tier: "business" })}
+          >
+            Business
+          </button>
+          <button
+            className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            onClick={() => onChange({ tier: "enterprise" })}
+          >
+            Enterprise
+          </button>
+        </div>
+      </div>
 
-        {/* Constraint warnings */}
-        {violations.length > 0 && (
-          <div className="space-y-1.5">
-            {violations.map((v, i) => (
-              <div key={i} className={`flex items-start gap-2 rounded px-3 py-2 text-xs ${v.type === "error" ? "bg-destructive/10 text-destructive" : "bg-amber-50 text-amber-700"}`}>
-                <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span>{v.message}</span>
+      {/* Two pack options */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Starter Operations */}
+        {starterAnalysis && (
+          <button
+            className={`text-left rounded-xl border-2 p-5 transition-all ${
+              isStarterSelected
+                ? "border-primary bg-primary/5 shadow-md"
+                : "border-border hover:border-primary/40 hover:shadow-sm"
+            }`}
+            onClick={() => selectPack(starterAnalysis.bundle.id)}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isStarterSelected ? "bg-primary" : "bg-muted"}`}>
+                <Package className={`h-5 w-5 ${isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Starter Operations</p>
+                <p className="text-[10px] text-muted-foreground">Core + Time essentials</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {starterAnalysis.bundleModules.map(m => (
+                <Badge key={m} variant="secondary" className="text-[10px] font-normal">
+                  {moduleLabel(m)}
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-foreground">{fmtEur(starterAnalysis.bundleAnnual)}</span>
+              <span className="text-xs text-muted-foreground">EUR/year</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {starterAnalysis.bundlePepm.toFixed(2)} EUR/employee/month
+            </p>
+          </button>
         )}
 
-        {/* Section 1: Required modules */}
-        <Card>
-          <CardContent className="py-4 px-4">
-            <h3 className="text-sm font-semibold text-foreground mb-3">{t("offering.required_modules")}</h3>
-            <div className="flex flex-wrap gap-2">
-              {requiredModules.map(rm => {
-                const includedInCore = MODULES_INCLUDED_IN_CORE.has(rm.module);
+        {/* Recommended Pack */}
+        {recommendedBundle && (
+          <button
+            className={`text-left rounded-xl border-2 p-5 transition-all relative ${
+              !isStarterSelected
+                ? "border-primary bg-primary/5 shadow-md"
+                : "border-border hover:border-primary/40 hover:shadow-sm"
+            }`}
+            onClick={() => selectPack(recommendedBundle.bundle.id)}
+          >
+            <div className="absolute -top-2.5 right-4">
+              <Badge className="bg-emerald-500 text-white text-[10px] gap-1 border-0">
+                <Star className="h-3 w-3" /> Recommended
+              </Badge>
+            </div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${!isStarterSelected ? "bg-primary" : "bg-muted"}`}>
+                <Star className={`h-5 w-5 ${!isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">{recommendedBundle.bundle.bundle_name}</p>
+                <p className="text-[10px] text-muted-foreground">All recommended modules</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1 mb-3">
+              {recommendedBundle.bundleModules.map(m => {
+                const isRequired = requiredModuleKeys.includes(m);
                 return (
-                  <Tooltip key={rm.module}>
-                    <TooltipTrigger asChild>
-                      <div className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium bg-accent text-foreground cursor-default">
-                        <span>{rm.label}</span>
-                        {includedInCore && (
-                          <span className="text-[10px] text-muted-foreground">(in Core)</span>
-                        )}
-                        {rm.totalBenefit > 0 && (
-                          <span className="text-emerald-600 font-semibold">{fmt(rm.totalBenefit)} EUR</span>
-                        )}
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        {rm.painIds.length > 0
-                          ? `Solves ${rm.painIds.length} pain${rm.painIds.length > 1 ? "s" : ""}: ${rm.painIds.join(", ")}`
-                          : "Core module (mandatory)"}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <Badge
+                    key={m}
+                    variant="secondary"
+                    className={`text-[10px] font-normal ${isRequired ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}`}
+                  >
+                    {isRequired && <Check className="h-2.5 w-2.5 mr-0.5" />}
+                    {moduleLabel(m)}
+                  </Badge>
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Section 2: Bundle picker */}
-        <Card>
-          <CardContent className="p-0">
-            <div className="px-4 py-3 border-b border-border/50">
-              <h3 className="text-sm font-semibold text-foreground">{t("offering.pick_bundle")}</h3>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-bold text-foreground">{fmtEur(recommendedBundle.bundleAnnual)}</span>
+              <span className="text-xs text-muted-foreground">EUR/year</span>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[30%]">{t("offering.bundle_name")}</TableHead>
-                  <TableHead className="text-center">{t("offering.pepm")}</TableHead>
-                  <TableHead className="text-center">{t("offering.annual_cost")}</TableHead>
-                  <TableHead className="text-center">{t("offering.modules_covered")}</TableHead>
-                  <TableHead className="text-center">{t("offering.missing_modules")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bundleAnalyses.map(analysis => {
-                  const isSelected = analysis.bundle.id === selectedBundleId;
-                  const isOptimal = analysis.bundle.id === optimalAnalysis?.bundle.id;
-                  return (
-                    <TableRow
-                      key={analysis.bundle.id}
-                      className={`cursor-pointer transition-colors ${isSelected ? "bg-primary/5 border-l-2 border-l-primary" : "hover:bg-muted/30"}`}
-                      onClick={() => {
-                        onChange({ bundle_id: analysis.bundle.id, bundle_name: analysis.bundle.bundle_name });
-                        setAddonToggles({});
-                      }}
-                    >
-                      <TableCell className="py-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-medium ${isSelected ? "text-primary" : "text-foreground"}`}>
-                            {analysis.bundle.bundle_name}
-                          </span>
-                          {isOptimal && (
-                            <Badge variant="secondary" className="text-[9px] bg-emerald-100 text-emerald-700 border-0">
-                              {t("offering.recommended")}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center py-2">
-                        <span className="text-xs font-medium">{fmtDec(analysis.bundlePepm)} EUR</span>
-                      </TableCell>
-                      <TableCell className="text-center py-2">
-                        <span className="text-xs">{fmt(analysis.bundleAnnual)} EUR</span>
-                      </TableCell>
-                      <TableCell className="text-center py-2">
-                        <div className="flex flex-wrap justify-center gap-0.5">
-                          {requiredModuleKeys.filter(m => analysis.bundleModules.includes(m)).map(m => (
-                            <span key={m} className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600">
-                              <Check className="h-3 w-3" />
-                              {moduleLabel(m)}
-                            </span>
-                          ))}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center py-2">
-                        {analysis.uncoveredRequired.length === 0 ? (
-                          <span className="text-[10px] text-muted-foreground">--</span>
-                        ) : (
-                          <div className="flex flex-wrap justify-center gap-0.5">
-                            {analysis.uncoveredRequired.map(m => (
-                              <span key={m} className="text-[10px] text-amber-600">{moduleLabel(m)}</span>
-                            ))}
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Section 3: Additional modules (add-ons + extra) */}
-        {selectedAnalysis && configuration && (
-          <Card>
-            <CardContent className="py-4 px-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">{t("offering.addons")}</h3>
-                  <p className="text-xs text-muted-foreground">{t("offering.addons_subtitle")}</p>
-                </div>
-                <Popover open={addModuleOpen} onOpenChange={setAddModuleOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-7 gap-1 text-xs">
-                      <Plus className="h-3.5 w-3.5" />
-                      {t("offering.add_module")}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-2 max-h-64 overflow-y-auto" align="end">
-                    <p className="text-[10px] text-muted-foreground px-2 py-1 mb-1">{t("offering.add_module_hint")}</p>
-                    {lineItems && (() => {
-                      const currentModules = [
-                        ...(selectedAnalysis?.bundleModules ?? []),
-                        ...configuration.addonLines.map(a => a.module),
-                      ];
-                      const available = listAvailableAddonModules(lineItems, currentModules);
-                      if (available.length === 0) {
-                        return <p className="text-xs text-muted-foreground px-2 py-1">No additional modules available</p>;
-                      }
-                      return available.map(m => (
-                        <button
-                          key={m.module}
-                          className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors"
-                          onClick={() => {
-                            setExtraModules(prev => [...prev, m.module]);
-                            setAddonToggles(prev => ({ ...prev, [m.module]: true }));
-                            setAddModuleOpen(false);
-                          }}
-                        >
-                          {m.label}
-                        </button>
-                      ));
-                    })()}
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              {configuration.addonLines.length > 0 && (
-                <div className="space-y-2">
-                  {configuration.addonLines.map(addon => {
-                    const painNames = addon.pains_solved
-                      .map(pid => {
-                        const p = painLibraryFull?.find((pl: any) => pl.pain_id === pid);
-                        return p ? getLocalizedPainStatement(p, lang) : pid;
-                      })
-                      .map(s => s.length > 40 ? s.slice(0, 37) + "..." : s);
-                    const benefit = addon.pains_solved.reduce((s, pid) => s + (painBenefits[pid] ?? 0), 0);
-                    const isExtra = extraModules.includes(addon.module);
-                    const isCostOnly = addon.pains_solved.length === 0;
-                    const details = configuration.addonDetailsMap[addon.module];
-
-                    return (
-                      <div
-                        key={addon.module}
-                        className={`flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 transition-colors ${addon.enabled ? "bg-background border-border" : "bg-muted/30 border-border/50 opacity-60"}`}
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <Switch
-                            checked={addon.enabled}
-                            onCheckedChange={(v) => setAddonToggles(prev => ({ ...prev, [addon.module]: v }))}
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-foreground">{addon.label}</span>
-                              <span className="text-[10px] text-muted-foreground">{addon.architecture}</span>
-                              {isExtra && (
-                                <Badge variant="outline" className="text-[9px] h-4 px-1">
-                                  {t("offering.extra")}
-                                </Badge>
-                              )}
-                            </div>
-                            {painNames.length > 0 ? (
-                              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
-                                Solves: {painNames.join(", ")}
-                              </p>
-                            ) : isCostOnly && (
-                              <p className="text-[10px] text-amber-600 mt-0.5">
-                                {t("offering.cost_only")}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-right shrink-0">
-                            {details?.isTiered ? (
-                              <>
-                                <p className="text-xs font-medium">{fmt(details.fixedFeeAnnual ?? 0)} EUR/yr + {fmtDec(details.userPepm ?? 0)} EUR/user/mo</p>
-                                <p className="text-[10px] text-muted-foreground">{fmt(addon.annual)} EUR{t("offering.per_year")}</p>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-xs font-medium">{fmtDec(addon.pepm)} EUR {t("offering.pepm")}</p>
-                                <p className="text-[10px] text-muted-foreground">{fmt(addon.annual)} EUR{t("offering.per_year")}</p>
-                              </>
-                            )}
-                            {benefit > 0 && (
-                              <p className="text-[10px] text-emerald-600 font-medium">+{fmt(benefit)} EUR benefit</p>
-                            )}
-                          </div>
-                          {isExtra && (
-                            <button
-                              className="text-muted-foreground hover:text-destructive transition-colors"
-                              onClick={() => {
-                                setExtraModules(prev => prev.filter(m => m !== addon.module));
-                                setAddonToggles(prev => {
-                                  const next = { ...prev };
-                                  delete next[addon.module];
-                                  return next;
-                                });
-                              }}
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {configuration.addonLines.length === 0 && (
-                <p className="text-xs text-muted-foreground py-2">{t("offering.no_addons_needed")}</p>
-              )}
-
-              {/* Warning for disabled add-ons */}
-              {configuration.uncoveredPains.length > 0 && (
-                <div className="flex items-start gap-2 rounded px-3 py-2 text-xs bg-amber-50 text-amber-700">
-                  <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                  <span>
-                    {configuration.uncoveredPains.length} pain{configuration.uncoveredPains.length > 1 ? "s" : ""} not covered by this configuration. Their benefit is not counted.
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Section 4: Summary bar */}
-        {configuration && (
-          <>
-            <Separator />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Card>
-                <CardContent className="py-3 px-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">{t("offering.annual_cost")}</p>
-                  <p className="text-sm font-bold text-foreground">{fmt(configuration.totalAnnualCost)} EUR</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="py-3 px-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">{t("review.total_benefit")}</p>
-                  <p className="text-sm font-bold text-emerald-600">{fmt(configuration.totalAnnualBenefit)} EUR</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="py-3 px-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">{t("review.net_roi")}</p>
-                  <p className={`text-sm font-bold ${configuration.netRoi >= 0 ? "text-emerald-600" : "text-destructive"}`}>
-                    {fmt(configuration.netRoi)} EUR
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="py-3 px-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">{t("offering.payback")}</p>
-                  <p className="text-sm font-bold text-foreground">
-                    {configuration.paybackMonths > 0 ? `${configuration.paybackMonths.toFixed(1)} ${t("offering.months")}` : "--"}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* ROI % highlight */}
-            <div className="flex items-center justify-center gap-2 text-center">
-              <span className="text-xs text-muted-foreground">{t("review.roi_pct")}:</span>
-              <span className={`text-lg font-bold ${configuration.roiPct >= 0 ? "text-emerald-600" : "text-destructive"}`}>
-                {configuration.roiPct.toFixed(0)}%
-              </span>
-            </div>
-          </>
-        )}
-
-        {/* Module breakdown: bundle modules + included extras */}
-        {selectedAnalysis && (
-          <Card>
-            <CardContent className="py-3 px-4">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">
-                {selectedAnalysis.bundle.bundle_name} -- {t("offering.modules_included")}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {selectedAnalysis.bundleModules.map(m => {
-                  const isRequired = requiredModuleKeys.includes(m);
-                  return (
-                    <Badge
-                      key={m}
-                      variant="secondary"
-                      className={`text-[10px] font-normal ${isRequired ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "opacity-60"}`}
-                    >
-                      {isRequired && <Check className="h-2.5 w-2.5 mr-0.5" />}
-                      {moduleLabel(m)}
-                    </Badge>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {recommendedBundle.bundlePepm.toFixed(2)} EUR/employee/month
+            </p>
+          </button>
         )}
       </div>
-    </TooltipProvider>
+
+      {/* Module toggles */}
+      {selectedAnalysis && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Included Modules</p>
+              <p className="text-xs text-muted-foreground">Click modules to add or remove them</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {/* Bundle modules (always included, shown as active) */}
+            {allBundleModules.map(modId => {
+              const color = getModuleColor(modId);
+              return (
+                <div
+                  key={modId}
+                  className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium bg-accent/80 text-foreground cursor-default"
+                  style={{ borderColor: color + "40" }}
+                >
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                  {moduleLabel(modId)}
+                  <Check className="h-3 w-3 text-emerald-500" />
+                </div>
+              );
+            })}
+
+            {/* Selected modules not in bundle (toggleable) */}
+            {selectedModules
+              .filter(m => !allBundleModules.includes(m))
+              .map(modId => {
+                const color = getModuleColor(modId);
+                const isInAddon = configuration?.addonLines.some(a => a.module === modId && a.enabled);
+                return (
+                  <button
+                    key={modId}
+                    className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 transition-colors"
+                    onClick={() => toggleModule(modId)}
+                  >
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                    {moduleLabel(modId)}
+                    <X className="h-3 w-3" />
+                  </button>
+                );
+              })}
+
+            {/* Add more modules */}
+            <Popover open={addModuleOpen} onOpenChange={setAddModuleOpen}>
+              <PopoverTrigger asChild>
+                <button className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
+                  <Plus className="h-3 w-3" /> Add module
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2 max-h-64 overflow-y-auto" align="start">
+                <p className="text-[10px] text-muted-foreground px-2 py-1 mb-1">Click to add a module</p>
+                {MODULE_CATALOG
+                  .filter(m => !selectedModules.includes(m.id) && !allBundleModules.includes(m.id))
+                  .map(m => (
+                    <button
+                      key={m.id}
+                      className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors flex items-center gap-2"
+                      onClick={() => {
+                        if (onModulesChange) {
+                          onModulesChange([...selectedModules, m.id]);
+                        }
+                        setAddModuleOpen(false);
+                      }}
+                    >
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: m.color }} />
+                      {m.label}
+                    </button>
+                  ))}
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Add-on pricing for modules not in bundle */}
+          {configuration && configuration.addonLines.length > 0 && (
+            <div className="rounded-lg border border-border bg-muted/20 p-3 space-y-2">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Add-on pricing</p>
+              {configuration.addonLines.map(addon => (
+                <div key={addon.module} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={addon.enabled}
+                      onCheckedChange={(v) => setAddonToggles(prev => ({ ...prev, [addon.module]: v }))}
+                      className="scale-75"
+                    />
+                    <span className={addon.enabled ? "text-foreground" : "text-muted-foreground"}>{addon.label}</span>
+                  </div>
+                  <span className="font-medium tabular-nums">{fmtEur(addon.annual)} EUR/yr</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Cost vs Savings comparison */}
+      {configuration && (
+        <>
+          <Separator />
+          <div className="space-y-4">
+            <p className="text-sm font-semibold text-foreground">Cost vs. Savings</p>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Cost side */}
+              <div className="rounded-xl border border-border p-4 space-y-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Annual Cost</p>
+                <p className="text-2xl font-bold tabular-nums text-foreground">{fmtEur(configuration.totalAnnualCost)} EUR</p>
+                <div className="space-y-1 text-[11px] text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span>{selectedAnalysis?.bundle.bundle_name}</span>
+                    <span className="tabular-nums">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)}</span>
+                  </div>
+                  {configuration.addonLines.filter(a => a.enabled).map(a => (
+                    <div key={a.module} className="flex justify-between">
+                      <span>{a.label}</span>
+                      <span className="tabular-nums">{fmtEur(a.annual)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Savings side */}
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3">
+                <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Annual Savings</p>
+                <p className="text-2xl font-bold tabular-nums text-emerald-600">{fmtEur(roiSavings.annual)} EUR</p>
+                <div className="space-y-1 text-[11px] text-emerald-700/80">
+                  <div className="flex justify-between">
+                    <span>{roiSavings.monthlyHours.toFixed(0)} hours/month saved</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Across {configuration.configModules.length} modules</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Net ROI bar */}
+            {roiSavings.annual > 0 && (
+              <div className={`rounded-lg px-4 py-3 flex items-center justify-between ${
+                roiSavings.annual > configuration.totalAnnualCost
+                  ? "bg-emerald-50 border border-emerald-200"
+                  : "bg-amber-50 border border-amber-200"
+              }`}>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className={`h-4 w-4 ${
+                    roiSavings.annual > configuration.totalAnnualCost ? "text-emerald-600" : "text-amber-600"
+                  }`} />
+                  <span className="text-sm font-semibold text-foreground">Net ROI</span>
+                </div>
+                <div className="text-right">
+                  <span className={`text-lg font-bold tabular-nums ${
+                    roiSavings.annual > configuration.totalAnnualCost ? "text-emerald-600" : "text-amber-600"
+                  }`}>
+                    {fmtEur(roiSavings.annual - configuration.totalAnnualCost)} EUR
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-2">
+                    ({((roiSavings.annual - configuration.totalAnnualCost) / Math.max(configuration.totalAnnualCost, 1) * 100).toFixed(0)}%)
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Generate 1-pager ROI slide */}
+      <Separator />
+      <div className="space-y-3">
+        <Button
+          className="w-full"
+          size="lg"
+          onClick={handleGeneratePptx}
+          disabled={generatingPptx}
+        >
+          {generatingPptx ? (
+            <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Generating...</>
+          ) : (
+            <><Presentation className="h-4 w-4 mr-2" /> Generate 1-Pager ROI Slide</>
+          )}
+        </Button>
+
+        {pptxUrl && (
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" size="lg" asChild>
+              <a href={pptxUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" /> View
+              </a>
+            </Button>
+            <Button variant="outline" className="flex-1" size="lg" asChild>
+              <a href={pptxUrl} download={`ROI-${state?.prospect.company_name || "report"}.pptx`}>
+                <FileDown className="h-4 w-4 mr-2" /> Download PPTX
+              </a>
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

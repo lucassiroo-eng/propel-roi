@@ -1,17 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useWizardSession } from "@/hooks/useWizardSession";
 import { WizardShell } from "@/components/wizard/WizardShell";
-import { StepProspect } from "@/components/wizard/StepProspect";
-import { StepModules } from "@/components/wizard/StepModules";
-import { StepROI } from "@/components/wizard/StepROI";
+import { StepSetup } from "@/components/wizard/StepSetup";
+import { StepModulesROI } from "@/components/wizard/StepModulesROI";
 import { StepOffering } from "@/components/wizard/StepOffering";
-import { StepReview } from "@/components/wizard/StepReview";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-// Steps: 0=Prospect, 1=Modules, 2=ROI, 3=Offering, 4=Review
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 3;
 
 export default function Session() {
   const { id } = useParams<{ id: string }>();
@@ -58,34 +55,23 @@ export default function Session() {
       wide
     >
       {step === 0 && (
-        <StepProspect
+        <StepSetup
           data={state.prospect}
+          roiConfig={state.roiConfig}
           onChange={(partial) =>
             updateState(prev => ({
               ...prev,
               prospect: { ...prev.prospect, ...partial },
             }))
           }
-          selectedPains={state.selectedPains}
-          onTogglePain={(painId) =>
-            updateState(prev => ({
-              ...prev,
-              selectedPains: prev.selectedPains.includes(painId)
-                ? prev.selectedPains.filter(p => p !== painId)
-                : [...prev.selectedPains, painId],
-            }))
+          onRoiConfigChange={(config) =>
+            updateState(prev => ({ ...prev, roiConfig: config }))
           }
-          onPainsAutoSelected={(painIds, suggestions) =>
-            updateState(prev => ({
-              ...prev,
-              selectedPains: [...new Set([...prev.selectedPains, ...painIds])],
-              aiSuggestions: suggestions,
-            }))
-          }
+          seats={state.prospect.seats}
         />
       )}
       {step === 1 && (
-        <StepModules
+        <StepModulesROI
           data={state.prospect}
           selectedModules={state.selectedModules}
           moduleSuggestions={state.moduleSuggestions}
@@ -96,19 +82,14 @@ export default function Session() {
               moduleSuggestions: suggestions,
             }))
           }
+          roiConfig={state.roiConfig}
+          onRoiConfigChange={(config) =>
+            updateState(prev => ({ ...prev, roiConfig: config }))
+          }
+          seats={state.prospect.seats}
         />
       )}
       {step === 2 && (
-        <StepROI
-          selectedModules={state.selectedModules}
-          seats={state.prospect.seats}
-          roiConfig={state.roiConfig}
-          onChange={(config) =>
-            updateState(prev => ({ ...prev, roiConfig: config }))
-          }
-        />
-      )}
-      {step === 3 && (
         <StepOffering
           country={state.prospect.country}
           seats={state.prospect.seats}
@@ -117,16 +98,19 @@ export default function Session() {
           painOverrides={state.painOverrides}
           sector={state.prospect.sector}
           selectedModules={state.selectedModules}
+          roiConfig={state.roiConfig}
           onChange={(partial) =>
             updateState(prev => ({
               ...prev,
               offering: { ...prev.offering, ...partial },
             }))
           }
+          onModulesChange={(modules) =>
+            updateState(prev => ({ ...prev, selectedModules: modules }))
+          }
+          sessionId={currentSessionId}
+          state={state}
         />
-      )}
-      {step === 4 && (
-        <StepReview state={state} sessionId={currentSessionId} />
       )}
     </WizardShell>
   );

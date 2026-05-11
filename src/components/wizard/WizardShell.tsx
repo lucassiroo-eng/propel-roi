@@ -11,9 +11,7 @@ import {
 const STEP_KEYS = [
   "wizard.step.prospect",
   "wizard.step.modules",
-  "wizard.step.roi",
   "wizard.step.offering",
-  "wizard.step.review",
 ];
 
 const LANG_FLAG: Record<string, string> = {
