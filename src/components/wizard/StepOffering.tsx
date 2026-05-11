@@ -3,13 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Check, X, Loader2, Plus, Presentation, FileDown,
-  ExternalLink, Package, Star, TrendingUp, Save, Eye,
+  ExternalLink, Package, Star, Save, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { SelectedOffering, PainOverride, AddonLine, RoiConfig, WizardState } from "@/hooks/useWizardSession";
@@ -255,8 +254,6 @@ export function StepOffering({
   }
 
   const allBundleModules = selectedAnalysis?.bundleModules ?? [];
-  const netRoiValue = roiSavings.annual - (configuration?.totalAnnualCost ?? 0);
-  const roiPositive = netRoiValue >= 0;
 
   return (
     <div className="space-y-6">
@@ -376,76 +373,79 @@ export function StepOffering({
       )}
 
       {/* ═══════════════════════════════════════════ */}
-      {/* INVOICE: Cost + Savings + ROI              */}
+      {/* INVOICE: Unified Cost & Savings per Module  */}
       {/* ═══════════════════════════════════════════ */}
-      {configuration && (
-        <div className="rounded-xl border border-border overflow-hidden">
-          {/* Cost section */}
-          <div className="px-5 py-4 space-y-2 bg-white/50">
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Annual Cost</p>
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground">{selectedAnalysis?.bundle.bundle_name}</span>
-                <span className="font-medium tabular-nums">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)} EUR</span>
-              </div>
-              {configuration.addonLines.map(a => (
-                <div key={a.module} className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">+ {a.label}</span>
-                  <span className="font-medium tabular-nums">{fmtEur(a.annual)} EUR</span>
-                </div>
-              ))}
-            </div>
-            <Separator className="my-2" />
-            <div className="flex justify-between text-sm font-bold">
-              <span>Total cost</span>
-              <span className="tabular-nums">{fmtEur(configuration.totalAnnualCost)} EUR/year</span>
-            </div>
-          </div>
+      {configuration && (() => {
+        const allModuleRows = [
+          ...allBundleModules.map(modId => ({
+            moduleId: modId,
+            label: moduleLabel(modId),
+            color: getModuleColor(modId),
+            cost: null as number | null,
+            isBundle: true,
+          })),
+          ...configuration.addonLines.map(a => ({
+            moduleId: a.module,
+            label: a.label,
+            color: getModuleColor(a.module),
+            cost: a.annual,
+            isBundle: false,
+          })),
+        ];
 
-          {/* Savings section */}
-          <div className="px-5 py-4 space-y-2 bg-emerald-50/50 border-t border-border">
-            <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider">Annual Savings (time recovered)</p>
-            <div className="space-y-1.5">
-              {roiSavings.perModule.map(mod => (
-                <div key={mod.moduleId} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: mod.color }} />
-                    <span className="text-emerald-800">{mod.label}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-emerald-600/70 tabular-nums">{mod.monthlyHours.toFixed(0)}h/mo</span>
-                    <span className="font-medium tabular-nums text-emerald-700 w-24 text-right">{fmtEur(mod.annualMoney)} EUR</span>
-                  </div>
-                </div>
-              ))}
+        return (
+          <div className="rounded-xl border border-border overflow-hidden">
+            {/* Table header */}
+            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2.5 bg-muted/50 gap-3">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Module</span>
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider text-right">Cost/yr</span>
+              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">h/mo</span>
+              <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider text-right">Savings/yr</span>
             </div>
-            <Separator className="my-2 bg-emerald-200" />
-            <div className="flex justify-between text-sm font-bold text-emerald-700">
-              <span>Total savings</span>
-              <span className="tabular-nums">{fmtEur(roiSavings.annual)} EUR/year</span>
-            </div>
-          </div>
 
-          {/* ROI section */}
-          <div className={`px-5 py-4 border-t border-border ${roiPositive ? "bg-emerald-100/60" : "bg-amber-50"}`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <TrendingUp className={`h-5 w-5 ${roiPositive ? "text-emerald-600" : "text-amber-600"}`} />
-                <div>
-                  <p className="text-xs text-muted-foreground">Net ROI</p>
-                  <p className={`text-xl font-bold tabular-nums ${roiPositive ? "text-emerald-600" : "text-amber-600"}`}>{fmtEur(netRoiValue)} EUR</p>
+            {/* Module rows */}
+            {allModuleRows.map((row, i) => {
+              const saving = roiSavings.perModule.find(m => m.moduleId === row.moduleId);
+              return (
+                <div key={row.moduleId} className={`grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t border-border/30 gap-3 ${i % 2 === 0 ? "bg-white/50" : "bg-muted/10"}`}>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: row.color }} />
+                    <span className="text-sm text-foreground truncate">{row.label}</span>
+                    {row.isBundle && (
+                      <span className="text-[9px] text-muted-foreground bg-muted rounded px-1 py-0.5 shrink-0">incl.</span>
+                    )}
+                  </div>
+                  <span className="text-sm tabular-nums text-right text-muted-foreground">
+                    {row.cost !== null ? `${fmtEur(row.cost)} €` : "—"}
+                  </span>
+                  <span className="text-xs tabular-nums text-right text-emerald-600/70">
+                    {saving ? `${saving.monthlyHours.toFixed(0)}h` : "—"}
+                  </span>
+                  <span className="text-sm font-medium tabular-nums text-right text-emerald-600">
+                    {saving ? `${fmtEur(saving.annualMoney)} €` : "—"}
+                  </span>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className={`text-3xl font-bold tabular-nums ${roiPositive ? "text-emerald-600" : "text-amber-600"}`}>
-                  {configuration.totalAnnualCost > 0 ? Math.round((roiSavings.annual / configuration.totalAnnualCost) * 100) : 0}%
-                </p>
-                <p className="text-[10px] text-muted-foreground">ROI</p>
-              </div>
+              );
+            })}
+
+            {/* Bundle base cost row */}
+            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t border-border bg-muted/20 gap-3">
+              <span className="text-sm text-foreground font-medium">{selectedAnalysis?.bundle.bundle_name}</span>
+              <span className="text-sm font-medium tabular-nums text-right">{fmtEur(selectedAnalysis?.bundleAnnual ?? 0)} €</span>
+              <span />
+              <span />
+            </div>
+
+            {/* Totals */}
+            <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 border-t-2 border-border bg-muted/40 gap-3">
+              <span className="text-sm font-bold text-foreground">Total</span>
+              <span className="text-sm font-bold tabular-nums text-right">{fmtEur(configuration.totalAnnualCost)} €/yr</span>
+              <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
+              <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ═══════════════════════════════════════════ */}
       {/* ACTION BUTTONS                             */}
