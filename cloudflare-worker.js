@@ -84,7 +84,7 @@ async function handleAirtable(body, env) {
       [F.DEAL_ID, F.DEAL_NAME, F.DEAL_AMOUNT, F.DEAL_STAGE, F.DEAL_CONTACTS, F.DEAL_PAE, F.DEAL_COMPANY]),
     airtableGet(token, EMAILS_TABLE, `{DEAL_ID}="${dealId}"`,
       [F.EMAIL_DATE, F.EMAIL_SUBJECT, F.EMAIL_BODY, F.EMAIL_BODY_RAW, F.EMAIL_DIRECTION, F.EMAIL_FROM]),
-    airtableGet(token, CALLS_TABLE, `{DEAL_ID}="${dealId}"`,
+    airtableGet(token, CALLS_TABLE, `{Deal_ID}="${dealId}"`,
       [F.CALL_DATE, F.CALL_TRANSCRIPT, F.CALL_DURATION, F.CALL_OWNER]),
   ]);
 
