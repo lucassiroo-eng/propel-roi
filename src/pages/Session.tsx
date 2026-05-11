@@ -2,13 +2,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useWizardSession } from "@/hooks/useWizardSession";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { StepSetup } from "@/components/wizard/StepSetup";
-import { StepModulesROI } from "@/components/wizard/StepModulesROI";
 import { StepOffering } from "@/components/wizard/StepOffering";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 2;
 
 export default function Session() {
   const { id } = useParams<{ id: string }>();
@@ -29,18 +28,22 @@ export default function Session() {
   }
 
   const canNext =
-    step === 0 ? !!state.prospect.company_name :
-    step === 1 ? state.selectedModules.length > 0 :
+    step === 0 ? (!!state.prospect.company_name && state.selectedModules.length > 0) :
     true;
 
   const handleNext = async () => {
-    if (step === TOTAL_STEPS - 1) {
-      await save();
-      toast.success(t("toast.session_saved"));
-      navigate("/");
-      return;
-    }
     goNext();
+  };
+
+  const handleSave = async () => {
+    await save();
+    toast.success(t("toast.session_saved"));
+  };
+
+  const handleSaveAndExit = async () => {
+    await save();
+    toast.success(t("toast.session_saved"));
+    navigate("/");
   };
 
   return (
@@ -48,10 +51,11 @@ export default function Session() {
       step={step}
       saving={saving}
       onBack={step === 0 ? () => navigate("/") : goBack}
-      onNext={handleNext}
+      onNext={step === 0 ? handleNext : undefined}
       canNext={canNext}
       companyName={state.prospect.company_name}
       totalSteps={TOTAL_STEPS}
+      nextLabel={step === 0 ? "Generate ROI" : undefined}
       wide
     >
       {step === 0 && (
@@ -68,11 +72,6 @@ export default function Session() {
             updateState(prev => ({ ...prev, roiConfig: config }))
           }
           seats={state.prospect.seats}
-        />
-      )}
-      {step === 1 && (
-        <StepModulesROI
-          data={state.prospect}
           selectedModules={state.selectedModules}
           moduleSuggestions={state.moduleSuggestions}
           onSelectionChange={(modules, suggestions) =>
@@ -82,14 +81,9 @@ export default function Session() {
               moduleSuggestions: suggestions,
             }))
           }
-          roiConfig={state.roiConfig}
-          onRoiConfigChange={(config) =>
-            updateState(prev => ({ ...prev, roiConfig: config }))
-          }
-          seats={state.prospect.seats}
         />
       )}
-      {step === 2 && (
+      {step === 1 && (
         <StepOffering
           country={state.prospect.country}
           seats={state.prospect.seats}
@@ -110,6 +104,8 @@ export default function Session() {
           }
           sessionId={currentSessionId}
           state={state}
+          onSave={handleSave}
+          onSaveAndExit={handleSaveAndExit}
         />
       )}
     </WizardShell>

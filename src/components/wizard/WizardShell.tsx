@@ -10,7 +10,6 @@ import {
 
 const STEP_KEYS = [
   "wizard.step.prospect",
-  "wizard.step.modules",
   "wizard.step.offering",
 ];
 
@@ -30,9 +29,10 @@ export interface WizardShellProps {
   companyName?: string;
   totalSteps?: number;
   wide?: boolean;
+  nextLabel?: string;
 }
 
-export function WizardShell({ step, saving, onBack, onNext, canNext = true, children, companyName, totalSteps, wide }: WizardShellProps) {
+export function WizardShell({ step, saving, onBack, onNext, canNext = true, children, companyName, totalSteps, wide, nextLabel }: WizardShellProps) {
   const { t, i18n } = useTranslation();
   const total = totalSteps ?? STEP_KEYS.length;
   const maxW = wide ? "max-w-5xl" : "max-w-2xl";
@@ -138,7 +138,7 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
                 </>
               ) : (
                 <>
-                  {t("wizard.next")}
+                  {nextLabel ?? t("wizard.next")}
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </>
               )}
