@@ -152,14 +152,17 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     onRoiConfigChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
   }
 
-  // ── Deal fetch ──
+  // ── Deal fetch: Airtable first (content), then HubSpot (metadata + notes) ──
   async function handleFetch() {
     const url = data.hubspot_deal_url?.trim();
     if (!url) { toast.error(t("prospect.hubspot_paste_first")); return; }
     setFetching(true);
-    setFetchPhase("airtable");
+    const updates: Partial<ProspectData> = {};
+    const toastParts: string[] = [];
+
     try {
-      let found = false;
+      // 1) Airtable — emails & calls
+      setFetchPhase("airtable");
       try {
         const atRes = await fetch(`${WORKER}/airtable`, {
           method: "POST", headers: { "Content-Type": "application/json" },
@@ -170,53 +173,62 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
           const emails = atResult.emails ?? [];
           const calls = atResult.calls ?? [];
           if (emails.length > 0 || calls.length > 0) {
-            found = true;
-            const updates: Partial<ProspectData> = { fetch_source: "airtable", airtable_emails: emails, airtable_calls: calls, airtable_stats: { email_count: emails.length, call_count: calls.length } };
-            if (atResult.deal?.company_name) updates.company_name = atResult.deal.company_name;
-            if (atResult.deal?.name) updates.deal_name = atResult.deal.name;
-            if (atResult.deal?.contacts_info) {
-              const ci = atResult.deal.contacts_info;
-              const nameMatch = ci.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);
-              const emailMatch = ci.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
-              if (nameMatch) updates.contact_name = nameMatch[1];
-              if (emailMatch) updates.contact_email = emailMatch[0];
-            }
-            onChange(updates);
-            toast.success(t("toast.airtable_success", { emails: emails.length, calls: calls.length }));
+            updates.airtable_emails = emails;
+            updates.airtable_calls = calls;
+            updates.airtable_stats = { email_count: emails.length, call_count: calls.length };
+            toastParts.push(`Airtable: ${emails.length} emails, ${calls.length} calls`);
+          }
+          if (atResult.deal?.company_name) updates.company_name = atResult.deal.company_name;
+          if (atResult.deal?.name) updates.deal_name = atResult.deal.name;
+          if (atResult.deal?.contacts_info) {
+            const ci = atResult.deal.contacts_info;
+            const nameMatch = ci.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);
+            const emailMatch = ci.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
+            if (nameMatch) updates.contact_name = nameMatch[1];
+            if (emailMatch) updates.contact_email = emailMatch[0];
           }
         }
-      } catch { /* fallback */ }
+      } catch { /* Airtable failed, continue to HubSpot */ }
 
-      if (!found) {
-        setFetchPhase("hubspot");
+      // 2) HubSpot — metadata, country, industry, notes
+      setFetchPhase("hubspot");
+      try {
         const hsRes = await fetch(`${WORKER}/hubspot`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ deal_url: url }),
         });
-        const hs = await hsRes.json();
-        if (!hsRes.ok || hs?.error) throw new Error(hs?.error ?? "HubSpot fetch failed");
-
-        const updates: Partial<ProspectData> = { fetch_source: "hubspot" };
-        if (hs.deal_name) updates.deal_name = hs.deal_name;
-        if (hs.company_name) updates.company_name = hs.company_name;
-        if (hs.contact_name) updates.contact_name = hs.contact_name;
-        if (hs.contact_email) updates.contact_email = hs.contact_email;
-        const mappedCountry = mapCountry(hs.country ?? "");
-        if (mappedCountry) updates.country = mappedCountry;
-        const mappedIndustry = mapIndustry(hs.industry ?? "");
-        if (mappedIndustry) updates.sector = mappedIndustry;
-        const empCount = parseInt(hs.employees);
-        if (empCount > 0) {
-          const clamped = Math.min(Math.max(empCount, 10), 5000);
-          updates.seats = clamped;
+        if (hsRes.ok) {
+          const hs = await hsRes.json();
+          if (!hs.error) {
+            if (hs.deal_name && !updates.deal_name) updates.deal_name = hs.deal_name;
+            if (hs.company_name) updates.company_name = hs.company_name;
+            if (hs.contact_name && !updates.contact_name) updates.contact_name = hs.contact_name;
+            if (hs.contact_email && !updates.contact_email) updates.contact_email = hs.contact_email;
+            const mappedCountry = mapCountry(hs.country ?? "");
+            if (mappedCountry) updates.country = mappedCountry;
+            const mappedIndustry = mapIndustry(hs.industry ?? "");
+            if (mappedIndustry) updates.sector = mappedIndustry;
+            const empCount = parseInt(hs.employees);
+            if (empCount > 0) updates.seats = Math.min(Math.max(empCount, 10), 5000);
+            const notes: HubSpotNote[] = hs.notes ?? [];
+            if (notes.length > 0) {
+              updates.hubspot_notes = notes;
+              toastParts.push(`${notes.length} notes`);
+            }
+            if (!toastParts.length) toastParts.push(`HubSpot: ${hs.company_name ?? "Deal found"}`);
+          }
         }
-        const notes: HubSpotNote[] = hs.notes ?? [];
-        if (notes.length > 0) updates.hubspot_notes = notes;
-        onChange(updates);
+      } catch { /* HubSpot failed */ }
 
-        const parts = [];
-        if (notes.length) parts.push(`${notes.length} notes`);
-        toast.success(`HubSpot: ${hs.company_name ?? "Deal found"}${parts.length ? ` · ${parts.join(", ")}` : ""}`);
+      // 3) Apply merged results
+      const hasContent = updates.airtable_emails?.length || updates.airtable_calls?.length || updates.hubspot_notes?.length;
+      updates.fetch_source = updates.airtable_emails?.length ? "airtable" : updates.hubspot_notes?.length ? "hubspot" : undefined;
+
+      if (updates.company_name || hasContent) {
+        onChange(updates);
+        toast.success(toastParts.join(" · ") || "Deal fetched");
+      } else {
+        toast.error(t("toast.fetch_failed"));
       }
       setFetchPhase("done");
     } catch (err: any) {
