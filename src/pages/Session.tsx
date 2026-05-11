@@ -3,14 +3,15 @@ import { useWizardSession } from "@/hooks/useWizardSession";
 import { WizardShell } from "@/components/wizard/WizardShell";
 import { StepProspect } from "@/components/wizard/StepProspect";
 import { StepModules } from "@/components/wizard/StepModules";
+import { StepROI } from "@/components/wizard/StepROI";
 import { StepOffering } from "@/components/wizard/StepOffering";
 import { StepReview } from "@/components/wizard/StepReview";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
-// Steps: 0=Prospect, 1=Modules, 2=Offering, 3=Review
-const TOTAL_STEPS = 4;
+// Steps: 0=Prospect, 1=Modules, 2=ROI, 3=Offering, 4=Review
+const TOTAL_STEPS = 5;
 
 export default function Session() {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +37,7 @@ export default function Session() {
     true;
 
   const handleNext = async () => {
-    if (step === 2) {
+    if (step === TOTAL_STEPS - 1) {
       await save();
       toast.success(t("toast.session_saved"));
       navigate("/");
@@ -98,6 +99,16 @@ export default function Session() {
         />
       )}
       {step === 2 && (
+        <StepROI
+          selectedModules={state.selectedModules}
+          seats={state.prospect.seats}
+          roiConfig={state.roiConfig}
+          onChange={(config) =>
+            updateState(prev => ({ ...prev, roiConfig: config }))
+          }
+        />
+      )}
+      {step === 3 && (
         <StepOffering
           country={state.prospect.country}
           seats={state.prospect.seats}
@@ -114,7 +125,7 @@ export default function Session() {
           }
         />
       )}
-      {step === 3 && (
+      {step === 4 && (
         <StepReview state={state} sessionId={currentSessionId} />
       )}
     </WizardShell>

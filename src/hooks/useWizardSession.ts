@@ -112,6 +112,11 @@ export interface ModuleSuggestion {
   quote: string;
 }
 
+export interface RoiConfig {
+  headcounts: { employee: number; hr: number; manager: number };
+  hourly_cost: number;
+}
+
 export interface WizardState {
   prospect: ProspectData;
   selectedPains: string[];
@@ -121,6 +126,7 @@ export interface WizardState {
   aiSuggestions: AiSuggestion[];
   selectedModules: string[];
   moduleSuggestions: ModuleSuggestion[];
+  roiConfig: RoiConfig;
 }
 
 const defaultProspect: ProspectData = {
@@ -159,6 +165,7 @@ export function useWizardSession(sessionId?: string) {
     aiSuggestions: [],
     selectedModules: [],
     moduleSuggestions: [],
+    roiConfig: { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_cost: 30 },
   });
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
