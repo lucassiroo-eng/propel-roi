@@ -6,7 +6,7 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 function fmtEur(n: number): string {
-  return "€" + Number(n).toLocaleString("es-ES", { maximumFractionDigits: 0 });
+  return "€" + Math.round(n).toLocaleString("es-ES");
 }
 
 Deno.serve(async (req) => {
@@ -75,7 +75,6 @@ Deno.serve(async (req) => {
       .eq("country", prospect?.country ?? "ES")
       .single();
 
-    // Fetch pain library for full pain statements
     const { data: painLibrary } = await supabaseAdmin
       .from("pain_library")
       .select("pain_id, pain_statement, primary_module")
@@ -90,109 +89,134 @@ Deno.serve(async (req) => {
     const sector = prospect?.sector ?? "—";
     const totalBenefit = session.total_annual_benefit_eur ?? 0;
     const annualCost = session.factorial_annual_cost_eur ?? 0;
-    const roiEur = session.roi_eur ?? 0;
     const roiPct = session.roi_pct ?? 0;
     const paybackMonths = session.payback_months ?? 0;
+    const netBenefit = totalBenefit - annualCost;
     const hourlyCost = countryDefaults?.avg_loaded_hourly_cost_eur ?? 30;
-    const date = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const dateStr = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
     const tier = offering?.tier ?? "business";
     const billing = offering?.billing ?? "yearly";
     const bundleName = offering?.bundle_name ?? tier.charAt(0).toUpperCase() + tier.slice(1);
 
+    // ─── Factorial brand palette ───
+    const coral: [number, number, number] = [255, 53, 94];
+    const coralLight: [number, number, number] = [255, 241, 242];
+    const dark: [number, number, number] = [26, 26, 46];
+    const gray: [number, number, number] = [107, 114, 128];
+    const graySoft: [number, number, number] = [156, 163, 175];
+    const greenVal: [number, number, number] = [22, 163, 106];
+    const greenBg: [number, number, number] = [236, 253, 245];
+    const redCost: [number, number, number] = [220, 38, 38];
+    const redBg: [number, number, number] = [255, 241, 242];
+    const border: [number, number, number] = [229, 231, 235];
+    const warmBg: [number, number, number] = [255, 248, 240];
+    const purpleVal: [number, number, number] = [124, 58, 237];
+    const purpleBg: [number, number, number] = [245, 243, 255];
+
     // ─── Build PDF ───
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210;
-    const marginL = 20;
-    const marginR = 20;
-    const contentW = W - marginL - marginR;
-    let y = 20;
-
-    const purple = [124, 58, 237]; // #7c3aed
-    const darkText = [30, 41, 59]; // #1e293b
-    const grayText = [100, 116, 139]; // #64748b
-    const lightBg = [248, 250, 252]; // #f8fafc
-    const lavenderBg = [250, 245, 255]; // #faf5ff
+    const mx = 18;
+    const contentW = W - 2 * mx;
+    let y = 0;
 
     // ─── Header ───
-    doc.setFontSize(22);
-    doc.setTextColor(...purple);
-    doc.setFont("helvetica", "bold");
-    doc.text("Propel ROI", marginL, y);
+    doc.setFillColor(...warmBg);
+    doc.rect(0, 0, W, 48, "F");
 
-    doc.setFontSize(10);
-    doc.setTextColor(...grayText);
-    doc.setFont("helvetica", "normal");
-    doc.text("Return on Investment Report", marginL, y + 7);
+    // Coral accent line
+    doc.setFillColor(...coral);
+    doc.rect(0, 46, W, 2, "F");
 
-    // Right-aligned meta
-    doc.setFontSize(10);
+    // Logo: coral dot + "factorial"
+    doc.setFillColor(...coral);
+    doc.circle(mx + 5, 18, 5, "F");
+    doc.setFillColor(255, 255, 255);
+    doc.circle(mx + 5, 18, 1.8, "F");
+    doc.setTextColor(...dark);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...darkText);
-    doc.text(companyName, W - marginR, y, { align: "right" });
+    doc.setFontSize(14);
+    doc.text("factorial", mx + 13, 20);
+
+    // Right side
+    doc.setTextColor(...dark);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(companyName, W - mx, 16, { align: "right" });
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...grayText);
+    doc.setFontSize(8);
+    doc.setTextColor(...gray);
+    doc.text("ROI Analysis", W - mx, 22, { align: "right" });
     const countryLabel = country === "FR" ? "France" : "Spain";
-    doc.text(`${countryLabel} · ${seats} employees · ${sector}`, W - marginR, y + 5, { align: "right" });
-    doc.text(date, W - marginR, y + 10, { align: "right" });
-    doc.setFontSize(9);
-    doc.text(`Prepared by ${user.email}`, W - marginR, y + 15, { align: "right" });
+    doc.text(`${countryLabel} · ${seats} employees`, W - mx, 27, { align: "right" });
 
-    y += 22;
-    // Purple line
-    doc.setDrawColor(...purple);
-    doc.setLineWidth(0.6);
-    doc.line(marginL, y, W - marginR, y);
-    y += 12;
+    y = 56;
 
-    // ─── Hero cards ───
-    const cardW = (contentW - 8) / 3; // 3 cards with 4mm gaps
-    const cardH = 28;
-    const heroValues = [
-      { value: fmtEur(roiEur), label: "Net ROI" },
-      { value: `${Number(roiPct).toFixed(0)}%`, label: "ROI" },
-      { value: `${Number(paybackMonths).toFixed(1)} mo`, label: "Payback" },
+    // ─── KPI Cards ───
+    const cardW = (contentW - 8) / 3;
+    const cardH = 22;
+
+    const kpis: Array<{ label: string; value: string; color: [number, number, number]; bg: [number, number, number] }> = [
+      { label: "AHORROS ANUALES", value: fmtEur(totalBenefit), color: greenVal, bg: greenBg },
+      { label: "COSTE DEL SISTEMA", value: `${fmtEur(annualCost)}/yr`, color: coral, bg: coralLight },
+      { label: "ROI", value: `${Math.round(roiPct)}%`, color: purpleVal, bg: purpleBg },
     ];
 
-    heroValues.forEach((card, i) => {
-      const x = marginL + i * (cardW + 4);
-      doc.setFillColor(...lightBg);
-      doc.roundedRect(x, y, cardW, cardH, 3, 3, "F");
-
-      doc.setFontSize(18);
+    kpis.forEach((kpi, i) => {
+      const x = mx + i * (cardW + 4);
+      doc.setFillColor(...kpi.bg);
+      doc.setDrawColor(...border);
+      doc.roundedRect(x, y, cardW, cardH, 3, 3, "FD");
+      // Top accent
+      doc.setFillColor(...kpi.color);
+      doc.rect(x + 4, y, cardW - 8, 1.5, "F");
+      // Label
+      doc.setFontSize(5.5);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(...purple);
-      doc.text(card.value, x + cardW / 2, y + 14, { align: "center" });
-
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(...grayText);
-      doc.text(card.label, x + cardW / 2, y + 22, { align: "center" });
+      doc.setTextColor(...graySoft);
+      doc.text(kpi.label, x + cardW / 2, y + 8, { align: "center" });
+      // Value
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...kpi.color);
+      doc.text(kpi.value, x + cardW / 2, y + 17, { align: "center" });
     });
 
-    y += cardH + 12;
+    y += cardH + 8;
+
+    // ─── Intro box ───
+    doc.setFillColor(...warmBg);
+    doc.setDrawColor(...border);
+    doc.roundedRect(mx, y, contentW, 12, 2, 2, "FD");
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...dark);
+    const introText = `ROI analysis for ${companyName} — ${seats} employees (${sector}). Payback: ${Number(paybackMonths).toFixed(1)} months.`;
+    doc.text(introText, mx + 4, y + 7);
+    y += 18;
 
     // ─── Pains table ───
-    doc.setFontSize(13);
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...darkText);
-    doc.text("Pains Addressed", marginL, y);
-    y += 8;
+    doc.setTextColor(...dark);
+    doc.text("Pains Addressed", mx, y);
+    y += 6;
+
+    const colX = [mx, mx + 8, mx + 8 + 90, mx + 8 + 90 + 32];
+    const colW_ = [8, 90, 32, contentW - 8 - 90 - 32];
 
     // Table header
-    const colX = [marginL, marginL + 8, marginL + 8 + 95, marginL + 8 + 95 + 35];
-    const colW = [8, 95, 35, contentW - 8 - 95 - 35];
-
-    doc.setFillColor(241, 245, 249);
-    doc.rect(marginL, y, contentW, 8, "F");
-    doc.setFontSize(8);
+    doc.setFillColor(...dark);
+    doc.roundedRect(mx, y, contentW, 7, 2, 2, "F");
+    doc.setFontSize(6.5);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...grayText);
-    doc.text("#", colX[0] + 2, y + 5.5);
-    doc.text("PAIN", colX[1] + 2, y + 5.5);
-    doc.text("MODULE", colX[2] + 2, y + 5.5);
-    doc.text("ANNUAL BENEFIT", colX[3] + colW[3] - 2, y + 5.5, { align: "right" });
-    y += 10;
+    doc.setTextColor(255, 255, 255);
+    doc.text("#", colX[0] + 2, y + 4.5);
+    doc.text("PAIN", colX[1] + 2, y + 4.5);
+    doc.text("MODULE", colX[2] + 2, y + 4.5);
+    doc.text("BENEFIT/YR", colX[3] + colW_[3] - 2, y + 4.5, { align: "right" });
+    y += 9;
 
     const selectedPains = session.selected_pains ?? [];
     selectedPains.forEach((painId: string, i: number) => {
@@ -201,105 +225,124 @@ Deno.serve(async (req) => {
       const override = (session.pain_overrides as any)?.[painId];
       const benefit = override?.annual_benefit ?? painData?.annual_benefit ?? 0;
       const painStatement = libPain?.pain_statement ?? painData?.pain_statement ?? painId;
-      const module = libPain?.primary_module ?? painData?.primary_module ?? "—";
+      const module_ = libPain?.primary_module ?? painData?.primary_module ?? "—";
 
-      // Check if we need a new page
-      if (y > 260) {
-        doc.addPage();
-        y = 20;
-      }
+      if (y > 262) { doc.addPage(); y = 15; }
 
-      // Wrap long pain text
-      doc.setFontSize(9);
+      doc.setFontSize(7);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(...darkText);
-      const wrappedLines = doc.splitTextToSize(painStatement, colW[1] - 4);
-      const rowH = Math.max(7, wrappedLines.length * 4.5 + 3);
+      const wrappedLines = doc.splitTextToSize(painStatement, colW_[1] - 4);
+      const rowH = Math.max(6, wrappedLines.length * 3.5 + 2.5);
 
-      // Alternating row bg
       if (i % 2 === 0) {
-        doc.setFillColor(252, 252, 253);
-        doc.rect(marginL, y - 1, contentW, rowH, "F");
+        doc.setFillColor(250, 250, 252);
+        doc.rect(mx, y - 0.5, contentW, rowH, "F");
       }
 
-      doc.text(`${i + 1}`, colX[0] + 2, y + 4);
-      doc.text(wrappedLines, colX[1] + 2, y + 4);
-      doc.text(module, colX[2] + 2, y + 4);
+      doc.setTextColor(...dark);
+      doc.text(`${i + 1}`, colX[0] + 2, y + 3.5);
+      doc.text(wrappedLines, colX[1] + 2, y + 3.5);
+      doc.setTextColor(...gray);
+      doc.text(module_.substring(0, 18), colX[2] + 2, y + 3.5);
       doc.setFont("helvetica", "bold");
-      doc.text(fmtEur(benefit), colX[3] + colW[3] - 2, y + 4, { align: "right" });
+      doc.setTextColor(...greenVal);
+      doc.text(fmtEur(benefit), colX[3] + colW_[3] - 2, y + 3.5, { align: "right" });
 
-      // Row separator
-      doc.setDrawColor(230, 230, 230);
-      doc.setLineWidth(0.2);
-      doc.line(marginL, y + rowH - 1, W - marginR, y + rowH - 1);
+      doc.setDrawColor(240, 240, 242);
+      doc.setLineWidth(0.15);
+      doc.line(mx, y + rowH - 0.5, W - mx, y + rowH - 0.5);
 
       y += rowH;
     });
 
     // Total row
-    if (y > 260) { doc.addPage(); y = 20; }
-    doc.setFillColor(...lightBg);
-    doc.rect(marginL, y, contentW, 9, "F");
-    doc.setFontSize(10);
+    if (y > 262) { doc.addPage(); y = 15; }
+    doc.setFillColor(...coral);
+    doc.roundedRect(mx, y + 1, contentW, 8, 2, 2, "F");
+    doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...darkText);
+    doc.setTextColor(255, 255, 255);
     doc.text("Total Annual Benefit", colX[1] + 2, y + 6);
-    doc.setTextColor(...purple);
-    doc.setFontSize(12);
-    doc.text(fmtEur(totalBenefit), colX[3] + colW[3] - 2, y + 6.5, { align: "right" });
-    y += 16;
-
-    // ─── Offering section ───
-    if (y > 250) { doc.addPage(); y = 20; }
-    doc.setFontSize(13);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(...darkText);
-    doc.text("Recommended Setup", marginL, y);
-    y += 8;
-
-    doc.setFillColor(...lavenderBg);
-    doc.setDrawColor(233, 213, 255);
-    doc.roundedRect(marginL, y, contentW, 28, 3, 3, "FD");
-
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(...purple);
-    doc.text(bundleName, marginL + 8, y + 10);
-
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(...grayText);
-    doc.text(`${tier.charAt(0).toUpperCase() + tier.slice(1)} · ${billing} billing`, marginL + 8, y + 17);
+    doc.text(fmtEur(totalBenefit), colX[3] + colW_[3] - 2, y + 6.5, { align: "right" });
+    y += 14;
 
-    doc.setFontSize(11);
+    // ─── Offering card ───
+    if (y > 252) { doc.addPage(); y = 15; }
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...darkText);
-    doc.text(`Annual cost: ${fmtEur(annualCost)}`, marginL + 8, y + 24);
-
-    y += 36;
-
-    // ─── Methodology ───
-    if (y > 265) { doc.addPage(); y = 20; }
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.3);
-    doc.line(marginL, y, W - marginR, y);
+    doc.setTextColor(...dark);
+    doc.text("Offering", mx, y);
     y += 5;
 
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(148, 163, 184);
-    doc.text("Methodology notes:", marginL, y);
-    doc.setFont("helvetica", "normal");
-    const methText = `Benefits are calculated using country-specific labor cost benchmarks (${fmtEur(hourlyCost)}/hr loaded cost for ${country}). Time savings use a 52-week year. All figures are annual estimates based on ${seats} employees. ROI = (Total Benefit - Cost) / Cost x 100. Payback = Cost / (Total Benefit / 12).`;
-    const methLines = doc.splitTextToSize(methText, contentW);
-    doc.text(methLines, marginL, y + 4);
+    doc.setFillColor(...coralLight);
+    doc.setDrawColor(254, 205, 211);
+    doc.roundedRect(mx, y, contentW, 18, 3, 3, "FD");
+    doc.setFillColor(...coral);
+    doc.rect(mx + 2, y, contentW - 4, 1.5, "F");
 
-    y += methLines.length * 3.5 + 8;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...coral);
+    doc.text(bundleName, mx + 6, y + 8);
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...gray);
+    doc.text(`${tier.charAt(0).toUpperCase() + tier.slice(1)} · ${billing}`, mx + 6, y + 13);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...dark);
+    doc.text(`${fmtEur(annualCost)}/yr`, W - mx - 6, y + 10, { align: "right" });
+
+    y += 24;
+
+    // ─── Net benefit strip ───
+    if (y > 256) { doc.addPage(); y = 15; }
+    const pillW = (contentW - 6) / 3;
+    const pillH = 16;
+
+    const pills: Array<{ label: string; value: string; color: [number, number, number]; bg: [number, number, number] }> = [
+      { label: "Ahorros anuales", value: fmtEur(totalBenefit), color: greenVal, bg: greenBg },
+      { label: "Coste anual", value: `-${fmtEur(annualCost)}`, color: redCost, bg: redBg },
+      { label: "Beneficio neto", value: `${fmtEur(netBenefit)}/yr`, color: netBenefit >= 0 ? greenVal : redCost, bg: netBenefit >= 0 ? greenBg : redBg },
+    ];
+
+    pills.forEach((p, i) => {
+      const x = mx + i * (pillW + 3);
+      doc.setFillColor(...p.bg);
+      doc.setDrawColor(...border);
+      doc.roundedRect(x, y, pillW, pillH, 3, 3, "FD");
+      doc.setFontSize(5.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(...graySoft);
+      doc.text(p.label, x + pillW / 2, y + 5, { align: "center" });
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(...p.color);
+      doc.text(p.value, x + pillW / 2, y + 12, { align: "center" });
+    });
+
+    y += pillH + 6;
+
+    // ─── Methodology ───
+    if (y > 270) { doc.addPage(); y = 15; }
+    doc.setDrawColor(...border);
+    doc.setLineWidth(0.2);
+    doc.line(mx, y, W - mx, y);
+    y += 3;
+    doc.setFontSize(5.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...graySoft);
+    const methText = `Benefits calculated using country-specific labor cost benchmarks (${fmtEur(hourlyCost)}/hr for ${country}). All figures annual estimates for ${seats} employees. ROI = (Benefit - Cost) / Cost × 100.`;
+    const methLines = doc.splitTextToSize(methText, contentW);
+    doc.text(methLines, mx, y);
 
     // ─── Footer ───
-    doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184);
-    doc.text(`Generated by Propel ROI · ${date} · Confidential`, W / 2, 285, { align: "center" });
+    doc.setFontSize(5.5);
+    doc.setTextColor(...graySoft);
+    doc.text("Prepared by Factorial · Confidential", mx, 288);
+    doc.text(dateStr, W - mx, 288, { align: "right" });
 
     // ─── Output ───
     const pdfArrayBuffer = doc.output("arraybuffer");
@@ -334,7 +377,7 @@ Deno.serve(async (req) => {
           computed_at: new Date().toISOString(),
           total_annual_benefit_eur: totalBenefit,
           factorial_annual_cost_eur: annualCost,
-          roi_eur: roiEur,
+          roi_eur: totalBenefit - annualCost,
           roi_pct: roiPct,
           payback_months: paybackMonths,
         },
