@@ -660,9 +660,10 @@ export function StepOffering({
             <FileDown className="h-4 w-4" />
             ROI PDF
           </Button>
-          <Button variant="outline" size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
+          <Button variant="outline" size="lg" disabled className="gap-2 relative opacity-60">
             <FileText className="h-4 w-4" />
             {t("offering.detailed_doc")}
+            <span className="absolute -top-2 -right-2 bg-amber-400 text-[9px] font-bold text-amber-900 px-1.5 py-0.5 rounded-full leading-none">TO COME</span>
           </Button>
           <Button variant="secondary" size="lg" onClick={onSave} className="gap-2">
             <Save className="h-4 w-4" />
