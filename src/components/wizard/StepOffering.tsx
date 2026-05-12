@@ -803,6 +803,7 @@ function HypothesisView({
       const count = entry ? getCountForEntry(entry, multipliers) : headcounts[s];
       return {
         stakeholder: s,
+        scalesWith: entry?.scales_with ?? (s === "employee" ? "employees" : s === "hr" ? "hr_ftes" : "managers"),
         hoursPerPerson: hours[s],
         totalHours: hours[s] * count,
         totalMoney: hours[s] * count * hourly_costs[s],
@@ -1013,6 +1014,9 @@ function HypothesisView({
                 const meta = STAKEHOLDER_META[ps.stakeholder];
                 const Icon = meta.icon;
                 const desc = SAVINGS_DESCRIPTIONS[selectedRow.moduleId]?.[ps.stakeholder] ?? "";
+                const scalesLabel = ps.scalesWith === "submitters" ? t("hyp.expense_submitters")
+                  : ps.scalesWith === "onboardings" ? t("hyp.onboardings_yr")
+                  : t(meta.labelKey);
                 return (
                   <div key={ps.stakeholder} className="rounded-lg px-3 py-3" style={{ backgroundColor: meta.bg, border: `1px solid ${meta.border}` }}>
                     <div className="flex items-center gap-3">
@@ -1020,7 +1024,7 @@ function HypothesisView({
                         <Icon className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-sm font-semibold text-foreground">{t(meta.labelKey)}</span>
+                        <span className="text-sm font-semibold text-foreground">{scalesLabel}</span>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="flex items-center gap-1">
