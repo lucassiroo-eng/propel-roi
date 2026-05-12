@@ -264,6 +264,7 @@ export function StepOffering({
       contactName: state.prospect.contact_name || "",
       contactEmail: state.prospect.contact_email || "",
       seats: seats,
+      country: state.prospect.country,
       headcounts: roiConfig.headcounts,
       configModules: configuration.configModules,
       moduleSuggestions,

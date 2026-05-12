@@ -43,15 +43,105 @@ interface ModRow { id: string; label: string; cat: string; color: string; hrs: n
 
 export interface RoiPdfData {
   companyName: string; contactName: string; contactEmail: string; seats: number;
+  country: "ES" | "FR";
   headcounts: { employee: number; hr: number; manager: number };
   configModules: string[]; moduleSuggestions: ModuleSuggestion[];
   roiConfig: RoiConfig; bundleName: string; bundleAnnual: number; discountPct: number;
 }
 
+interface Translations {
+  tagline: string; roiAnalysis: string; employees: string; ics: string; managers: string; hrStaff: string;
+  netBenefit: string; projectedRoi: string;
+  intro: (name: string, n: number, ic: number, mg: number, hr: number) => string;
+  priorityModules: string; prioritySub: string; hSaved: string;
+  breakdown: string; breakdownSub: string; module: string; eurReturn: string;
+  bundlePrice: string; totalReturn: string; savings: string; cost: string; netBenefitEq: string; footer: string;
+}
+
+const T: Record<string, Translations> = {
+  ES: {
+    tagline: "RRHH · Nómina · People Operations",
+    roiAnalysis: "Análisis ROI · Confidencial",
+    employees: "empleados",
+    ics: "ICs",
+    managers: "Managers",
+    hrStaff: "Equipo RRHH",
+    netBenefit: "beneficio neto / año",
+    projectedRoi: "ROI PROYECTADO",
+    intro: (name: string, n: number, ic: number, mg: number, hr: number) =>
+      `El equipo de consultoría interna de Factorial ha preparado un análisis ROI personalizado para ${name}, basado en ${n} empleados (${ic} ICs · ${mg} Managers · ${hr} RRHH). El estudio identifica los módulos de mayor impacto y cuantifica el ahorro en tiempo y coste por stakeholder.`,
+    priorityModules: "MÓDULOS PRIORITARIOS",
+    prioritySub: "— Señales de dolor más fuertes del discovery",
+    hSaved: "h ahorradas / mes",
+    breakdown: "DESGLOSE COMPLETO DE MÓDULOS",
+    breakdownSub: "— Análisis completo de ahorros",
+    module: "Módulo",
+    eurReturn: "€ Retorno / mes",
+    bundlePrice: "Precio del bundle",
+    totalReturn: "Retorno total / mes",
+    savings: "ahorro/año",
+    cost: "coste",
+    netBenefitEq: "beneficio neto/año",
+    footer: "Preparado por Factorial · Confidencial · Uso interno",
+  },
+  FR: {
+    tagline: "RH · Paie · People Operations",
+    roiAnalysis: "Analyse ROI · Confidentiel",
+    employees: "employés",
+    ics: "ICs",
+    managers: "Managers",
+    hrStaff: "Équipe RH",
+    netBenefit: "bénéfice net / an",
+    projectedRoi: "ROI PROJETÉ",
+    intro: (name: string, n: number, ic: number, mg: number, hr: number) =>
+      `L'équipe de conseil interne de Factorial a préparé une analyse ROI personnalisée pour ${name}, basée sur ${n} employés (${ic} ICs · ${mg} Managers · ${hr} RH). L'étude identifie les modules à plus fort impact et quantifie les économies de temps et de coûts par partie prenante.`,
+    priorityModules: "MODULES PRIORITAIRES",
+    prioritySub: "— Signaux de douleur les plus forts du discovery",
+    hSaved: "h économisées / mois",
+    breakdown: "ANALYSE DÉTAILLÉE DES MODULES",
+    breakdownSub: "— Analyse complète des économies",
+    module: "Module",
+    eurReturn: "€ Retour / mois",
+    bundlePrice: "Prix du bundle",
+    totalReturn: "Retour total / mois",
+    savings: "économies/an",
+    cost: "coût",
+    netBenefitEq: "bénéfice net/an",
+    footer: "Préparé par Factorial · Confidentiel · Usage interne",
+  },
+  EN: {
+    tagline: "HR · Payroll · People Operations",
+    roiAnalysis: "ROI Analysis · Confidential",
+    employees: "employees",
+    ics: "ICs",
+    managers: "Managers",
+    hrStaff: "HR Staff",
+    netBenefit: "net benefit / year",
+    projectedRoi: "PROJECTED ROI",
+    intro: (name: string, n: number, ic: number, mg: number, hr: number) =>
+      `Factorial's internal consulting team has prepared a personalized ROI analysis for ${name}, based on ${n} employees (${ic} ICs · ${mg} Managers · ${hr} HR Staff). The study identifies the highest-impact modules and quantifies time and cost savings per stakeholder.`,
+    priorityModules: "PRIORITY MODULES",
+    prioritySub: "— Strongest pain signals from discovery",
+    hSaved: "h saved / month",
+    breakdown: "FULL MODULE BREAKDOWN",
+    breakdownSub: "— Complete savings analysis",
+    module: "Module",
+    eurReturn: "€ Return / mo",
+    bundlePrice: "Bundle price",
+    totalReturn: "Total return / mo",
+    savings: "savings/yr",
+    cost: "cost",
+    netBenefitEq: "net benefit/yr",
+    footer: "Prepared by Factorial · Confidential · Internal use only",
+  },
+};
+
 export function generateRoiPdf(data: RoiPdfData): jsPDF {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const W = 210, H = 297, mx = 14, cw = W - mx * 2;
   let y = 0;
+  const t = T[data.country] ?? T.EN;
+  const dateLoc = data.country === "FR" ? "fr-FR" : data.country === "ES" ? "es-ES" : "en-GB";
 
   const mults: RoiMultipliers = {
     headcounts: data.headcounts,
@@ -92,7 +182,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
 
   const { employee: emp, manager: mgr, hr: hrC } = data.headcounts;
   const seats = data.seats;
-  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const today = new Date().toLocaleDateString(dateLoc, { day: "numeric", month: "short", year: "numeric" });
 
   // ════════════════════════════════════════════
   // S1 — HEADER BAND (28mm ≈ 80pt)
@@ -113,7 +203,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(255, 220, 230);
-  doc.text("HR · Payroll · People Operations", mx, 18);
+  doc.text(t.tagline, mx, 18);
 
   // Right: company + meta
   doc.setTextColor(255, 255, 255);
@@ -123,7 +213,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(255, 220, 230);
-  doc.text("ROI Analysis · Confidential", W - mx, 17, { align: "right" });
+  doc.text(t.roiAnalysis, W - mx, 17, { align: "right" });
   if (data.contactName || data.contactEmail) {
     doc.setFontSize(6.5);
     const contactLine = [data.contactName, data.contactEmail].filter(Boolean).join(" · ");
@@ -143,7 +233,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.line(0, y + heroH, W, y + heroH);
 
   // Left: pill badges
-  const pills = [`${seats} employees`, `${emp} ICs`, `${mgr} Managers`, `${hrC} HR Staff`];
+  const pills = [`${seats} ${t.employees}`, `${emp} ${t.ics}`, `${mgr} ${t.managers}`, `${hrC} ${t.hrStaff}`];
   let px = mx;
   const pillY = y + 8;
   doc.setFontSize(6.5);
@@ -166,11 +256,11 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setTextColor(...rgb(GREEN));
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
-  doc.text(`${eur(net)}/yr`, cx, y + 14, { align: "center" });
+  doc.text(`${eur(net)}/${data.country === "FR" ? "an" : data.country === "ES" ? "año" : "yr"}`, cx, y + 14, { align: "center" });
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...rgb(GRAY));
-  doc.text("net benefit / year", cx, y + 19.5, { align: "center" });
+  doc.text(t.netBenefit, cx, y + 19.5, { align: "center" });
 
   // Right: ROI %
   doc.setTextColor(...rgb(PINK));
@@ -180,14 +270,14 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setFontSize(6);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...rgb(GRAY));
-  doc.text("PROJECTED ROI", W - mx, y + 21, { align: "right" });
+  doc.text(t.projectedRoi, W - mx, y + 21, { align: "right" });
 
   y += heroH + 1;
 
   // ════════════════════════════════════════════
   // S3 — INTRO BOX
   // ════════════════════════════════════════════
-  const introText = `Factorial's internal consulting team has prepared a personalized ROI analysis for ${data.companyName}, based on ${seats} employees (${emp} ICs · ${mgr} Managers · ${hrC} HR Staff). The study identifies the highest-impact modules and quantifies time and cost savings per stakeholder.`;
+  const introText = t.intro(data.companyName, seats, emp, mgr, hrC);
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   const introLines = doc.splitTextToSize(introText, cw - 10) as string[];
@@ -211,10 +301,10 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...rgb(PINK));
-  doc.text("PRIORITY MODULES", mx, y + 3);
+  doc.text(t.priorityModules, mx, y + 3);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...rgb(GRAY));
-  doc.text(" — Strongest pain signals from discovery", mx + doc.getTextWidth("PRIORITY MODULES") + 1, y + 3);
+  doc.text(` ${t.prioritySub}`, mx + doc.getTextWidth(t.priorityModules) + 1, y + 3);
   y += 6;
 
   const cardGap = 4;
@@ -289,7 +379,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
     doc.setTextColor(...rgb(PINK));
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
-    doc.text(`${pm.hrs.toFixed(0)}h saved / month`, cx + cardW / 2, sY + 6, { align: "center" });
+    doc.text(`${pm.hrs.toFixed(0)} ${t.hSaved}`, cx + cardW / 2, sY + 6, { align: "center" });
   });
 
   y += maxCardH + 5;
@@ -300,10 +390,10 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setFontSize(7);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...rgb(PINK));
-  doc.text("FULL MODULE BREAKDOWN", mx, y + 3);
+  doc.text(t.breakdown, mx, y + 3);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...rgb(GRAY));
-  doc.text(" — Complete savings analysis", mx + doc.getTextWidth("FULL MODULE BREAKDOWN") + 1, y + 3);
+  doc.text(` ${t.breakdownSub}`, mx + doc.getTextWidth(t.breakdown) + 1, y + 3);
   y += 6;
 
   const colMod = mx;
@@ -319,8 +409,8 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(7);
-  doc.text("Module", mx + 5, y + 4.8);
-  doc.text("€ Return / mo", colEur - 3, y + 4.8, { align: "right" });
+  doc.text(t.module, mx + 5, y + 4.8);
+  doc.text(t.eurReturn, colEur - 3, y + 4.8, { align: "right" });
   y += thH;
 
   // All rows (priority first, then others)
@@ -379,21 +469,21 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setTextColor(255, 210, 220);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
-  doc.text("Bundle price", mx + 6, y + 5);
+  doc.text(t.bundlePrice, mx + 6, y + 5);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text(`${eur(cost)}/yr`, mx + 6, y + 12);
+  doc.text(`${eur(cost)}/${data.country === "FR" ? "an" : data.country === "ES" ? "año" : "yr"}`, mx + 6, y + 12);
 
   // Right: total return/mo
   doc.setTextColor(255, 210, 220);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);
-  doc.text("Total return / mo", cw + mx - 6, y + 5, { align: "right" });
+  doc.text(t.totalReturn, cw + mx - 6, y + 5, { align: "right" });
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
-  doc.text(`${eur(Math.round(totMoney))}/mo`, cw + mx - 6, y + 12, { align: "right" });
+  doc.text(`${eur(Math.round(totMoney))}/${data.country === "FR" ? "mois" : data.country === "ES" ? "mes" : "mo"}`, cw + mx - 6, y + 12, { align: "right" });
 
   y += totH + 4;
 
@@ -410,11 +500,11 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
 
   // Build equation centered
   const eqParts = [
-    { text: `${eur(annSave)}/yr savings`, color: GREEN, bold: true },
+    { text: `${eur(annSave)} ${t.savings}`, color: GREEN, bold: true },
     { text: "  −  ", color: GRAY, bold: false },
-    { text: `${eur(cost)} cost`, color: DARK, bold: true },
+    { text: `${eur(cost)} ${t.cost}`, color: DARK, bold: true },
     { text: "  =  ", color: GRAY, bold: false },
-    { text: `${eur(net)} net benefit/yr`, color: "#047857", bold: true },
+    { text: `${eur(net)} ${t.netBenefitEq}`, color: "#047857", bold: true },
   ];
 
   // Measure total width
@@ -444,7 +534,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   doc.setFontSize(5.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...rgb(GRAY_L));
-  doc.text("Prepared by Factorial · Confidential · Internal use only", mx, H - 6.5);
+  doc.text(t.footer, mx, H - 6.5);
   doc.text(today, W - mx, H - 6.5, { align: "right" });
 
   return doc;
