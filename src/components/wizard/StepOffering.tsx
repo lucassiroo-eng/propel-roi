@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Check, X, Loader2, Plus, Presentation, FileDown, FileText,
   ExternalLink, Package, Star, Save, Eye, Globe,
-  ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent,
+  ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -25,7 +26,7 @@ import {
   classifyPains,
   MODULES_INCLUDED_IN_CORE,
 } from "@/lib/offeringEngine";
-import { MODULE_CATALOG } from "@/lib/moduleCatalog";
+import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getHoursForModule, getEffectiveHours, SAVINGS_DESCRIPTIONS, type Stakeholder } from "@/lib/moduleHours";
 import {
   Popover, PopoverContent, PopoverTrigger,
@@ -59,10 +60,10 @@ function getModuleColor(moduleId: string): string {
   return MODULE_CATALOG.find(m => m.id === moduleId)?.color ?? "#94A3B8";
 }
 
-const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: string; icon: typeof Users; color: string; bg: string; border: string }> = {
-  employee: { labelKey: "stakeholder.employee",    sublabelKey: "stakeholder.employee_sub", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
-  hr:       { labelKey: "stakeholder.hr", sublabelKey: "stakeholder.hr_sub",  icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
-  manager:  { labelKey: "stakeholder.manager",     sublabelKey: "stakeholder.manager_sub", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
+const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; icon: typeof Users; color: string; bg: string; border: string }> = {
+  employee: { labelKey: "stakeholder.employee", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
+  hr:       { labelKey: "stakeholder.hr",       icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.06)",  border: "rgba(16,185,129,0.2)" },
+  manager:  { labelKey: "stakeholder.manager",  icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
 };
 
 export function StepOffering({
@@ -76,7 +77,7 @@ export function StepOffering({
   const [pptxUrl, setPptxUrl] = useState<string | null>(null);
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
-  const [showInvoice, setShowInvoice] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -155,7 +156,7 @@ export function StepOffering({
     return recommendedBundle;
   }, [isStarterSelected, starterAnalysis, recommendedBundle]);
 
-  // ── Configuration ──
+  // ── Configuration (for the selected bundle) ──
   const configuration = useMemo(() => {
     if (!selectedAnalysis || !lineItems || !painModules) return null;
 
@@ -270,11 +271,12 @@ export function StepOffering({
 
   const allBundleModules = selectedAnalysis?.bundleModules ?? [];
   const teamFilled = roiConfig && roiConfig.headcounts.employee > 0 && roiConfig.headcounts.hr > 0 && roiConfig.headcounts.manager > 0;
+  const discPct = offering.discount_pct ?? 0;
 
   if (hypothesisOpen) {
     return (
       <HypothesisView
-        roiConfig={roiConfig ?? { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } }}
+        roiConfig={roiConfig ?? { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }}
         onRoiConfigChange={onRoiConfigChange ?? (() => {})}
         configModules={configuration?.configModules ?? []}
         moduleSuggestions={moduleSuggestions}
@@ -289,99 +291,67 @@ export function StepOffering({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold text-foreground">{t("offering.roi_title")}</h2>
-        <p className="text-sm text-muted-foreground mt-1">{t("offering.roi_subtitle")}</p>
-      </div>
+      {/* ═══════════════════════════════════════════ */}
+      {/* 1. FILTER BAR: billing + tier + discount   */}
+      {/* ═══════════════════════════════════════════ */}
+      <div className="rounded-xl border border-border bg-muted/20 px-5 py-3">
+        <div className="flex items-center justify-between gap-4">
+          {/* Billing toggle */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-muted/60 rounded-lg p-0.5">
+              <button
+                className={`text-xs px-3 py-1.5 rounded-md transition-all font-medium ${offering.billing === "yearly" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => onChange({ billing: "yearly" })}
+              >{t("offering.yearly")}</button>
+              <button
+                className={`text-xs px-3 py-1.5 rounded-md transition-all font-medium ${offering.billing === "monthly" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => onChange({ billing: "monthly" })}
+              >{t("offering.monthly")}</button>
+            </div>
 
-      {/* Billing toggle */}
-      <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className={`text-xs ${offering.billing === "monthly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>{t("offering.monthly")}</span>
-          <Switch checked={offering.billing === "yearly"} onCheckedChange={(v) => onChange({ billing: v ? "yearly" : "monthly" })} />
-          <span className={`text-xs ${offering.billing === "yearly" ? "text-foreground font-medium" : "text-muted-foreground"}`}>{t("offering.yearly")}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "business" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "business" })}>{t("offering.tier_business")}</button>
-            <button className={`text-xs px-2.5 py-1 rounded-md transition-colors ${offering.tier === "enterprise" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`} onClick={() => onChange({ tier: "enterprise" })}>{t("offering.tier_enterprise")}</button>
+            <div className="w-px h-5 bg-border" />
+
+            {/* Tier toggle */}
+            <div className="flex items-center bg-muted/60 rounded-lg p-0.5">
+              <button
+                className={`text-xs px-3 py-1.5 rounded-md transition-all font-medium ${offering.tier === "enterprise" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => onChange({ tier: "enterprise" })}
+              >{t("offering.tier_enterprise")}</button>
+              <button
+                className={`text-xs px-3 py-1.5 rounded-md transition-all font-medium ${offering.tier === "business" ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => onChange({ tier: "business" })}
+              >{t("offering.tier_business")}</button>
+            </div>
           </div>
-          <div className="flex items-center gap-1 border-l border-border pl-3">
-            <Percent className="h-3.5 w-3.5 text-muted-foreground" />
-            <Input
-              type="number" min={0} max={100} step={1}
-              className="w-14 h-7 text-center text-xs tabular-nums"
-              placeholder="0"
-              value={offering.discount_pct || ""}
-              onChange={e => onChange({ discount_pct: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)) })}
-            />
+
+          {/* Discount */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-muted-foreground">{t("offering.discount")}</span>
+            <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2 py-0.5">
+              <Input
+                type="number" min={0} max={100} step={1}
+                className="w-12 h-7 text-center text-xs tabular-nums border-0 bg-transparent p-0"
+                placeholder="0"
+                value={offering.discount_pct || ""}
+                onChange={e => onChange({ discount_pct: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)) })}
+              />
+              <Percent className="h-3 w-3 text-muted-foreground" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Two pack options */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {starterAnalysis && (
-          <button
-            className={`text-left rounded-xl border-2 p-5 transition-all ${isStarterSelected ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/40 hover:shadow-sm"}`}
-            onClick={() => selectPack(starterAnalysis.bundle.id)}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isStarterSelected ? "bg-primary" : "bg-muted"}`}>
-                <Package className={`h-5 w-5 ${isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Starter Operations</p>
-                <p className="text-[10px] text-muted-foreground">{t("offering.starter_desc")}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1 mb-3">
-              {starterAnalysis.bundleModules.map(m => <Badge key={m} variant="secondary" className="text-[10px] font-normal">{moduleLabel(m)}</Badge>)}
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-foreground">{fmtEur(starterAnalysis.bundleAnnual)}</span>
-              <span className="text-xs text-muted-foreground">{t("offering.eur_year")}</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{starterAnalysis.bundlePepm.toFixed(2)} {t("offering.eur_emp_month")}</p>
-          </button>
-        )}
-        {recommendedBundle && (
-          <button
-            className={`text-left rounded-xl border-2 p-5 transition-all relative ${!isStarterSelected ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/40 hover:shadow-sm"}`}
-            onClick={() => selectPack(recommendedBundle.bundle.id)}
-          >
-            <div className="absolute -top-2.5 right-4">
-              <Badge className="bg-emerald-500 text-white text-[10px] gap-1 border-0"><Star className="h-3 w-3" /> {t("offering.recommended")}</Badge>
-            </div>
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${!isStarterSelected ? "bg-primary" : "bg-muted"}`}>
-                <Star className={`h-5 w-5 ${!isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">{recommendedBundle.bundle.bundle_name}</p>
-                <p className="text-[10px] text-muted-foreground">{t("offering.all_recommended")}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1 mb-3">
-              {recommendedBundle.bundleModules.map(m => {
-                const isReq = requiredModuleKeys.includes(m);
-                return <Badge key={m} variant="secondary" className={`text-[10px] font-normal ${isReq ? "bg-emerald-50 text-emerald-700 border-emerald-200" : ""}`}>{isReq && <Check className="h-2.5 w-2.5 mr-0.5" />}{moduleLabel(m)}</Badge>;
-              })}
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-foreground">{fmtEur(recommendedBundle.bundleAnnual)}</span>
-              <span className="text-xs text-muted-foreground">{t("offering.eur_year")}</span>
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">{recommendedBundle.bundlePepm.toFixed(2)} {t("offering.eur_emp_month")}</p>
-          </button>
-        )}
-      </div>
-
-      {/* Module pills */}
+      {/* ═══════════════════════════════════════════ */}
+      {/* 2. MODULE SELECTOR                         */}
+      {/* ═══════════════════════════════════════════ */}
       {selectedAnalysis && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.included_modules")}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.included_modules")}</p>
+            <Button variant="outline" size="sm" onClick={() => setAddModuleOpen(true)} className="h-7 text-xs gap-1">
+              <Plus className="h-3 w-3" /> {t("offering.add")}
+            </Button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {allBundleModules.map(modId => (
               <div key={modId} className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium bg-accent/80 text-foreground cursor-default" style={{ borderColor: getModuleColor(modId) + "40" }}>
@@ -397,24 +367,89 @@ export function StepOffering({
                 <X className="h-3 w-3" />
               </button>
             ))}
-            <Popover open={addModuleOpen} onOpenChange={setAddModuleOpen}>
-              <PopoverTrigger asChild>
-                <button className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors">
-                  <Plus className="h-3 w-3" /> {t("offering.add")}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-2 max-h-64 overflow-y-auto" align="start">
-                {MODULE_CATALOG.filter(m => !selectedModules.includes(m.id) && !allBundleModules.includes(m.id)).map(m => (
-                  <button key={m.id} className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-accent transition-colors flex items-center gap-2" onClick={() => { if (onModulesChange) onModulesChange([...selectedModules, m.id]); setAddModuleOpen(false); }}>
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: m.color }} />
-                    {m.label}
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
           </div>
         </div>
       )}
+
+      {/* Add module dialog */}
+      <AddModuleDialog
+        open={addModuleOpen}
+        onOpenChange={setAddModuleOpen}
+        modules={MODULE_CATALOG.filter(m => !selectedModules.includes(m.id) && !allBundleModules.includes(m.id))}
+        onAdd={(moduleId) => {
+          if (onModulesChange) onModulesChange([...selectedModules, moduleId]);
+          setAddModuleOpen(false);
+        }}
+      />
+
+      {/* ═══════════════════════════════════════════ */}
+      {/* 3. TWO PACK OPTIONS                        */}
+      {/* ═══════════════════════════════════════════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {starterAnalysis && (() => {
+          const total = discPct > 0 ? starterAnalysis.totalAnnual * (1 - discPct / 100) : starterAnalysis.totalAnnual;
+          return (
+            <button
+              className={`text-left rounded-xl border-2 p-5 transition-all ${isStarterSelected ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/40 hover:shadow-sm"}`}
+              onClick={() => selectPack(starterAnalysis.bundle.id)}
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isStarterSelected ? "bg-primary" : "bg-muted"}`}>
+                  <Package className={`h-5 w-5 ${isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground">Starter Operations</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    + {starterAnalysis.uncoveredRequired.length} {t("offering.addons").toLowerCase()}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1">
+                {discPct > 0 && (
+                  <span className="text-sm text-muted-foreground line-through mr-1">{fmtEur(starterAnalysis.totalAnnual)}</span>
+                )}
+                <span className="text-2xl font-bold text-foreground">{fmtEur(total)}</span>
+                <span className="text-xs text-muted-foreground">{t("offering.eur_year")}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">{starterAnalysis.bundlePepm.toFixed(2)} {t("offering.eur_emp_month")}</p>
+            </button>
+          );
+        })()}
+        {recommendedBundle && (() => {
+          const total = discPct > 0 ? recommendedBundle.totalAnnual * (1 - discPct / 100) : recommendedBundle.totalAnnual;
+          return (
+            <button
+              className={`text-left rounded-xl border-2 p-5 transition-all relative ${!isStarterSelected ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/40 hover:shadow-sm"}`}
+              onClick={() => selectPack(recommendedBundle.bundle.id)}
+            >
+              <div className="absolute -top-2.5 right-4">
+                <Badge className="bg-emerald-500 text-white text-[10px] gap-1 border-0"><Star className="h-3 w-3" /> {t("offering.recommended")}</Badge>
+              </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${!isStarterSelected ? "bg-primary" : "bg-muted"}`}>
+                  <Star className={`h-5 w-5 ${!isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-foreground">{recommendedBundle.bundle.bundle_name}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {recommendedBundle.uncoveredRequired.length > 0
+                      ? `+ ${recommendedBundle.uncoveredRequired.length} ${t("offering.addons").toLowerCase()}`
+                      : t("offering.all_recommended")}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1">
+                {discPct > 0 && (
+                  <span className="text-sm text-muted-foreground line-through mr-1">{fmtEur(recommendedBundle.totalAnnual)}</span>
+                )}
+                <span className="text-2xl font-bold text-foreground">{fmtEur(total)}</span>
+                <span className="text-xs text-muted-foreground">{t("offering.eur_year")}</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">{recommendedBundle.bundlePepm.toFixed(2)} {t("offering.eur_emp_month")}</p>
+            </button>
+          );
+        })()}
+      </div>
 
       {/* Team breakdown warning */}
       {!teamFilled && (
@@ -422,10 +457,9 @@ export function StepOffering({
       )}
 
       {/* ═══════════════════════════════════════════ */}
-      {/* INVOICE: Collapsible Cost & Savings          */}
+      {/* 4. DETAILS (collapsible)                   */}
       {/* ═══════════════════════════════════════════ */}
       {teamFilled && configuration && (() => {
-        const discPct = offering.discount_pct ?? 0;
         const discountedCost = configuration.totalAnnualCost * (1 - discPct / 100);
         const bundleSavings = allBundleModules.reduce((acc, modId) => {
           const s = roiSavings.perModule.find(m => m.moduleId === modId);
@@ -437,11 +471,11 @@ export function StepOffering({
             {/* Summary row — always visible */}
             <button
               className="w-full grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 bg-muted/40 gap-3 hover:bg-muted/60 transition-colors"
-              onClick={() => setShowInvoice(!showInvoice)}
+              onClick={() => setShowDetails(!showDetails)}
             >
               <span className="text-sm font-bold text-foreground flex items-center gap-2">
-                <ChevronRight className={`h-4 w-4 transition-transform ${showInvoice ? "rotate-90" : ""}`} />
-                {t("offering.total")}
+                <ChevronRight className={`h-4 w-4 transition-transform ${showDetails ? "rotate-90" : ""}`} />
+                {t("offering.show_details")}
               </span>
               <span className="text-sm font-bold tabular-nums text-right">{fmtEur(discPct > 0 ? discountedCost : configuration.totalAnnualCost)} €/yr</span>
               <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
@@ -449,7 +483,7 @@ export function StepOffering({
             </button>
 
             {/* Expanded detail */}
-            {showInvoice && (<>
+            {showDetails && (<>
               {/* Table header */}
               <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 bg-muted/30 border-t border-border gap-3">
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{t("offering.module_header")}</span>
@@ -531,13 +565,35 @@ export function StepOffering({
                   <span /><span />
                 </div>
               </>)}
+
+              {/* ROI summary */}
+              {roiSavings.annual > 0 && (
+                <div className="grid grid-cols-3 gap-4 px-5 py-3 border-t-2 border-border bg-emerald-50/50">
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">ROI</p>
+                    <p className="text-lg font-bold text-emerald-600 tabular-nums">
+                      {((roiSavings.annual / (discPct > 0 ? discountedCost : configuration.totalAnnualCost)) * 100).toFixed(0)}%
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("offering.savings_yr")}</p>
+                    <p className="text-lg font-bold text-emerald-600 tabular-nums">{fmtEur(roiSavings.annual)} €</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("offering.payback")}</p>
+                    <p className="text-lg font-bold text-foreground tabular-nums">
+                      {roiSavings.annual > 0 ? ((discPct > 0 ? discountedCost : configuration.totalAnnualCost) / roiSavings.annual * 12).toFixed(0) : "—"} {t("offering.months")}
+                    </p>
+                  </div>
+                </div>
+              )}
             </>)}
           </div>
         );
       })()}
 
       {/* ═══════════════════════════════════════════ */}
-      {/* ACTION BUTTONS                             */}
+      {/* 5. ACTION BUTTONS                          */}
       {/* ═══════════════════════════════════════════ */}
       <div className="space-y-3 pt-2">
         <div className="grid grid-cols-4 gap-3">
@@ -570,8 +626,69 @@ export function StepOffering({
           </div>
         )}
       </div>
-
     </div>
+  );
+}
+
+// ── Add Module Dialog (same style as Page 1) ──
+function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  modules: typeof MODULE_CATALOG;
+  onAdd: (moduleId: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const { t } = useTranslation();
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return modules;
+    const q = search.toLowerCase();
+    return modules.filter(m => m.label.toLowerCase().includes(q) || m.category.toLowerCase().includes(q));
+  }, [modules, search]);
+
+  const grouped = useMemo(() =>
+    filtered.reduce<Record<string, typeof MODULE_CATALOG>>((acc, m) => {
+      if (!acc[m.category]) acc[m.category] = [];
+      acc[m.category].push(m);
+      return acc;
+    }, {}),
+  [filtered]);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setSearch(""); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("setup.add_module")}</DialogTitle>
+        </DialogHeader>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder={t("setup.search_modules")} value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <ScrollArea className="max-h-[60vh]">
+          <div className="space-y-5 pr-2">
+            {Object.entries(grouped).map(([category, mods]) => {
+              const catColor = CATEGORY_COLORS[category] ?? "#94A3B8";
+              return (
+                <div key={category}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {mods.map(m => (
+                      <button key={m.id} className="text-left px-3 py-2.5 rounded-lg border border-border/50 hover:border-border hover:bg-accent/50 transition-all group" style={{ borderLeftWidth: 3, borderLeftColor: m.color }} onClick={() => onAdd(m.id)}>
+                        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{m.label}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            {filtered.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">{modules.length === 0 ? t("setup.all_added") : t("setup.no_matches")}</p>}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -603,8 +720,6 @@ function HypothesisView({
   function setHourlyCost(key: Stakeholder, value: number) {
     onRoiConfigChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
   }
-
-  const totalPeople = headcounts.employee + headcounts.hr + headcounts.manager;
 
   function setHoursOverride(moduleId: string, stakeholder: Stakeholder, value: number) {
     const prev = roiConfig.hours_overrides ?? {};
@@ -694,10 +809,7 @@ function HypothesisView({
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: meta.color }}>
                       <Icon className="h-4 w-4 text-white" />
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground leading-tight">{t(meta.labelKey)}</p>
-                      <p className="text-[10px] text-muted-foreground">{t(meta.sublabelKey)}</p>
-                    </div>
+                    <p className="text-sm font-semibold text-foreground leading-tight">{t(meta.labelKey)}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
@@ -722,16 +834,6 @@ function HypothesisView({
                 </div>
               );
             })}
-          </div>
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs text-muted-foreground">
-              <strong className="text-foreground">{totalPeople}</strong> {t("stakeholder.people_total")}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {t("stakeholder.weighted_avg")} <strong className="text-foreground">
-                €{totalPeople > 0 ? Math.round((headcounts.employee * hourly_costs.employee + headcounts.hr * hourly_costs.hr + headcounts.manager * hourly_costs.manager) / totalPeople) : 0}
-              </strong>{t("stakeholder.per_hour")}
-            </span>
           </div>
         </section>
 
@@ -767,7 +869,6 @@ function HypothesisView({
                         <p className="text-[11px] text-muted-foreground italic line-clamp-1">&ldquo;{row.suggestion.quote}&rdquo;</p>
                       </div>
                     )}
-                    {/* Per-stakeholder hours summary */}
                     <div className="flex items-center gap-3 mt-1.5">
                       {row.perStakeholder.filter(ps => ps.totalHours > 0).map(ps => {
                         const meta = STAKEHOLDER_META[ps.stakeholder];

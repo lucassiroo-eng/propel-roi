@@ -454,10 +454,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: meta.color }}>
                     <Icon className="h-4 w-4 text-white" />
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground leading-tight">{t(meta.labelKey)}</p>
-                    <p className="text-[10px] text-muted-foreground">{t(meta.sublabelKey)}</p>
-                  </div>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{t(meta.labelKey)}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -483,17 +480,6 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
             );
           })}
         </div>
-        <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-muted-foreground">
-            <strong className="text-foreground">{totalPeople}</strong> {t("stakeholder.people_total")}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {t("stakeholder.weighted_avg")} <strong className="text-foreground">
-              €{totalPeople > 0 ? Math.round((headcounts.employee * hourly_costs.employee + headcounts.hr * hourly_costs.hr + headcounts.manager * hourly_costs.manager) / totalPeople) : 0}
-            </strong>{t("stakeholder.per_hour")}
-          </span>
-        </div>
-
         {/* Extra variables */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
@@ -810,7 +796,6 @@ function AddModuleDialog({ open, onOpenChange, modules, onAdd }: {
                     {mods.map(m => (
                       <button key={m.id} className="text-left px-3 py-2.5 rounded-lg border border-border/50 hover:border-border hover:bg-accent/50 transition-all group" style={{ borderLeftWidth: 3, borderLeftColor: m.color }} onClick={() => onAdd(m.id)}>
                         <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">{m.label}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{m.signals[0]}</p>
                       </button>
                     ))}
                   </div>

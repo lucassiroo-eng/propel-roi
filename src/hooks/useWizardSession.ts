@@ -148,7 +148,7 @@ const defaultProspect: ProspectData = {
 
 const defaultOffering: SelectedOffering = {
   billing: "yearly",
-  tier: "business",
+  tier: "enterprise",
   addon_modules: [],
 };
 
@@ -170,7 +170,7 @@ export function useWizardSession(sessionId?: string) {
     aiSuggestions: [],
     selectedModules: [],
     moduleSuggestions: [],
-    roiConfig: { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } },
+    roiConfig: { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } },
   });
 
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -210,7 +210,7 @@ export function useWizardSession(sessionId?: string) {
           aiSuggestions: [],
           selectedModules: (session as any).selected_modules ?? [],
           moduleSuggestions: (session as any).module_suggestions ?? [],
-          roiConfig: (session as any).roi_config ?? { headcounts: { employee: 40, hr: 3, manager: 8 }, hourly_costs: { employee: 25, hr: 35, manager: 30 } },
+          roiConfig: (session as any).roi_config ?? { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } },
         });
       }
       setLoading(false);

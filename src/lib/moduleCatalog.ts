@@ -17,12 +17,16 @@ export const CATEGORY_COLORS: Record<string, string> = {
   "AI":                   "#E05C75",
 };
 
+function catColor(cat: string): string {
+  return CATEGORY_COLORS[cat] ?? "#94A3B8";
+}
+
 export const MODULE_CATALOG: ModuleDef[] = [
   {
     id: "core",
     label: "Core HR",
     category: "Core HR",
-    color: "#6B7280",
+    color: catColor("Core HR"),
     signals: [
       "We manage employee data in Excel / Google Sheets",
       "Employees keep emailing HR for basic info — payslips, certificates",
@@ -40,7 +44,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "time_off",
     label: "Time Off",
     category: "Time",
-    color: "#F59E0B",
+    color: catColor("Time"),
     signals: [
       "We track leave in a spreadsheet and it's a mess",
       "Employees keep asking how many days they have left",
@@ -58,7 +62,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "time_tracking",
     label: "Time Tracking",
     category: "Time",
-    color: "#D97706",
+    color: catColor("Time"),
     signals: [
       "Employees fill timesheets manually and often forget",
       "We spend hours reconciling time data for payroll",
@@ -76,7 +80,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "time_planning",
     label: "Shift Management",
     category: "Time",
-    color: "#FBBF24",
+    color: catColor("Time"),
     signals: [
       "Creating the weekly schedule takes hours in Excel",
       "Employees check schedules on paper or WhatsApp",
@@ -94,7 +98,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "compensations",
     label: "Compensation",
     category: "Payroll & Benefits",
-    color: "#F97316",
+    color: catColor("Payroll & Benefits"),
     signals: [
       "Salary reviews are done in Excel — everyone has a different version",
       "No visibility on salary bands across the company",
@@ -112,7 +116,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "payroll",
     label: "Payroll Connect",
     category: "Payroll & Benefits",
-    color: "#FB923C",
+    color: catColor("Payroll & Benefits"),
     signals: [
       "Payroll prep takes a full day before every run",
       "We manually copy data from time, leave, expenses into payroll",
@@ -129,7 +133,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "benefits",
     label: "Benefits / Flex. Retribution",
     category: "Payroll & Benefits",
-    color: "#FDBA74",
+    color: catColor("Payroll & Benefits"),
     signals: [
       "Employees don't know what benefits they're eligible for",
       "Flexible remuneration is a nightmare in spreadsheets",
@@ -146,7 +150,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "wellhub",
     label: "Wellhub",
     category: "Payroll & Benefits",
-    color: "#EA580C",
+    color: catColor("Payroll & Benefits"),
     signals: [
       "We want wellness programs but managing vendors is too much work",
       "Employees ask about gym memberships and we have no answer",
@@ -161,7 +165,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "complaints",
     label: "Trust Channel",
     category: "Talent",
-    color: "#FDA4AF",
+    color: catColor("Talent"),
     signals: [
       "We need to comply with the EU Whistleblower Directive",
       "Complaints come by email and we lose track",
@@ -178,7 +182,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "engagement",
     label: "Engagement Surveys",
     category: "Talent",
-    color: "#FB7185",
+    color: catColor("Talent"),
     signals: [
       "Our annual survey is in Google Forms — takes weeks to analyse",
       "Managers never see their team's results",
@@ -196,7 +200,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "performance",
     label: "Performance Management",
     category: "Talent",
-    color: "#E05C75",
+    color: catColor("Talent"),
     signals: [
       "Reviews are in Word docs — nobody can find last year's",
       "Managers hate the review process — too bureaucratic",
@@ -214,7 +218,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "trainings",
     label: "Training Management",
     category: "Talent",
-    color: "#F43F5E",
+    color: catColor("Talent"),
     signals: [
       "We track training completion in a spreadsheet",
       "Mandatory training compliance is hard to monitor",
@@ -232,7 +236,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "lms",
     label: "LMS (Content Creator)",
     category: "Talent",
-    color: "#E11D48",
+    color: catColor("Talent"),
     signals: [
       "We create training in PowerPoint and share it by email",
       "No way to test if employees understood the content",
@@ -249,7 +253,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "recruitment",
     label: "Recruitment (ATS)",
     category: "Talent",
-    color: "#BE123C",
+    color: catColor("Talent"),
     signals: [
       "We manage candidates in email threads and lose track",
       "Scheduling interviews takes forever — too many emails",
@@ -267,7 +271,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "expenses",
     label: "Expense Management",
     category: "Finance",
-    color: "#14B8A6",
+    color: catColor("Finance"),
     signals: [
       "Employees collect paper receipts and fill Excel forms",
       "Expense reports sit on my desk for days",
@@ -285,7 +289,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "procurement",
     label: "Procurement",
     category: "Finance",
-    color: "#0D9488",
+    color: catColor("Finance"),
     signals: [
       "Purchase orders are done by email — nobody tracks them",
       "Maverick spend — people buy without approval",
@@ -302,7 +306,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "projects",
     label: "Project Management",
     category: "Finance",
-    color: "#2DD4BF",
+    color: catColor("Finance"),
     signals: [
       "We don't know real project cost until it's finished",
       "Time logging is in a separate tool — or not done at all",
@@ -319,7 +323,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "crm",
     label: "CRM (Talent Pool)",
     category: "Talent",
-    color: "#F9A8D4",
+    color: catColor("Talent"),
     signals: [
       "We track candidate relationships in a spreadsheet",
       "Our alumni network is just an old email list",
@@ -336,7 +340,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "headcount_planning",
     label: "Headcount Planning",
     category: "Finance",
-    color: "#5EEAD4",
+    color: catColor("Finance"),
     signals: [
       "Headcount planning is a spreadsheet once a year",
       "Can't model 'what if we hire 5 more in Q3' with budget impact",
@@ -353,7 +357,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "space",
     label: "Space Management",
     category: "IT",
-    color: "#0D9488",
+    color: catColor("IT"),
     signals: [
       "We don't know how many people come to the office each day",
       "Desk booking is first-come-first-served chaos",
@@ -370,7 +374,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "software_management",
     label: "Software Management",
     category: "IT",
-    color: "#115E59",
+    color: catColor("IT"),
     signals: [
       "We don't know how many SaaS licenses we're paying for",
       "Tools with 50 licenses but only 10 users",
@@ -387,7 +391,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "it_inventory",
     label: "IT Inventory",
     category: "IT",
-    color: "#14B8A6",
+    color: catColor("IT"),
     signals: [
       "We track laptops and equipment in a spreadsheet",
       "When someone leaves, we forget to collect equipment",
@@ -404,7 +408,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "one",
     label: "Factorial One (AI)",
     category: "AI",
-    color: "#E05C75",
+    color: catColor("AI"),
     signals: [
       "HR spends half the day answering the same questions",
       "Employees can't find policies on the intranet",
@@ -421,7 +425,7 @@ export const MODULE_CATALOG: ModuleDef[] = [
     id: "analytics",
     label: "HR Analytics",
     category: "Core HR",
-    color: "#9CA3AF",
+    color: catColor("Core HR"),
     signals: [
       "No HR dashboards — we pull data into Excel each month",
       "Data-driven decisions needed but no tooling",
