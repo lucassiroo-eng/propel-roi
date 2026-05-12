@@ -193,6 +193,10 @@ export function useWizardSession(sessionId?: string) {
         setCurrentSessionId(session.id);
         setProspectId(session.prospect_id);
         const p = session.prospects as any;
+        const sm = (session as any).selected_modules;
+        const ms = (session as any).module_suggestions;
+        const rc = (session as any).roi_config;
+        const cp = (session as any).custom_pains;
         setState({
           prospect: {
             company_name: p?.company_name ?? "",
@@ -208,11 +212,11 @@ export function useWizardSession(sessionId?: string) {
           selectedPains: session.selected_pains ?? [],
           painOverrides: (session.pain_overrides as unknown as Record<string, PainOverride>) ?? {},
           offering: (session.selected_offering as unknown as SelectedOffering) ?? { ...defaultOffering },
-          customPains: (session as any).custom_pains ?? [],
+          customPains: cp ?? [],
           aiSuggestions: [],
-          selectedModules: (session as any).selected_modules ?? [],
-          moduleSuggestions: (session as any).module_suggestions ?? [],
-          roiConfig: (session as any).roi_config ?? { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } },
+          selectedModules: sm ?? [],
+          moduleSuggestions: ms ?? [],
+          roiConfig: rc ?? { headcounts: { employee: 0, hr: 0, manager: 0 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } },
         });
       }
       setLoading(false);
@@ -226,18 +230,19 @@ export function useWizardSession(sessionId?: string) {
       // Upsert prospect
       let pid = prospectId;
       if (!pid) {
-        const { data: newP, error: pErr } = await supabase
-          .from("prospects")
-          .insert({
-            pae_id: user.id,
+        const prospectPayload = {
             company_name: s.prospect.company_name || "Untitled",
+            deal_name: s.prospect.deal_name || null,
             country: s.prospect.country,
             seats: s.prospect.seats,
             sector: s.prospect.sector || null,
             hubspot_deal_url: s.prospect.hubspot_deal_url || null,
             contact_name: s.prospect.contact_name || null,
             contact_email: s.prospect.contact_email || null,
-          })
+        };
+        const { data: newP, error: pErr } = await supabase
+          .from("prospects")
+          .insert({ pae_id: user.id, ...prospectPayload })
           .select("id")
           .single();
         if (pErr) throw pErr;
@@ -248,6 +253,7 @@ export function useWizardSession(sessionId?: string) {
           .from("prospects")
           .update({
             company_name: s.prospect.company_name || "Untitled",
+            deal_name: s.prospect.deal_name || null,
             country: s.prospect.country,
             seats: s.prospect.seats,
             sector: s.prospect.sector || null,
@@ -260,17 +266,21 @@ export function useWizardSession(sessionId?: string) {
       }
 
       // Upsert session
+      const sessionPayload = {
+        prospect_id: pid,
+        selected_pains: s.selectedPains,
+        pain_overrides: s.painOverrides as any,
+        selected_offering: s.offering as any,
+        selected_modules: s.selectedModules as any,
+        module_suggestions: s.moduleSuggestions as any,
+        roi_config: s.roiConfig as any,
+        custom_pains: s.customPains as any,
+      };
       let sid = currentSessionId;
       if (!sid || sid === "new") {
         const { data: newS, error: sErr } = await supabase
           .from("roi_sessions")
-          .insert({
-            pae_id: user.id,
-            prospect_id: pid,
-            selected_pains: s.selectedPains,
-            pain_overrides: s.painOverrides as any,
-            selected_offering: s.offering as any,
-          })
+          .insert({ pae_id: user.id, ...sessionPayload })
           .select("id")
           .single();
         if (sErr) throw sErr;
@@ -280,13 +290,7 @@ export function useWizardSession(sessionId?: string) {
       } else {
         await supabase
           .from("roi_sessions")
-          .update({
-            prospect_id: pid,
-            selected_pains: s.selectedPains,
-            pain_overrides: s.painOverrides as any,
-            selected_offering: s.offering as any,
-            updated_at: new Date().toISOString(),
-          })
+          .update({ ...sessionPayload, updated_at: new Date().toISOString() })
           .eq("id", sid);
       }
     } catch (err: any) {

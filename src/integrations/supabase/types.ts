@@ -496,6 +496,7 @@ export type Database = {
           contact_name: string | null
           country: string
           created_at: string | null
+          deal_name: string | null
           hubspot_deal_url: string | null
           id: string
           pae_id: string
@@ -509,6 +510,7 @@ export type Database = {
           contact_name?: string | null
           country: string
           created_at?: string | null
+          deal_name?: string | null
           hubspot_deal_url?: string | null
           id?: string
           pae_id: string
@@ -522,6 +524,7 @@ export type Database = {
           contact_name?: string | null
           country?: string
           created_at?: string | null
+          deal_name?: string | null
           hubspot_deal_url?: string | null
           id?: string
           pae_id?: string
@@ -570,15 +573,19 @@ export type Database = {
       roi_sessions: {
         Row: {
           created_at: string | null
+          custom_pains: Json | null
           factorial_annual_cost_eur: number | null
           id: string
+          module_suggestions: Json | null
           pae_id: string
           pain_overrides: Json | null
           payback_months: number | null
           pdf_url: string | null
           prospect_id: string | null
+          roi_config: Json | null
           roi_eur: number | null
           roi_pct: number | null
+          selected_modules: Json | null
           selected_offering: Json | null
           selected_pains: string[]
           snapshot: Json | null
@@ -588,15 +595,19 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custom_pains?: Json | null
           factorial_annual_cost_eur?: number | null
           id?: string
+          module_suggestions?: Json | null
           pae_id: string
           pain_overrides?: Json | null
           payback_months?: number | null
           pdf_url?: string | null
           prospect_id?: string | null
+          roi_config?: Json | null
           roi_eur?: number | null
           roi_pct?: number | null
+          selected_modules?: Json | null
           selected_offering?: Json | null
           selected_pains?: string[]
           snapshot?: Json | null
@@ -606,15 +617,19 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custom_pains?: Json | null
           factorial_annual_cost_eur?: number | null
           id?: string
+          module_suggestions?: Json | null
           pae_id?: string
           pain_overrides?: Json | null
           payback_months?: number | null
           pdf_url?: string | null
           prospect_id?: string | null
+          roi_config?: Json | null
           roi_eur?: number | null
           roi_pct?: number | null
+          selected_modules?: Json | null
           selected_offering?: Json | null
           selected_pains?: string[]
           snapshot?: Json | null
