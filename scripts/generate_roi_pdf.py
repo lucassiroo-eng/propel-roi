@@ -41,6 +41,7 @@ CAT_COLORS = {
     "Finance":            HexColor("#14B8A6"),
     "IT":                 HexColor("#0D9488"),
     "AI":                 HexColor("#E05C75"),
+    "Integrations":       HexColor("#6366F1"),
 }
 
 CAT_BG = {
@@ -51,6 +52,7 @@ CAT_BG = {
     "Finance":            HexColor("#F0FDFA"),
     "IT":                 HexColor("#F0FDFA"),
     "AI":                 HexColor("#FFF1F2"),
+    "Integrations":       HexColor("#EEF2FF"),
 }
 
 MODULE_TO_CAT = {
@@ -64,6 +66,12 @@ MODULE_TO_CAT = {
     "headcount_planning": "Finance",
     "space": "IT", "software_management": "IT", "it_inventory": "IT",
     "one": "AI",
+    "integration_business_central": "Integrations",
+    "integration_netsuite": "Integrations",
+    "integration_sage_200": "Integrations",
+    "integration_milena": "Integrations",
+    "integration_suprema_xiptic": "Integrations",
+    "silae": "Integrations",
 }
 
 W, H = A4

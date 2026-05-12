@@ -15,6 +15,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   "Finance":              "#14B8A6",
   "IT":                   "#0D9488",
   "AI":                   "#E05C75",
+  "Integrations":         "#6366F1",
 };
 
 function catColor(cat: string): string {
@@ -438,7 +439,94 @@ export const MODULE_CATALOG: ModuleDef[] = [
       "Real-time metrics accessible to leadership",
     ],
   },
+  // ── Integrations ──
+  {
+    id: "integration_business_central",
+    label: "Business Central",
+    category: "Integrations",
+    color: catColor("IT"),
+    signals: [
+      "We use Microsoft Business Central as our ERP",
+      "Manual data entry between HR and Business Central",
+      "Need to sync employee data with our ERP",
+    ],
+    savings: [
+      "Automated bi-directional sync with Business Central",
+      "Employee data flows directly to ERP without manual entry",
+    ],
+  },
+  {
+    id: "integration_netsuite",
+    label: "Netsuite",
+    category: "Integrations",
+    color: catColor("IT"),
+    signals: [
+      "We use Oracle Netsuite for finance/ERP",
+      "Duplicating employee records between HR system and Netsuite",
+    ],
+    savings: [
+      "Automated sync of employee and payroll data with Netsuite",
+      "Single source of truth across HR and finance",
+    ],
+  },
+  {
+    id: "integration_sage_200",
+    label: "SAGE 200",
+    category: "Integrations",
+    color: catColor("IT"),
+    signals: [
+      "We use SAGE 200 for accounting",
+      "Manual export/import between HR and SAGE",
+    ],
+    savings: [
+      "Direct integration with SAGE 200 for payroll and accounting data",
+    ],
+  },
+  {
+    id: "integration_milena",
+    label: "Milena",
+    category: "Integrations",
+    color: catColor("IT"),
+    signals: [
+      "We use Milena for payroll processing",
+      "Manual data transfer to Milena every pay cycle",
+    ],
+    savings: [
+      "Automated payroll data sync with Milena",
+    ],
+  },
+  {
+    id: "integration_suprema_xiptic",
+    label: "Suprema Xiptic",
+    category: "Integrations",
+    color: catColor("IT"),
+    signals: [
+      "We use Suprema/Xiptic for access control or biometric attendance",
+      "Clock-in data from terminals isn't connected to HR",
+    ],
+    savings: [
+      "Automated clock-in data sync from Suprema Xiptic terminals",
+    ],
+  },
+  {
+    id: "silae",
+    label: "SILAE Integration",
+    category: "Integrations",
+    color: catColor("IT"),
+    signals: [
+      "We use SILAE for payroll in France",
+      "Manual data exchange with SILAE provider",
+    ],
+    savings: [
+      "Direct payroll data sync with SILAE",
+    ],
+  },
 ];
+
+export const INTEGRATION_MODULES = new Set([
+  "integration_business_central", "integration_netsuite", "integration_sage_200",
+  "integration_milena", "integration_suprema_xiptic", "silae",
+]);
 
 export function buildModulePromptBlock(): string {
   return MODULE_CATALOG.map(m =>

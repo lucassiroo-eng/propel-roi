@@ -52,6 +52,21 @@ const MODULE_ALIASES: Record<string, string> = {
   "spend management": "expenses",
   "multi-entity": "multi_entity",
   "crm": "crm",
+  "crm 🆕": "crm",
+  "headcount planning": "headcount_planning",
+  "one - ai agent": "one",
+  "silae integration": "silae",
+  "silae": "silae",
+  "compensation (includes silae integration)": "compensations",
+  "compensation (w silae)": "compensations",
+  "business central": "integration_business_central",
+  "netsuite": "integration_netsuite",
+  "sage 200": "integration_sage_200",
+  "sage 200 (spain only)": "integration_sage_200",
+  "milena": "integration_milena",
+  "milena (spain only)": "integration_milena",
+  "suprema xiptic": "integration_suprema_xiptic",
+  "trust channel": "complaints",
 };
 
 export function canonicalModule(raw: string): string {
@@ -90,6 +105,12 @@ const MODULE_LABELS: Record<string, string> = {
   multi_entity: "Multi-entity",
   crm: "CRM",
   headcount_planning: "Headcount Planning",
+  silae: "SILAE Integration",
+  integration_business_central: "Business Central",
+  integration_netsuite: "Netsuite",
+  integration_sage_200: "SAGE 200",
+  integration_milena: "Milena",
+  integration_suprema_xiptic: "Suprema Xiptic",
 };
 
 export function moduleLabel(canonical: string): string {
@@ -230,7 +251,14 @@ const MODULE_TO_SKU: Record<string, string> = {
   compensations: "Compensation",
   complaints: "Trust channel (Complaints/Whistleblower)",
   time_planning: "Shift Management",
-  crm: "CRM 🆕",
+  crm: "CRM",
+  headcount_planning: "Headcount Planning",
+  silae: "SILAE Integration",
+  integration_business_central: "Business Central",
+  integration_netsuite: "Netsuite",
+  integration_sage_200: "SAGE 200",
+  integration_milena: "Milena",
+  integration_suprema_xiptic: "Suprema Xiptic",
 };
 
 function getLineItemForModule(
@@ -261,7 +289,7 @@ export function listAvailableAddonModules(
     const mod = canonicalModule(li.sku_name);
     if (!mod || seen.has(mod) || excludeSet.has(mod) || MODULES_INCLUDED_IN_CORE.has(mod)) continue;
     // Skip meta/aggregate rows
-    if (["bundled add-ons", "other", "finance", "talent"].includes(li.sku_name.toLowerCase())) continue;
+    if (["bundled add-ons", "other", "finance", "talent", "integrations (by partners)"].includes(li.sku_name.toLowerCase())) continue;
     // Skip tiered variants (keep only the first)
     if (li.sku_name.match(/Extra User|disc\.|Active Jobs|\(\d/)) continue;
     seen.add(mod);
