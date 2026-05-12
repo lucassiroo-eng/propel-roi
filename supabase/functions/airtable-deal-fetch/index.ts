@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { azureFetch } from "../_shared/azureFetch.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -90,7 +91,7 @@ const suggestPainsTool = {
 };
 
 async function runPainMapping(
-  apiKey: string,
+  _apiKey: string,
   painList: string,
   notes: string,
   country: string,
@@ -114,33 +115,20 @@ Rules:
 - Consider the prospect's country (${country || "unknown"}) and sector (${sector || "unknown"})
 - Write the rationale for each suggestion in ${langName} — keep it to 1 short sentence`;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
   try {
-    const res = await fetch(
-      "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages",
-      {
-        method: "POST",
-        headers: { "api-key": apiKey, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-opus-4-6",
-          max_tokens: 1024,
-          temperature: 0,
-          system: systemPrompt,
-          messages: [{ role: "user", content: `Discovery notes from emails and calls:\n${notes}` }],
-          tools: [{ name: suggestPainsTool.name, description: suggestPainsTool.description, input_schema: suggestPainsTool.parameters }],
-          tool_choice: { type: "tool", name: "suggest_pains" },
-        }),
-        signal: controller.signal,
-      }
-    );
-    clearTimeout(timeout);
+    const res = await azureFetch({
+      model: "claude-opus-4-6",
+      max_tokens: 1024,
+      temperature: 0,
+      system: systemPrompt,
+      messages: [{ role: "user", content: `Discovery notes from emails and calls:\n${notes}` }],
+      tools: [{ name: suggestPainsTool.name, description: suggestPainsTool.description, input_schema: suggestPainsTool.parameters }],
+      tool_choice: { type: "tool", name: "suggest_pains" },
+    }, 60000);
     if (!res.ok) { console.error("Azure error:", res.status); return null; }
     const data = await res.json();
     return data.content?.find((b: any) => b.type === "tool_use")?.input?.suggestions ?? [];
   } catch (err) {
-    clearTimeout(timeout);
     console.error("Azure call failed:", err);
     return null;
   }

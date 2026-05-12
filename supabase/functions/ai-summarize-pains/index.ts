@@ -1,4 +1,5 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { azureFetch } from "../_shared/azureFetch.ts";
 
 function getJwtPayload(authHeader: string): Record<string, any> | null {
   const token = authHeader.replace(/^Bearer\s+/i, "");
@@ -44,32 +45,13 @@ Return all the mentioned pains. For each pain use this structure:
 </rules>`;
 
 async function callAzure(notes: string, companyName: string): Promise<string | null> {
-  const apiKey = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
-  if (!apiKey) return null;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
   try {
-    const res = await fetch(
-      "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages",
-      {
-        method: "POST",
-        headers: {
-          "api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-opus-4-6",
-          max_tokens: 2048,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: `Company: ${companyName}\n\nDeal notes:\n${notes}` }],
-        }),
-        signal: controller.signal,
-      }
-    );
-    clearTimeout(timeout);
+    const res = await azureFetch({
+      model: "claude-opus-4-6",
+      max_tokens: 2048,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: `Company: ${companyName}\n\nDeal notes:\n${notes}` }],
+    });
     if (!res.ok) {
       console.error("Azure error:", res.status, await res.text());
       return null;
@@ -77,7 +59,6 @@ async function callAzure(notes: string, companyName: string): Promise<string | n
     const data = await res.json();
     return data.content?.[0]?.text ?? null;
   } catch (err) {
-    clearTimeout(timeout);
     console.error("Azure call failed:", err);
     return null;
   }

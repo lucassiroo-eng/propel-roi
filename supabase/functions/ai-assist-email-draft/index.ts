@@ -1,33 +1,18 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { azureFetch } from "../_shared/azureFetch.ts";
 
-// Try Azure Anthropic
 async function callAzureText(systemPrompt: string, userMessage: string): Promise<string | null> {
-  const apiKey = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
-  if (!apiKey) return null;
-
   try {
-    const res = await fetch(
-      "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages",
-      {
-        method: "POST",
-        headers: {
-          "api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-opus-4-6",
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userMessage }],
-        }),
-      }
-    );
+    const res = await azureFetch({
+      model: "claude-opus-4-6",
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    });
 
     if (!res.ok) {
-      const body = await res.text();
-      console.error("Azure AI error:", res.status, body);
+      console.error("Azure AI error:", res.status, await res.text());
       return null;
     }
 

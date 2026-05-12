@@ -1,4 +1,5 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { azureFetch } from "../_shared/azureFetch.ts";
 
 const extractVarsTool = {
   name: "extract_variables",
@@ -24,43 +25,23 @@ const extractVarsTool = {
 };
 
 async function callAzure(systemPrompt: string, userMessage: string): Promise<any[] | null> {
-  const apiKey = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
-  if (!apiKey) return null;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
   try {
-    const res = await fetch(
-      "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages",
-      {
-        method: "POST",
-        headers: {
-          "api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-opus-4-6",
-          max_tokens: 2048,
-          temperature: 0,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userMessage }],
-          tools: [{
-            name: extractVarsTool.name,
-            description: extractVarsTool.description,
-            input_schema: extractVarsTool.parameters,
-          }],
-          tool_choice: { type: "tool", name: "extract_variables" },
-        }),
-        signal: controller.signal,
-      }
-    );
-    clearTimeout(timeout);
+    const res = await azureFetch({
+      model: "claude-opus-4-6",
+      max_tokens: 2048,
+      temperature: 0,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+      tools: [{
+        name: extractVarsTool.name,
+        description: extractVarsTool.description,
+        input_schema: extractVarsTool.parameters,
+      }],
+      tool_choice: { type: "tool", name: "extract_variables" },
+    });
 
     if (!res.ok) {
-      const body = await res.text();
-      console.error("Azure AI error:", res.status, body);
+      console.error("Azure AI error:", res.status, await res.text());
       return null;
     }
 
@@ -68,7 +49,6 @@ async function callAzure(systemPrompt: string, userMessage: string): Promise<any
     const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
     return toolBlock?.input?.matches ?? [];
   } catch (err) {
-    clearTimeout(timeout);
     console.error("Azure call failed:", err);
     return null;
   }

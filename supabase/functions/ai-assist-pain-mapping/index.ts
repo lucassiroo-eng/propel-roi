@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { azureFetch } from "../_shared/azureFetch.ts";
 
 // Build the shared system prompt + user message
 function buildPrompt(painList: string, country: string, sector: string, notes: string, language: string) {
@@ -66,53 +67,31 @@ function isAnonRequest(authHeader: string | null): boolean {
   return claims?.role === "anon" && !claims?.sub;
 }
 
-// Try Azure Anthropic
 async function callAzure(systemPrompt: string, userMessage: string): Promise<any[] | null> {
-  const apiKey = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
-  if (!apiKey) return null;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
-
   try {
-    const res = await fetch(
-      "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages",
-      {
-        method: "POST",
-        headers: {
-          "api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-opus-4-6",
-          max_tokens: 1024,
-          temperature: 0,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userMessage }],
-          tools: [{
-            name: suggestPainsTool.name,
-            description: suggestPainsTool.description,
-            input_schema: suggestPainsTool.parameters,
-          }],
-          tool_choice: { type: "tool", name: "suggest_pains" },
-        }),
-        signal: controller.signal,
-      }
-    );
-    clearTimeout(timeout);
+    const res = await azureFetch({
+      model: "claude-opus-4-6",
+      max_tokens: 1024,
+      temperature: 0,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+      tools: [{
+        name: suggestPainsTool.name,
+        description: suggestPainsTool.description,
+        input_schema: suggestPainsTool.parameters,
+      }],
+      tool_choice: { type: "tool", name: "suggest_pains" },
+    });
 
     if (!res.ok) {
-      const body = await res.text();
-      console.error("Azure AI error:", res.status, body);
-      return null; // fallback
+      console.error("Azure AI error:", res.status, await res.text());
+      return null;
     }
 
     const data = await res.json();
     const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
     return toolBlock?.input?.suggestions ?? [];
   } catch (err) {
-    clearTimeout(timeout);
     console.error("Azure call failed:", err);
     return null;
   }
