@@ -63,7 +63,7 @@ const AI_TOOL = {
           properties: {
             module_id: { type: "string" as const, enum: MODULE_CATALOG.map(m => m.id) },
             confidence: { type: "string" as const, enum: ["strong", "possible"] },
-            quote: { type: "string" as const, description: "1-2 sentence quote from the deal content in its original language. Must be a real passage, not invented." },
+            quote: { type: "string" as const, description: "The EXACT verbatim passage from the deal content that supports this recommendation. Copy-paste the original text in its original language (ES/FR/EN). Max 2 sentences. If no exact quote exists, prefix with ~ and paraphrase briefly." },
           },
           required: ["module_id", "confidence", "quote"],
         },
@@ -73,25 +73,54 @@ const AI_TOOL = {
   },
 };
 
-const SYSTEM_PROMPT = `You analyze sales conversations for Factorial HR software. Given deal content (emails, calls, notes), identify which Factorial modules would benefit this prospect.
+const SYSTEM_PROMPT = `You are an expert sales analyst for Factorial HR. Analyze deal content (emails, calls, notes) in Spanish, French, or English to identify which modules the prospect needs.
 
-Rules:
-1. "strong" = explicitly requested or unmistakable buying signals
-2. "possible" = implicit need inferred from context
-3. Include a 1-2 sentence quote IN ITS ORIGINAL LANGUAGE from the content
-4. Do NOT hallucinate quotes. Prefix paraphrases with "~"
-5. Only recommend modules with real evidence
+CONFIDENCE:
+- "strong" = prospect EXPLICITLY mentions the pain or requests the feature. E.g. "necesitamos control horario", "on cherche un ATS", "we track expenses in Excel"
+- "possible" = need is IMPLIED from context — manual processes, compliance concerns, growth plans
 
-Available modules:
+QUOTES:
+- VERBATIM copy-paste from the content, in its ORIGINAL language. Never translate.
+- Pick the most specific passage proving the need. Prefer the prospect's words over the rep's.
+- Max 2 sentences. If no exact passage exists, prefix with "~" and paraphrase in ≤15 words.
+- NEVER fabricate quotes.
+
+KEY MAPPINGS (ES/FR/EN terms → module_id):
+core: datos empleados, fiches salariés, employee data, onboarding, directorio
+time_off: vacaciones, congés, leave, ausencias, absences
+time_tracking: fichaje, control horario, registro jornada, pointage, badgeuse, clock-in
+time_planning: turnos, cuadrantes, planification, shifts, rotas
+compensations: revisión salarial, bandas salariales, revue salariale, salary review
+payroll: nóminas, bulletin de paie, payroll, incidencias nómina
+benefits: retribución flexible, avantages, tickets restaurant, benefits
+expenses: gastos, liquidaciones, notes de frais, expense reports, receipts
+recruitment: ATS, selección, candidatos, recrutement, hiring, candidates
+performance: evaluación desempeño, entretien annuel, performance review, OKRs
+trainings: formación, formation obligatoire, training, compliance courses
+lms: crear cursos, e-learning, content creator, LMS
+engagement: encuesta clima, eNPS, enquête, employee survey, pulse
+complaints: canal denuncias, whistleblower, canal éthique, compliance channel
+procurement: pedidos compra, bons de commande, purchase orders, approval
+projects: coste proyecto, rentabilidad, coût projet, project cost
+headcount_planning: planificación plantilla, budget effectifs, headcount budget
+space: reserva escritorio, flex office, desk booking, hybrid
+software_management: licencias SaaS, gestion licences, license tracking
+it_inventory: inventario IT, équipement, asset management, laptops
+crm: talent pool, bolsa candidatos, vivier, alumni
+one: asistente IA, chatbot RH, AI assistant
+analytics: dashboards RRHH, people analytics, reporting
+wellhub: bienestar, wellness, gimnasio, gym
+
+MODULES:
 ${buildModulePromptBlock()}`;
 
 function buildDealContent(data: ProspectData): string {
   const parts: string[] = [];
   for (const e of (data.airtable_emails ?? []).slice(0, 15)) {
-    parts.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 500)}`);
+    parts.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 600)}`);
   }
-  for (const c of (data.airtable_calls ?? []).slice(0, 5)) {
-    parts.push(`[Call ${c.date}] ${c.owner} (${Math.round(c.duration_seconds / 60)} min)\n${c.transcript.slice(0, 2000)}`);
+  for (const c of (data.airtable_calls ?? []).slice(0, 6)) {
+    parts.push(`[Call ${c.date}] ${c.owner} (${Math.round(c.duration_seconds / 60)} min)\n${c.transcript.slice(0, 3000)}`);
   }
   for (const n of (data.hubspot_notes ?? []).slice(0, 15)) {
     parts.push(`[Note ${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 1000)}`);
@@ -128,6 +157,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     (data.hubspot_notes?.length ?? 0) > 0;
 
   const needsAnalysis = moduleSuggestions.length === 0 && hasContent;
+  const contentFingerprint = (data.airtable_emails?.length ?? 0) + (data.airtable_calls?.length ?? 0) + (data.hubspot_notes?.length ?? 0);
 
   // Sync seats from headcount sum
   useEffect(() => {
@@ -139,11 +169,11 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
   // Auto-trigger AI analysis when content becomes available
   useEffect(() => {
-    if (needsAnalysis && !analysisStarted.current && !analyzing) {
+    if (needsAnalysis && !analyzing) {
       analysisStarted.current = true;
       runAnalysis();
     }
-  }, [needsAnalysis]);
+  }, [contentFingerprint]);
 
   function setHeadcount(key: Stakeholder, value: number) {
     onRoiConfigChange({ ...roiConfig, headcounts: { ...headcounts, [key]: Math.max(0, value) } });
@@ -249,7 +279,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       const res = await fetch(`${WORKER}/ai`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-opus-4-6", max_tokens: 4096, temperature: 0,
+          model: "claude-sonnet-4-6", max_tokens: 2048, temperature: 0,
           system: SYSTEM_PROMPT,
           messages: [{ role: "user", content: `Company: ${data.company_name} | Sector: ${data.sector} | Country: ${data.country} | Employees: ${data.seats}\n\nDeal content:\n\n${content}` }],
           tools: [AI_TOOL],
