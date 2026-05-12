@@ -76,6 +76,8 @@ export interface SelectedOffering {
   addon_lines?: AddonLine[];
   // Discount
   discount_pct?: number;
+  // Manual cost override (€/yr) — when set, replaces computed cost
+  cost_override?: number | null;
   // Computed totals (written by Offering, read by Review)
   total_annual_cost?: number;
   covered_pains?: string[];

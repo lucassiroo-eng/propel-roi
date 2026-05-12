@@ -2,12 +2,12 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Check, X, Loader2, Plus, Presentation, FileDown, FileText,
+  Check, X, Loader2, Plus, FileDown, FileText,
   ExternalLink, Package, Star, Save, Eye, Globe,
   ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search,
 } from "lucide-react";
@@ -28,6 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
+import { generateRoiPdf, type RoiPdfData } from "@/lib/generateRoiPdf";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -228,18 +229,19 @@ export function StepOffering({
     const analysis = analysisRef.current;
     if (!analysis || !cfg) return;
     const disc = offering.discount_pct ?? 0;
-    const discountedCost = cfg.totalAnnualCost * (1 - disc / 100);
-    const netRoi = cfg.totalAnnualBenefit - discountedCost;
-    const roiPct = discountedCost > 0 ? (netRoi / discountedCost) * 100 : 0;
-    const paybackMonths = cfg.totalAnnualBenefit > 0 ? (discountedCost / cfg.totalAnnualBenefit) * 12 : 0;
+    const computed = cfg.totalAnnualCost * (1 - disc / 100);
+    const finalCost = (offering.cost_override != null && offering.cost_override > 0) ? offering.cost_override : computed;
+    const netRoi = cfg.totalAnnualBenefit - finalCost;
+    const roiPct = finalCost > 0 ? (netRoi / finalCost) * 100 : 0;
+    const paybackMonths = cfg.totalAnnualBenefit > 0 ? (finalCost / cfg.totalAnnualBenefit) * 12 : 0;
     onChange({
       bundle_id: analysis.bundle.id, bundle_name: analysis.bundle.bundle_name,
       bundle_modules: analysis.bundleModules, bundle_pepm: analysis.bundlePepm, bundle_annual: analysis.bundleAnnual,
-      addon_lines: cfg.addonLines, total_annual_cost: discountedCost,
+      addon_lines: cfg.addonLines, total_annual_cost: finalCost,
       covered_pains: cfg.coveredPains, uncovered_pains: cfg.uncoveredPains,
       total_annual_benefit: cfg.totalAnnualBenefit, net_roi: netRoi, roi_pct: roiPct, payback_months: paybackMonths,
     });
-  }, [configuration, selectedAnalysis, offering.discount_pct]);
+  }, [configuration, selectedAnalysis, offering.discount_pct, offering.cost_override]);
 
   // ── Generate PPTX ──
   const handleGeneratePptx = async () => {
@@ -254,6 +256,25 @@ export function StepOffering({
     } catch (err: any) { toast.error(t("toast.generation_failed", { message: err.message })); }
     finally { setGeneratingPptx(false); }
   };
+
+  function handleDownloadPdf() {
+    if (!configuration || !roiConfig || !state) return;
+    const pdfData: RoiPdfData = {
+      companyName: state.prospect.company_name || "Company",
+      contactName: state.prospect.contact_name || "",
+      contactEmail: state.prospect.contact_email || "",
+      seats: seats,
+      headcounts: roiConfig.headcounts,
+      configModules: configuration.configModules,
+      moduleSuggestions,
+      roiConfig,
+      bundleName: selectedAnalysis?.bundle.bundle_name ?? "Bundle",
+      bundleAnnual: effectiveCost,
+      discountPct: 0,
+    };
+    const doc = generateRoiPdf(pdfData);
+    doc.save(`ROI-${state.prospect.company_name || "report"}.pdf`);
+  }
 
   function selectPack(bundleId: number) { onChange({ bundle_id: bundleId }); }
 
@@ -276,6 +297,8 @@ export function StepOffering({
   const allBundleModules = selectedAnalysis?.bundleModules ?? [];
   const teamFilled = roiConfig && roiConfig.headcounts.employee > 0 && roiConfig.headcounts.hr > 0 && roiConfig.headcounts.manager > 0;
   const discPct = offering.discount_pct ?? 0;
+  const computedCost = configuration ? configuration.totalAnnualCost * (1 - discPct / 100) : 0;
+  const effectiveCost = (offering.cost_override != null && offering.cost_override > 0) ? offering.cost_override : computedCost;
 
   if (hypothesisOpen) {
     return (
@@ -328,18 +351,37 @@ export function StepOffering({
             </div>
           </div>
 
-          {/* Discount */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground">{t("offering.discount")}</span>
-            <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2 py-0.5">
-              <Input
-                type="number" min={0} max={100} step={1}
-                className="w-12 h-7 text-center text-xs tabular-nums border-0 bg-transparent p-0"
-                placeholder="0"
-                value={offering.discount_pct || ""}
-                onChange={e => onChange({ discount_pct: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)) })}
-              />
-              <Percent className="h-3 w-3 text-muted-foreground" />
+          {/* Discount + Cost override */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">{t("offering.discount")}</span>
+              <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2 py-0.5">
+                <Input
+                  type="number" min={0} max={100} step={1}
+                  className="w-12 h-7 text-center text-xs tabular-nums border-0 bg-transparent p-0"
+                  placeholder="0"
+                  value={offering.discount_pct || ""}
+                  onChange={e => onChange({ discount_pct: Math.min(100, Math.max(0, parseFloat(e.target.value) || 0)), cost_override: null })}
+                />
+                <Percent className="h-3 w-3 text-muted-foreground" />
+              </div>
+            </div>
+            <div className="w-px h-5 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Coste/año</span>
+              <div className="flex items-center gap-1 bg-muted/60 rounded-lg px-2 py-0.5">
+                <Input
+                  type="number" min={0} step={100}
+                  className="w-20 h-7 text-center text-xs tabular-nums border-0 bg-transparent p-0"
+                  placeholder={configuration ? fmtEur(configuration.totalAnnualCost * (1 - discPct / 100)) : "—"}
+                  value={offering.cost_override ?? ""}
+                  onChange={e => {
+                    const v = parseFloat(e.target.value);
+                    onChange({ cost_override: isNaN(v) ? null : Math.max(0, v) });
+                  }}
+                />
+                <span className="text-xs text-muted-foreground">€</span>
+              </div>
             </div>
           </div>
         </div>
@@ -464,7 +506,6 @@ export function StepOffering({
       {/* 4. DETAILS (collapsible)                   */}
       {/* ═══════════════════════════════════════════ */}
       {teamFilled && configuration && (() => {
-        const discountedCost = configuration.totalAnnualCost * (1 - discPct / 100);
         const bundleSavings = allBundleModules.reduce((acc, modId) => {
           const s = roiSavings.perModule.find(m => m.moduleId === modId);
           return { hours: acc.hours + (s?.monthlyHours ?? 0), money: acc.money + (s?.annualMoney ?? 0) };
@@ -482,7 +523,7 @@ export function StepOffering({
                 {t("offering.show_details")}
               </span>
               <div className="flex items-center gap-4 text-sm tabular-nums">
-                <span className="text-muted-foreground">{t("offering.cost_yr")}: <strong className="text-foreground">{fmtEur(discPct > 0 ? discountedCost : configuration.totalAnnualCost)} €</strong></span>
+                <span className="text-muted-foreground">{t("offering.cost_yr")}: <strong className="text-foreground">{fmtEur(effectiveCost)} €</strong></span>
                 <span className="text-emerald-600">{t("offering.savings_yr")}: <strong>{roiSavings.monthlyHours.toFixed(0)}h/mo → {fmtEur(roiSavings.annual)} €</strong></span>
               </div>
             </button>
@@ -557,18 +598,27 @@ export function StepOffering({
                 );
               })}
 
-              {/* Discount rows */}
-              {discPct > 0 && (<>
+              {/* Discount / override rows */}
+              {(discPct > 0 || (offering.cost_override != null && offering.cost_override > 0)) && (<>
                 <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-2 border-t-2 border-border bg-muted/30 gap-3">
                   <span className="text-sm text-muted-foreground">{t("offering.subtotal")}</span>
                   <span className="text-sm tabular-nums text-right text-muted-foreground">{fmtEur(configuration.totalAnnualCost)} €</span>
                   <span /><span />
                 </div>
-                <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-1.5 bg-muted/30 gap-3">
-                  <span className="text-sm text-rose-600">{t("offering.discount")} {discPct}%</span>
-                  <span className="text-sm font-medium tabular-nums text-right text-rose-600">−{fmtEur(configuration.totalAnnualCost * discPct / 100)} €</span>
-                  <span /><span />
-                </div>
+                {discPct > 0 && (
+                  <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-1.5 bg-muted/30 gap-3">
+                    <span className="text-sm text-rose-600">{t("offering.discount")} {discPct}%</span>
+                    <span className="text-sm font-medium tabular-nums text-right text-rose-600">−{fmtEur(configuration.totalAnnualCost * discPct / 100)} €</span>
+                    <span /><span />
+                  </div>
+                )}
+                {offering.cost_override != null && offering.cost_override > 0 && (
+                  <div className="grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-1.5 bg-muted/30 gap-3">
+                    <span className="text-sm text-blue-600 font-medium">Coste manual</span>
+                    <span className="text-sm font-bold tabular-nums text-right text-blue-600">{fmtEur(offering.cost_override)} €</span>
+                    <span /><span />
+                  </div>
+                )}
               </>)}
 
               {/* ROI summary */}
@@ -577,7 +627,7 @@ export function StepOffering({
                   <div className="text-center">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">ROI</p>
                     <p className="text-lg font-bold text-emerald-600 tabular-nums">
-                      {((roiSavings.annual / (discPct > 0 ? discountedCost : configuration.totalAnnualCost)) * 100).toFixed(0)}%
+                      {((roiSavings.annual / effectiveCost) * 100).toFixed(0)}%
                     </p>
                   </div>
                   <div className="text-center">
@@ -587,7 +637,7 @@ export function StepOffering({
                   <div className="text-center">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{t("offering.payback")}</p>
                     <p className="text-lg font-bold text-foreground tabular-nums">
-                      {roiSavings.annual > 0 ? ((discPct > 0 ? discountedCost : configuration.totalAnnualCost) / roiSavings.annual * 12).toFixed(0) : "—"} {t("offering.months")}
+                      {roiSavings.annual > 0 ? (effectiveCost / roiSavings.annual * 12).toFixed(0) : "—"} {t("offering.months")}
                     </p>
                   </div>
                 </div>
@@ -606,9 +656,9 @@ export function StepOffering({
             <Eye className="h-4 w-4" />
             {t("offering.check_hypothesis")}
           </Button>
-          <Button size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
-            {generatingPptx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
-            {t("offering.one_pager")}
+          <Button size="lg" onClick={handleDownloadPdf} disabled={!configuration || !roiConfig} className="gap-2">
+            <FileDown className="h-4 w-4" />
+            ROI PDF
           </Button>
           <Button variant="outline" size="lg" onClick={handleGeneratePptx} disabled={generatingPptx} className="gap-2">
             <FileText className="h-4 w-4" />
