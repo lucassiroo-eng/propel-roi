@@ -470,16 +470,17 @@ export function StepOffering({
           <div className="rounded-xl border border-border overflow-hidden">
             {/* Summary row — always visible */}
             <button
-              className="w-full grid grid-cols-[1fr,minmax(90px,auto),minmax(60px,auto),minmax(100px,auto)] items-center px-5 py-3 bg-muted/40 gap-3 hover:bg-muted/60 transition-colors"
+              className="w-full flex items-center justify-between px-5 py-3 bg-muted/40 hover:bg-muted/60 transition-colors"
               onClick={() => setShowDetails(!showDetails)}
             >
               <span className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ChevronRight className={`h-4 w-4 transition-transform ${showDetails ? "rotate-90" : ""}`} />
                 {t("offering.show_details")}
               </span>
-              <span className="text-sm font-bold tabular-nums text-right">{fmtEur(discPct > 0 ? discountedCost : configuration.totalAnnualCost)} €/yr</span>
-              <span className="text-xs font-semibold tabular-nums text-right text-emerald-600">{roiSavings.monthlyHours.toFixed(0)}h</span>
-              <span className="text-sm font-bold tabular-nums text-right text-emerald-600">{fmtEur(roiSavings.annual)} €/yr</span>
+              <div className="flex items-center gap-4 text-sm tabular-nums">
+                <span className="text-muted-foreground">{t("offering.cost_yr")}: <strong className="text-foreground">{fmtEur(discPct > 0 ? discountedCost : configuration.totalAnnualCost)} €</strong></span>
+                <span className="text-emerald-600">{t("offering.savings_yr")}: <strong>{roiSavings.monthlyHours.toFixed(0)}h/mo → {fmtEur(roiSavings.annual)} €</strong></span>
+              </div>
             </button>
 
             {/* Expanded detail */}
