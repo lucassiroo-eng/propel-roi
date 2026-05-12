@@ -9,13 +9,17 @@ import { toast } from "sonner";
 import {
   Loader2, Link as LinkIcon, Mail, Phone, FileText,
   Database, Cloud, CheckCircle2, Users, Briefcase, Shield,
-  Sparkles, Check, Plus, Search, Quote, ChevronDown,
+  Sparkles, Check, Plus, Search, Quote, ChevronDown, FlaskConical,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import type { ProspectData, HubSpotNote, ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 import { type Stakeholder } from "@/lib/moduleHours";
 import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
+import { downloadEvidenceExcel } from "@/lib/evidenceExcel";
 
 const WORKER = "https://noshow.lucassiroo.workers.dev";
 
@@ -180,9 +184,25 @@ interface Props {
 
 export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats, selectedModules, moduleSuggestions, onSelectionChange }: Props) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [fetching, setFetching] = useState(false);
   const [fetchPhase, setFetchPhase] = useState<"idle" | "airtable" | "hubspot" | "done">("idle");
+  const [evidenceLoading, setEvidenceLoading] = useState(false);
   const { headcounts, hourly_costs } = roiConfig;
+
+  const { data: isAdmin } = useQuery({
+    queryKey: ["user_role_setup", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["strategy_admin", "super_admin"]);
+      return (roles?.length ?? 0) > 0;
+    },
+    enabled: !!user?.id,
+  });
 
   // Module analysis state
   const [analyzing, setAnalyzing] = useState(false);
@@ -346,6 +366,27 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       toast.error(err.message ?? t("toast.analysis_failed"));
     } finally {
       setAnalyzing(false);
+    }
+  }
+
+  async function runEvidenceAnalysis() {
+    setEvidenceLoading(true);
+    try {
+      const content = buildDealContent(data);
+      if (!content.trim()) throw new Error("No deal content");
+
+      const { data: result, error } = await supabase.functions.invoke("ai-evidence-analysis", {
+        body: { content, country: data.country, sector: data.sector, seats: data.seats, language: "auto" },
+      });
+      if (error) throw error;
+      if (!result?.evidence?.length) throw new Error("No evidence extracted");
+
+      downloadEvidenceExcel(result, data.company_name || "analysis");
+      toast.success(`Evidence analysis: ${result.evidence.length} items → ${result.matches.length} modules`);
+    } catch (err: any) {
+      toast.error(err.message ?? "Evidence analysis failed");
+    } finally {
+      setEvidenceLoading(false);
     }
   }
 
@@ -694,6 +735,21 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
         )}
 
         <AddModuleDialog open={addOpen} onOpenChange={setAddOpen} modules={availableToAdd} onAdd={addModule} />
+
+        {/* Admin: evidence analysis download */}
+        {isAdmin && hasContent && !analyzing && moduleSuggestions.length > 0 && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs text-muted-foreground border-dashed"
+            onClick={runEvidenceAnalysis}
+            disabled={evidenceLoading}
+          >
+            {evidenceLoading
+              ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Running 2-pass evidence analysis...</>
+              : <><FlaskConical className="h-3.5 w-3.5 mr-1.5" /> Download evidence analysis (admin)</>}
+          </Button>
+        )}
       </div>
     </div>
   );
