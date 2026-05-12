@@ -965,12 +965,6 @@ function HypothesisView({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground">{row.label}</p>
-                    {row.suggestion?.quote && (
-                      <div className="flex items-start gap-1.5 mt-0.5">
-                        <Quote className="h-3 w-3 shrink-0 mt-0.5 text-muted-foreground/40" />
-                        <p className="text-[11px] text-muted-foreground italic line-clamp-1">&ldquo;{row.suggestion.quote}&rdquo;</p>
-                      </div>
-                    )}
                     <div className="flex items-center gap-3 mt-1.5">
                       {row.perStakeholder.filter(ps => ps.totalHours > 0).map(ps => {
                         const meta = STAKEHOLDER_META[ps.stakeholder];
@@ -1014,12 +1008,6 @@ function HypothesisView({
                 {selectedRow.label}
               </DialogTitle>
             </DialogHeader>
-            {selectedRow.suggestion?.quote && (
-              <div className="flex items-start gap-2 px-1 -mt-1">
-                <Quote className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground/40" />
-                <p className="text-xs text-muted-foreground italic leading-relaxed">&ldquo;{selectedRow.suggestion.quote}&rdquo;</p>
-              </div>
-            )}
             <div className="space-y-3">
               {selectedRow.perStakeholder.filter(ps => ps.hoursPerPerson > 0).map(ps => {
                 const meta = STAKEHOLDER_META[ps.stakeholder];
