@@ -63,7 +63,7 @@ const AI_TOOL = {
           properties: {
             module_id: { type: "string" as const, enum: MODULE_CATALOG.map(m => m.id) },
             confidence: { type: "string" as const, enum: ["strong", "possible"] },
-            quote: { type: "string" as const, description: "The EXACT verbatim passage from the deal content that supports this recommendation. Copy-paste the original text in its original language (ES/FR/EN). Max 2 sentences. If no exact quote exists, prefix with ~ and paraphrase briefly." },
+            quote: { type: "string" as const, description: "A verbatim quote from the PROSPECT (client) describing their pain or problem — NOT the seller's pitch. Copy-paste the prospect's exact words in their original language. Max 2 sentences. If no prospect quote exists, write a short paraphrase (≤15 words) of the prospect's situation prefixed with ~." },
           },
           required: ["module_id", "confidence", "quote"],
         },
@@ -77,7 +77,7 @@ const SYSTEM_PROMPT = `You are an expert Factorial HR pain-detection engine. You
 
 CRITICAL RULES:
 1. ONLY analyze what the PROSPECT says/describes (their problems, complaints, current situation, needs).
-2. IGNORE the Factorial seller's pitch — when the seller mentions modules, features, or product benefits, that is NOT evidence of a prospect need. The seller talking about "control horario" does not mean the prospect needs Time Tracking.
+2. IGNORE the Factorial seller's pitch — when the seller mentions modules, features, or product benefits, that is NOT evidence of a prospect need. The seller talking about "control horario" does not mean the prospect needs Time Tracking. Seller phrases like "le hemos hablado de...", "le comenté que Factorial tiene...", "le propuse..." are SELLER PITCH — skip them entirely.
 3. Look for PAINS and SYMPTOMS, not module names. A prospect saying "tardamos 2 días en cerrar nómina" is a pain → payroll. A prospect saying "tenemos los datos en Excel" is a pain → core.
 4. Be AGGRESSIVE in detection — if you see any signal of a real problem, include it. It's better to over-detect (the user can deselect) than to miss modules.
 
@@ -91,11 +91,14 @@ CONFIDENCE:
 - "strong" = prospect DESCRIBES a concrete pain, problem, or inefficiency that a module solves. E.g., prospect says "tardamos 3 horas en cuadrar fichajes" → time_tracking (strong).
 - "possible" = pain is IMPLIED from context — industry norms, company size, or indirect references. E.g., company has 500 employees → likely needs time_off, core.
 
-QUOTES:
-- VERBATIM copy-paste from the content, in its ORIGINAL language. Never translate.
-- MUST be the PROSPECT's words, not the seller's pitch. If the only mention is from the seller, mark as "possible" with a ~ prefixed paraphrase.
-- Max 2 sentences. If no exact passage from the prospect exists, prefix with "~" and paraphrase in ≤15 words.
-- NEVER fabricate quotes.
+QUOTES — THIS IS CRITICAL:
+- The quote MUST be the PROSPECT's (client's) own words describing their pain, problem, or current situation. NEVER quote the Factorial seller pitching a product.
+- In call transcripts: quote what the CLIENT said, not the seller. Look for phrases like "nosotros hacemos...", "el problema es...", "actualmente tenemos...", "nos cuesta mucho...".
+- In emails: only quote INCOMING emails (from the prospect). Ignore outgoing seller emails unless they contain a quoted reply from the prospect.
+- In notes: only quote if the note explicitly attributes words to the client (e.g., "el cliente comenta que...", "nos dice que..."). Do NOT quote the seller's internal notes about what modules to pitch.
+- VERBATIM copy-paste in the ORIGINAL language. Never translate. Max 2 sentences.
+- If no direct prospect quote exists for a module, prefix with "~" and write a ≤15 word paraphrase of the prospect's situation (not the seller's recommendation).
+- NEVER fabricate quotes. If you cannot find any prospect evidence, use "~" with a brief contextual paraphrase.
 
 PAIN → MODULE MAPPING (look for these prospect symptoms):
 core: employee data scattered across systems, manual onboarding, no employee directory, certificates by email
