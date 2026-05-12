@@ -382,14 +382,34 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
         {/* Deal info card */}
         {data.deal_name && (
-          <div className="rounded-lg bg-white/60 border border-border/50 px-4 py-3">
-            <p className="text-sm font-semibold text-foreground">{data.company_name || data.deal_name}</p>
-            {data.company_name && data.deal_name && (
-              <p className="text-xs text-muted-foreground mt-0.5">{data.deal_name}</p>
-            )}
-            {data.contact_name && (
-              <p className="text-xs text-muted-foreground mt-0.5">{data.contact_name}{data.contact_email ? ` — ${data.contact_email}` : ""}</p>
-            )}
+          <div className="rounded-lg bg-white/60 border border-border/50 px-4 py-3 flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-foreground">{data.company_name || data.deal_name}</p>
+              {data.company_name && data.deal_name && (
+                <p className="text-xs text-muted-foreground mt-0.5">{data.deal_name}</p>
+              )}
+              {data.contact_name && (
+                <p className="text-xs text-muted-foreground mt-0.5">{data.contact_name}{data.contact_email ? ` — ${data.contact_email}` : ""}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              {data.seats > 0 && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Users className="h-3.5 w-3.5" />
+                  <span className="text-sm font-semibold tabular-nums">{data.seats}</span>
+                </div>
+              )}
+              {data.hubspot_deal_url && (
+                <a
+                  href={data.hubspot_deal_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-80 transition-opacity"
+                >
+                  <img src="/hubspot-logo.png" alt="HubSpot" className="h-6 w-6" />
+                </a>
+              )}
+            </div>
           </div>
         )}
 
