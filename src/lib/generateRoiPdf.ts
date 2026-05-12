@@ -1,19 +1,23 @@
 import jsPDF from "jspdf";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
-import { MODULE_CATALOG } from "@/lib/moduleCatalog";
+import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
 
-const PURPLE = "#4C1FD4";
-const PURPLE_LIGHT = "#EDE9FB";
-const PURPLE_MID = "#7B61FF";
+const CORAL = "#FF355E";
+const CORAL_LIGHT = "#FFF1F2";
+const CREAM = "#FFF8F0";
 const DARK = "#1A1A2E";
 const GRAY = "#6B7280";
+const GRAY_SOFT = "#9CA3AF";
 const GRAY_LIGHT = "#F3F4F6";
 const WHITE = "#FFFFFF";
-const GREEN = "#059669";
+const GREEN = "#16A36A";
+const GREEN_BG = "#ECFDF5";
+const RED = "#DC2626";
+const RED_BG = "#FEF2F2";
 
-function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
+function hex(c: string): [number, number, number] {
+  const h = c.replace("#", "");
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
@@ -21,9 +25,20 @@ function fmtEur(n: number): string {
   return n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
 }
 
+function getCategoryColor(moduleId: string): string {
+  const mod = MODULE_CATALOG.find(m => m.id === moduleId);
+  return mod?.color ?? CATEGORY_COLORS[mod?.category ?? ""] ?? GRAY;
+}
+
+function getCategory(moduleId: string): string {
+  return MODULE_CATALOG.find(m => m.id === moduleId)?.category ?? "";
+}
+
 interface PdfModuleRow {
   moduleId: string;
   label: string;
+  category: string;
+  categoryColor: string;
   monthlyHours: number;
   monthlyMoney: number;
 }
@@ -42,35 +57,12 @@ export interface RoiPdfData {
   discountPct: number;
 }
 
-function drawFactorialLogo(doc: jsPDF, x: number, y: number, size: number) {
-  const r = size / 2;
-  const cx = x + r;
-  const cy = y + r;
-  const [pr, pg, pb] = hexToRgb(PURPLE);
-
-  doc.setDrawColor(pr, pg, pb);
-  doc.setLineWidth(size * 0.08);
-  doc.circle(cx, cy, r, "S");
-
-  doc.setFillColor(pr, pg, pb);
-  doc.circle(cx, cy, r * 0.37, "F");
-
-  const petalR = r * 0.42;
-  const petalY = cy + r * 0.55;
-  doc.ellipse(cx, petalY, petalR, petalR * 0.3, "F");
-}
-
-function drawRoundedRect(doc: jsPDF, x: number, y: number, w: number, h: number, r: number, style: "F" | "S" | "FD") {
-  doc.roundedRect(x, y, w, h, r, r, style);
-}
-
 export function generateRoiPdf(data: RoiPdfData): jsPDF {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  const pw = 210;
-  const ph = 297;
-  const mx = 15;
-  const contentW = pw - mx * 2;
-  let curY = 0;
+  const W = 210;
+  const mx = 16;
+  const cw = W - mx * 2;
+  let y = 0;
 
   const multipliers: RoiMultipliers = {
     headcounts: data.headcounts,
@@ -78,7 +70,7 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
     expense_submitters: data.roiConfig.expense_submitters,
   };
 
-  // Compute module rows
+  // ── Compute module rows ──
   const moduleRows: PdfModuleRow[] = [];
   for (const modId of data.configModules) {
     const hours = getEffectiveHours(modId, data.roiConfig.hours_overrides);
@@ -93,7 +85,14 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
     }
     if (modHours > 0) {
       const catalog = MODULE_CATALOG.find(m => m.id === modId);
-      moduleRows.push({ moduleId: modId, label: catalog?.label ?? modId, monthlyHours: modHours, monthlyMoney: modMoney });
+      moduleRows.push({
+        moduleId: modId,
+        label: catalog?.label ?? modId,
+        category: getCategory(modId),
+        categoryColor: getCategoryColor(modId),
+        monthlyHours: modHours,
+        monthlyMoney: modMoney,
+      });
     }
   }
 
@@ -101,257 +100,394 @@ export function generateRoiPdf(data: RoiPdfData): jsPDF {
   const totalMonthlyMoney = moduleRows.reduce((s, r) => s + r.monthlyMoney, 0);
   const totalAnnualSavings = totalMonthlyMoney * 12;
   const discountedCost = data.bundleAnnual * (1 - data.discountPct / 100);
-  const monthlyCost = discountedCost / 12;
-  const roiMultiple = monthlyCost > 0 ? totalMonthlyMoney / monthlyCost : 0;
+  const netBenefit = totalAnnualSavings - discountedCost;
+  const roiMultiple = discountedCost > 0 ? totalMonthlyMoney / (discountedCost / 12) : 0;
+  const roiPct = discountedCost > 0 ? (netBenefit / discountedCost) * 100 : 0;
+  const paybackMonths = totalMonthlyMoney > 0 ? discountedCost / totalMonthlyMoney : 0;
 
-  // Top 3 priority modules (those with quotes, sorted by savings)
+  // Top 3 priority modules
   const priorityModules = moduleRows
-    .filter(r => data.moduleSuggestions.find(s => s.module_id === r.moduleId)?.quote)
     .sort((a, b) => b.monthlyMoney - a.monthlyMoney)
     .slice(0, 3)
     .map(r => ({
       ...r,
-      quote: data.moduleSuggestions.find(s => s.module_id === r.moduleId)!.quote,
+      quote: data.moduleSuggestions.find(s => s.module_id === r.moduleId)?.quote ?? "",
     }));
 
-  // If less than 3 with quotes, fill with top modules without quotes
-  if (priorityModules.length < 3) {
-    const existing = new Set(priorityModules.map(p => p.moduleId));
-    const extra = moduleRows
-      .filter(r => !existing.has(r.moduleId))
-      .sort((a, b) => b.monthlyMoney - a.monthlyMoney);
-    for (const r of extra) {
-      if (priorityModules.length >= 3) break;
-      const quote = data.moduleSuggestions.find(s => s.module_id === r.moduleId)?.quote ?? "";
-      priorityModules.push({ ...r, quote });
-    }
-  }
-
   // ════════════════════════════════════════════
-  // HEADER BAR
+  // PAGE 1 — HEADER
   // ════════════════════════════════════════════
-  const headerH = 22;
-  doc.setFillColor(...hexToRgb(PURPLE));
-  doc.rect(0, 0, pw, headerH, "F");
+  doc.setFillColor(...hex(CREAM));
+  doc.rect(0, 0, W, 52, "F");
+  doc.setFillColor(...hex(CORAL));
+  doc.rect(0, 50, W, 2, "F");
 
-  // Factorial logo (simplified mark)
-  drawFactorialLogo(doc, mx, 5, 12);
+  // Factorial logo mark
+  doc.setFillColor(...hex(CORAL));
+  doc.circle(mx + 5, 16, 5, "F");
+  doc.setFillColor(...hex(WHITE));
+  doc.circle(mx + 5, 16, 1.8, "F");
 
-  // "Factorial" text
-  doc.setTextColor(...hexToRgb(WHITE));
+  doc.setTextColor(...hex(DARK));
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text("Factorial", mx + 16, 13);
+  doc.setFontSize(15);
+  doc.text("factorial", mx + 13, 18.5);
 
-  // Company name on the right
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(data.companyName, pw - mx, 10, { align: "right" });
-  doc.setFontSize(7.5);
-  doc.text("ROI Analysis", pw - mx, 15, { align: "right" });
+  // Title
+  doc.setFontSize(9);
+  doc.setTextColor(...hex(CORAL));
+  doc.text("ROI ANALYSIS", mx, 30);
 
-  curY = headerH + 6;
+  doc.setFontSize(18);
+  doc.setTextColor(...hex(DARK));
+  doc.setFont("helvetica", "bold");
+  doc.text(data.companyName, mx, 39);
 
-  // ════════════════════════════════════════════
-  // INTRO BLOCK
-  // ════════════════════════════════════════════
-  doc.setFillColor(...hexToRgb(PURPLE_LIGHT));
-  drawRoundedRect(doc, mx, curY, contentW, 20, 2.5, "F");
-
-  doc.setTextColor(...hexToRgb(DARK));
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
+  doc.setTextColor(...hex(GRAY));
+  const subtitleParts = [`${data.seats} employees`];
+  if (data.headcounts.hr > 0) subtitleParts.push(`${data.headcounts.hr} HR`);
+  if (data.headcounts.manager > 0) subtitleParts.push(`${data.headcounts.manager} managers`);
+  doc.text(subtitleParts.join("  ·  "), mx, 45);
 
-  const introLine1 = `Factorial's consulting team has prepared a personalized ROI analysis for ${data.companyName}, based on ${data.seats} employees:`;
-  const introLine2 = `${data.headcounts.employee} Individual Contributors  ·  ${data.headcounts.manager} Managers  ·  ${data.headcounts.hr} HR Staff`;
-  const contactLine = [data.contactName, data.contactEmail].filter(Boolean).join("  ·  ");
+  // Date on right
+  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  doc.text(today, W - mx, 45, { align: "right" });
 
-  doc.text(introLine1, mx + 4, curY + 6);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(8.5);
-  doc.text(introLine2, mx + 4, curY + 11.5);
+  y = 60;
 
-  if (contactLine) {
+  // ════════════════════════════════════════════
+  // KPI CARDS (3)
+  // ════════════════════════════════════════════
+  const kpiW = (cw - 8) / 3;
+  const kpiH = 26;
+  const kpis = [
+    { label: "ANNUAL SAVINGS", value: `€${fmtEur(totalAnnualSavings)}`, sub: `${totalMonthlyHours.toFixed(0)}h/mo saved`, color: GREEN, bg: GREEN_BG },
+    { label: "SYSTEM COST", value: `€${fmtEur(discountedCost)}/yr`, sub: `€${fmtEur(Math.round(discountedCost / 12))}/mo`, color: CORAL, bg: CORAL_LIGHT },
+    { label: "RETURN ON INVESTMENT", value: `${roiMultiple.toFixed(1)}x`, sub: `Payback: ${paybackMonths.toFixed(1)} months`, color: "#7C3AED", bg: "#F5F3FF" },
+  ];
+
+  kpis.forEach((k, i) => {
+    const x = mx + i * (kpiW + 4);
+    doc.setFillColor(...hex(k.bg));
+    doc.setDrawColor(229, 231, 235);
+    doc.roundedRect(x, y, kpiW, kpiH, 3, 3, "FD");
+
+    // Top accent bar
+    doc.setFillColor(...hex(k.color));
+    doc.roundedRect(x, y, kpiW, 2.5, 3, 3, "F");
+    doc.setFillColor(...hex(k.bg));
+    doc.rect(x, y + 1.5, kpiW, 1.5, "F");
+
+    // Label
+    doc.setFontSize(5.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...hex(GRAY_SOFT));
+    doc.text(k.label, x + kpiW / 2, y + 8.5, { align: "center" });
+
+    // Value
+    doc.setFontSize(15);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...hex(k.color));
+    doc.text(k.value, x + kpiW / 2, y + 17, { align: "center" });
+
+    // Sub
+    doc.setFontSize(6);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.setTextColor(...hexToRgb(GRAY));
-    doc.text(contactLine, mx + 4, curY + 16.5);
-  }
+    doc.setTextColor(...hex(GRAY_SOFT));
+    doc.text(k.sub, x + kpiW / 2, y + 22, { align: "center" });
+  });
 
-  curY += 24;
+  y += kpiH + 10;
 
   // ════════════════════════════════════════════
-  // PRIORITY MODULES (3 CARDS)
+  // PRIORITY MODULES (3 cards)
   // ════════════════════════════════════════════
-  doc.setTextColor(...hexToRgb(DARK));
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("Priority Modules", mx, curY + 3);
-  curY += 7;
+  doc.setTextColor(...hex(DARK));
+  doc.text("Top Impact Modules", mx, y);
+  y += 6;
 
-  const cardW = (contentW - 6) / 3;
-  const cardH = 38;
-  const cardGap = 3;
+  const cardW = (cw - 6) / 3;
+  const cardH = 42;
 
   priorityModules.forEach((pm, i) => {
-    const cx = mx + i * (cardW + cardGap);
+    const cx = mx + i * (cardW + 3);
+    const catColor = pm.categoryColor;
 
-    // Card background
-    doc.setFillColor(...hexToRgb(WHITE));
-    doc.setDrawColor(...hexToRgb(PURPLE));
-    doc.setLineWidth(0.4);
-    drawRoundedRect(doc, cx, curY, cardW, cardH, 2, "FD");
+    // Card bg with border
+    doc.setFillColor(...hex(WHITE));
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(cx, y, cardW, cardH, 2.5, 2.5, "FD");
 
-    // Number badge
-    const badgeR = 4;
-    doc.setFillColor(...hexToRgb(PURPLE));
-    doc.circle(cx + 7, curY + 7, badgeR, "F");
-    doc.setTextColor(...hexToRgb(WHITE));
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text(String(i + 1), cx + 7, curY + 8.2, { align: "center" });
+    // Category color top bar
+    doc.setFillColor(...hex(catColor));
+    doc.roundedRect(cx, y, cardW, 3, 2.5, 2.5, "F");
+    doc.setFillColor(...hex(WHITE));
+    doc.rect(cx, y + 1.5, cardW, 2, "F");
 
-    // Module name
-    doc.setTextColor(...hexToRgb(DARK));
+    // Rank badge
+    doc.setFillColor(...hex(catColor));
+    doc.circle(cx + 7, y + 8, 3.5, "F");
+    doc.setTextColor(...hex(WHITE));
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    const nameTrimmed = pm.label.length > 22 ? pm.label.substring(0, 20) + "…" : pm.label;
-    doc.text(nameTrimmed, cx + 13, curY + 8);
+    doc.text(String(i + 1), cx + 7, y + 9.2, { align: "center" });
 
-    // Savings badge
-    doc.setTextColor(...hexToRgb(GREEN));
+    // Module name
+    doc.setTextColor(...hex(DARK));
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    const name = pm.label.length > 20 ? pm.label.substring(0, 18) + "…" : pm.label;
+    doc.text(name, cx + 13, y + 9);
+
+    // Category label
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(5.5);
+    doc.setTextColor(...hex(catColor));
+    doc.text(pm.category.toUpperCase(), cx + 13, y + 13);
+
+    // Savings
+    doc.setFillColor(...hex(GREEN_BG));
+    doc.roundedRect(cx + 3, y + 16, cardW - 6, 6, 1.5, 1.5, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(6.5);
-    doc.text(`${pm.monthlyHours.toFixed(0)}h/mo · €${fmtEur(pm.monthlyMoney)}/mo`, cx + 4, curY + 14.5);
+    doc.setTextColor(...hex(GREEN));
+    doc.text(`${pm.monthlyHours.toFixed(0)}h/mo  ·  €${fmtEur(pm.monthlyMoney)}/mo`, cx + cardW / 2, y + 20, { align: "center" });
 
     // Quote
     if (pm.quote) {
-      doc.setTextColor(...hexToRgb(GRAY));
+      doc.setTextColor(...hex(GRAY));
       doc.setFont("helvetica", "italic");
-      doc.setFontSize(6.5);
-      const maxQuoteWidth = cardW - 8;
-      const lines = doc.splitTextToSize(`"${pm.quote}"`, maxQuoteWidth) as string[];
+      doc.setFontSize(6);
+      const lines = doc.splitTextToSize(`"${pm.quote}"`, cardW - 8) as string[];
       const maxLines = 4;
       const trimmed = lines.slice(0, maxLines);
       if (lines.length > maxLines) {
         trimmed[maxLines - 1] = trimmed[maxLines - 1].replace(/\s*$/, "") + "…\"";
       }
-      doc.text(trimmed, cx + 4, curY + 19.5);
+      doc.text(trimmed, cx + 4, y + 27);
     }
+
+    // Bottom strip with category color
+    doc.setFillColor(...hex(catColor));
+    const stripY = y + cardH - 2.5;
+    doc.roundedRect(cx, stripY, cardW, 2.5, 2.5, 2.5, "F");
+    doc.setFillColor(...hex(WHITE));
+    doc.rect(cx, stripY, cardW, 1, "F");
   });
 
-  curY += cardH + 6;
+  y += cardH + 10;
 
   // ════════════════════════════════════════════
-  // FULL MODULES TABLE
+  // MODULE BREAKDOWN TABLE
   // ════════════════════════════════════════════
-  doc.setTextColor(...hexToRgb(DARK));
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("Full Module Breakdown", mx, curY + 3);
-  curY += 7;
+  doc.setTextColor(...hex(DARK));
+  doc.text("Full Module Breakdown", mx, y);
+  y += 6;
+
+  // Column positions
+  const accentW = 3;
+  const col1 = mx + accentW + 2;
+  const colCat = mx + accentW + 70;
+  const colHrs = mx + cw * 0.72;
+  const colEur = mx + cw - 2;
+  const rowH = 7;
 
   // Table header
-  const col1X = mx;
-  const col2X = mx + contentW * 0.55;
-  const col3X = mx + contentW * 0.78;
-  const rowH = 5.8;
-
-  doc.setFillColor(...hexToRgb(PURPLE));
-  drawRoundedRect(doc, mx, curY, contentW, rowH + 1, 1.5, "F");
-
-  doc.setTextColor(...hexToRgb(WHITE));
+  doc.setFillColor(...hex(DARK));
+  doc.roundedRect(mx, y, cw, rowH + 1, 2, 2, "F");
+  doc.setTextColor(...hex(WHITE));
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(7);
-  doc.text("Module", col1X + 3, curY + 4);
-  doc.text("Hours saved/mo", col2X, curY + 4, { align: "right" });
-  doc.text("€ Return/mo", col3X + contentW * 0.22 - 3, curY + 4, { align: "right" });
-
-  curY += rowH + 1.5;
+  doc.setFontSize(6.5);
+  doc.text("MODULE", col1, y + 5);
+  doc.text("CATEGORY", colCat, y + 5);
+  doc.text("HOURS/MO", colHrs, y + 5, { align: "right" });
+  doc.text("€ RETURN/MO", colEur, y + 5, { align: "right" });
+  y += rowH + 2;
 
   // Table rows
   moduleRows.forEach((row, i) => {
+    if (y > 262) { doc.addPage(); y = 15; }
+
+    const catColor = row.categoryColor;
+
+    // Alternating bg
     if (i % 2 === 0) {
-      doc.setFillColor(...hexToRgb(GRAY_LIGHT));
-      doc.rect(mx, curY - 0.5, contentW, rowH, "F");
+      doc.setFillColor(250, 250, 252);
+      doc.rect(mx, y - 0.5, cw, rowH, "F");
     }
 
-    doc.setTextColor(...hexToRgb(DARK));
+    // Category color accent bar
+    doc.setFillColor(...hex(catColor));
+    doc.rect(mx, y - 0.5, accentW, rowH, "F");
+
+    // Module name
+    doc.setTextColor(...hex(DARK));
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
-    doc.text(row.label, col1X + 3, curY + 3.5);
+    doc.text(row.label, col1, y + 4);
 
+    // Category
+    doc.setFontSize(6);
+    doc.setTextColor(...hex(catColor));
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(...hexToRgb(GRAY));
-    doc.text(`${row.monthlyHours.toFixed(1)}h`, col2X, curY + 3.5, { align: "right" });
+    doc.text(row.category, colCat, y + 4);
 
-    doc.setTextColor(...hexToRgb(GREEN));
-    doc.text(`€${fmtEur(Math.round(row.monthlyMoney))}`, col3X + contentW * 0.22 - 3, curY + 3.5, { align: "right" });
+    // Hours
+    doc.setTextColor(...hex(GRAY));
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7);
+    doc.text(`${row.monthlyHours.toFixed(1)}h`, colHrs, y + 4, { align: "right" });
 
-    curY += rowH;
+    // € return in category color
+    doc.setTextColor(...hex(catColor));
+    doc.setFont("helvetica", "bold");
+    doc.text(`€${fmtEur(Math.round(row.monthlyMoney))}`, colEur, y + 4, { align: "right" });
+
+    // Separator
+    doc.setDrawColor(240, 240, 242);
+    doc.setLineWidth(0.15);
+    doc.line(mx + accentW, y + rowH - 0.5, W - mx, y + rowH - 0.5);
+
+    y += rowH;
   });
 
   // ════════════════════════════════════════════
-  // TOTAL ROW (highlighted)
+  // TOTALS BAR (dark)
   // ════════════════════════════════════════════
-  curY += 1;
-  const totalRowH = 12;
-  doc.setFillColor(...hexToRgb(PURPLE));
-  drawRoundedRect(doc, mx, curY, contentW, totalRowH, 2, "F");
+  y += 2;
+  if (y > 260) { doc.addPage(); y = 15; }
 
-  doc.setTextColor(...hexToRgb(WHITE));
+  const totH = 14;
+  doc.setFillColor(...hex(DARK));
+  doc.roundedRect(mx, y, cw, totH, 3, 3, "F");
+
+  // Coral accent at top
+  doc.setFillColor(...hex(CORAL));
+  doc.roundedRect(mx, y, cw, 2.5, 3, 3, "F");
+  doc.setFillColor(...hex(DARK));
+  doc.rect(mx, y + 1.5, cw, 1.5, "F");
+
+  doc.setTextColor(...hex(WHITE));
   doc.setFont("helvetica", "bold");
 
-  // Left: bundle price
-  doc.setFontSize(7);
-  doc.text("Bundle price", col1X + 3, curY + 4);
-  doc.setFontSize(9);
-  doc.text(`€${fmtEur(Math.round(discountedCost))}/yr`, col1X + 3, curY + 9.5);
+  // Left: total hours
+  doc.setFontSize(6.5);
+  doc.text("TOTAL HOURS SAVED", mx + 6, y + 6.5);
+  doc.setFontSize(11);
+  doc.text(`${totalMonthlyHours.toFixed(0)}h/mo`, mx + 6, y + 12);
 
-  // Center: total return
-  const centerX = mx + contentW / 2;
-  doc.setFontSize(7);
-  doc.text("Total return/mo", centerX, curY + 4, { align: "center" });
-  doc.setFontSize(9);
-  doc.text(`${totalMonthlyHours.toFixed(0)}h → €${fmtEur(Math.round(totalMonthlyMoney))}`, centerX, curY + 9.5, { align: "center" });
+  // Center: total € return
+  const ctrX = mx + cw / 2;
+  doc.setFontSize(6.5);
+  doc.text("TOTAL RETURN", ctrX, y + 6.5, { align: "center" });
+  doc.setFontSize(11);
+  doc.setTextColor(...hex(GREEN));
+  doc.text(`€${fmtEur(Math.round(totalMonthlyMoney))}/mo`, ctrX, y + 12, { align: "center" });
 
   // Right: ROI
-  const rightX = mx + contentW - 3;
-  doc.setFontSize(7);
-  doc.text("ROI", rightX, curY + 4, { align: "right" });
-  doc.setFontSize(14);
-  doc.text(`${roiMultiple.toFixed(1)}x`, rightX, curY + 10.5, { align: "right" });
+  doc.setTextColor(...hex(WHITE));
+  doc.setFontSize(6.5);
+  doc.text("ROI", mx + cw - 6, y + 6.5, { align: "right" });
+  doc.setFontSize(16);
+  doc.setTextColor(...hex(CORAL));
+  doc.text(`${roiMultiple.toFixed(1)}x`, mx + cw - 6, y + 12.5, { align: "right" });
 
-  curY += totalRowH + 4;
+  y += totH + 8;
 
   // ════════════════════════════════════════════
-  // ANNUAL SUMMARY BAR
+  // NET BENEFIT STRIP (3 pills)
   // ════════════════════════════════════════════
-  doc.setFillColor(...hexToRgb(PURPLE_LIGHT));
-  drawRoundedRect(doc, mx, curY, contentW, 10, 2, "F");
+  if (y > 256) { doc.addPage(); y = 15; }
 
-  doc.setTextColor(...hexToRgb(PURPLE));
+  const pillW = (cw - 6) / 3;
+  const pillH = 18;
+  const pills = [
+    { label: "Annual Savings", value: `€${fmtEur(totalAnnualSavings)}`, color: GREEN, bg: GREEN_BG },
+    { label: "Annual Cost", value: `-€${fmtEur(discountedCost)}`, color: RED, bg: RED_BG },
+    { label: "Net Benefit", value: `€${fmtEur(netBenefit)}/yr`, color: netBenefit >= 0 ? GREEN : RED, bg: netBenefit >= 0 ? GREEN_BG : RED_BG },
+  ];
+
+  pills.forEach((p, i) => {
+    const px = mx + i * (pillW + 3);
+    doc.setFillColor(...hex(p.bg));
+    doc.setDrawColor(229, 231, 235);
+    doc.roundedRect(px, y, pillW, pillH, 3, 3, "FD");
+
+    doc.setFontSize(6);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...hex(GRAY_SOFT));
+    doc.text(p.label, px + pillW / 2, y + 6, { align: "center" });
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...hex(p.color));
+    doc.text(p.value, px + pillW / 2, y + 14, { align: "center" });
+  });
+
+  y += pillH + 8;
+
+  // ════════════════════════════════════════════
+  // OFFERING BOX
+  // ════════════════════════════════════════════
+  if (y > 260) { doc.addPage(); y = 15; }
+
+  doc.setFillColor(...hex(CREAM));
+  doc.setDrawColor(229, 231, 235);
+  doc.roundedRect(mx, y, cw, 16, 3, 3, "FD");
+
+  doc.setFillColor(...hex(CORAL));
+  doc.roundedRect(mx, y, cw, 2.5, 3, 3, "F");
+  doc.setFillColor(...hex(CREAM));
+  doc.rect(mx, y + 1.5, cw, 1.5, "F");
+
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(8);
-  const annualText = `Annual savings: €${fmtEur(Math.round(totalAnnualSavings))}  ·  Annual cost: €${fmtEur(Math.round(discountedCost))}  ·  Net benefit: €${fmtEur(Math.round(totalAnnualSavings - discountedCost))}/yr`;
-  doc.text(annualText, mx + contentW / 2, curY + 6.5, { align: "center" });
+  doc.setFontSize(10);
+  doc.setTextColor(...hex(CORAL));
+  doc.text(data.bundleName, mx + 6, y + 9);
 
-  curY += 14;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(...hex(GRAY));
+  doc.text(`${data.configModules.length} modules · ROI ${Math.round(roiPct)}% · Payback ${paybackMonths.toFixed(1)} months`, mx + 6, y + 13.5);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(...hex(DARK));
+  doc.text(`€${fmtEur(discountedCost)}/yr`, W - mx - 6, y + 10, { align: "right" });
+
+  y += 22;
+
+  // ════════════════════════════════════════════
+  // METHODOLOGY NOTE
+  // ════════════════════════════════════════════
+  if (y > 275) { doc.addPage(); y = 15; }
+
+  doc.setDrawColor(229, 231, 235);
+  doc.setLineWidth(0.2);
+  doc.line(mx, y, W - mx, y);
+  y += 3;
+
+  doc.setFontSize(5.5);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...hex(GRAY_SOFT));
+  const methText = `Savings estimated from hours saved per module × blended hourly cost. Figures are monthly projections annualized. Module hours based on employee count, HR headcount, and manager headcount.`;
+  const methLines = doc.splitTextToSize(methText, cw);
+  doc.text(methLines, mx, y);
 
   // ════════════════════════════════════════════
   // FOOTER
   // ════════════════════════════════════════════
-  const footerY = ph - 8;
-  doc.setDrawColor(...hexToRgb(GRAY_LIGHT));
-  doc.setLineWidth(0.3);
-  doc.line(mx, footerY - 3, pw - mx, footerY - 3);
-
-  doc.setTextColor(...hexToRgb(GRAY));
-  doc.setFont("helvetica", "normal");
   doc.setFontSize(6);
-  doc.text("Prepared by Factorial · Confidential", mx, footerY);
-  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-  doc.text(today, pw - mx, footerY, { align: "right" });
+  doc.setTextColor(...hex(GRAY_SOFT));
+  doc.text("Prepared by Factorial · Confidential", mx, 290);
+  doc.text(today, W - mx, 290, { align: "right" });
 
   return doc;
 }
