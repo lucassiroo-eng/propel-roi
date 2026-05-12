@@ -1,34 +1,13 @@
 #!/usr/bin/env python3
 """
-Generate a one-page A4 ROI report PDF in Factorial brand style.
+Generate a one-page A4 ROI report PDF in Factorial's brand style.
 
 Usage:
     python3 generate_roi_pdf.py input.json [output.pdf]
-
-input.json schema:
-{
-  "companyName": "Acme Corp",
-  "contactName": "Jane Doe",
-  "contactEmail": "jane@acme.com",
-  "seats": 200,
-  "headcounts": { "employee": 170, "hr": 10, "manager": 20 },
-  "moduleRows": [
-    { "moduleId": "core", "label": "Core HR", "monthlyHours": 120, "monthlyMoney": 3600 },
-    ...
-  ],
-  "priorityModules": [
-    { "moduleId": "core", "label": "Core HR", "monthlyHours": 120, "monthlyMoney": 3600, "quote": "..." },
-    ...  (max 3)
-  ],
-  "bundleAnnual": 48000,
-  "totalMonthlyHours": 500,
-  "totalMonthlyMoney": 15000
-}
+    python3 generate_roi_pdf.py              # → sample_roi_report.pdf
 """
 
-import json
-import sys
-import os
+import json, sys, os
 from datetime import date
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.colors import HexColor, white, Color
@@ -37,135 +16,111 @@ from reportlab.lib.enums import TA_LEFT
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 
-
-# ── Brand palette ──
-PINK        = HexColor("#FF4F7B")
-PURPLE      = HexColor("#4C1FD4")
-LIGHT_PINK  = HexColor("#FFF2F5")
-PINK_MID    = HexColor("#FFD6E0")
-PINK_ACCENT = HexColor("#FFE8EE")
+# ── Factorial brand palette (warm / cream from official calculator) ──
+CORAL       = HexColor("#FF355E")
+CORAL_LIGHT = HexColor("#FFF0F3")
+CORAL_MID   = HexColor("#FFDCE4")
+CREAM       = HexColor("#FFF8F0")
+CREAM_CARD  = HexColor("#FFFDFB")
 GREEN       = HexColor("#059669")
 GREEN_LIGHT = HexColor("#ECFDF5")
-DARK        = HexColor("#1A1A2E")
+GREEN_VAL   = HexColor("#16A34A")
+RED_COST    = HexColor("#DC2626")
+DARK        = HexColor("#1F1235")
 GRAY        = HexColor("#6B7280")
-GRAY_LIGHT  = HexColor("#F9FAFB")
+GRAY_LIGHT  = HexColor("#F5F5F5")
+BORDER      = HexColor("#F0E6E8")
 WHITE       = white
-SHADOW      = Color(0, 0, 0, alpha=0.06)
+SHADOW_CLR  = Color(0.15, 0.05, 0.1, alpha=0.06)
+PURPLE_DARK = HexColor("#2D1B69")
 
-W, H = A4  # 595.27 x 841.89 pt
-MX = 28
+W, H = A4
+MX = 30
 CONTENT_W = W - 2 * MX
-R = 5
+R = 7
 
 
 def fmt_eur(n):
     return f"{int(round(n)):,}".replace(",", ".")
 
 
-def truncate(text, max_chars):
-    if len(text) <= max_chars:
-        return text
-    return text[: max_chars - 1] + "…"
+def truncate(t, mx):
+    return t if len(t) <= mx else t[:mx - 1] + "…"
 
 
-def draw_rounded_rect(c, x, y, w, h, r=R, fill=None, stroke=None, stroke_width=0.5):
+def rr(c, x, y, w, h, r=R, fill=None, stroke=None, sw=0.5):
     p = c.beginPath()
-    bx, by = x, y
-    tx, ty = x + w, y + h
-    p.moveTo(bx + r, by)
-    p.lineTo(tx - r, by)
-    p.arcTo(tx - 2 * r, by, tx, by + 2 * r, -90, 90)
-    p.lineTo(tx, ty - r)
-    p.arcTo(tx - 2 * r, ty - 2 * r, tx, ty, 0, 90)
-    p.lineTo(bx + r, ty)
-    p.arcTo(bx, ty - 2 * r, bx + 2 * r, ty, 90, 90)
-    p.lineTo(bx, by + r)
-    p.arcTo(bx, by, bx + 2 * r, by + 2 * r, 180, 90)
+    bx, by, tx, ty = x, y, x + w, y + h
+    p.moveTo(bx + r, by); p.lineTo(tx - r, by)
+    p.arcTo(tx - 2*r, by, tx, by + 2*r, -90, 90)
+    p.lineTo(tx, ty - r); p.arcTo(tx - 2*r, ty - 2*r, tx, ty, 0, 90)
+    p.lineTo(bx + r, ty); p.arcTo(bx, ty - 2*r, bx + 2*r, ty, 90, 90)
+    p.lineTo(bx, by + r); p.arcTo(bx, by, bx + 2*r, by + 2*r, 180, 90)
     p.close()
     if fill and stroke:
-        c.setFillColor(fill)
-        c.setStrokeColor(stroke)
-        c.setLineWidth(stroke_width)
+        c.setFillColor(fill); c.setStrokeColor(stroke); c.setLineWidth(sw)
         c.drawPath(p, fill=1, stroke=1)
     elif fill:
-        c.setFillColor(fill)
-        c.drawPath(p, fill=1, stroke=0)
+        c.setFillColor(fill); c.drawPath(p, fill=1, stroke=0)
     elif stroke:
-        c.setStrokeColor(stroke)
-        c.setLineWidth(stroke_width)
-        c.drawPath(p, fill=0, stroke=1)
+        c.setStrokeColor(stroke); c.setLineWidth(sw); c.drawPath(p, fill=0, stroke=1)
 
 
-def draw_shadow(c, x, y, w, h, r=R, offset=1.5):
-    draw_rounded_rect(c, x + offset, y - offset, w, h, r=r, fill=SHADOW)
+def shadow(c, x, y, w, h, r=R):
+    rr(c, x + 1.5, y - 1.5, w, h, r=r, fill=SHADOW_CLR)
 
 
-def draw_gradient_rect(c, x, y, w, h, color_left, color_right, steps=80):
-    strip_w = w / steps
-    r1, g1, b1 = color_left.red, color_left.green, color_left.blue
-    r2, g2, b2 = color_right.red, color_right.green, color_right.blue
+def gradient(c, x, y, w, h, c1, c2, steps=60):
+    sw = w / steps
     for i in range(steps):
         t = i / (steps - 1)
-        cr = r1 + (r2 - r1) * t
-        cg = g1 + (g2 - g1) * t
-        cb = b1 + (b2 - b1) * t
-        c.setFillColor(Color(cr, cg, cb))
-        sx = x + i * strip_w
-        sw = strip_w + 0.5
-        c.rect(sx, y, sw if i < steps - 1 else strip_w, h, fill=1, stroke=0)
+        c.setFillColor(Color(
+            c1.red + (c2.red - c1.red) * t,
+            c1.green + (c2.green - c1.green) * t,
+            c1.blue + (c2.blue - c1.blue) * t,
+        ))
+        c.rect(x + i * sw, y, sw + 0.5 if i < steps - 1 else sw, h, fill=1, stroke=0)
 
 
-def draw_pill(c, x, y, w, h, fill_color, text, font_size=7, text_color=DARK):
-    draw_rounded_rect(c, x, y, w, h, r=h / 2, fill=fill_color)
-    c.setFillColor(text_color)
-    c.setFont("Helvetica-Bold", font_size)
-    c.drawCentredString(x + w / 2, y + h / 2 - font_size * 0.35, text)
+def pill(c, x, y, w, h, bg, text, fs=7, tc=DARK):
+    rr(c, x, y, w, h, r=h / 2, fill=bg)
+    c.setFillColor(tc); c.setFont("Helvetica-Bold", fs)
+    c.drawCentredString(x + w / 2, y + h / 2 - fs * 0.35, text)
 
 
-def draw_circle_badge(c, cx, cy, r, fill_color, text, font_size=9, text_color=WHITE):
-    c.setFillColor(fill_color)
-    c.circle(cx, cy, r, fill=1, stroke=0)
-    c.setFillColor(text_color)
-    c.setFont("Helvetica-Bold", font_size)
-    c.drawCentredString(cx, cy - font_size * 0.35, text)
+def circle(c, cx, cy, r, bg, text, fs=9, tc=WHITE):
+    c.setFillColor(bg); c.circle(cx, cy, r, fill=1, stroke=0)
+    c.setFillColor(tc); c.setFont("Helvetica-Bold", fs)
+    c.drawCentredString(cx, cy - fs * 0.35, text)
 
 
-def draw_top_bar(c, cx, card_bot, card_w, card_h, bar_h, rr, color):
+def top_bar(c, cx, bot, cw, ch, bh, rad, color):
     p = c.beginPath()
-    bx, by = cx, card_bot + card_h - bar_h
-    tx, ty = cx + card_w, card_bot + card_h
-    p.moveTo(bx, by)
-    p.lineTo(tx, by)
-    p.lineTo(tx, ty - rr)
-    p.arcTo(tx - 2 * rr, ty - 2 * rr, tx, ty, 0, 90)
-    p.lineTo(bx + rr, ty)
-    p.arcTo(bx, ty - 2 * rr, bx + 2 * rr, ty, 90, 90)
-    p.lineTo(bx, by)
-    p.close()
-    c.setFillColor(color)
-    c.drawPath(p, fill=1, stroke=0)
+    bx, by, tx, ty = cx, bot + ch - bh, cx + cw, bot + ch
+    p.moveTo(bx, by); p.lineTo(tx, by); p.lineTo(tx, ty - rad)
+    p.arcTo(tx - 2*rad, ty - 2*rad, tx, ty, 0, 90)
+    p.lineTo(bx + rad, ty); p.arcTo(bx, ty - 2*rad, bx + 2*rad, ty, 90, 90)
+    p.lineTo(bx, by); p.close()
+    c.setFillColor(color); c.drawPath(p, fill=1, stroke=0)
 
 
-def draw_bottom_strip(c, cx, card_bot, card_w, strip_h, rr, fill_color, text, text_color, font_size=11):
+def bot_strip(c, cx, bot, cw, sh, rad, bg, text, tc, fs=12):
     p = c.beginPath()
-    bx, by = cx, card_bot
-    tx, ty = cx + card_w, card_bot + strip_h
-    p.moveTo(bx + rr, by)
-    p.arcTo(bx, by, bx + 2 * rr, by + 2 * rr, 180, 90)
-    p.lineTo(bx, ty)
-    p.lineTo(tx, ty)
-    p.lineTo(tx, by + rr)
-    p.arcTo(tx - 2 * rr, by, tx, by + 2 * rr, -90, 90)
-    p.close()
-    c.setFillColor(fill_color)
-    c.drawPath(p, fill=1, stroke=0)
-    c.setFillColor(text_color)
-    c.setFont("Helvetica-Bold", font_size)
-    c.drawCentredString(cx + card_w / 2, by + strip_h / 2 - font_size * 0.35, text)
+    bx, by, tx, ty = cx, bot, cx + cw, bot + sh
+    p.moveTo(bx + rad, by); p.arcTo(bx, by, bx + 2*rad, by + 2*rad, 180, 90)
+    p.lineTo(bx, ty); p.lineTo(tx, ty); p.lineTo(tx, by + rad)
+    p.arcTo(tx - 2*rad, by, tx, by + 2*rad, -90, 90); p.close()
+    c.setFillColor(bg); c.drawPath(p, fill=1, stroke=0)
+    c.setFillColor(tc); c.setFont("Helvetica-Bold", fs)
+    c.drawCentredString(cx + cw / 2, by + sh / 2 - fs * 0.35, text)
 
 
 def generate_pdf(data, output_path):
     c = Canvas(output_path, pagesize=A4)
+
+    # Cream page background
+    c.setFillColor(CREAM)
+    c.rect(0, 0, W, H, fill=1, stroke=0)
 
     company = data.get("companyName", "Company")
     email = data.get("contactEmail", "")
@@ -179,312 +134,265 @@ def generate_pdf(data, output_path):
     total_money = data.get("totalMonthlyMoney", 0)
     annual_savings = total_money * 12
     monthly_cost = bundle_annual / 12 if bundle_annual > 0 else 1
-    roi_mult = total_money / monthly_cost if monthly_cost > 0 else 0
+    roi_pct = (annual_savings / bundle_annual * 100) if bundle_annual > 0 else 0
     top3_ids = {p["moduleId"] for p in priority}
     n_rows = len(module_rows)
+    net_benefit = annual_savings - bundle_annual
 
-    # ── Pre-measure variable-height elements ──
-    style_quote = ParagraphStyle("q", fontName="Helvetica-Oblique", fontSize=6.5, leading=8.5, textColor=GRAY)
-    card_gap = 6
+    # ── Pre-measure quotes ──
+    sq = ParagraphStyle("q", fontName="Helvetica-Oblique", fontSize=6.5, leading=8.5, textColor=GRAY)
+    card_gap = 7
     card_w = (CONTENT_W - card_gap * 2) / 3
-    quote_w = card_w - 14
-
+    qw = card_w - 14
     card_parts = []
     for pm in priority:
         q = pm.get("quote", "")
         if q:
-            qp = Paragraph(f"“{truncate(q, 150)}”", style_quote)
-            _, qh = qp.wrap(quote_w, 300)
+            qp = Paragraph(f"“{truncate(q, 140)}”", sq)
+            _, qh = qp.wrap(qw, 300)
         else:
             qp, qh = None, 0
         card_parts.append((qp, qh))
 
-    card_inner_fixed = 4 + 18 + 10 + 4 + 20 + 4  # top-bar + badge + hours + divider + strip + pad
-    card_h = max((card_inner_fixed + qh for _, qh in card_parts), default=60)
+    card_fixed = 4 + 18 + 10 + 5 + 22 + 4
+    card_h = max((card_fixed + qh for _, qh in card_parts), default=60)
 
-    style_intro = ParagraphStyle("i", fontName="Helvetica", fontSize=7.5, leading=10.5, textColor=DARK)
+    # Intro paragraph
+    si = ParagraphStyle("i", fontName="Helvetica", fontSize=7.5, leading=10.5, textColor=DARK)
     intro_text = (
-        f"Factorial’s internal consulting team has prepared a personalized ROI analysis for "
+        f"Factorial's internal consulting team has prepared a personalized ROI analysis for "
         f"<b>{company}</b>, based on <b>{seats}</b> employees "
         f"(<b>{emp}</b> ICs · <b>{mgr}</b> Managers · <b>{hr}</b> HR Staff). "
         f"The study identifies the highest-impact modules and quantifies time and cost savings per stakeholder."
     )
-    intro_para = Paragraph(intro_text, style_intro)
-    _, intro_para_h = intro_para.wrap(CONTENT_W - 16, 300)
-    intro_box_h = intro_para_h + 10
+    ip = Paragraph(intro_text, si)
+    _, iph = ip.wrap(CONTENT_W - 16, 300)
+    intro_h = iph + 10
 
-    # ── Compute all fixed section heights ──
-    header_h = 68
-    hero_h = 56
-    section_label_h = 12
-    table_header_h = 14
-    row_h_base = 14
+    # ── Adaptive layout: compute heights & gaps ──
+    header_h = 60
+    kpi_h = 38
+    lbl_h = 12
+    tbl_hdr_h = 14
+    row_h_base = 13.5
     totals_h = 22
-    net_strip_h = 32
-    footer_h = 18
+    net_h = 30
+    footer_h = 16
 
-    fixed_content = (
-        header_h + hero_h + intro_box_h + section_label_h + card_h
-        + section_label_h + table_header_h + row_h_base * n_rows + totals_h
-        + net_strip_h + footer_h
-    )
+    fixed = (header_h + kpi_h + intro_h + lbl_h + card_h
+             + lbl_h + tbl_hdr_h + row_h_base * n_rows + totals_h + net_h + footer_h)
 
-    # Weighted gap distribution — tighter where sections are logically connected
-    # Gaps: 0=header→hero  1=hero→intro  2=intro→cards-label  3=cards→table-label
-    #        4=table-rows(flush)  5=rows→totals  6=totals→net  7=net→footer
-    gap_weights = [0.4, 0.35, 0.6, 0.7, 0.15, 0.5, 0.45, 0.35]
-    total_weight = sum(gap_weights)
-    remaining = H - fixed_content
-
-    # First pass: absorb excess into taller rows (up to +4pt each)
+    wts = [0.3, 0.3, 0.3, 0.5, 0.6, 0.15, 0.4, 0.35, 0.25]
+    tw = sum(wts)
+    rem = H - fixed
     row_h = row_h_base
-    row_budget = remaining * 0.4  # spend up to 40% of slack on row height
-    extra_per_row = min(4, row_budget / max(n_rows, 1))
-    if extra_per_row > 0.5:
-        row_h = row_h_base + extra_per_row
-        remaining = H - (fixed_content - row_h_base * n_rows + row_h * n_rows)
-
-    unit = max(3, remaining / total_weight)
-    gaps = [w * unit for w in gap_weights]
+    rb = rem * 0.35
+    epr = min(3.5, rb / max(n_rows, 1))
+    if epr > 0.5:
+        row_h = row_h_base + epr
+        rem = H - (fixed - row_h_base * n_rows + row_h * n_rows)
+    unit = max(3, rem / tw)
+    gaps = [w * unit for w in wts]
 
     cur_y = H
 
     # ════════════════════════════════════════════
-    # 1. HEADER (gradient, 68pt)
+    # 1. HEADER — white bar with coral accent line
     # ════════════════════════════════════════════
-    header_bot = cur_y - header_h
-    draw_gradient_rect(c, 0, header_bot, W, header_h, PINK, PURPLE)
-
+    hdr_bot = cur_y - header_h
     c.setFillColor(WHITE)
-    c.setFont("Helvetica-Bold", 20)
-    c.drawString(MX + 4, H - 30, "Factorial")
+    c.rect(0, hdr_bot, W, header_h, fill=1, stroke=0)
+    # Coral bottom accent line
+    c.setFillColor(CORAL)
+    c.rect(0, hdr_bot, W, 2.5, fill=1, stroke=0)
 
-    c.setFont("Helvetica-Bold", 12)
-    c.drawRightString(W - MX - 4, H - 24, truncate(company, 35))
-    c.setFont("Helvetica", 8)
-    c.drawRightString(W - MX - 4, H - 36, "ROI Analysis · Confidential")
+    # Factorial logo mark (simplified isotype)
+    lx, ly = MX + 2, H - 38
+    c.setFillColor(CORAL)
+    c.circle(lx + 9, ly + 9, 12, fill=1, stroke=0)
+    c.setFillColor(WHITE)
+    c.circle(lx + 9, ly + 9, 4.5, fill=1, stroke=0)
+    c.setFillColor(CORAL)
+    c.ellipse(lx + 2, ly - 2, lx + 16, ly + 2, fill=1, stroke=0)
+    # "factorial" wordmark
+    c.setFillColor(DARK)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(lx + 26, ly + 3, "factorial")
+
+    # Right: company + subtitle
+    c.setFillColor(DARK)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawRightString(W - MX, H - 22, truncate(company, 36))
+    c.setFont("Helvetica", 7.5)
+    c.setFillColor(GRAY)
+    c.drawRightString(W - MX, H - 33, "ROI Analysis · Confidential")
     if email:
-        c.setFont("Helvetica", 7.5)
-        c.drawRightString(W - MX - 4, H - 47, truncate(email, 45))
+        c.setFont("Helvetica", 7)
+        c.drawRightString(W - MX, H - 43, truncate(email, 45))
 
-    cur_y = header_bot - gaps[0]
-
-    # ════════════════════════════════════════════
-    # 2. HERO STRIP (light pink, 56pt)
-    # ════════════════════════════════════════════
-    hero_bot = cur_y - hero_h
-    draw_rounded_rect(c, MX, hero_bot, CONTENT_W, hero_h, r=7, fill=LIGHT_PINK)
-
-    # Left: pills
-    pill_top_y = hero_bot + hero_h / 2 + 6
-    draw_pill(c, MX + 8, pill_top_y, 78, 17, WHITE, f"{seats} employees", 8, DARK)
-    pill_bot_y = hero_bot + hero_h / 2 - 15
-    px = MX + 8
-    for lbl in [f"{emp} ICs", f"{mgr} Mgrs", f"{hr} HR"]:
-        pw = max(44, len(lbl) * 5.8 + 14)
-        draw_pill(c, px, pill_bot_y, pw, 14, WHITE, lbl, 6.5, GRAY)
-        px += pw + 4
-
-    # Center: annual return
-    cx_mid = MX + CONTENT_W / 2
-    c.setFillColor(GREEN)
-    c.setFont("Helvetica-Bold", 24)
-    c.drawCentredString(cx_mid, hero_bot + hero_h / 2 + 5, f"€{fmt_eur(annual_savings)}")
-    c.setFillColor(GRAY)
-    c.setFont("Helvetica", 7.5)
-    c.drawCentredString(cx_mid, hero_bot + hero_h / 2 - 10, "annual return")
-
-    # Right: ROI
-    rx = W - MX - 50
-    c.setFillColor(PINK)
-    c.setFont("Helvetica-Bold", 30)
-    c.drawCentredString(rx, hero_bot + hero_h / 2 + 7, f"{roi_mult:.1f}x")
-    c.setFillColor(GRAY)
-    c.setFont("Helvetica", 7.5)
-    c.drawCentredString(rx, hero_bot + hero_h / 2 - 10, "ROI")
-
-    cur_y = hero_bot - gaps[1]
+    cur_y = hdr_bot - gaps[0]
 
     # ════════════════════════════════════════════
-    # 3. INTRO BOX (light pink, snug)
+    # 2. KPI STRIP — 3 white cards in a row
     # ════════════════════════════════════════════
-    intro_bot = cur_y - intro_box_h
-    draw_rounded_rect(c, MX, intro_bot, CONTENT_W, intro_box_h, r=5, fill=LIGHT_PINK)
-    intro_para.drawOn(c, MX + 8, intro_bot + 5)
+    kpi_bot = cur_y - kpi_h
+    kpi_w = (CONTENT_W - 8) / 3
+    kpis = [
+        ("TOTAL DE AHORROS ANUALES:", f"€{fmt_eur(annual_savings)}", CORAL),
+        ("COSTO ANUAL DEL SISTEMA:", f"€{fmt_eur(bundle_annual)}", RED_COST),
+        ("ROI ANUAL:", f"{roi_pct:.0f}%", GREEN_VAL),
+    ]
+    for i, (lbl, val, vc) in enumerate(kpis):
+        kx = MX + i * (kpi_w + 4)
+        shadow(c, kx, kpi_bot, kpi_w, kpi_h, r=6)
+        rr(c, kx, kpi_bot, kpi_w, kpi_h, r=6, fill=WHITE, stroke=BORDER, sw=0.5)
+        c.setFillColor(GRAY)
+        c.setFont("Helvetica-Bold", 5.5)
+        c.drawCentredString(kx + kpi_w / 2, kpi_bot + kpi_h - 11, lbl)
+        c.setFillColor(vc)
+        c.setFont("Helvetica-Bold", 15)
+        c.drawCentredString(kx + kpi_w / 2, kpi_bot + 8, val)
+
+    cur_y = kpi_bot - gaps[1]
+
+    # ════════════════════════════════════════════
+    # 3. INTRO BOX — cream card
+    # ════════════════════════════════════════════
+    intro_bot = cur_y - intro_h
+    rr(c, MX, intro_bot, CONTENT_W, intro_h, r=5, fill=WHITE, stroke=BORDER, sw=0.5)
+    ip.drawOn(c, MX + 8, intro_bot + 5)
 
     cur_y = intro_bot - gaps[2]
 
     # ════════════════════════════════════════════
-    # 4. PRIORITY MODULES (3 cards)
+    # 4. PRIORITY MODULES — 3 cards
     # ════════════════════════════════════════════
     c.setFillColor(DARK)
     c.setFont("Helvetica-Bold", 9)
     c.drawString(MX, cur_y + 2, "Priority Modules")
-    cur_y -= section_label_h
+    cur_y -= lbl_h
 
-    rr = 6
+    rd = 6
     for idx, pm in enumerate(priority):
         qpara, qh = card_parts[idx]
         cx = MX + idx * (card_w + card_gap)
-        card_bot = cur_y - card_h
+        cb = cur_y - card_h
 
-        draw_shadow(c, cx, card_bot, card_w, card_h, r=rr)
-        draw_rounded_rect(c, cx, card_bot, card_w, card_h, r=rr, fill=WHITE, stroke=HexColor("#F0E0E8"), stroke_width=0.5)
-        draw_top_bar(c, cx, card_bot, card_w, card_h, 4, rr, PINK)
+        shadow(c, cx, cb, card_w, card_h, r=rd)
+        rr(c, cx, cb, card_w, card_h, r=rd, fill=WHITE, stroke=BORDER, sw=0.5)
+        top_bar(c, cx, cb, card_w, card_h, 4, rd, CORAL)
 
-        iy = card_bot + card_h - 4 - 4  # below top bar
-
-        # Badge + name
-        draw_circle_badge(c, cx + 14, iy - 5, 8, PINK, str(idx + 1), 9, WHITE)
-        c.setFillColor(DARK)
-        c.setFont("Helvetica-Bold", 8.5)
+        iy = cb + card_h - 8
+        circle(c, cx + 14, iy - 5, 8, CORAL, str(idx + 1), 9, WHITE)
+        c.setFillColor(DARK); c.setFont("Helvetica-Bold", 8.5)
         c.drawString(cx + 26, iy - 8, truncate(pm.get("label", ""), 22))
         iy -= 20
 
-        # Hours + money
-        c.setFillColor(PINK)
-        c.setFont("Helvetica-Bold", 7)
-        hrs = pm.get("monthlyHours", 0)
-        money = pm.get("monthlyMoney", 0)
+        hrs, money = pm.get("monthlyHours", 0), pm.get("monthlyMoney", 0)
+        c.setFillColor(CORAL); c.setFont("Helvetica-Bold", 7)
         c.drawString(cx + 7, iy, f"{hrs:.0f}h/mo · €{fmt_eur(money)}/mo")
-        iy -= 8
+        iy -= 9
 
-        # Divider
-        c.setStrokeColor(PINK_MID)
-        c.setLineWidth(0.5)
+        c.setStrokeColor(CORAL_MID); c.setLineWidth(0.4)
         c.line(cx + 7, iy, cx + card_w - 7, iy)
         iy -= 5
 
-        # Quote
         if qpara:
             qpara.drawOn(c, cx + 7, iy - qh + 2)
 
-        # Bottom strip
-        draw_bottom_strip(c, cx, card_bot, card_w, 20, rr, PINK_ACCENT,
-                          f"€{fmt_eur(money)}/mo", PINK, 11)
+        bot_strip(c, cx, cb, card_w, 22, rd, CORAL_LIGHT,
+                  f"€{fmt_eur(money)}/mo", CORAL, 12)
 
     cur_y -= card_h + gaps[3]
 
     # ════════════════════════════════════════════
-    # 5. FULL MODULE BREAKDOWN TABLE
+    # 5. TABLE — full module breakdown
     # ════════════════════════════════════════════
-    c.setFillColor(DARK)
-    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(DARK); c.setFont("Helvetica-Bold", 9)
     c.drawString(MX, cur_y + 2, "Full Module Breakdown")
-    cur_y -= section_label_h
+    cur_y -= lbl_h
 
-    col_mod_x = MX + 3
-    col_hrs_x = MX + CONTENT_W * 0.68
-    col_ret_x = MX + CONTENT_W - 3
+    cmx = MX + 4
+    chx = MX + CONTENT_W * 0.68
+    crx = MX + CONTENT_W - 4
 
-    # Header row
-    hdr_bot = cur_y - table_header_h
-    draw_rounded_rect(c, MX, hdr_bot, CONTENT_W, table_header_h, r=4, fill=PINK)
-    c.setFillColor(WHITE)
-    c.setFont("Helvetica-Bold", 7)
-    c.drawString(col_mod_x, hdr_bot + table_header_h / 2 - 3, "Module")
-    c.drawRightString(col_hrs_x, hdr_bot + table_header_h / 2 - 3, "Hours saved/mo")
-    c.drawRightString(col_ret_x, hdr_bot + table_header_h / 2 - 3, "€ Return/mo")
-    cur_y = hdr_bot
+    # Header
+    hb = cur_y - tbl_hdr_h
+    rr(c, MX, hb, CONTENT_W, tbl_hdr_h, r=4, fill=CORAL)
+    c.setFillColor(WHITE); c.setFont("Helvetica-Bold", 7)
+    c.drawString(cmx, hb + tbl_hdr_h / 2 - 3, "Module")
+    c.drawRightString(chx, hb + tbl_hdr_h / 2 - 3, "Hours saved/mo")
+    c.drawRightString(crx, hb + tbl_hdr_h / 2 - 3, "€ Return/mo")
+    cur_y = hb
 
-    # Data rows
     for idx, row in enumerate(module_rows):
-        row_bot = cur_y - row_h
-        is_top3 = row.get("moduleId") in top3_ids
-
-        if is_top3:
-            c.setFillColor(PINK_ACCENT)
-            c.rect(MX, row_bot, CONTENT_W, row_h, fill=1, stroke=0)
-            c.setFillColor(PINK)
-            c.rect(MX, row_bot, 3, row_h, fill=1, stroke=0)
+        rb = cur_y - row_h
+        is3 = row.get("moduleId") in top3_ids
+        if is3:
+            c.setFillColor(CORAL_LIGHT); c.rect(MX, rb, CONTENT_W, row_h, fill=1, stroke=0)
+            c.setFillColor(CORAL); c.rect(MX, rb, 3, row_h, fill=1, stroke=0)
         elif idx % 2 == 0:
-            c.setFillColor(WHITE)
-            c.rect(MX, row_bot, CONTENT_W, row_h, fill=1, stroke=0)
+            c.setFillColor(WHITE); c.rect(MX, rb, CONTENT_W, row_h, fill=1, stroke=0)
         else:
-            c.setFillColor(GRAY_LIGHT)
-            c.rect(MX, row_bot, CONTENT_W, row_h, fill=1, stroke=0)
+            c.setFillColor(GRAY_LIGHT); c.rect(MX, rb, CONTENT_W, row_h, fill=1, stroke=0)
 
-        text_y = row_bot + row_h / 2 - 3
-        c.setFillColor(DARK)
-        c.setFont("Helvetica-Bold" if is_top3 else "Helvetica", 7)
-        c.drawString(col_mod_x + (4 if is_top3 else 0), text_y, truncate(row.get("label", ""), 40))
-
-        c.setFillColor(GRAY)
-        c.setFont("Helvetica-Bold", 7)
-        c.drawRightString(col_hrs_x, text_y, f"{row.get('monthlyHours', 0):.1f}h")
-
-        c.setFillColor(GREEN)
-        c.setFont("Helvetica-Bold", 7)
-        c.drawRightString(col_ret_x, text_y, f"€{fmt_eur(row.get('monthlyMoney', 0))}")
-
-        cur_y = row_bot
+        ty = rb + row_h / 2 - 3
+        c.setFillColor(DARK); c.setFont("Helvetica-Bold" if is3 else "Helvetica", 7)
+        c.drawString(cmx + (4 if is3 else 0), ty, truncate(row.get("label", ""), 38))
+        c.setFillColor(GRAY); c.setFont("Helvetica-Bold", 7)
+        c.drawRightString(chx, ty, f"{row.get('monthlyHours', 0):.1f}h")
+        c.setFillColor(GREEN_VAL); c.setFont("Helvetica-Bold", 7)
+        c.drawRightString(crx, ty, f"€{fmt_eur(row.get('monthlyMoney', 0))}")
+        cur_y = rb
 
     cur_y -= gaps[5] * 0.4
 
     # ════════════════════════════════════════════
-    # 6. TOTALS ROW (solid pink, white text)
+    # 6. TOTALS ROW
     # ════════════════════════════════════════════
-    totals_bot = cur_y - totals_h
-    draw_rounded_rect(c, MX, totals_bot, CONTENT_W, totals_h, r=5, fill=PINK)
-
+    tb = cur_y - totals_h
+    rr(c, MX, tb, CONTENT_W, totals_h, r=5, fill=CORAL)
     c.setFillColor(WHITE)
-    lbl_y = totals_bot + totals_h - 8
-    val_y = totals_bot + 5
-
-    c.setFont("Helvetica", 6.5)
-    c.drawString(col_mod_x, lbl_y, "Bundle price/yr")
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(col_mod_x, val_y, f"€{fmt_eur(bundle_annual)}")
-
+    ly, vy = tb + totals_h - 8, tb + 5
+    c.setFont("Helvetica", 6.5); c.drawString(cmx, ly, "Bundle price/yr")
+    c.setFont("Helvetica-Bold", 10); c.drawString(cmx, vy, f"€{fmt_eur(bundle_annual)}")
     mid = MX + CONTENT_W / 2
-    c.setFont("Helvetica", 6.5)
-    c.drawCentredString(mid, lbl_y, "Total hours/mo")
-    c.setFont("Helvetica-Bold", 10)
-    c.drawCentredString(mid, val_y, f"{total_hrs:.0f}h")
-
-    c.setFont("Helvetica", 6.5)
-    c.drawRightString(col_ret_x, lbl_y, "€ Return/mo · ROI")
-    c.setFont("Helvetica-Bold", 11)
-    c.drawRightString(col_ret_x, val_y - 1, f"€{fmt_eur(total_money)} · {roi_mult:.1f}x")
-
-    cur_y = totals_bot - gaps[6]
+    c.setFont("Helvetica", 6.5); c.drawCentredString(mid, ly, "Total hours/mo")
+    c.setFont("Helvetica-Bold", 10); c.drawCentredString(mid, vy, f"{total_hrs:.0f}h")
+    c.setFont("Helvetica", 6.5); c.drawRightString(crx, ly, "€ Return/mo · ROI")
+    c.setFont("Helvetica-Bold", 11); c.drawRightString(crx, vy - 1, f"€{fmt_eur(total_money)} · {roi_pct:.0f}%")
+    cur_y = tb - gaps[6]
 
     # ════════════════════════════════════════════
-    # 7. NET BENEFIT STRIP (3 cells)
+    # 7. NET BENEFIT — 3 cells
     # ════════════════════════════════════════════
-    cell_w = CONTENT_W / 3
-    strip_bot = cur_y - net_strip_h
-
-    net_benefit = annual_savings - bundle_annual
+    cw = CONTENT_W / 3
+    nb = cur_y - net_h
     cells = [
-        ("Annual savings", f"€{fmt_eur(annual_savings)}", GREEN_LIGHT, GREEN),
-        ("Annual cost", f"€{fmt_eur(bundle_annual)}", LIGHT_PINK, PINK),
-        ("Net benefit", f"€{fmt_eur(net_benefit)}/yr",
+        ("Ahorros anuales", f"€{fmt_eur(annual_savings)}", GREEN_LIGHT, GREEN_VAL),
+        ("Coste anual", f"-€{fmt_eur(bundle_annual)}", CORAL_LIGHT, RED_COST),
+        ("Beneficio neto", f"€{fmt_eur(net_benefit)}/yr",
          HexColor("#F0FDF4") if net_benefit >= 0 else HexColor("#FFF1F2"),
-         GREEN if net_benefit >= 0 else PINK),
+         GREEN_VAL if net_benefit >= 0 else RED_COST),
     ]
-    for i, (lbl, val, bg, val_c) in enumerate(cells):
-        cx = MX + i * cell_w
-        draw_rounded_rect(c, cx + 0.5, strip_bot, cell_w - 1, net_strip_h, r=5, fill=bg)
-        c.setFillColor(GRAY)
-        c.setFont("Helvetica", 6.5)
-        c.drawCentredString(cx + cell_w / 2, strip_bot + net_strip_h - 10, lbl)
-        c.setFillColor(val_c)
-        c.setFont("Helvetica-Bold", 13)
-        c.drawCentredString(cx + cell_w / 2, strip_bot + 7, val)
+    for i, (lbl, val, bg, vc) in enumerate(cells):
+        cx = MX + i * cw
+        shadow(c, cx + 0.5, nb, cw - 1, net_h, r=5)
+        rr(c, cx + 0.5, nb, cw - 1, net_h, r=5, fill=bg, stroke=BORDER, sw=0.3)
+        c.setFillColor(GRAY); c.setFont("Helvetica", 6.5)
+        c.drawCentredString(cx + cw / 2, nb + net_h - 10, lbl)
+        c.setFillColor(vc); c.setFont("Helvetica-Bold", 13)
+        c.drawCentredString(cx + cw / 2, nb + 7, val)
 
     # ════════════════════════════════════════════
-    # 8. FOOTER (snug below net strip)
+    # 8. FOOTER
     # ════════════════════════════════════════════
-    footer_y = max(10, strip_bot - gaps[7])
-    c.setStrokeColor(PINK_MID)
-    c.setLineWidth(0.4)
-    c.line(MX, footer_y + 10, W - MX, footer_y + 10)
-
-    c.setFillColor(GRAY)
-    c.setFont("Helvetica", 6)
-    c.drawString(MX, footer_y, "Prepared by Factorial · Confidential")
-    c.drawRightString(W - MX, footer_y, date.today().strftime("%d %b %Y"))
+    fy = max(10, nb - gaps[8])
+    c.setStrokeColor(CORAL_MID); c.setLineWidth(0.4)
+    c.line(MX, fy + 10, W - MX, fy + 10)
+    c.setFillColor(GRAY); c.setFont("Helvetica", 6)
+    c.drawString(MX, fy, "Prepared by Factorial · Confidential")
+    c.drawRightString(W - MX, fy, date.today().strftime("%d %b %Y"))
 
     c.save()
     return output_path
@@ -512,27 +420,12 @@ if __name__ == "__main__":
                 {"moduleId": "one", "label": "Factorial One (AI)", "monthlyHours": 44.0, "monthlyMoney": 1320},
             ],
             "priorityModules": [
-                {
-                    "moduleId": "time_tracking",
-                    "label": "Time Tracking",
-                    "monthlyHours": 135.0,
-                    "monthlyMoney": 4050,
-                    "quote": "Employees fill timesheets manually every week and half the team forgets, then payroll spends a full day reconciling everything",
-                },
-                {
-                    "moduleId": "core",
-                    "label": "Core HR",
-                    "monthlyHours": 120.0,
-                    "monthlyMoney": 3600,
-                    "quote": "We have employee data in three different Excel files and nothing matches, onboarding is a disaster every time",
-                },
-                {
-                    "moduleId": "recruitment",
-                    "label": "Recruitment (ATS)",
-                    "monthlyHours": 87.5,
-                    "monthlyMoney": 2625,
-                    "quote": "Candidates get lost in email threads, scheduling interviews takes forever, and we have no idea what our time-to-hire actually is",
-                },
+                {"moduleId": "time_tracking", "label": "Time Tracking", "monthlyHours": 135.0, "monthlyMoney": 4050,
+                 "quote": "Employees fill timesheets manually every week and half the team forgets, then payroll spends a full day reconciling everything"},
+                {"moduleId": "core", "label": "Core HR", "monthlyHours": 120.0, "monthlyMoney": 3600,
+                 "quote": "We have employee data in three different Excel files and nothing matches, onboarding is a disaster every time"},
+                {"moduleId": "recruitment", "label": "Recruitment (ATS)", "monthlyHours": 87.5, "monthlyMoney": 2625,
+                 "quote": "Candidates get lost in email threads, scheduling interviews takes forever, and we have no idea what our time-to-hire actually is"},
             ],
             "bundleAnnual": 38400,
             "totalMonthlyHours": 739.5,
@@ -542,9 +435,9 @@ if __name__ == "__main__":
         generate_pdf(sample, out)
         print(f"Sample PDF generated: {out}")
     else:
-        input_path = sys.argv[1]
-        output_path = sys.argv[2] if len(sys.argv) > 2 else input_path.rsplit(".", 1)[0] + ".pdf"
-        with open(input_path) as f:
+        inp = sys.argv[1]
+        outp = sys.argv[2] if len(sys.argv) > 2 else inp.rsplit(".", 1)[0] + ".pdf"
+        with open(inp) as f:
             data = json.load(f)
-        generate_pdf(data, output_path)
-        print(f"PDF generated: {output_path}")
+        generate_pdf(data, outp)
+        print(f"PDF generated: {outp}")

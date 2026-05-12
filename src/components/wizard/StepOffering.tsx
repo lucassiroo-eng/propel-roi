@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Check, X, Loader2, Plus, FileDown, FileText,
   ExternalLink, Package, Star, Save, Eye, Globe,
-  ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search,
+  ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search, UserPlus, Receipt,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -895,6 +895,47 @@ function HypothesisView({
                 </div>
               );
             })}
+          </div>
+
+          {/* Extra multipliers: onboardings + expense submitters */}
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">{t("hyp.extra_multipliers")}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-xl p-4 space-y-2 transition-shadow hover:shadow-sm" style={{ backgroundColor: "rgba(245,158,11,0.06)", border: "1.5px solid rgba(245,158,11,0.2)" }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-500">
+                  <UserPlus className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{t("hyp.onboardings_yr")}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("hyp.onboardings_help")}</p>
+                </div>
+              </div>
+              <Input
+                type="number" min={0}
+                className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
+                placeholder="0"
+                value={roiConfig.onboardings_per_year ?? ""}
+                onChange={e => onRoiConfigChange({ ...roiConfig, onboardings_per_year: parseInt(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="rounded-xl p-4 space-y-2 transition-shadow hover:shadow-sm" style={{ backgroundColor: "rgba(20,184,166,0.06)", border: "1.5px solid rgba(20,184,166,0.2)" }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-500">
+                  <Receipt className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground leading-tight">{t("hyp.expense_submitters")}</p>
+                  <p className="text-[10px] text-muted-foreground">{t("hyp.expense_help")}</p>
+                </div>
+              </div>
+              <Input
+                type="number" min={0}
+                className="h-10 text-center text-lg font-bold tabular-nums bg-white/80"
+                placeholder="0"
+                value={roiConfig.expense_submitters ?? ""}
+                onChange={e => onRoiConfigChange({ ...roiConfig, expense_submitters: parseInt(e.target.value) || 0 })}
+              />
+            </div>
           </div>
         </section>
 

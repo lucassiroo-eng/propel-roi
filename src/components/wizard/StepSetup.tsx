@@ -73,59 +73,95 @@ const AI_TOOL = {
   },
 };
 
-const SYSTEM_PROMPT = `You are an expert sales analyst for Factorial HR. Analyze deal content (emails, calls, notes) in Spanish, French, or English to identify which modules the prospect needs.
+const SYSTEM_PROMPT = `You are an expert Factorial HR pain-detection engine. Your job is to read deal communications and identify PROSPECT PAINS — problems, frustrations, inefficiencies, and unmet needs described by the prospect — then map each pain to the Factorial module that solves it.
+
+CRITICAL RULES:
+1. ONLY analyze what the PROSPECT says/describes (their problems, complaints, current situation, needs).
+2. IGNORE the Factorial seller's pitch — when the seller mentions modules, features, or product benefits, that is NOT evidence of a prospect need. The seller talking about "control horario" does not mean the prospect needs Time Tracking.
+3. Look for PAINS and SYMPTOMS, not module names. A prospect saying "tardamos 2 días en cerrar nómina" is a pain → payroll. A prospect saying "tenemos los datos en Excel" is a pain → core.
+4. Be AGGRESSIVE in detection — if you see any signal of a real problem, include it. It's better to over-detect (the user can deselect) than to miss modules.
+
+CONTENT PRIORITY (trust in this order):
+1. CALL TRANSCRIPTS — highest value. The prospect's voice during discovery calls reveals real pains.
+2. INCOMING EMAILS — emails FROM the prospect describing their situation.
+3. OUTGOING EMAILS — seller's emails have lower value, but prospect replies quoted within them count.
+4. NOTES — lowest priority. These are often internal seller notes about what they pitched, NOT prospect pains. Only use notes if they clearly describe a prospect's situation (e.g., "the client mentioned they do X manually").
 
 CONFIDENCE:
-- "strong" = prospect EXPLICITLY mentions the pain or requests the feature. E.g. "necesitamos control horario", "on cherche un ATS", "we track expenses in Excel"
-- "possible" = need is IMPLIED from context — manual processes, compliance concerns, growth plans
+- "strong" = prospect DESCRIBES a concrete pain, problem, or inefficiency that a module solves. E.g., prospect says "tardamos 3 horas en cuadrar fichajes" → time_tracking (strong).
+- "possible" = pain is IMPLIED from context — industry norms, company size, or indirect references. E.g., company has 500 employees → likely needs time_off, core.
 
 QUOTES:
 - VERBATIM copy-paste from the content, in its ORIGINAL language. Never translate.
-- Pick the most specific passage proving the need. Prefer the prospect's words over the rep's.
-- Max 2 sentences. If no exact passage exists, prefix with "~" and paraphrase in ≤15 words.
+- MUST be the PROSPECT's words, not the seller's pitch. If the only mention is from the seller, mark as "possible" with a ~ prefixed paraphrase.
+- Max 2 sentences. If no exact passage from the prospect exists, prefix with "~" and paraphrase in ≤15 words.
 - NEVER fabricate quotes.
 
-KEY MAPPINGS (ES/FR/EN terms → module_id):
-core: datos empleados, fiches salariés, employee data, onboarding, directorio
-time_off: vacaciones, congés, leave, ausencias, absences
-time_tracking: fichaje, control horario, registro jornada, pointage, badgeuse, clock-in
-time_planning: turnos, cuadrantes, planification, shifts, rotas
-compensations: revisión salarial, bandas salariales, revue salariale, salary review
-payroll: nóminas, bulletin de paie, payroll, incidencias nómina
-benefits: retribución flexible, avantages, tickets restaurant, benefits
-expenses: gastos, liquidaciones, notes de frais, expense reports, receipts
-recruitment: ATS, selección, candidatos, recrutement, hiring, candidates
-performance: evaluación desempeño, entretien annuel, performance review, OKRs
-trainings: formación, formation obligatoire, training, compliance courses
-lms: crear cursos, e-learning, content creator, LMS
-engagement: encuesta clima, eNPS, enquête, employee survey, pulse
-complaints: canal denuncias, whistleblower, canal éthique, compliance channel
-procurement: pedidos compra, bons de commande, purchase orders, approval
-projects: coste proyecto, rentabilidad, coût projet, project cost
-headcount_planning: planificación plantilla, budget effectifs, headcount budget
-space: reserva escritorio, flex office, desk booking, hybrid
-software_management: licencias SaaS, gestion licences, license tracking
-it_inventory: inventario IT, équipement, asset management, laptops
-crm: talent pool, bolsa candidatos, vivier, alumni
-one: asistente IA, chatbot RH, AI assistant
-analytics: dashboards RRHH, people analytics, reporting
-wellhub: bienestar, wellness, gimnasio, gym
+PAIN → MODULE MAPPING (look for these prospect symptoms):
+core: employee data scattered across systems, manual onboarding, no employee directory, certificates by email
+time_off: leave tracked in spreadsheets, employees don't know their balance, managers approve by email
+time_tracking: manual timesheets, no clock-in system, overtime not tracked, legal compliance (registro jornada)
+time_planning: shifts planned in Excel/WhatsApp, scheduling conflicts, manual rotas
+compensations: salary reviews in spreadsheets, no salary bands, budget overruns on comp
+payroll: payroll prep takes days, manual data copy, errors after payroll run, discrepancies
+benefits: employees don't know their benefits, flex retribution is manual, enrollment chaos
+expenses: paper receipts, Excel expense reports, slow reimbursement, no spend visibility
+recruitment: candidates lost in email, interview scheduling chaos, no ATS, no hiring metrics
+performance: reviews in Word/email, no goal tracking, managers don't complete reviews
+trainings: training tracked in spreadsheets, compliance training hard to monitor, no audit trail
+lms: training created in PowerPoint, no way to test knowledge, course creation takes weeks
+engagement: annual survey in Google Forms, low participation, no team-level insights, eNPS
+complaints: no whistleblower channel, complaints by email, EU directive compliance
+procurement: purchase orders by email, no approval workflow, maverick spend
+projects: project cost unknown until finished, no time logging per project
+headcount_planning: workforce planning in yearly spreadsheet, no budget impact modeling
+space: desk booking chaos, no office occupancy data, hybrid work management
+software_management: unknown SaaS license count, unused licenses, surprise renewals
+it_inventory: laptops tracked in spreadsheet, forgotten equipment on offboarding
+crm: no talent pool, alumni in email list, manual referrals
+one: HR answers same questions repeatedly, employees can't find policies
+analytics: HR reporting is manual Excel, no dashboards, outdated headcount data
+wellhub: no wellness program, employees ask about gym benefits
 
-MODULES:
+FULL MODULE REFERENCE:
 ${buildModulePromptBlock()}`;
 
 function buildDealContent(data: ProspectData): string {
-  const parts: string[] = [];
-  for (const e of (data.airtable_emails ?? []).slice(0, 15)) {
-    parts.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 600)}`);
+  const sections: string[] = [];
+
+  const calls = (data.airtable_calls ?? []).slice(0, 8);
+  if (calls.length > 0) {
+    sections.push("=== CALL TRANSCRIPTS (highest priority — prospect's voice) ===");
+    for (const c of calls) {
+      sections.push(`[Call ${c.date}] ${c.owner} (${Math.round(c.duration_seconds / 60)} min)\n${c.transcript.slice(0, 4000)}`);
+    }
   }
-  for (const c of (data.airtable_calls ?? []).slice(0, 6)) {
-    parts.push(`[Call ${c.date}] ${c.owner} (${Math.round(c.duration_seconds / 60)} min)\n${c.transcript.slice(0, 3000)}`);
+
+  const emails = data.airtable_emails ?? [];
+  const incoming = emails.filter(e => e.direction === "INCOMING").slice(0, 12);
+  const outgoing = emails.filter(e => e.direction !== "INCOMING").slice(0, 8);
+  if (incoming.length > 0) {
+    sections.push("=== INCOMING EMAILS (from prospect — high priority) ===");
+    for (const e of incoming) {
+      sections.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 800)}`);
+    }
   }
-  for (const n of (data.hubspot_notes ?? []).slice(0, 15)) {
-    parts.push(`[Note ${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 1000)}`);
+  if (outgoing.length > 0) {
+    sections.push("=== OUTGOING EMAILS (from seller — lower priority, only use prospect quotes within) ===");
+    for (const e of outgoing) {
+      sections.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 400)}`);
+    }
   }
-  return parts.join("\n\n");
+
+  const notes = (data.hubspot_notes ?? []).slice(0, 10);
+  if (notes.length > 0) {
+    sections.push("=== INTERNAL NOTES (seller's notes — lowest priority, only use if they describe prospect's situation) ===");
+    for (const n of notes) {
+      sections.push(`[Note ${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 800)}`);
+    }
+  }
+
+  return sections.join("\n\n");
 }
 
 interface Props {
@@ -279,9 +315,9 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       const res = await fetch(`${WORKER}/ai`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-opus-4-6", max_tokens: 2048, temperature: 0,
+          model: "claude-opus-4-6", max_tokens: 4096, temperature: 0,
           system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: `Company: ${data.company_name} | Sector: ${data.sector} | Country: ${data.country} | Employees: ${data.seats}\n\nDeal content:\n\n${content}` }],
+          messages: [{ role: "user", content: `Company: ${data.company_name} | Sector: ${data.sector} | Country: ${data.country} | Employees: ${data.seats}\n\nAnalyze the following deal communications. Focus on pains and problems described by the PROSPECT (not the seller's pitch). Be thorough — identify every module that could help.\n\n${content}` }],
           tools: [AI_TOOL],
           tool_choice: { type: "tool", name: "recommend_modules" },
         }),

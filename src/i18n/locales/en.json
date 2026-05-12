@@ -345,5 +345,10 @@
   "hyp.annual_savings": "Annual savings",
   "hyp.h_pers_mo": "h/pers/mo",
   "hyp.module_total": "Module total",
-  "hyp.total_savings": "Total savings"
+  "hyp.total_savings": "Total savings",
+  "hyp.extra_multipliers": "Additional multipliers",
+  "hyp.onboardings_yr": "Onboardings/yr",
+  "hyp.onboardings_help": "Core HR, Recruitment, IT Inventory",
+  "hyp.expense_submitters": "Expense submitters",
+  "hyp.expense_help": "Expense Management"
 }
