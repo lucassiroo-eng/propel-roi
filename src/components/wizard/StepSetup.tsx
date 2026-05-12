@@ -438,7 +438,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       {/* ═══════════════════════════════════════════════════ */}
       {/* BLOCK (ii): Stakeholder Breakdown                  */}
       {/* ═══════════════════════════════════════════════════ */}
-      <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
         <p className="text-sm font-semibold text-foreground">{t("setup.team_breakdown")}</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
@@ -515,7 +515,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       {/* ═══════════════════════════════════════════════════ */}
       {/* BLOCK (iii): Module Recommendations                */}
       {/* ═══════════════════════════════════════════════════ */}
-      <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-muted/20 p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">
