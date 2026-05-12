@@ -27,7 +27,7 @@ import {
   MODULES_INCLUDED_IN_CORE,
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
-import { getHoursForModule, getEffectiveHours, SAVINGS_DESCRIPTIONS, type Stakeholder } from "@/lib/moduleHours";
+import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -191,14 +191,18 @@ export function StepOffering({
     let monthlyHours = 0;
     const perModule: { moduleId: string; label: string; color: string; monthlyHours: number; annualMoney: number }[] = [];
 
+    const multipliers: RoiMultipliers = {
+      headcounts,
+      onboardings_per_year: roiConfig.onboardings_per_year,
+      expense_submitters: roiConfig.expense_submitters,
+    };
     for (const modId of configuration.configModules) {
       const hours = getEffectiveHours(modId, roiConfig.hours_overrides);
       let modHours = 0;
       let modMoney = 0;
       for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
-        const count = (modId === "expenses" && s === "employee" && roiConfig.expense_submitters)
-          ? roiConfig.expense_submitters
-          : headcounts[s];
+        const entry = MODULE_HOURS.find(e => e.module_id === modId && e.stakeholder === s);
+        const count = entry ? getCountForEntry(entry, multipliers) : headcounts[s];
         const h = hours[s] * count;
         modHours += h;
         modMoney += h * hourly_costs[s];
@@ -731,6 +735,12 @@ function HypothesisView({
     });
   }
 
+  const multipliers: RoiMultipliers = {
+    headcounts,
+    onboardings_per_year: roiConfig.onboardings_per_year,
+    expense_submitters: roiConfig.expense_submitters,
+  };
+
   const moduleRows = configModules.map(moduleId => {
     const catalog = MODULE_CATALOG.find(m => m.id === moduleId);
     const hours = getEffectiveHours(moduleId, roiConfig.hours_overrides);
@@ -738,9 +748,8 @@ function HypothesisView({
     const label = catalog?.label ?? moduleLabel(moduleId);
     const color = catalog?.color ?? "#94A3B8";
     const perStakeholder = (["employee", "hr", "manager"] as Stakeholder[]).map(s => {
-      const count = (moduleId === "expenses" && s === "employee" && roiConfig.expense_submitters)
-        ? roiConfig.expense_submitters
-        : headcounts[s];
+      const entry = MODULE_HOURS.find(e => e.module_id === moduleId && e.stakeholder === s);
+      const count = entry ? getCountForEntry(entry, multipliers) : headcounts[s];
       return {
         stakeholder: s,
         hoursPerPerson: hours[s],

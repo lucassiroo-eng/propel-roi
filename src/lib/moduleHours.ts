@@ -1,91 +1,115 @@
 export type Stakeholder = "employee" | "hr" | "manager";
+export type ScalesWith = "employees" | "hr_ftes" | "managers" | "onboardings" | "submitters";
 
 export interface HoursEntry {
   module_id: string;
   stakeholder: Stakeholder;
   hours_per_month: number;
+  scales_with: ScalesWith;
 }
 
 export const MODULE_HOURS: HoursEntry[] = [
-  { module_id: "core",              stakeholder: "employee", hours_per_month: 0.5 },
-  { module_id: "core",              stakeholder: "hr",       hours_per_month: 10 },
-  { module_id: "core",              stakeholder: "manager",  hours_per_month: 0.8 },
+  // Core
+  { module_id: "core",              stakeholder: "employee", hours_per_month: 0.5,  scales_with: "employees" },
+  { module_id: "core",              stakeholder: "hr",       hours_per_month: 10,   scales_with: "onboardings" },
+  { module_id: "core",              stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
-  { module_id: "time_off",          stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "time_off",          stakeholder: "hr",       hours_per_month: 6.7 },
-  { module_id: "time_off",          stakeholder: "manager",  hours_per_month: 1.2 },
+  // Time Off
+  { module_id: "time_off",          stakeholder: "employee", hours_per_month: 0.2,  scales_with: "employees" },
+  { module_id: "time_off",          stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
+  { module_id: "time_off",          stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
-  { module_id: "time_tracking",     stakeholder: "employee", hours_per_month: 0.4 },
-  { module_id: "time_tracking",     stakeholder: "hr",       hours_per_month: 4 },
-  { module_id: "time_tracking",     stakeholder: "manager",  hours_per_month: 1.7 },
+  // Time Tracking
+  { module_id: "time_tracking",     stakeholder: "employee", hours_per_month: 0.7,  scales_with: "employees" },
+  { module_id: "time_tracking",     stakeholder: "hr",       hours_per_month: 4.0,  scales_with: "hr_ftes" },
+  { module_id: "time_tracking",     stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
-  { module_id: "time_planning",     stakeholder: "employee", hours_per_month: 0.3 },
-  { module_id: "time_planning",     stakeholder: "hr",       hours_per_month: 5 },
-  { module_id: "time_planning",     stakeholder: "manager",  hours_per_month: 3.3 },
+  // Shift Management
+  { module_id: "time_planning",     stakeholder: "employee", hours_per_month: 0.5,  scales_with: "employees" },
+  { module_id: "time_planning",     stakeholder: "hr",       hours_per_month: 5.0,  scales_with: "hr_ftes" },
+  { module_id: "time_planning",     stakeholder: "manager",  hours_per_month: 3.0,  scales_with: "managers" },
 
-  { module_id: "compensations",     stakeholder: "hr",       hours_per_month: 4.2 },
-  { module_id: "compensations",     stakeholder: "manager",  hours_per_month: 0.5 },
+  // Payroll Connect
+  { module_id: "payroll",           stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
 
-  { module_id: "payroll",           stakeholder: "hr",       hours_per_month: 6 },
+  // Expenses
+  { module_id: "expenses",          stakeholder: "employee", hours_per_month: 0.5,  scales_with: "submitters" },
+  { module_id: "expenses",          stakeholder: "hr",       hours_per_month: 8.0,  scales_with: "hr_ftes" },
+  { module_id: "expenses",          stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
-  { module_id: "benefits",          stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "benefits",          stakeholder: "hr",       hours_per_month: 3 },
+  // Compensation
+  { module_id: "compensations",     stakeholder: "hr",       hours_per_month: 4.2,  scales_with: "hr_ftes" },
+  { module_id: "compensations",     stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
-  { module_id: "wellhub",           stakeholder: "employee", hours_per_month: 0.1 },
-  { module_id: "wellhub",           stakeholder: "hr",       hours_per_month: 0.7 },
+  // Benefits
+  { module_id: "benefits",          stakeholder: "hr",       hours_per_month: 3.0,  scales_with: "hr_ftes" },
 
-  { module_id: "complaints",        stakeholder: "hr",       hours_per_month: 0.8 },
+  // Wellhub
+  { module_id: "wellhub",           stakeholder: "hr",       hours_per_month: 0.7,  scales_with: "hr_ftes" },
 
-  { module_id: "engagement",        stakeholder: "employee", hours_per_month: 0.1 },
-  { module_id: "engagement",        stakeholder: "hr",       hours_per_month: 2.5 },
-  { module_id: "engagement",        stakeholder: "manager",  hours_per_month: 0.5 },
+  // Trust Channel
+  { module_id: "complaints",        stakeholder: "hr",       hours_per_month: 0.8,  scales_with: "hr_ftes" },
 
-  { module_id: "performance",       stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "performance",       stakeholder: "hr",       hours_per_month: 3 },
-  { module_id: "performance",       stakeholder: "manager",  hours_per_month: 1 },
+  // Engagement
+  { module_id: "engagement",        stakeholder: "hr",       hours_per_month: 2.5,  scales_with: "hr_ftes" },
+  { module_id: "engagement",        stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
-  { module_id: "trainings",         stakeholder: "employee", hours_per_month: 0.3 },
-  { module_id: "trainings",         stakeholder: "hr",       hours_per_month: 4.7 },
-  { module_id: "trainings",         stakeholder: "manager",  hours_per_month: 0.8 },
+  // Performance
+  { module_id: "performance",       stakeholder: "hr",       hours_per_month: 3.0,  scales_with: "hr_ftes" },
+  { module_id: "performance",       stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
-  { module_id: "lms",               stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "lms",               stakeholder: "hr",       hours_per_month: 3.3 },
-  { module_id: "lms",               stakeholder: "manager",  hours_per_month: 0.4 },
+  // Trainings
+  { module_id: "trainings",         stakeholder: "hr",       hours_per_month: 4.7,  scales_with: "hr_ftes" },
+  { module_id: "trainings",         stakeholder: "manager",  hours_per_month: 0.8,  scales_with: "managers" },
 
-  { module_id: "recruitment",       stakeholder: "hr",       hours_per_month: 5 },
-  { module_id: "recruitment",       stakeholder: "manager",  hours_per_month: 1.5 },
+  // LMS
+  { module_id: "lms",               stakeholder: "hr",       hours_per_month: 3.3,  scales_with: "hr_ftes" },
 
-  { module_id: "expenses",          stakeholder: "employee", hours_per_month: 0.4 },
-  { module_id: "expenses",          stakeholder: "hr",       hours_per_month: 8 },
-  { module_id: "expenses",          stakeholder: "manager",  hours_per_month: 0.8 },
+  // Recruitment
+  { module_id: "recruitment",       stakeholder: "hr",       hours_per_month: 8.0,  scales_with: "onboardings" },
+  { module_id: "recruitment",       stakeholder: "manager",  hours_per_month: 2.5,  scales_with: "onboardings" },
 
-  { module_id: "procurement",       stakeholder: "hr",       hours_per_month: 2.5 },
-  { module_id: "procurement",       stakeholder: "manager",  hours_per_month: 0.5 },
+  // Procurement
+  { module_id: "procurement",       stakeholder: "hr",       hours_per_month: 2.5,  scales_with: "hr_ftes" },
+  { module_id: "procurement",       stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
-  { module_id: "projects",          stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "projects",          stakeholder: "hr",       hours_per_month: 1.7 },
-  { module_id: "projects",          stakeholder: "manager",  hours_per_month: 1.2 },
+  // Project Management
+  { module_id: "projects",          stakeholder: "hr",       hours_per_month: 1.7,  scales_with: "hr_ftes" },
+  { module_id: "projects",          stakeholder: "manager",  hours_per_month: 1.2,  scales_with: "managers" },
 
-  { module_id: "crm",               stakeholder: "hr",       hours_per_month: 1.5 },
+  // CRM
+  { module_id: "crm",               stakeholder: "hr",       hours_per_month: 1.5,  scales_with: "hr_ftes" },
 
-  { module_id: "headcount_planning", stakeholder: "hr",      hours_per_month: 2.5 },
-  { module_id: "headcount_planning", stakeholder: "manager", hours_per_month: 0.5 },
+  // Headcount Planning
+  { module_id: "headcount_planning", stakeholder: "hr",      hours_per_month: 2.5,  scales_with: "hr_ftes" },
+  { module_id: "headcount_planning", stakeholder: "manager", hours_per_month: 0.5,  scales_with: "managers" },
 
-  { module_id: "space",             stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "space",             stakeholder: "hr",       hours_per_month: 0.8 },
+  // Spaces
+  { module_id: "space",             stakeholder: "hr",       hours_per_month: 1.0,  scales_with: "hr_ftes" },
 
-  { module_id: "software_management", stakeholder: "hr",     hours_per_month: 1.7 },
+  // Software Management
+  { module_id: "software_management", stakeholder: "hr",     hours_per_month: 1.7,  scales_with: "hr_ftes" },
 
-  { module_id: "it_inventory",      stakeholder: "hr",       hours_per_month: 2.3 },
+  // IT Inventory
+  { module_id: "it_inventory",      stakeholder: "hr",       hours_per_month: 1.0,  scales_with: "onboardings" },
 
-  { module_id: "one",               stakeholder: "employee", hours_per_month: 0.2 },
-  { module_id: "one",               stakeholder: "hr",       hours_per_month: 1.7 },
+  // Factorial One (AI)
+  { module_id: "one",               stakeholder: "employee", hours_per_month: 0.2,  scales_with: "employees" },
+  { module_id: "one",               stakeholder: "hr",       hours_per_month: 1.0,  scales_with: "hr_ftes" },
 ];
 
 export function getHoursForModule(moduleId: string): Record<Stakeholder, number> {
   const result: Record<Stakeholder, number> = { employee: 0, hr: 0, manager: 0 };
   for (const e of MODULE_HOURS) {
     if (e.module_id === moduleId) result[e.stakeholder] = e.hours_per_month;
+  }
+  return result;
+}
+
+export function getScalesWithForModule(moduleId: string): Record<Stakeholder, ScalesWith> {
+  const result: Record<Stakeholder, ScalesWith> = { employee: "employees", hr: "hr_ftes", manager: "managers" };
+  for (const e of MODULE_HOURS) {
+    if (e.module_id === moduleId) result[e.stakeholder] = e.scales_with;
   }
   return result;
 }
@@ -102,6 +126,22 @@ export function getEffectiveHours(
     hr: o.hr ?? base.hr,
     manager: o.manager ?? base.manager,
   };
+}
+
+export interface RoiMultipliers {
+  headcounts: Record<Stakeholder, number>;
+  onboardings_per_year?: number;
+  expense_submitters?: number;
+}
+
+export function getCountForEntry(entry: HoursEntry, multipliers: RoiMultipliers): number {
+  switch (entry.scales_with) {
+    case "employees":    return multipliers.headcounts.employee;
+    case "hr_ftes":      return multipliers.headcounts.hr;
+    case "managers":     return multipliers.headcounts.manager;
+    case "onboardings":  return (multipliers.onboardings_per_year ?? 0) / 12;
+    case "submitters":   return multipliers.expense_submitters ?? 0;
+  }
 }
 
 export const SAVINGS_DESCRIPTIONS: Record<string, Partial<Record<Stakeholder, string>>> = {
@@ -133,39 +173,32 @@ export const SAVINGS_DESCRIPTIONS: Record<string, Partial<Record<Stakeholder, st
     hr: "Auto-sync from time, leave, expenses and variable comp into payroll. Eliminates manual data prep (~6h/run × 12 runs/year). Discrepancy detection catches errors before submission.",
   },
   benefits: {
-    employee: "Browse and enroll in benefits from self-service portal. Automatic eligibility checks save back-and-forth with HR.",
     hr: "Automated enrollment windows with eligibility rules. Vendor integration syncs selections — no manual reconciliation (~3h/month saved).",
   },
   wellhub: {
-    employee: "Access wellness programs (gym, mental health) directly from HR portal with single sign-on.",
     hr: "Automated usage reporting replaces manual provider data collection. Enrollment management handled by platform.",
   },
   complaints: {
     hr: "Anonymous reporting portal with built-in case management. EU Whistleblower Directive compliance out-of-the-box, case tracking and deadline alerts.",
   },
   engagement: {
-    employee: "Quick pulse surveys and eNPS on mobile — 2-minute completion with automated reminders that boost participation.",
     hr: "Automated survey creation, scheduling and distribution. Real-time dashboards by team/department — no manual Excel analysis (~2.5h/month saved).",
     manager: "Team engagement scores in dashboard with trend indicators. Declining score alerts and suggested action plans for proactive management.",
   },
   performance: {
-    employee: "Structured self-assessment with goal and OKR tracking. Historical reviews accessible in one place — no searching through old documents.",
     hr: "Automated review cycles: launch, reminders, completion tracking and calibration. Replaces Word/Excel templates and manual chasing (~18h/cycle × 2/year).",
     manager: "Pre-populated review forms with historical performance data. Team performance dashboard for 1:1 prep (~3h/cycle × 2 cycles/year).",
   },
   trainings: {
-    employee: "Self-paced training catalogue accessible from mobile. Automatic assignment of mandatory training with completion tracking.",
     hr: "Automated rollout with completion tracking and compliance reporting. Subsidy and tax credit documentation generated automatically (~4.5h/month).",
     manager: "Team completion dashboards with skill gap visibility. Mandatory training compliance status at a glance.",
   },
   lms: {
-    employee: "Self-paced learning paths with progress tracking and knowledge assessments to verify retention.",
     hr: "Course builder with templates and AI-assisted content creation. Content library with version control and completion analytics (~7h/course × 6/year).",
-    manager: "Team learning progress dashboards with skill gap identification and course assignment recommendations.",
   },
   recruitment: {
-    hr: "End-to-end ATS: multi-platform posting, pipeline management, interview scheduling and scorecards. Automated candidate updates (~8h/hire saved).",
-    manager: "Structured interview scorecards replace free-form notes. Side-by-side candidate comparison for data-driven hiring decisions (~2.5h/hire).",
+    hr: "End-to-end ATS: job posting, pipeline, interview scheduling, scorecards. Automated candidate status updates and communication templates (~8h/hire).",
+    manager: "Structured interview scorecards replace free-form notes. Side-by-side candidate comparison for hiring decisions (~2.5h/hire).",
   },
   expenses: {
     employee: "Mobile receipt capture with OCR — snap photo, auto-categorise, submit. Policy checks at submission prevent rejections and back-and-forth.",
@@ -177,7 +210,6 @@ export const SAVINGS_DESCRIPTIONS: Record<string, Partial<Record<Stakeholder, st
     manager: "Self-service purchase requests with real-time budget visibility. Status tracking in-app — no email follow-ups needed.",
   },
   projects: {
-    employee: "Log time against projects from the same clock-in interface. No separate time tracking tool needed.",
     hr: "Project cost and profitability reports auto-generated from time data. Replaces manual cost allocation spreadsheets.",
     manager: "Real-time project dashboards: allocation, budget burn and profitability. Replaces manual tracking and month-end reconciliation (~1h/month).",
   },
@@ -189,7 +221,6 @@ export const SAVINGS_DESCRIPTIONS: Record<string, Partial<Record<Stakeholder, st
     manager: "Approved vs. actual headcount at a glance. Structured position request workflow — no email requisitions needed.",
   },
   space: {
-    employee: "Mobile desk and room booking with visual office maps. See who's in which day for team coordination.",
     hr: "Occupancy analytics and booking rules automated. Capacity planning based on real usage data for real-estate decisions.",
   },
   software_management: {
