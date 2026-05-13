@@ -1,6 +1,21 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { azureFetch } from "../_shared/azureFetch.ts";
+
+const AZURE_URL = "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages";
+async function azureFetch(body: Record<string, unknown>, timeoutMs = 30000): Promise<Response> {
+  const k = Deno.env.get("AZURE_ANTHROPIC_API_KEY"); if (!k) throw new Error("AZURE_ANTHROPIC_API_KEY not set");
+  const h = { "api-key": k, "anthropic-version": "2023-06-01", "Content-Type": "application/json" };
+  const p = JSON.stringify(body);
+  for (let a = 0; a <= 2; a++) {
+    const c = new AbortController(); const t = setTimeout(() => c.abort(), timeoutMs);
+    try {
+      const r = await fetch(AZURE_URL, { method: "POST", headers: h, body: p, signal: c.signal }); clearTimeout(t);
+      if (r.status === 429 && a < 2) { const tx = await r.text(); const m = tx.match(/wait (\d+) seconds/i); const w = m ? Math.min(+m[1], 60) : 25; console.log(`Azure 429 — retry in ${w}s`); await new Promise(r => setTimeout(r, w * 1000)); continue; }
+      return r;
+    } catch (e) { clearTimeout(t); if (a < 2 && (e as Error).name !== "AbortError") { await new Promise(r => setTimeout(r, 3000)); continue; } throw e; }
+  }
+  throw new Error("Azure: max retries exceeded");
+}
 
 const suggestOfferingTool = {
   name: "suggest_offering_changes",
