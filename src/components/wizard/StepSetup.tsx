@@ -190,20 +190,6 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
   const [evidenceLoading, setEvidenceLoading] = useState(false);
   const { headcounts, hourly_costs } = roiConfig;
 
-  const { data: isAdmin } = useQuery({
-    queryKey: ["user_role_setup", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return false;
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .in("role", ["strategy_admin", "super_admin"]);
-      return (roles?.length ?? 0) > 0;
-    },
-    enabled: !!user?.id,
-  });
-
   // Module analysis state
   const [analyzing, setAnalyzing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -736,8 +722,8 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
         <AddModuleDialog open={addOpen} onOpenChange={setAddOpen} modules={availableToAdd} onAdd={addModule} />
 
-        {/* Admin: evidence analysis download */}
-        {isAdmin && hasContent && !analyzing && moduleSuggestions.length > 0 && (
+        {/* Evidence analysis download */}
+        {hasContent && !analyzing && moduleSuggestions.length > 0 && (
           <Button
             variant="outline"
             size="sm"
@@ -747,7 +733,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
           >
             {evidenceLoading
               ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Running 2-pass evidence analysis...</>
-              : <><FlaskConical className="h-3.5 w-3.5 mr-1.5" /> Download evidence analysis (admin)</>}
+              : <><FlaskConical className="h-3.5 w-3.5 mr-1.5" /> Download evidence analysis</>}
           </Button>
         )}
       </div>
