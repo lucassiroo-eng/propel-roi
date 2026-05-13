@@ -1,46 +1,50 @@
-// Edge functions v2 — inlined azureFetch with 429 retry
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const AZURE_URL = "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages";
 async function azureFetch(body: Record<string, unknown>, timeoutMs = 30000): Promise<Response> {
-  const k = Deno.env.get("AZURE_ANTHROPIC_API_KEY"); if (!k) throw new Error("AZURE_ANTHROPIC_API_KEY not set");
+  const k = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
+  if (!k) throw new Error("AZURE_ANTHROPIC_API_KEY not set");
   const h = { "api-key": k, "anthropic-version": "2023-06-01", "Content-Type": "application/json" };
   const p = JSON.stringify(body);
   for (let a = 0; a <= 2; a++) {
-    const c = new AbortController(); const t = setTimeout(() => c.abort(), timeoutMs);
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), timeoutMs);
     try {
-      const r = await fetch(AZURE_URL, { method: "POST", headers: h, body: p, signal: c.signal }); clearTimeout(t);
-      if (r.status === 429 && a < 2) { const tx = await r.text(); const m = tx.match(/wait (\d+) seconds/i); const w = m ? Math.min(+m[1], 60) : 25; console.log(`Azure 429 — retry in ${w}s`); await new Promise(r => setTimeout(r, w * 1000)); continue; }
+      const r = await fetch(AZURE_URL, { method: "POST", headers: h, body: p, signal: c.signal });
+      clearTimeout(t);
+      if (r.status === 429 && a < 2) {
+        const tx = await r.text();
+        const m = tx.match(/wait (\d+) seconds/i);
+        const w = m ? Math.min(+m[1], 60) : 25;
+        console.log("Azure 429 — retry in " + w + "s");
+        await new Promise(r => setTimeout(r, w * 1000));
+        continue;
+      }
       return r;
-    } catch (e) { clearTimeout(t); if (a < 2 && (e as Error).name !== "AbortError") { await new Promise(r => setTimeout(r, 3000)); continue; } throw e; }
+    } catch (e) {
+      clearTimeout(t);
+      if (a < 2 && (e as Error).name !== "AbortError") {
+        await new Promise(r => setTimeout(r, 3000));
+        continue;
+      }
+      throw e;
+    }
   }
   throw new Error("Azure: max retries exceeded");
 }
 
-// Build the shared system prompt + user message
 function buildPrompt(painList: string, country: string, sector: string, notes: string, language: string) {
   const langMap: Record<string, string> = { es: "Spanish", fr: "French", en: "English" };
   const langName = langMap[language] || "English";
+  const c = country || "unknown";
+  const s = sector || "unknown";
 
-  const systemPrompt = `You are a deterministic Factorial HR pain-matching engine. Your only job is to map discovery notes from a sales call to the pains in the Factorial Pains Library, using the trigger phrases attached to each pain as the matching signal.
+  const systemPrompt = "You are a deterministic Factorial HR pain-matching engine. Your only job is to map discovery notes from a sales call to the pains in the Factorial Pains Library, using the trigger phrases attached to each pain as the matching signal.\n\nRead the discovery notes and identify every pain from the library that has evidence in the notes. A pain is a match when the notes contain phrases, symptoms or situations that align with the pain's trigger phrases — explicitly or as a paraphrase.\n\nAvailable pains (each includes trigger phrases to guide matching):\n" + painList + "\n\nRules:\n- Only return pain_ids from the list above\n- Match based on trigger phrases — if the notes contain phrases or symptoms listed in a pain's triggers, select that pain\n- Never invent or modify pain_ids\n- Consider the prospect's country (" + c + ") and sector (" + s + ")\n- Write the rationale for each suggestion in " + langName + " — keep it to 1 short sentence";
 
-Read the discovery notes and identify every pain from the library that has evidence in the notes. A pain is a match when the notes contain phrases, symptoms or situations that align with the pain's trigger phrases — explicitly or as a paraphrase.
-
-Available pains (each includes trigger phrases to guide matching):
-${painList}
-
-Rules:
-- Only return pain_ids from the list above
-- Match based on trigger phrases — if the notes contain phrases or symptoms listed in a pain's triggers, select that pain
-- Never invent or modify pain_ids
-- Consider the prospect's country (${country || "unknown"}) and sector (${sector || "unknown"})
-- Write the rationale for each suggestion in ${langName} — keep it to 1 short sentence`;
-
-  return { systemPrompt, userMessage: `Discovery notes:\n${notes}` };
+  return { systemPrompt, userMessage: "Discovery notes:\n" + notes };
 }
 
-// Tool schema shared by both providers
 const suggestPainsTool = {
   name: "suggest_pains",
   description: "Return suggested pains based on discovery notes",
@@ -67,14 +71,11 @@ function getJwtPayload(authHeader: string): Record<string, any> | null {
   const token = authHeader.replace(/^Bearer\s+/i, "");
   const payload = token.split(".")[1];
   if (!payload) return null;
-
   try {
     const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
     const padded = normalized.padEnd(normalized.length + (4 - normalized.length % 4) % 4, "=");
     return JSON.parse(atob(padded));
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function isAnonRequest(authHeader: string | null): boolean {
@@ -98,12 +99,10 @@ async function callAzure(systemPrompt: string, userMessage: string): Promise<any
       }],
       tool_choice: { type: "tool", name: "suggest_pains" },
     });
-
     if (!res.ok) {
       console.error("Azure AI error:", res.status, await res.text());
       return null;
     }
-
     const data = await res.json();
     const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
     return toolBlock?.input?.suggestions ?? [];
@@ -113,19 +112,16 @@ async function callAzure(systemPrompt: string, userMessage: string): Promise<any
   }
 }
 
-// Fallback: Lovable AI Gateway (OpenAI-compatible)
 async function callLovableAI(systemPrompt: string, userMessage: string): Promise<any[]> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) throw new Error("No AI provider available");
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
-
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: "Bearer " + apiKey,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -136,24 +132,19 @@ async function callLovableAI(systemPrompt: string, userMessage: string): Promise
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-        tools: [{
-          type: "function",
-          function: suggestPainsTool,
-        }],
+        tools: [{ type: "function", function: suggestPainsTool }],
         tool_choice: { type: "function", function: { name: "suggest_pains" } },
       }),
       signal: controller.signal,
     });
     clearTimeout(timeout);
-
     if (!res.ok) {
       const body = await res.text();
       console.error("Lovable AI error:", res.status, body);
-      if (res.status === 429) throw new Error("Rate limited, try again later");
+      if (res.status === 429) throw new Error("Rate limited");
       if (res.status === 402) throw new Error("AI credits exhausted");
-      throw new Error(`Lovable AI error: ${res.status}`);
+      throw new Error("Lovable AI error: " + res.status);
     }
-
     const data = await res.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) return [];
@@ -168,15 +159,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
-
   try {
-    // Auth check — allow unauthenticated requests (preview mode)
     const authHeader = req.headers.get("Authorization");
     if (!isAnonRequest(authHeader)) {
       const supabaseUser = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_ANON_KEY")!,
-        { global: { headers: { Authorization: authHeader } } }
+        { global: { headers: { Authorization: authHeader! } } }
       );
       const { data: { user }, error: authErr } = await supabaseUser.auth.getUser();
       if (authErr || !user) {
@@ -186,7 +175,6 @@ Deno.serve(async (req) => {
         });
       }
     }
-
     const { notes, country, sector, language } = await req.json();
     if (!notes || typeof notes !== "string") {
       return new Response(JSON.stringify({ error: "notes is required" }), {
@@ -194,7 +182,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -204,28 +191,21 @@ Deno.serve(async (req) => {
       .select("pain_id, persona, pain_statement, trigger_phrases")
       .eq("is_archived", false)
       .order("display_order");
-
     const painList = (pains ?? [])
       .map((p: any) => {
-        let line = `- ${p.pain_id}: [${p.persona}] ${p.pain_statement}`;
-        if (p.trigger_phrases) line += `\n  Triggers: ${p.trigger_phrases}`;
+        let line = "- " + p.pain_id + ": [" + p.persona + "] " + p.pain_statement;
+        if (p.trigger_phrases) line += "\n  Triggers: " + p.trigger_phrases;
         return line;
       })
       .join("\n");
-
     const { systemPrompt, userMessage } = buildPrompt(painList, country, sector, notes, language ?? "en");
-
-    // Try Azure first, fallback to Lovable AI
     let suggestions = await callAzure(systemPrompt, userMessage);
     if (suggestions === null) {
       console.log("Azure failed, falling back to Lovable AI Gateway");
       suggestions = await callLovableAI(systemPrompt, userMessage);
     }
-
-    // Validate pain_ids exist
     const validIds = new Set((pains ?? []).map((p: any) => p.pain_id));
     const filtered = (suggestions ?? []).filter((s: any) => validIds.has(s.pain_id));
-
     return new Response(JSON.stringify({ suggestions: filtered }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
