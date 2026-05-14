@@ -157,7 +157,7 @@ Deno.serve(async (req) => {
     try {
       const res = await azureFetch({
         model: "claude-opus-4-6",
-        max_tokens: 1024,
+        max_tokens: 1280,
         temperature: 0,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
@@ -167,9 +167,14 @@ Deno.serve(async (req) => {
 
       if (res.ok) {
         const data = await res.json();
-        const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
-        result = toolBlock?.input ?? null;
-        if (!result) azureError = "No tool_use block in response";
+        if (data.stop_reason === "max_tokens") {
+          azureError = "Response truncated (max_tokens). Output tokens: " + (data.usage?.output_tokens ?? "?");
+          console.error(azureError);
+        } else {
+          const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
+          result = toolBlock?.input ?? null;
+          if (!result) azureError = "No tool_use block in response";
+        }
       } else {
         azureError = "Azure " + res.status + ": " + (await res.text()).slice(0, 300);
         console.error(azureError);
