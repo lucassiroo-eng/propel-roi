@@ -464,25 +464,63 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
   ]);
 
   const html = generateRoiSlideHtml(data);
-  const captureHtml = html.replace(
-    "background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh;",
-    "background: #fff; margin: 0; padding: 0;",
-  );
 
+  // Inject a font-preload script that blocks until Inter is fully loaded,
+  // and swap to a white background with no centering wrapper.
+  const fontReadyScript = `
+    <script>
+      document.fonts.ready.then(function() {
+        // Force the browser to lay out text with the loaded font
+        document.body.offsetHeight;
+        window.__fontsReady = true;
+      });
+    </script>
+  `;
+  const captureHtml = html
+    .replace(
+      "background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh;",
+      "background: #fff; margin: 0; padding: 0;",
+    )
+    .replace("</head>", fontReadyScript + "</head>");
+
+  // Use an offscreen-but-visible iframe so the browser actually renders & rasterises fonts.
+  // opacity:0 prevents painting pixels but the browser still loads fonts;
+  // moving it offscreen with left:-9999px ensures it is invisible to the user.
   const iframe = document.createElement("iframe");
-  iframe.style.cssText = "position:fixed;left:0;top:0;width:1440px;height:810px;border:none;opacity:0;pointer-events:none;z-index:-1;";
+  iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:1440px;height:810px;border:none;pointer-events:none;z-index:-1;";
   document.body.appendChild(iframe);
 
   try {
+    // 1. Wait for the iframe document to load
     await new Promise<void>((resolve) => {
       iframe.onload = () => resolve();
       iframe.srcdoc = captureHtml;
     });
 
-    await new Promise(r => setTimeout(r, 1500));
+    const iframeDoc = iframe.contentDocument!;
+    const iframeWin = iframe.contentWindow!;
 
-    const doc = iframe.contentDocument!;
-    const slide = doc.querySelector(".slide") as HTMLElement;
+    // 2. Wait for fonts to be ready inside the iframe (with a timeout fallback)
+    await Promise.race([
+      iframeDoc.fonts.ready,
+      new Promise(r => setTimeout(r, 5000)),
+    ]);
+
+    // Also wait for the in-page script to confirm fonts are laid out
+    await new Promise<void>((resolve) => {
+      const check = () => {
+        if ((iframeWin as any).__fontsReady) { resolve(); return; }
+        setTimeout(check, 100);
+      };
+      check();
+      // Hard timeout so we never hang
+      setTimeout(resolve, 5000);
+    });
+
+    // Small extra delay for any final paint/reflow after font swap
+    await new Promise(r => setTimeout(r, 300));
+
+    const slide = iframeDoc.querySelector(".slide") as HTMLElement;
     if (!slide) throw new Error("Slide element not found");
 
     const canvas = await html2canvas(slide, {
@@ -492,6 +530,13 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
+      // Ensure html2canvas uses the iframe's own window so it picks up loaded fonts
+      windowWidth: 1440,
+      windowHeight: 810,
+      onclone: (clonedDoc: Document) => {
+        // Force a reflow in the cloned document so font metrics are correct
+        clonedDoc.body.offsetHeight;
+      },
     });
 
     const img = canvas.toDataURL("image/png");
