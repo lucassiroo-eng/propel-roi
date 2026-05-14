@@ -3,6 +3,7 @@ import { MODULE_CATALOG } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
 import {
   getEffectiveHours, getCountForEntry, MODULE_HOURS, SAVINGS_DESCRIPTIONS,
+  getSavingsDescriptions,
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
 
@@ -114,16 +115,14 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   const roiPercent = annualCost > 0 ? Math.round(((totalSavings - annualCost) / annualCost) * 100) : 0;
   const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round((annualCost / totalSavings) * 12)) : 0;
 
+  const langDescs = getSavingsDescriptions(input.language);
   const highlights: RoiSlideHighlight[] = [...modules]
     .sort((a, b) => b.annual_savings - a.annual_savings)
     .slice(0, 3)
     .map(m => {
-      const desc = SAVINGS_DESCRIPTIONS[m.id];
-      const raw = desc?.hr ?? desc?.employee ?? desc?.manager ?? "";
-      const firstSentence = raw.split(/\.\s/)[0];
-      const benefit = firstSentence.length > 90
-        ? firstSentence.substring(0, 87) + "..."
-        : firstSentence + (firstSentence.endsWith(".") ? "" : ".");
+      const desc = langDescs[m.id];
+      const bullets = desc?.hr ?? desc?.employee ?? desc?.manager ?? [];
+      const benefit = bullets[0] ?? "";
       return { module_name: m.name, benefit };
     })
     .filter(h => h.benefit.length > 1);
@@ -477,7 +476,7 @@ interface ModuleDetailRow {
   monthly_savings: number;
   annual_savings: number;
   scales_with: string;
-  description: string;
+  bullets: string[];
 }
 
 interface ModuleDetail {
@@ -493,6 +492,8 @@ interface ModuleDetail {
 function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDetail[] {
   const { roiConfig, configModules } = input;
   const { headcounts, hourly_costs } = roiConfig;
+  const lang = input.language ?? "es";
+  const descs = getSavingsDescriptions(lang);
   const multipliers: RoiMultipliers = {
     headcounts,
     onboardings_per_year: roiConfig.onboardings_per_year,
@@ -516,7 +517,7 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
       const totalHours = hpm * count;
       const monthly = totalHours * hourly_costs[s];
       const annual = monthly * 12;
-      const desc = SAVINGS_DESCRIPTIONS[modId]?.[s] ?? "";
+      const bullets = descs[modId]?.[s] ?? [];
       rows.push({
         stakeholder: s,
         hours_per_person: hpm,
@@ -526,7 +527,7 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
         monthly_savings: Math.round(monthly),
         annual_savings: Math.round(annual),
         scales_with: scalesWith,
-        description: desc,
+        bullets,
       });
       totalH += totalHours;
       totalM += monthly;
@@ -561,9 +562,9 @@ const SCALES_WITH_LABELS: Record<string, Record<string, string>> = {
 
 function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang: string): string {
   const i18n: Record<string, Record<string, string>> = {
-    es: { detail_title: "Detalle del cálculo", stakeholder: "Stakeholder", h_person: "h/pers/mes", count: "Personas", total_h: "Horas totales/mes", eur_h: "€/hora", monthly: "Ahorro/mes", annual: "Ahorro/año", desc: "Descripción", total: "Total módulo", scales: "Escala con", pct_of_total: "del ahorro total" },
-    en: { detail_title: "Calculation detail", stakeholder: "Stakeholder", h_person: "h/pers/month", count: "People", total_h: "Total hours/month", eur_h: "€/hour", monthly: "Savings/month", annual: "Savings/year", desc: "Description", total: "Module total", scales: "Scales with", pct_of_total: "of total savings" },
-    fr: { detail_title: "Détail du calcul", stakeholder: "Partie prenante", h_person: "h/pers/mois", count: "Personnes", total_h: "Heures totales/mois", eur_h: "€/heure", monthly: "Économies/mois", annual: "Économies/an", desc: "Description", total: "Total module", scales: "Proportionnel à", pct_of_total: "des économies totales" },
+    es: { detail_title: "Detalle del cálculo", stakeholder: "Stakeholder", h_person: "h/pers/mes", count: "Personas", total_h: "Horas totales/mes", eur_h: "€/hora", monthly: "Ahorro/mes", annual: "Ahorro/año", total: "Total módulo", pct_of_total: "del ahorro total", hours_month: "Horas/mes", benefits: "Beneficios" },
+    en: { detail_title: "Calculation detail", stakeholder: "Stakeholder", h_person: "h/pers/month", count: "People", total_h: "Total hours/month", eur_h: "€/hour", monthly: "Savings/month", annual: "Savings/year", total: "Module total", pct_of_total: "of total savings", hours_month: "Hours/month", benefits: "Benefits" },
+    fr: { detail_title: "Détail du calcul", stakeholder: "Partie prenante", h_person: "h/pers/mois", count: "Personnes", total_h: "Heures totales/mois", eur_h: "€/heure", monthly: "Économies/mois", annual: "Économies/an", total: "Total module", pct_of_total: "des économies totales", hours_month: "Heures/mois", benefits: "Bénéfices" },
   };
   const t = i18n[lang] ?? i18n.es;
   const sLabels = STAKEHOLDER_LABELS[lang] ?? STAKEHOLDER_LABELS.es;
@@ -591,11 +592,15 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
               <td class="annual-cell">${fmtEur(r.annual_savings)}</td>
             </tr>`).join("\n");
 
-  const descriptionCards = detail.rows.filter(r => r.description).map(r => `
-        <div class="desc-card" style="border-color:${r.stakeholder === "employee" ? "#3B82F6" : r.stakeholder === "hr" ? "#10B981" : "#F59E0B"};">
+  const descriptionCards = detail.rows.filter(r => r.bullets.length > 0).map(r => {
+    const color = r.stakeholder === "employee" ? "#3B82F6" : r.stakeholder === "hr" ? "#10B981" : "#F59E0B";
+    const lis = r.bullets.map(b => `<li>${escHtml(b)}</li>`).join("");
+    return `
+        <div class="desc-card" style="border-color:${color};">
           <div class="desc-label">${sLabels[r.stakeholder]}</div>
-          <div class="desc-text">${escHtml(r.description)}</div>
-        </div>`).join("\n");
+          <ul class="desc-bullets">${lis}</ul>
+        </div>`;
+  }).join("\n");
 
   return `
   <div class="slide detail-slide">
@@ -613,7 +618,7 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
       <div class="kpi-strip">
         <div class="detail-kpi" style="border-color:${detail.color};">
           <div class="detail-kpi-value" style="color:${detail.color};">${Math.round(detail.total_hours)}h</div>
-          <div class="detail-kpi-label">${t.total_h.replace("/mes", "").replace("/month", "").replace("/mois", "")}/mes</div>
+          <div class="detail-kpi-label">${t.hours_month}</div>
         </div>
         <div class="detail-kpi" style="border-color:${detail.color};">
           <div class="detail-kpi-value" style="color:${detail.color};">${fmtEur(detail.total_monthly)}</div>
@@ -655,7 +660,7 @@ ${tableRows}
         </tbody>
       </table>
 
-      ${descriptionCards.length > 0 ? `<div class="desc-section">${descriptionCards}</div>` : ""}
+      ${descriptionCards.length > 0 ? `<div class="desc-section"><div class="desc-section-title">${t.benefits}</div><div class="desc-cards">${descriptionCards}</div></div>` : ""}
     </div>
   </div>`;
 }
@@ -844,14 +849,18 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .total-val { font-weight: 700; color: #374151; }
   .total-annual { font-size: 18px; font-weight: 800; color: #FF355E !important; }
 
-  .desc-section { display: flex; gap: 14px; flex-wrap: wrap; }
+  .desc-section { display: flex; flex-direction: column; gap: 10px; }
+  .desc-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9CA3AF; }
+  .desc-cards { display: flex; gap: 14px; flex-wrap: wrap; }
   .desc-card {
     flex: 1; min-width: 280px;
     background: #F9FAFB; border-radius: 12px; padding: 14px 18px;
     border-left: 4px solid; font-size: 12px; color: #4B5563; line-height: 1.6;
   }
   .desc-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; color: #6B7280; }
-  .desc-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+  .desc-bullets { list-style: none; padding: 0; margin: 0; }
+  .desc-bullets li { position: relative; padding-left: 14px; margin-bottom: 4px; }
+  .desc-bullets li::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.4; }
 </style>
 </head>
 <body>

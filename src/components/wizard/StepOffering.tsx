@@ -755,7 +755,7 @@ export function StepOffering({
               {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
               Descargar PDF
             </Button>
-            <Button onClick={handleDownloadHtml} variant="outline" className="flex-1 gap-2" size="lg">
+            <Button onClick={handleDownloadHtml} className="flex-1 gap-2 bg-gray-800 hover:bg-gray-700 text-white" size="lg">
               <Globe className="h-4 w-4" />
               Descargar HTML
             </Button>
