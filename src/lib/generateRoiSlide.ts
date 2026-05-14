@@ -41,6 +41,8 @@ export interface RoiSlideInput {
   country: string;
   language: string;
   configModules: string[];
+  bundleName?: string;
+  bundleModules?: string[];
   roiConfig: RoiConfig;
   annualCost: number;
 }
@@ -50,6 +52,7 @@ export interface RoiSlideModule {
   name: string;
   hours_per_month: number;
   annual_savings: number;
+  in_bundle: boolean;
 }
 
 export interface RoiSlideHighlight {
@@ -62,6 +65,7 @@ export interface RoiSlideData {
   company_logo_url?: string;
   date: string;
   language: string;
+  bundle_name?: string;
   modules: RoiSlideModule[];
   total_hours: number;
   total_annual_savings: number;
@@ -78,6 +82,7 @@ export interface RoiSlideData {
 export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   const { roiConfig, configModules, annualCost } = input;
   const { headcounts, hourly_costs } = roiConfig;
+  const bundleSet = new Set(input.bundleModules ?? []);
   const multipliers: RoiMultipliers = {
     headcounts,
     onboardings_per_year: roiConfig.onboardings_per_year,
@@ -106,6 +111,7 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
         name: catalog?.label ?? moduleLabel(modId),
         hours_per_month: Math.round(modHours),
         annual_savings: Math.round(modMoney * 12),
+        in_bundle: bundleSet.has(modId),
       });
       totalHours += modHours;
       totalSavings += modMoney * 12;
@@ -132,6 +138,7 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
     company_logo_url: input.companyLogoUrl,
     date: fmtDate(input.language),
     language: input.language,
+    bundle_name: input.bundleName,
     modules,
     total_hours: Math.round(totalHours),
     total_annual_savings: Math.round(totalSavings),
@@ -165,6 +172,7 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
       payback: "retorno en",
       months: "meses",
       highlights_title: "Impacto por módulo",
+      addon_label: "Add-on",
       footer: `Estimación basada en un estudio de la consultoría interna de Factorial, contando con ${data.total_employees} usuarios, ${data.hr_count} administrador${data.hr_count > 1 ? "es" : ""} de RRHH, ${data.manager_count} gerentes y ${data.onboardings} altas al año.`,
     },
     en: {
@@ -180,6 +188,7 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
       payback: "payback in",
       months: "months",
       highlights_title: "Impact per module",
+      addon_label: "Add-on",
       footer: `Estimate based on Factorial's internal consulting study, with ${data.total_employees} users, ${data.hr_count} HR admin${data.hr_count > 1 ? "s" : ""}, ${data.manager_count} managers and ${data.onboardings} annual hires.`,
     },
     fr: {
@@ -195,6 +204,7 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
       payback: "retour en",
       months: "mois",
       highlights_title: "Impact par module",
+      addon_label: "Add-on",
       footer: `Estimation basée sur une étude du cabinet interne de Factorial, avec ${data.total_employees} utilisateurs, ${data.hr_count} administrateur${data.hr_count > 1 ? "s" : ""} RH, ${data.manager_count} managers et ${data.onboardings} recrutements par an.`,
     },
   };
@@ -227,14 +237,37 @@ function generateSummarySlideBody(data: RoiSlideData): string {
   const totalFont = mc <= 3 ? 24 : mc <= 5 ? 22 : 20;
   const totalLabelFont = mc <= 3 ? 17 : mc <= 5 ? 16 : 15;
 
-  const moduleRows = data.modules.map((m, i) => {
+  const bundleMods = data.modules.filter(m => m.in_bundle);
+  const addonMods = data.modules.filter(m => !m.in_bundle);
+  const hasBundleName = !!data.bundle_name;
+  const hasAddons = addonMods.length > 0;
+  const groupHeaderFont = mc <= 5 ? 11 : 10;
+
+  const renderModRow = (m: RoiSlideModule, i: number) => {
     const color = PILL_COLORS[i % PILL_COLORS.length];
     return `          <tr>
             <td><span class="pill" style="background:${color};padding:${pillPadV}px ${pillPadH}px;font-size:${pillFont}px;"><span class="dot" style="width:${dotSize}px;height:${dotSize}px;"></span>${escHtml(m.name)}</span></td>
             <td style="font-size:${cellFont}px;">${m.hours_per_month}h</td>
             <td style="font-size:${cellFont}px;">${fmtEur(m.annual_savings)}</td>
           </tr>`;
-  }).join("\n");
+  };
+
+  let moduleRows: string;
+  if (hasBundleName && (bundleMods.length > 0 || hasAddons)) {
+    const bundleHeader = `          <tr class="group-header"><td colspan="3"><span class="group-label">&#9654; ${escHtml(data.bundle_name!)}</span></td></tr>`;
+    const bundleRows = bundleMods.map((m) => {
+      const idx = data.modules.indexOf(m);
+      return renderModRow(m, idx);
+    }).join("\n");
+    const addonHeader = hasAddons ? `          <tr class="group-header"><td colspan="3"><span class="group-label">&#43; ${t.addon_label}</span></td></tr>` : "";
+    const addonRows = addonMods.map((m) => {
+      const idx = data.modules.indexOf(m);
+      return renderModRow(m, idx);
+    }).join("\n");
+    moduleRows = [bundleHeader, bundleRows, addonHeader, addonRows].filter(Boolean).join("\n");
+  } else {
+    moduleRows = data.modules.map((m, i) => renderModRow(m, i)).join("\n");
+  }
 
   const highlightCards = data.highlights.map((h, i) => {
     const color = PILL_COLORS[i % PILL_COLORS.length];
@@ -330,6 +363,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   const mc = data.modules.length;
   const rowPad = mc <= 3 ? 16 : mc <= 5 ? 12 : mc <= 7 ? 9 : 7;
   const cellFont = mc <= 3 ? 18 : mc <= 5 ? 16 : 15;
+  const groupHeaderFont = mc <= 5 ? 11 : 10;
 
   const slideBody = generateSummarySlideBody(data);
 
@@ -425,6 +459,9 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
   }
   .pill .dot { border-radius: 50%; background: rgba(255,255,255,0.5); }
+
+  .group-header td { padding: ${Math.max(rowPad - 4, 4)}px 0 ${Math.max(rowPad - 6, 2)}px 0; border-bottom: none; }
+  .group-label { font-size: ${groupHeaderFont}px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9CA3AF; }
 
   .total-row td { padding-top: ${rowPad + 4}px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
 
@@ -763,6 +800,9 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
   }
   .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+
+  .group-header td { padding: 6px 0 4px 0; border-bottom: none; }
+  .group-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9CA3AF; }
 
   .module-table .total-row td { padding-top: 16px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
   .module-table .total-row .total-label { font-size: 16px; font-weight: 700; color: #1F2937; }

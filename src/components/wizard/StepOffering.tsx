@@ -275,6 +275,8 @@ export function StepOffering({
       country: state.prospect.country,
       language: lang,
       configModules: configuration.configModules,
+      bundleName: selectedAnalysis?.bundle.bundle_name,
+      bundleModules: selectedAnalysis?.bundleModules,
       roiConfig,
       annualCost: effectiveCost,
     };
