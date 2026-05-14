@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, CheckCircle, LogIn, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import factorialLogo from "@/assets/factorial-logo-red.svg";
 
 export default function Login() {
@@ -17,6 +19,25 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [resetting, setResetting] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError(t("login.placeholder"));
+      return;
+    }
+    setResetting(true);
+    setError(null);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin + import.meta.env.BASE_URL,
+    });
+    setResetting(false);
+    if (error) {
+      toast.error(t("login.reset_error"));
+    } else {
+      toast.success(t("login.reset_sent"));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +140,18 @@ export default function Login() {
                   required
                   minLength={6}
                 />
+                {!isSignUp && (
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
+                      onClick={handleForgotPassword}
+                      disabled={resetting}
+                    >
+                      {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
+                    </button>
+                  </div>
+                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (

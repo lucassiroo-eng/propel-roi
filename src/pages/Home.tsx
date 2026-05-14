@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, TrendingUp, Clock, Loader2, Sparkles, ChevronRight, BarChart3, FileText, History } from "lucide-react";
+import { Plus, LogOut, TrendingUp, Clock, Loader2, Sparkles, ChevronRight, ChevronDown, BarChart3, FileText, History } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -18,6 +19,13 @@ const STATUS_COLOR: Record<string, string> = {
   generated: "bg-violet-50 text-violet-600",
 };
 
+interface SessionEntry {
+  id: string;
+  status: string;
+  roi_eur: number | null;
+  updated_at: string;
+}
+
 interface CompanyGroup {
   prospectId: string;
   companyName: string;
@@ -25,8 +33,7 @@ interface CompanyGroup {
   seats: number | null;
   sector: string | null;
   hubspotUrl: string | null;
-  latestSession: { id: string; status: string; roi_eur: number | null; updated_at: string };
-  sessionCount: number;
+  sessions: SessionEntry[];
   hasDocument: boolean;
 }
 
@@ -34,6 +41,7 @@ export default function Home() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
+  const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["roi_sessions"],
@@ -54,6 +62,7 @@ export default function Home() {
       const prospect = s.prospects;
       if (!prospect) continue;
       const pid = prospect.id ?? s.prospect_id;
+      const entry: SessionEntry = { id: s.id, status: s.status, roi_eur: s.roi_eur, updated_at: s.updated_at };
       if (!map.has(pid)) {
         map.set(pid, {
           prospectId: pid,
@@ -62,13 +71,12 @@ export default function Home() {
           seats: prospect.seats ?? null,
           sector: prospect.sector ?? null,
           hubspotUrl: prospect.hubspot_deal_url ?? null,
-          latestSession: { id: s.id, status: s.status, roi_eur: s.roi_eur, updated_at: s.updated_at },
-          sessionCount: 1,
+          sessions: [entry],
           hasDocument: s.status === "generated",
         });
       } else {
         const group = map.get(pid)!;
-        group.sessionCount++;
+        group.sessions.push(entry);
         if (s.status === "generated") group.hasDocument = true;
       }
     }
@@ -136,7 +144,7 @@ export default function Home() {
           </div>
         </button>
 
-        {/* Companies list — 1 entry per company */}
+        {/* Companies list — 1 entry per company, expandable history */}
         <div>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{t("home.recent")}</h2>
 
@@ -151,62 +159,110 @@ export default function Home() {
             </div>
           ) : (
             <div className="space-y-3">
-              {companies.map((c) => (
-                <button
-                  key={c.prospectId}
-                  onClick={() => navigate(`/session/${c.latestSession.id}`)}
-                  className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border border-white/80 p-4 text-left hover:bg-white transition-colors hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{FLAG[c.country] ?? "\u{1F30D}"}</span>
-                        <span className="font-semibold text-gray-800 truncate text-sm">
-                          {c.companyName}
-                        </span>
+              {companies.map((c) => {
+                const latest = c.sessions[0];
+                const isExpanded = expandedCompany === c.prospectId;
+                const hasHistory = c.sessions.length > 1;
+
+                return (
+                  <div key={c.prospectId} className="rounded-2xl bg-white/80 backdrop-blur-sm border border-white/80 overflow-hidden hover:shadow-sm transition-shadow">
+                    {/* Main card — opens latest session */}
+                    <button
+                      onClick={() => navigate(`/session/${latest.id}`)}
+                      className="w-full p-4 text-left hover:bg-white/60 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{FLAG[c.country] ?? "\u{1F30D}"}</span>
+                            <span className="font-semibold text-gray-800 truncate text-sm">
+                              {c.companyName}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {c.seats && (
+                              <span className="text-[11px] text-gray-400">{t("home.seats", { count: c.seats })}</span>
+                            )}
+                            {c.sector && (
+                              <span className="text-[11px] text-gray-400 truncate max-w-[140px]">{c.sector}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[latest.status] ?? "bg-gray-100 text-gray-500"}`}>
+                            {t(statusI18nKey(latest.status))}
+                          </span>
+                          {latest.roi_eur != null && (
+                            <span className="text-sm font-bold" style={{ color: "#e05c75" }}>
+                              €{Number(latest.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
-                        {c.seats && (
-                          <span className="text-[11px] text-gray-400">{t("home.seats", { count: c.seats })}</span>
-                        )}
-                        {c.sector && (
-                          <span className="text-[11px] text-gray-400 truncate max-w-[140px]">{c.sector}</span>
-                        )}
+                      <div className="flex items-center justify-between mt-2.5">
+                        <div className="flex items-center gap-1 text-[11px] text-gray-300">
+                          <Clock className="h-3 w-3" />
+                          {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {c.hasDocument && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
+                              <FileText className="h-2.5 w-2.5" />
+                              ROI
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-1.5 shrink-0">
-                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[c.latestSession.status] ?? "bg-gray-100 text-gray-500"}`}>
-                        {t(statusI18nKey(c.latestSession.status))}
-                      </span>
-                      {c.latestSession.roi_eur != null && (
-                        <span className="text-sm font-bold" style={{ color: "#e05c75" }}>
-                          €{Number(c.latestSession.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
-                        </span>
-                      )}
-                    </div>
+                    </button>
+
+                    {/* History toggle */}
+                    {hasHistory && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedCompany(isExpanded ? null : c.prospectId);
+                          }}
+                          className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-gray-100 text-[11px] font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-50/50 transition-colors"
+                        >
+                          <History className="h-3 w-3" />
+                          {c.sessions.length} versiones
+                          {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                        </button>
+
+                        {isExpanded && (
+                          <div className="border-t border-gray-100 bg-gray-50/30">
+                            {c.sessions.map((sess, i) => (
+                              <button
+                                key={sess.id}
+                                onClick={() => navigate(`/session/${sess.id}`)}
+                                className={`w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-white/60 transition-colors ${i > 0 ? "border-t border-gray-100/60" : ""}`}
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[sess.status] ?? "bg-gray-100 text-gray-500"}`}>
+                                    {t(statusI18nKey(sess.status))}
+                                  </span>
+                                  <span className="text-[11px] text-gray-400">
+                                    {formatDistanceToNow(new Date(sess.updated_at), { addSuffix: true, locale })}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {sess.roi_eur != null && (
+                                    <span className="text-xs font-semibold" style={{ color: "#e05c75" }}>
+                                      €{Number(sess.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
+                                    </span>
+                                  )}
+                                  <ChevronRight className="h-3 w-3 text-gray-300" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between mt-2.5">
-                    <div className="flex items-center gap-1 text-[11px] text-gray-300">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(c.latestSession.updated_at), { addSuffix: true, locale })}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {c.hasDocument && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
-                          <FileText className="h-2.5 w-2.5" />
-                          ROI
-                        </span>
-                      )}
-                      {c.sessionCount > 1 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
-                          <History className="h-2.5 w-2.5" />
-                          {c.sessionCount}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

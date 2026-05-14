@@ -19,6 +19,9 @@
   "login.no_account": "No tienes cuenta?",
   "login.check_inbox": "Revisa tu bandeja de entrada de <strong>{{email}}</strong> para verificar tu cuenta.",
   "login.domain_error": "Solo se permiten emails @factorial.co",
+  "login.forgot_password": "He olvidado mi contrasena",
+  "login.reset_sent": "Te hemos enviado un email para restablecer tu contrasena",
+  "login.reset_error": "Error al enviar el email de recuperacion",
 
   "home.greeting": "Hola",
   "home.new_session": "Nueva sesion ROI",
