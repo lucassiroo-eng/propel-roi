@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Check, X, Loader2, Plus, FileDown, FileText, Image, Copy, Code,
+  Check, X, Loader2, Plus, FileDown, Image,
   ExternalLink, Package, Star, Save, Eye, Globe,
   ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search, UserPlus, Receipt,
 } from "lucide-react";
@@ -28,8 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { generateRoiPdf, type RoiPdfData } from "@/lib/generateRoiPdf";
-import { buildRoiSlideData, generateRoiSlideHtml, generateUserPrompt, generateRoiSlidePdf } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -82,7 +81,6 @@ export function StepOffering({
   const [showDetails, setShowDetails] = useState(false);
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
   const [slideHtml, setSlideHtml] = useState("");
-  const [slidePrompt, setSlidePrompt] = useState("");
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -261,26 +259,6 @@ export function StepOffering({
     finally { setGeneratingPptx(false); }
   };
 
-  function handleDownloadPdf() {
-    if (!configuration || !roiConfig || !state) return;
-    const pdfData: RoiPdfData = {
-      companyName: state.prospect.company_name || "Company",
-      contactName: state.prospect.contact_name || "",
-      contactEmail: state.prospect.contact_email || "",
-      seats: seats,
-      country: state.prospect.country,
-      headcounts: roiConfig.headcounts,
-      configModules: configuration.configModules,
-      moduleSuggestions,
-      roiConfig,
-      bundleName: selectedAnalysis?.bundle.bundle_name ?? "Bundle",
-      bundleAnnual: effectiveCost,
-      discountPct: 0,
-    };
-    const doc = generateRoiPdf(pdfData);
-    doc.save(`ROI-${state.prospect.company_name || "report"}.pdf`);
-  }
-
   function getSlideData() {
     if (!configuration || !roiConfig || !state) return null;
     const lang = state.prospect.country === "FR" ? "fr" : "es";
@@ -295,23 +273,21 @@ export function StepOffering({
     });
   }
 
+  function handlePreviewSlide() {
+    const data = getSlideData();
+    if (!data) return;
+    setSlideHtml(generateRoiSlideHtml(data));
+    setSlideDialogOpen(true);
+  }
+
   function handleDownloadSlidePdf() {
     const data = getSlideData();
     if (!data) return;
     try {
       generateRoiSlidePdf(data);
-      toast.success("ROI Slide opened — use Save as PDF in the print dialog");
     } catch (err: any) {
       toast.error("Failed to open slide: " + err.message);
     }
-  }
-
-  function handleShowSlidePrompt() {
-    const data = getSlideData();
-    if (!data) return;
-    setSlideHtml(generateRoiSlideHtml(data));
-    setSlidePrompt(generateUserPrompt(data));
-    setSlideDialogOpen(true);
   }
 
   function selectPack(bundleId: number) { onChange({ bundle_id: bundleId }); }
@@ -689,22 +665,14 @@ export function StepOffering({
       {/* 5. ACTION BUTTONS                          */}
       {/* ═══════════════════════════════════════════ */}
       <div className="space-y-3 pt-2">
-        <div className="grid grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <Button variant="outline" size="lg" onClick={() => setHypothesisOpen(true)} className="gap-2">
             <Eye className="h-4 w-4" />
             {t("offering.check_hypothesis")}
           </Button>
-          <Button size="lg" onClick={handleDownloadPdf} disabled={!configuration || !roiConfig} className="gap-2">
-            <FileDown className="h-4 w-4" />
-            ROI PDF
-          </Button>
-          <Button variant="outline" size="lg" onClick={handleDownloadSlidePdf} disabled={!configuration || !roiConfig} className="gap-2">
+          <Button size="lg" onClick={handlePreviewSlide} disabled={!configuration || !roiConfig} className="gap-2">
             <Image className="h-4 w-4" />
             ROI Slide
-          </Button>
-          <Button variant="ghost" size="lg" onClick={handleShowSlidePrompt} disabled={!configuration || !roiConfig} className="gap-2">
-            <Code className="h-4 w-4" />
-            Slide Prompt
           </Button>
           <Button variant="secondary" size="lg" onClick={onSave} className="gap-2">
             <Save className="h-4 w-4" />
@@ -724,41 +692,31 @@ export function StepOffering({
         )}
       </div>
 
-      {/* Slide Prompt dialog */}
+      {/* ROI Slide preview dialog */}
       <Dialog open={slideDialogOpen} onOpenChange={setSlideDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Code className="h-5 w-5" />
-              ROI Slide — User Prompt
+        <DialogContent className="max-w-[960px] p-0 overflow-hidden">
+          <DialogHeader className="px-6 pt-5 pb-3">
+            <DialogTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                ROI Slide
+              </span>
+              <Button onClick={handleDownloadSlidePdf} className="gap-2">
+                <FileDown className="h-4 w-4" />
+                Descargar PDF
+              </Button>
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              This is the JSON user prompt for generating the ROI slide. Use it with the system prompt in any LLM.
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                className="gap-2 flex-1"
-                onClick={() => {
-                  navigator.clipboard.writeText(slidePrompt);
-                  toast.success("User prompt copied");
-                }}
-              >
-                <Copy className="h-4 w-4" />
-                Copy JSON Prompt
-              </Button>
-              <Button
-                variant="outline"
-                className="gap-2 flex-1"
-                onClick={handleDownloadSlidePdf}
-              >
-                <FileDown className="h-4 w-4" />
-                Download PDF
-              </Button>
+          <div className="px-6 pb-6">
+            <div className="rounded-lg border overflow-hidden bg-gray-100" style={{ height: "516px" }}>
+              <iframe
+                srcDoc={slideHtml}
+                className="border-0"
+                style={{ width: "1440px", height: "810px", transform: "scale(0.636)", transformOrigin: "top left" }}
+                sandbox="allow-same-origin"
+                title="ROI Slide Preview"
+              />
             </div>
-            <pre className="px-4 py-3 text-xs rounded-lg border bg-muted/20 overflow-x-auto max-h-96 overflow-y-auto">{slidePrompt}</pre>
           </div>
         </DialogContent>
       </Dialog>
