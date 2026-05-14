@@ -56,35 +56,35 @@ const MODULE_REF_BLOCK = buildModulePromptBlock();
 function buildDealContent(data: ProspectData): string {
   const sections: string[] = [];
 
-  const calls = (data.airtable_calls ?? []).slice(0, 8);
+  const calls = (data.airtable_calls ?? []).slice(0, 5);
   if (calls.length > 0) {
-    sections.push("=== CALL TRANSCRIPTS (highest priority — prospect's voice) ===");
+    sections.push("=== CALLS ===");
     for (const c of calls) {
-      sections.push(`[Call ${c.date}] ${c.owner} (${Math.round(c.duration_seconds / 60)} min)\n${c.transcript.slice(0, 4000)}`);
+      sections.push(`[Call ${c.date}] ${c.owner}\n${c.transcript.slice(0, 1500)}`);
     }
   }
 
   const emails = data.airtable_emails ?? [];
-  const incoming = emails.filter(e => e.direction === "INCOMING").slice(0, 12);
-  const outgoing = emails.filter(e => e.direction !== "INCOMING").slice(0, 8);
+  const incoming = emails.filter(e => e.direction === "INCOMING").slice(0, 8);
+  const outgoing = emails.filter(e => e.direction !== "INCOMING").slice(0, 5);
   if (incoming.length > 0) {
-    sections.push("=== INCOMING EMAILS (from prospect — high priority) ===");
+    sections.push("=== INCOMING EMAILS ===");
     for (const e of incoming) {
-      sections.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 800)}`);
+      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 500)}`);
     }
   }
   if (outgoing.length > 0) {
-    sections.push("=== OUTGOING EMAILS (from seller — lower priority, only use prospect quotes within) ===");
+    sections.push("=== OUTGOING EMAILS ===");
     for (const e of outgoing) {
-      sections.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 400)}`);
+      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 300)}`);
     }
   }
 
-  const notes = (data.hubspot_notes ?? []).slice(0, 10);
+  const notes = (data.hubspot_notes ?? []).slice(0, 5);
   if (notes.length > 0) {
-    sections.push("=== INTERNAL NOTES (seller's notes — lowest priority, only use if they describe prospect's situation) ===");
+    sections.push("=== NOTES ===");
     for (const n of notes) {
-      sections.push(`[Note ${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 800)}`);
+      sections.push(`[${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 500)}`);
     }
   }
 

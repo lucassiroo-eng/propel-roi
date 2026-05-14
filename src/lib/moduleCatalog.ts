@@ -530,6 +530,6 @@ export const INTEGRATION_MODULES = new Set([
 
 export function buildModulePromptBlock(): string {
   return MODULE_CATALOG.map(m =>
-    `- **${m.id}** (${m.label}) [${m.category}]\n  Signals: ${m.signals.join("; ")}\n  Saves: ${m.savings.join("; ")}`
+    `- ${m.id}: ${m.label} | ${m.signals.join("; ")}`
   ).join("\n");
 }

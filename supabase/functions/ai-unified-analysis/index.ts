@@ -34,7 +34,6 @@ async function azureFetch(body: Record<string, unknown>, timeoutMs = 30000): Pro
   throw new Error("Azure: max retries exceeded");
 }
 
-// Fallback: Lovable AI Gateway
 async function lovableFetch(system: string, user: string, tool: any): Promise<any> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) { console.log("LOVABLE_API_KEY not set, skipping fallback"); return null; }
@@ -46,7 +45,7 @@ async function lovableFetch(system: string, user: string, tool: any): Promise<an
       headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
-        max_tokens: 4096,
+        max_tokens: 1536,
         temperature: 0,
         messages: [
           { role: "system", content: system },
@@ -76,7 +75,6 @@ async function lovableFetch(system: string, user: string, tool: any): Promise<an
   }
 }
 
-// ── Scoring ──
 const STRENGTH: Record<string, number> = { strong: 0.9, moderate: 0.6, weak: 0.3 };
 const ATTR_MULT: Record<string, number> = {
   client_verbatim: 1.0, client_paraphrase: 0.85, pae_interpretation: 0.65, inferred: 0.4,
@@ -94,10 +92,9 @@ function confidenceLabel(c: number): "strong" | "possible" {
   return c >= 0.55 ? "strong" : "possible";
 }
 
-// ── Tool schema ──
 const ANALYSIS_TOOL = {
   name: "analyze_deal",
-  description: "Extract evidence from deal content and map to Factorial modules and pains",
+  description: "Extract max 15 evidence items from deal content, map to modules and pains",
   input_schema: {
     type: "object",
     properties: {
@@ -106,34 +103,14 @@ const ANALYSIS_TOOL = {
         items: {
           type: "object",
           properties: {
-            quote: {
-              type: "string",
-              description: "The evidence text. For client_verbatim: copy-paste exact words in original language. For other attributions: write a clear contextual sentence.",
-            },
-            attribution: {
-              type: "string",
-              enum: ["client_verbatim", "client_paraphrase", "pae_interpretation", "inferred"],
-            },
-            strength: {
-              type: "string",
-              enum: ["strong", "moderate", "weak"],
-            },
-            source_type: {
-              type: "string",
-              enum: ["call", "incoming_email", "outgoing_email", "note"],
-            },
-            source_date: { type: "string", description: "Date of source if available (YYYY-MM-DD)" },
-            source_who: { type: "string", description: "Who said it — role or name if known (e.g. 'HR Director', 'CFO', 'the prospect', 'María García')" },
-            modules: {
-              type: "array",
-              items: { type: "string" },
-              description: "Module IDs this evidence supports",
-            },
-            pains: {
-              type: "array",
-              items: { type: "string" },
-              description: "Pain IDs from pain_library this evidence supports (if any match)",
-            },
+            quote: { type: "string", description: "Max 1 sentence. Verbatim: exact prospect words. Other: contextual summary." },
+            attribution: { type: "string", enum: ["client_verbatim", "client_paraphrase", "pae_interpretation", "inferred"] },
+            strength: { type: "string", enum: ["strong", "moderate", "weak"] },
+            source_type: { type: "string", enum: ["call", "incoming_email", "outgoing_email", "note"] },
+            source_date: { type: "string" },
+            source_who: { type: "string" },
+            modules: { type: "array", items: { type: "string" } },
+            pains: { type: "array", items: { type: "string" } },
           },
           required: ["quote", "attribution", "strength", "source_type", "source_who", "modules"],
         },
@@ -144,54 +121,30 @@ const ANALYSIS_TOOL = {
 };
 
 function buildSystemPrompt(moduleBlock: string, painBlock: string, country: string, sector: string, seats: number): string {
-  return `You are an expert Factorial HR evidence-extraction engine. You read deal communications and extract every piece of evidence about the PROSPECT's pains, problems, and needs — then classify which Factorial modules and pains each piece of evidence supports.
+  return `Evidence-extraction engine for Factorial HR. Extract prospect pains from deal communications and map to modules/pains.
 
-CRITICAL — WHAT COUNTS AS EVIDENCE:
-1. ONLY the PROSPECT's (client's) pains, problems, complaints, workflows, and situations.
-2. IGNORE the seller's pitch entirely. When the seller says "le hemos hablado de X", "le propuse Y", "Factorial tiene Z" — that is NOT evidence. Skip it.
-3. Look for SYMPTOMS: "tardamos 3 horas...", "lo hacemos en Excel...", "no tenemos forma de...", "cada mes nos pasa..."
+ONLY extract the PROSPECT's problems — ignore seller pitch. Max 15 evidence items, prioritize strong signals.
 
-CONTENT PRIORITY:
-1. CALL TRANSCRIPTS — highest. The prospect's voice reveals real pains.
-2. INCOMING EMAILS — from the prospect describing their situation.
-3. OUTGOING EMAILS — low value, only if they contain quoted replies from the prospect.
-4. NOTES — lowest. Only use if they clearly describe the prospect's situation, not the seller's pitch.
+Attribution: client_verbatim (exact words from call/email), client_paraphrase (close paraphrase), pae_interpretation (seller described prospect situation), inferred (from context).
+Strength: strong (explicit pain), moderate (implies need), weak (inferred from context).
 
-ATTRIBUTION — classify each evidence item:
-- client_verbatim: you are copy-pasting the prospect's exact words from a call transcript or incoming email
-- client_paraphrase: the prospect said something similar but you're paraphrasing closely
-- pae_interpretation: the seller described the prospect's situation (e.g. in notes or outgoing email)
-- inferred: you're inferring a need from context (company size, industry norms)
+Quote format — keep to 1 sentence max:
+- client_verbatim: prospect's exact words in original language
+- client_paraphrase: "[Who], during [source], mentioned: [paraphrase]"
+- pae_interpretation: "According to seller notes, [situation]"
+- inferred: "Given [context], [why relevant]"
 
-STRENGTH:
-- strong: prospect explicitly describes a concrete pain or problem that a module solves
-- moderate: prospect mentions a related topic or situation that implies the need
-- weak: inferred from context only (company size, industry)
+source_who: name or role of speaker (e.g. "HR Director", "María García").
 
-QUOTE FORMAT — THIS IS CRITICAL:
-For client_verbatim: Copy-paste the prospect's EXACT words in their ORIGINAL language. Max 2 sentences.
-For client_paraphrase: Write: "[Role/Name], during [source], mentioned: [close paraphrase in original language]"
-For pae_interpretation: Write: "According to seller notes from [date], [what the prospect's situation is]"
-For inferred: Write: "Given [context: company size/sector/etc], [why this module is likely relevant]"
-
-NEVER fabricate quotes. NEVER quote the seller pitching products.
-
-SOURCE_WHO: Always identify who said it. Use the person's name if known, otherwise their role (e.g. "HR Director", "the prospect", "the CFO"). If from seller notes, say "according to PAE notes".
-
-MODULES — map evidence to these module IDs:
+MODULES:
 ${moduleBlock}
 
-PAINS — if evidence matches any of these pain trigger phrases, include the pain_id:
+PAINS (match via trigger phrases):
 ${painBlock}
 
 Context: Country=${country}, Sector=${sector}, Employees=${seats}
 
-RULES:
-- Be THOROUGH — extract ALL evidence, even weak signals. The user can filter later.
-- One evidence item can map to MULTIPLE modules.
-- Each piece of evidence MUST have at least one module.
-- Pain mapping is optional — only include pain_ids when trigger phrases clearly match.
-- Write everything in the SAME language as the source content.`;
+Rules: one evidence can map to multiple modules. Each must have ≥1 module. Pain mapping optional. Same language as source.`;
 }
 
 Deno.serve(async (req) => {
@@ -207,7 +160,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch pain library for trigger phrases (unless caller provided them)
     let painBlock = pains_ref ?? "";
     if (!painBlock) {
       const supabaseAdmin = createClient(
@@ -228,24 +180,23 @@ Deno.serve(async (req) => {
     }
 
     const moduleBlock = modules_ref ?? "";
-
     const systemPrompt = buildSystemPrompt(moduleBlock, painBlock, country ?? "ES", sector ?? "", seats ?? 50);
 
-    const userMessage = "Analyze the following deal communications. Extract ALL evidence of prospect pains and map each to modules (and pains where applicable).\n\n" + content;
+    const contentTrimmed = content.slice(0, 12000);
+    const userMessage = "Extract evidence of prospect pains. Max 15 items, strongest first.\n\n" + contentTrimmed;
 
-    // Try Azure first
     let result: any = null;
     let azureError = "";
     try {
       const res = await azureFetch({
         model: "claude-opus-4-6",
-        max_tokens: 4096,
+        max_tokens: 1536,
         temperature: 0,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
         tools: [ANALYSIS_TOOL],
         tool_choice: { type: "tool", name: "analyze_deal" },
-      }, 30000);
+      }, 25000);
 
       if (res.ok) {
         const data = await res.json();
@@ -261,7 +212,6 @@ Deno.serve(async (req) => {
       console.error("Azure call failed:", err);
     }
 
-    // Fallback to Lovable
     if (!result) {
       console.log("Azure failed (" + azureError + "), trying Lovable fallback");
       result = await lovableFetch(systemPrompt, userMessage, ANALYSIS_TOOL);
@@ -281,9 +231,7 @@ Deno.serve(async (req) => {
 
     const evidence: any[] = result.evidence;
 
-    // ── Deterministic scoring per module ──
     const moduleMap = new Map<string, { items: any[]; bestQuote: any }>();
-
     for (const ev of evidence) {
       for (const modId of (ev.modules ?? [])) {
         if (!moduleMap.has(modId)) {
@@ -301,12 +249,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Build module results with formatted quotes
     const modules = Array.from(moduleMap.entries()).map(([moduleId, { items, bestQuote }]) => {
       const score = scoreModule(items);
       const confidence = confidenceLabel(score);
 
-      // Build contextual quote
       let quote = "";
       if (bestQuote) {
         const who = bestQuote.source_who || "the prospect";
@@ -334,7 +280,6 @@ Deno.serve(async (req) => {
       };
     }).sort((a, b) => b.score - a.score);
 
-    // ── Pain aggregation ──
     const painMap = new Map<string, { count: number; bestQuote: string }>();
     for (const ev of evidence) {
       for (const painId of (ev.pains ?? [])) {
