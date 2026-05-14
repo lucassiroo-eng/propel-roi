@@ -32,7 +32,6 @@ export const MODULE_HOURS: HoursEntry[] = [
   { module_id: "compensations",     stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
   // Salary Advance / Benefits
-  { module_id: "benefits",          stakeholder: "employee", hours_per_month: 0.2,  scales_with: "employees" },
   { module_id: "benefits",          stakeholder: "hr",       hours_per_month: 2.0,  scales_with: "hr_ftes" },
 
   // Wellhub
@@ -157,7 +156,6 @@ export const SAVINGS_DESCRIPTIONS: Record<string, Partial<Record<Stakeholder, st
     manager: "Guided review with team salary data, benchmarks, and remaining budget. Submit compensation decisions in-app instead of email threads.",
   },
   benefits: {
-    employee: "Self-service salary advance requests from mobile — no emails or paperwork. Real-time eligibility and balance visibility.",
     hr: "Automated enrollment windows with eligibility rules. Vendor integration syncs selections — no manual reconciliation (~3h/month).",
   },
   wellhub: {
