@@ -235,6 +235,7 @@ Deno.serve(async (req) => {
 
     // Try Azure first
     let result: any = null;
+    let azureError = "";
     try {
       const res = await azureFetch({
         model: "claude-opus-4-6",
@@ -250,18 +251,26 @@ Deno.serve(async (req) => {
         const data = await res.json();
         const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
         result = toolBlock?.input ?? null;
+        if (!result) azureError = "No tool_use block in response";
       } else {
-        const errText = await res.text();
-        console.error("Azure error:", res.status, errText);
+        azureError = "Azure " + res.status + ": " + (await res.text()).slice(0, 300);
+        console.error(azureError);
       }
-    } catch (err) {
+    } catch (err: any) {
+      azureError = "Azure exception: " + (err.message ?? String(err));
       console.error("Azure call failed:", err);
     }
 
     // Fallback to Lovable
     if (!result) {
-      console.log("Azure failed, trying Lovable fallback");
+      console.log("Azure failed (" + azureError + "), trying Lovable fallback");
       result = await lovableFetch(systemPrompt, userMessage, ANALYSIS_TOOL);
+    }
+
+    if (!result) {
+      return new Response(JSON.stringify({ error: "AI analysis failed", debug: azureError }), {
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (!result?.evidence?.length) {
