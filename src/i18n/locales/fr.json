@@ -255,7 +255,6 @@
   "toast.doc_updated": "Documentation mise a jour",
   "toast.pptx_generated": "Slide ROI généré !",
   "toast.generation_failed": "Échec de la génération : {{message}}",
-  "toast.airtable_success": "Airtable : {{emails}} emails, {{calls}} appels",
   "toast.fetch_failed": "Échec de la récupération du deal",
   "toast.modules_identified": "{{count}} modules identifiés",
   "toast.analysis_failed": "L'analyse des modules a échoué",
@@ -281,7 +280,6 @@
 
   "setup.import_deal": "Importer le Deal",
   "setup.fetch": "Récupérer",
-  "setup.searching_airtable": "Recherche dans Airtable...",
   "setup.fetching_hubspot": "Récupération depuis HubSpot...",
   "setup.employees": "Employés",
   "setup.team_breakdown": "Répartition de l'équipe",
