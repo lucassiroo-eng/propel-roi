@@ -37,7 +37,7 @@ async function azureFetch(body: Record<string, unknown>, timeoutMs = 30000): Pro
 // Fallback: Lovable AI Gateway
 async function lovableFetch(system: string, user: string, tool: any): Promise<any> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!apiKey) throw new Error("No AI fallback available");
+  if (!apiKey) { console.log("LOVABLE_API_KEY not set, skipping fallback"); return null; }
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
   try {
