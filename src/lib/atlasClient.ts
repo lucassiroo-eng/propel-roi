@@ -6,7 +6,7 @@ const ATLAS_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIs
 export const atlas = createClient(ATLAS_URL, ATLAS_KEY);
 
 export function extractDealIdFromUrl(url: string): string | null {
-  const m = url.match(/\/deal\/(\d+)/);
+  const m = url.match(/\/deal\/(\d+)/) ?? url.match(/\/record\/0-3\/(\d+)/);
   return m ? m[1] : null;
 }
 
