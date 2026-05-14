@@ -1,8 +1,8 @@
-import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
+import type { RoiConfig } from "@/hooks/useWizardSession";
 import { MODULE_CATALOG } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
 import {
-  getEffectiveHours, getCountForEntry, MODULE_HOURS,
+  getEffectiveHours, getCountForEntry, MODULE_HOURS, SAVINGS_DESCRIPTIONS,
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
 
@@ -42,20 +42,18 @@ export interface RoiSlideInput {
   configModules: string[];
   roiConfig: RoiConfig;
   annualCost: number;
-  moduleSuggestions: ModuleSuggestion[];
 }
 
 export interface RoiSlideModule {
+  id: string;
   name: string;
   hours_per_month: number;
   annual_savings: number;
 }
 
-export interface RoiSlideQuote {
-  person: string;
-  pain: string;
+export interface RoiSlideHighlight {
   module_name: string;
-  action: string;
+  benefit: string;
 }
 
 export interface RoiSlideData {
@@ -69,7 +67,7 @@ export interface RoiSlideData {
   annual_cost: number;
   roi_percent: number;
   payback_months: number;
-  quotes: RoiSlideQuote[];
+  highlights: RoiSlideHighlight[];
   total_employees: number;
   hr_count: number;
   manager_count: number;
@@ -103,6 +101,7 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
     if (modHours > 0) {
       const catalog = MODULE_CATALOG.find(m => m.id === modId);
       modules.push({
+        id: modId,
         name: catalog?.label ?? moduleLabel(modId),
         hours_per_month: Math.round(modHours),
         annual_savings: Math.round(modMoney * 12),
@@ -115,34 +114,19 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   const roiPercent = annualCost > 0 ? Math.round(((totalSavings - annualCost) / annualCost) * 100) : 0;
   const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round((annualCost / totalSavings) * 12)) : 0;
 
-  const quotes: RoiSlideQuote[] = input.moduleSuggestions
-    .filter(s => s.quote && s.confidence === "strong")
+  const highlights: RoiSlideHighlight[] = [...modules]
+    .sort((a, b) => b.annual_savings - a.annual_savings)
     .slice(0, 3)
-    .map(s => {
-      const catalog = MODULE_CATALOG.find(m => m.id === s.module_id);
-      const modName = catalog?.label ?? moduleLabel(s.module_id);
-      let person = "Prospect";
-      let pain = s.quote;
-      const nameMatch = s.quote.match(/^([A-ZÁ-Ú][a-záéíóúñ]+(?:\s+[A-ZÁ-Ú][a-záéíóúñ]+)*)/);
-      if (nameMatch) person = nameMatch[1];
-      const quoteMatch = s.quote.match(/[«"'""']([^«»"'"'"]+)[»"'""']/);
-      if (quoteMatch) {
-        pain = quoteMatch[1].trim();
-        if (pain.length > 80) pain = pain.substring(0, 77) + "...";
-      } else {
-        const afterColon = s.quote.split(/:\s*/);
-        if (afterColon.length > 1) {
-          pain = afterColon.slice(1).join(": ").trim();
-          if (pain.length > 80) pain = pain.substring(0, 77) + "...";
-        }
-      }
-      return {
-        person,
-        pain,
-        module_name: modName,
-        action: `se automatiza y centraliza`,
-      };
-    });
+    .map(m => {
+      const desc = SAVINGS_DESCRIPTIONS[m.id];
+      const raw = desc?.hr ?? desc?.employee ?? desc?.manager ?? "";
+      const firstSentence = raw.split(/\.\s/)[0];
+      const benefit = firstSentence.length > 90
+        ? firstSentence.substring(0, 87) + "..."
+        : firstSentence + (firstSentence.endsWith(".") ? "" : ".");
+      return { module_name: m.name, benefit };
+    })
+    .filter(h => h.benefit.length > 1);
 
   return {
     company_name: input.companyName,
@@ -155,7 +139,7 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
     annual_cost: Math.round(annualCost),
     roi_percent: roiPercent,
     payback_months: paybackMonths,
-    quotes,
+    highlights,
     total_employees: headcounts.employee,
     hr_count: headcounts.hr,
     manager_count: headcounts.manager,
@@ -182,8 +166,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
       kpi_roi: "ROI Anual",
       payback: "retorno en",
       months: "meses",
-      quotes_title: "Necesidad detectada",
-      quote_prefix: "Con",
+      highlights_title: "Impacto por módulo",
       footer: `Estimación basada en un estudio de la consultoría interna de Factorial, contando con ${data.total_employees} usuarios, ${data.hr_count} administrador${data.hr_count > 1 ? "es" : ""} de RRHH, ${data.manager_count} gerentes y ${data.onboardings} altas al año.`,
     },
     en: {
@@ -198,8 +181,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
       kpi_roi: "Annual ROI",
       payback: "payback in",
       months: "months",
-      quotes_title: "Detected needs",
-      quote_prefix: "With",
+      highlights_title: "Impact per module",
       footer: `Estimate based on Factorial's internal consulting study, with ${data.total_employees} users, ${data.hr_count} HR admin${data.hr_count > 1 ? "s" : ""}, ${data.manager_count} managers and ${data.onboardings} annual hires.`,
     },
     fr: {
@@ -214,8 +196,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
       kpi_roi: "ROI Annuel",
       payback: "retour en",
       months: "mois",
-      quotes_title: "Besoin détecté",
-      quote_prefix: "Avec",
+      highlights_title: "Impact par module",
       footer: `Estimation basée sur une étude du cabinet interne de Factorial, avec ${data.total_employees} utilisateurs, ${data.hr_count} administrateur${data.hr_count > 1 ? "s" : ""} RH, ${data.manager_count} managers et ${data.onboardings} recrutements par an.`,
     },
   };
@@ -230,13 +211,13 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
           </tr>`;
   }).join("\n");
 
-  const quoteCards = data.quotes.map((q, i) => {
+  const highlightCards = data.highlights.map((h, i) => {
     const color = PILL_COLORS[i % PILL_COLORS.length];
     return `      <div class="quote-card" style="border-color: ${color};">
-        <div class="quote-icon" style="background:${color};">&#x1F4AC;</div>
+        <div class="quote-icon" style="background:${color};">&#x2713;</div>
         <div class="quote-body">
-          <div class="quote-text"><span class="who">${escHtml(q.person)}</span> &mdash; <span class="pain">&laquo;${escHtml(q.pain)}&raquo;</span></div>
-          <span class="quote-action" style="color: ${color};">&rarr; ${t.quote_prefix} ${escHtml(q.module_name)}, ${escHtml(q.action)}.</span>
+          <div class="quote-text"><span class="who">${escHtml(h.module_name)}</span></div>
+          <span class="quote-action" style="color: ${color};">${escHtml(h.benefit)}</span>
         </div>
       </div>`;
   }).join("\n\n");
@@ -438,10 +419,10 @@ ${moduleRows}
       </table>
     </div>
 
-${data.quotes.length > 0 ? `    <div class="quotes-section">
-      <div class="quotes-title">${t.quotes_title}</div>
+${data.highlights.length > 0 ? `    <div class="quotes-section">
+      <div class="quotes-title">${t.highlights_title}</div>
 
-${quoteCards}
+${highlightCards}
     </div>` : ""}
 
   </div>
@@ -459,7 +440,7 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// ── PDF generation: capture the preview iframe with html2canvas + jsPDF ──
+// ── PDF generation: render in hidden iframe, capture with html2canvas + jsPDF ──
 
 let html2canvasLoaded: Promise<any> | null = null;
 
@@ -476,29 +457,48 @@ function loadHtml2Canvas(): Promise<any> {
   return html2canvasLoaded;
 }
 
-export async function generateRoiSlidePdfFromIframe(iframe: HTMLIFrameElement, fileName: string): Promise<void> {
+export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
   const [{ default: jsPDF }, html2canvas] = await Promise.all([
     import("jspdf"),
     loadHtml2Canvas(),
   ]);
 
-  const doc = iframe.contentDocument;
-  if (!doc) throw new Error("Cannot access iframe");
+  const html = generateRoiSlideHtml(data);
+  const captureHtml = html.replace(
+    "background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh;",
+    "background: #fff; margin: 0; padding: 0;",
+  );
 
-  const slide = doc.querySelector(".slide") as HTMLElement;
-  if (!slide) throw new Error("Slide element not found");
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;left:0;top:0;width:1440px;height:810px;border:none;opacity:0;pointer-events:none;z-index:-1;";
+  document.body.appendChild(iframe);
 
-  const canvas = await html2canvas(slide, {
-    width: 1440,
-    height: 810,
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: "#ffffff",
-  });
+  try {
+    await new Promise<void>((resolve) => {
+      iframe.onload = () => resolve();
+      iframe.srcdoc = captureHtml;
+    });
 
-  const img = canvas.toDataURL("image/png");
-  const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
-  pdf.addImage(img, "PNG", 0, 0, 1440, 810);
-  pdf.save(fileName);
+    await new Promise(r => setTimeout(r, 1500));
+
+    const doc = iframe.contentDocument!;
+    const slide = doc.querySelector(".slide") as HTMLElement;
+    if (!slide) throw new Error("Slide element not found");
+
+    const canvas = await html2canvas(slide, {
+      width: 1440,
+      height: 810,
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+    });
+
+    const img = canvas.toDataURL("image/png");
+    const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
+    pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+    pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
+  } finally {
+    document.body.removeChild(iframe);
+  }
 }

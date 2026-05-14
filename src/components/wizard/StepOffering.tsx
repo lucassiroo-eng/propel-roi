@@ -28,7 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdfFromIframe } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -82,7 +82,6 @@ export function StepOffering({
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
   const [slideHtml, setSlideHtml] = useState("");
   const [downloadingPdf, setDownloadingPdf] = useState(false);
-  const slideIframeRef = useRef<HTMLIFrameElement>(null);
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -271,7 +270,6 @@ export function StepOffering({
       configModules: configuration.configModules,
       roiConfig,
       annualCost: effectiveCost,
-      moduleSuggestions,
     });
   }
 
@@ -283,11 +281,11 @@ export function StepOffering({
   }
 
   async function handleDownloadSlidePdf() {
-    if (!slideIframeRef.current) return;
+    const data = getSlideData();
+    if (!data) return;
     setDownloadingPdf(true);
     try {
-      const name = `ROI-Slide-${state?.prospect.company_name || "report"}.pdf`;
-      await generateRoiSlidePdfFromIframe(slideIframeRef.current, name);
+      await generateRoiSlidePdf(data);
       toast.success("PDF descargado");
     } catch (err: any) {
       toast.error("Error al generar PDF: " + err.message);
@@ -716,11 +714,10 @@ export function StepOffering({
           <div className="px-6 pb-6">
             <div className="rounded-lg border overflow-hidden bg-gray-100" style={{ height: "516px" }}>
               <iframe
-                ref={slideIframeRef}
                 srcDoc={slideHtml}
                 className="border-0"
                 style={{ width: "1440px", height: "810px", transform: "scale(0.636)", transformOrigin: "top left" }}
-                sandbox="allow-same-origin allow-scripts"
+                sandbox="allow-same-origin"
                 title="ROI Slide Preview"
               />
             </div>
