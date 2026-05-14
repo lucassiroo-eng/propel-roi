@@ -85,7 +85,7 @@ const MODULE_LABELS: Record<string, string> = {
   recruitment: "Recruitment",
   expenses: "Expenses",
   compensations: "Compensation",
-  benefits: "Benefits",
+  benefits: "Salary Advance",
   projects: "Projects",
   procurement: "Procurement",
   lms: "LMS",
