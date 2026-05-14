@@ -28,7 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlideHtml, type RoiSlideInput } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -267,17 +267,23 @@ export function StepOffering({
     finally { setGeneratingPptx(false); }
   };
 
-  function getSlideData() {
+  function getSlideInput(): RoiSlideInput | null {
     if (!configuration || !roiConfig || !state) return null;
     const lang = state.prospect.country === "FR" ? "fr" : "es";
-    return buildRoiSlideData({
+    return {
       companyName: state.prospect.company_name || "Company",
       country: state.prospect.country,
       language: lang,
       configModules: configuration.configModules,
       roiConfig,
       annualCost: effectiveCost,
-    });
+    };
+  }
+
+  function getSlideData() {
+    const input = getSlideInput();
+    if (!input) return null;
+    return buildRoiSlideData(input);
   }
 
   function handlePreviewSlide() {
@@ -304,6 +310,20 @@ export function StepOffering({
     } finally {
       setDownloadingPdf(false);
     }
+  }
+
+  function handleDownloadHtml() {
+    const input = getSlideInput();
+    const data = input ? buildRoiSlideData(input) : null;
+    if (!data || !input) return;
+    const html = generateMultiSlideHtml(data, input);
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ROI-Report-${data.company_name || "report"}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function selectPack(bundleId: number) { onChange({ bundle_id: bundleId }); }
@@ -730,10 +750,14 @@ export function StepOffering({
               />
             </div>
           </div>
-          <div className="px-6 pb-5">
-            <Button onClick={handleDownloadSlidePdf} disabled={downloadingPdf} className="w-full gap-2" size="lg">
+          <div className="px-6 pb-5 flex gap-3">
+            <Button onClick={handleDownloadSlidePdf} disabled={downloadingPdf} className="flex-1 gap-2" size="lg">
               {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
               Descargar PDF
+            </Button>
+            <Button onClick={handleDownloadHtml} variant="outline" className="flex-1 gap-2" size="lg">
+              <Globe className="h-4 w-4" />
+              Descargar HTML
             </Button>
           </div>
         </DialogContent>
