@@ -8,42 +8,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import {
   Loader2, Link as LinkIcon, Mail, Phone, FileText,
-  Database, Cloud, CheckCircle2, Users, Briefcase, Shield,
+  Database, CheckCircle2, Users, Briefcase, Shield,
   Sparkles, Check, Plus, Search, Quote, ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import type { ProspectData, HubSpotNote, ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
+import type { ProspectData, ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 import { type Stakeholder } from "@/lib/moduleHours";
 import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
-import { extractDealIdFromUrl, fetchDealByHubspotId, fetchAtlasCompany, fetchAtlasCompanyByCrmId } from "@/lib/atlasClient";
+import { extractDealIdFromUrl, fetchDealByHubspotId } from "@/lib/atlasClient";
 
-const WORKER = "https://noshow.lucassiroo.workers.dev";
-
-function mapCountry(raw: string): "ES" | "FR" | null {
-  const lower = (raw ?? "").toLowerCase().trim();
-  if (["es", "spain", "españa", "espagne"].includes(lower)) return "ES";
-  if (["fr", "france", "francia"].includes(lower)) return "FR";
-  return null;
-}
-
-function mapIndustry(raw: string): string {
-  const lower = (raw ?? "").toLowerCase();
-  const map: Record<string, string> = {
-    technology: "Software & IT Services", software: "Software & IT Services",
-    retail: "Retailing", healthcare: "Health Care Equipment & Services",
-    education: "Education", construction: "Construction & Engineering",
-    hospitality: "Hospitality", food: "Food, Beverage & Tobacco",
-    energy: "Energy", transportation: "Transportation",
-    media: "Media & Entertainment", banking: "Banking & Insurance",
-    insurance: "Banking & Insurance", legal: "Legal Services",
-  };
-  for (const [k, v] of Object.entries(map)) {
-    if (lower.includes(k)) return v;
-  }
-  return "";
-}
 
 const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: string; icon: typeof Users; color: string; bg: string; border: string }> = {
   employee: { labelKey: "stakeholder.employee",    sublabelKey: "stakeholder.employee_sub", icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.06)",  border: "rgba(59,130,246,0.2)" },
@@ -90,7 +65,7 @@ interface Props {
 export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats, selectedModules, moduleSuggestions, onSelectionChange }: Props) {
   const { t } = useTranslation();
   const [fetching, setFetching] = useState(false);
-  const [fetchPhase, setFetchPhase] = useState<"idle" | "atlas" | "hubspot" | "done">("idle");
+  const [fetchPhase, setFetchPhase] = useState<"idle" | "atlas" | "done">("idle");
   const { headcounts, hourly_costs } = roiConfig;
 
   // Module analysis state
@@ -129,102 +104,38 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     onRoiConfigChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
   }
 
-  // ── Deal fetch: Atlas (Supabase) first, then HubSpot fallback ──
+  // ── Deal fetch: Supabase deals table only ──
   async function handleFetch() {
     const url = data.hubspot_deal_url?.trim();
     if (!url) { toast.error(t("prospect.hubspot_paste_first")); return; }
+    const dealId = extractDealIdFromUrl(url);
+    if (!dealId) { toast.error("Could not extract deal ID from URL"); return; }
+
     setFetching(true);
-    const updates: Partial<ProspectData> = {};
-    const toastParts: string[] = [];
+    setFetchPhase("atlas");
 
     try {
-      // 1) Atlas — deal context + company info
-      setFetchPhase("atlas");
-      const dealId = extractDealIdFromUrl(url);
-      let atlasOk = false;
-      if (dealId) {
-        try {
-          const deal = await fetchDealByHubspotId(dealId);
-          if (deal) {
-            atlasOk = true;
-            updates.fetch_source = "atlas";
-            if (deal.deal_name) updates.deal_name = deal.deal_name;
-            if (deal.deal_context) updates.deal_context = deal.deal_context;
-            updates.atlas_stats = {
-              notes: deal.numero_de_notas ?? 0,
-              emails: deal.numero_de_emails ?? 0,
-              calls: deal.numero_de_calls ?? 0,
-            };
-            if (deal.contacts_info) {
-              const nameMatch = deal.contacts_info.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);
-              const emailMatch = deal.contacts_info.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
-              if (nameMatch) updates.contact_name = nameMatch[1];
-              if (emailMatch) updates.contact_email = emailMatch[0];
-            }
+      const deal = await fetchDealByHubspotId(dealId);
+      if (!deal) { toast.error(t("toast.fetch_failed")); setFetchPhase("idle"); return; }
 
-            const company = deal.atlas_id
-              ? await fetchAtlasCompany(deal.atlas_id)
-              : deal.crm_id
-                ? await fetchAtlasCompanyByCrmId(deal.crm_id)
-                : null;
-            if (company) {
-              if (company.company_name) updates.company_name = company.company_name;
-              if (company.company_context) updates.company_context = company.company_context;
-              if (company.contacts_breakdown) updates.contacts_breakdown = company.contacts_breakdown;
-              const empCount = parseInt(company.company_size);
-              if (empCount > 0) updates.seats = Math.min(Math.max(empCount, 10), 5000);
-              const mappedCountry = mapCountry(company.country ?? "");
-              if (mappedCountry) updates.country = mappedCountry;
-              const mappedIndustry = mapIndustry(company.industry ?? "");
-              if (mappedIndustry) updates.sector = mappedIndustry;
-              toastParts.push(`Atlas: ${company.company_name} (${company.company_size} emp)`);
-            }
-          }
-        } catch { /* Atlas failed, continue to HubSpot */ }
+      const updates: Partial<ProspectData> = { fetch_source: "atlas" };
+      if (deal.deal_name) updates.deal_name = deal.deal_name;
+      if (deal.deal_context) updates.deal_context = deal.deal_context;
+      updates.atlas_stats = {
+        notes: deal.numero_de_notas ?? 0,
+        emails: deal.numero_de_emails ?? 0,
+        calls: deal.numero_de_calls ?? 0,
+      };
+      if (deal.contacts_info) {
+        const nameMatch = deal.contacts_info.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);
+        const emailMatch = deal.contacts_info.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
+        if (nameMatch) updates.contact_name = nameMatch[1];
+        if (emailMatch) updates.contact_email = emailMatch[0];
       }
 
-      // 2) HubSpot fallback — metadata, country, industry, notes
-      if (!atlasOk) {
-        setFetchPhase("hubspot");
-        try {
-          const hsRes = await fetch(`${WORKER}/hubspot`, {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ deal_url: url }),
-          });
-          if (hsRes.ok) {
-            const hs = await hsRes.json();
-            if (!hs.error) {
-              if (hs.deal_name && !updates.deal_name) updates.deal_name = hs.deal_name;
-              if (hs.company_name) updates.company_name = hs.company_name;
-              if (hs.contact_name && !updates.contact_name) updates.contact_name = hs.contact_name;
-              if (hs.contact_email && !updates.contact_email) updates.contact_email = hs.contact_email;
-              const mappedCountry = mapCountry(hs.country ?? "");
-              if (mappedCountry) updates.country = mappedCountry;
-              const mappedIndustry = mapIndustry(hs.industry ?? "");
-              if (mappedIndustry) updates.sector = mappedIndustry;
-              const empCount = parseInt(hs.employees);
-              if (empCount > 0) updates.seats = Math.min(Math.max(empCount, 10), 5000);
-              const notes: HubSpotNote[] = hs.notes ?? [];
-              if (notes.length > 0) {
-                updates.hubspot_notes = notes;
-                toastParts.push(`${notes.length} notes`);
-              }
-              updates.fetch_source = "hubspot";
-              if (!toastParts.length) toastParts.push(`HubSpot: ${hs.company_name ?? "Deal found"}`);
-            }
-          }
-        } catch { /* HubSpot failed */ }
-      }
-
-      // 3) Apply merged results
-      const hasContent = updates.deal_context || updates.hubspot_notes?.length;
-      if (updates.company_name || hasContent) {
-        onChange(updates);
-        toast.success(toastParts.join(" · ") || "Deal fetched");
-      } else {
-        toast.error(t("toast.fetch_failed"));
-      }
+      onChange(updates);
       setFetchPhase("done");
+      toast.success(`Deal: ${deal.deal_name ?? dealId}`);
     } catch (err: any) {
       setFetchPhase("idle");
       toast.error(err.message ?? t("toast.fetch_failed"));
@@ -341,16 +252,16 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
           <div className="flex gap-2 flex-wrap items-center">
             {fetching && (
               <Badge variant="outline" className="gap-1.5 text-xs animate-pulse">
-                {fetchPhase === "atlas" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
-                {fetchPhase === "atlas" ? "Searching Atlas..." : t("setup.fetching_hubspot")}
+                <Database className="h-3 w-3" />
+                Searching deals...
               </Badge>
             )}
             {source && !fetching && (
               <>
                 <Badge variant="outline" className="gap-1.5 text-xs">
-                  {source === "atlas" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
+                  <Database className="h-3 w-3" />
                   <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                  {source === "atlas" ? "Atlas" : "HubSpot"}
+                  Deals
                 </Badge>
                 {stats && stats.emails > 0 && (
                   <Badge variant="outline" className="gap-1 text-xs">
