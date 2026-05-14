@@ -174,7 +174,7 @@ Below is the exact HTML. The CSS and structure are FIXED — copy them verbatim.
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
   .header-date { font-size: 12px; color: #9CA3AF; font-weight: 500; }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .header-brand .company-name { font-size: 17px; font-weight: 700; color: #1F2937; }
+  .header-brand .company-name { font-size: 17px; font-weight: 700; color: #1F2937; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .header-brand .brand-divider { width: 1px; height: 24px; background: #D1D5DB; }
   .header-brand img { height: 26px; object-fit: contain; }
 
@@ -201,7 +201,7 @@ Below is the exact HTML. The CSS and structure are FIXED — copy them verbatim.
   .kpi-icon svg { width: 38px; height: 38px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .kpi-label { color: #fff; font-size: 17px; font-weight: 700; margin: 6px 0 10px 0; letter-spacing: 0.02em; }
   .kpi-value-box { background: #fff; border-radius: 12px; padding: 10px 28px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  .kpi-value { color: #FF355E; font-size: 23px; font-weight: 800; white-space: nowrap; }
+  .kpi-value { color: #FF355E; font-size: 23px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   /* ── Right column ── */
   .right-col {
@@ -222,14 +222,14 @@ Below is the exact HTML. The CSS and structure are FIXED — copy them verbatim.
     padding: 0 0 10px 0; text-align: left;
     border-bottom: 1px solid #F3F4F6;
   }
-  .module-table thead th:nth-child(2) { text-align: center; }
-  .module-table thead th:nth-child(3) { text-align: right; }
+  .module-table thead th:nth-child(2) { text-align: center; width: 120px; }
+  .module-table thead th:nth-child(3) { text-align: right; width: 120px; }
 
   .module-table tbody tr { transition: background 0.15s; }
   .module-table tbody tr:hover { background: #FAFAFA; }
-  .module-table tbody td { padding: 7px 0; vertical-align: middle; border-bottom: 1px solid #F9FAFB; }
-  .module-table tbody td:nth-child(2) { text-align: center; font-size: 15px; color: #374151; font-weight: 600; }
-  .module-table tbody td:nth-child(3) { text-align: right; font-size: 15px; color: #374151; font-weight: 600; }
+  .module-table tbody td { padding: 7px 0; vertical-align: middle; border-bottom: 1px solid #F9FAFB; font-variant-numeric: tabular-nums; }
+  .module-table tbody td:nth-child(2) { text-align: center; font-size: 15px; color: #374151; font-weight: 600; width: 120px; }
+  .module-table tbody td:nth-child(3) { text-align: right; font-size: 15px; color: #374151; font-weight: 600; width: 120px; }
 
   .pill {
     display: inline-flex; align-items: center; gap: 6px;
@@ -241,8 +241,8 @@ Below is the exact HTML. The CSS and structure are FIXED — copy them verbatim.
 
   .total-row td { padding-top: 10px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
   .total-row .total-label { font-size: 15px; font-weight: 700; color: #1F2937; }
-  .total-row .total-hours { font-size: 16px; font-weight: 700; color: #374151; text-align: center; }
-  .total-row .total-savings { font-size: 20px; font-weight: 800; color: #FF355E; text-align: right; }
+  .total-row .total-hours { font-size: 16px; font-weight: 700; color: #374151; text-align: center; font-variant-numeric: tabular-nums; }
+  .total-row .total-savings { font-size: 20px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
 
   /* Quotes */
   .quotes-section {
@@ -263,7 +263,7 @@ Below is the exact HTML. The CSS and structure are FIXED — copy them verbatim.
   .quote-card:hover { transform: translateX(2px); }
   .quote-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
   .quote-body { flex: 1; }
-  .quote-text { font-size: 12px; color: #374151; line-height: 1.45; }
+  .quote-text { font-size: 12px; color: #374151; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .quote-text .who { font-weight: 700; }
   .quote-text .pain { font-style: italic; color: #4B5563; }
   .quote-action { font-size: 11px; font-weight: 600; margin-top: 2px; display: block; }

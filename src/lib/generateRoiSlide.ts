@@ -19,7 +19,9 @@ function fmtEur(n: number): string {
   return (rounded < 0 ? "-€" : "€") + result;
 }
 
-const FACTORIAL_LOGO_B64 = "data:image/png;base64,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";
+const FACTORIAL_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 28" width="120" height="28"><text x="0" y="22" font-family="Inter,sans-serif" font-weight="800" font-size="22" fill="#FF355E">factorial</text></svg>`;
+
+const FACTORIAL_LOGO_DATA_URI = "data:image/svg+xml," + encodeURIComponent(FACTORIAL_LOGO_SVG);
 
 function fmtDate(lang: string): string {
   const d = new Date();
@@ -119,12 +121,26 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
     .map(s => {
       const catalog = MODULE_CATALOG.find(m => m.id === s.module_id);
       const modName = catalog?.label ?? moduleLabel(s.module_id);
-      const parts = s.quote.match(/^(.+?)(?:\s*(?:dijo|mencionó|comentó|said|mentioned)\s+que\s+)?[«"'](.+?)[»"']\s*$/i);
+      let person = "Prospect";
+      let pain = s.quote;
+      const nameMatch = s.quote.match(/^([A-ZÁ-Ú][a-záéíóúñ]+(?:\s+[A-ZÁ-Ú][a-záéíóúñ]+)*)/);
+      if (nameMatch) person = nameMatch[1];
+      const quoteMatch = s.quote.match(/[«"'""']([^«»"'"'"]+)[»"'""']/);
+      if (quoteMatch) {
+        pain = quoteMatch[1].trim();
+        if (pain.length > 80) pain = pain.substring(0, 77) + "...";
+      } else {
+        const afterColon = s.quote.split(/:\s*/);
+        if (afterColon.length > 1) {
+          pain = afterColon.slice(1).join(": ").trim();
+          if (pain.length > 80) pain = pain.substring(0, 77) + "...";
+        }
+      }
       return {
-        person: parts?.[1]?.trim() ?? "Prospect",
-        pain: parts?.[2]?.trim() ?? s.quote,
+        person,
+        pain,
         module_name: modName,
-        action: `se automatiza y centraliza con ${modName}`,
+        action: `se automatiza y centraliza`,
       };
     });
 
@@ -230,10 +246,10 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
         <div class="brand-divider"></div>
         <img src="${escHtml(data.company_logo_url)}" alt="${escHtml(data.company_name)}">
         <div class="brand-divider"></div>
-        <img src="${FACTORIAL_LOGO_B64}" alt="Factorial">`
+        <img src="${FACTORIAL_LOGO_DATA_URI}" alt="Factorial">`
     : `<span class="company-name">${escHtml(data.company_name)}</span>
         <div class="brand-divider"></div>
-        <img src="${FACTORIAL_LOGO_B64}" alt="Factorial">`;
+        <img src="${FACTORIAL_LOGO_DATA_URI}" alt="Factorial">`;
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -244,7 +260,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; background: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+  body { font-family: 'Inter', sans-serif; background: #fff; margin: 0; padding: 0; }
 
   .slide {
     width: 1440px; height: 810px; background: #fff; border-top: 4px solid #374151;
@@ -266,9 +282,9 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
   .header-date { font-size: 12px; color: #9CA3AF; font-weight: 500; }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .header-brand .company-name { font-size: 17px; font-weight: 700; color: #1F2937; }
+  .header-brand .company-name { font-size: 17px; font-weight: 700; color: #1F2937; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .header-brand .brand-divider { width: 1px; height: 24px; background: #D1D5DB; }
-  .header-brand img { height: 26px; object-fit: contain; }
+  .header-brand img { height: 22px; object-fit: contain; }
 
   .card-area {
     grid-row: 2 / 4;
@@ -351,7 +367,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .quote-card:hover { transform: translateX(2px); }
   .quote-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
   .quote-body { flex: 1; }
-  .quote-text { font-size: 12px; color: #374151; line-height: 1.45; }
+  .quote-text { font-size: 12px; color: #374151; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .quote-text .who { font-weight: 700; }
   .quote-text .pain { font-style: italic; color: #4B5563; }
   .quote-action { font-size: 11px; font-weight: 600; margin-top: 2px; display: block; }
@@ -466,34 +482,28 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
 
   const fullHtml = generateRoiSlideHtml(data);
 
-  const container = document.createElement("div");
-  container.style.position = "fixed";
-  container.style.left = "-9999px";
-  container.style.top = "0";
-  container.style.width = "1440px";
-  container.style.height = "810px";
-  container.style.zIndex = "-1";
-  container.innerHTML = fullHtml
-    .replace(/<!DOCTYPE html>[\s\S]*?<body>/, "")
-    .replace(/<\/body>[\s\S]*$/, "");
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.left = "-9999px";
+  iframe.style.top = "0";
+  iframe.style.width = "1440px";
+  iframe.style.height = "810px";
+  iframe.style.border = "none";
+  iframe.style.zIndex = "-1";
+  document.body.appendChild(iframe);
 
-  const styleEl = document.createElement("style");
-  const styleMatch = fullHtml.match(/<style>([\s\S]*?)<\/style>/);
-  if (styleMatch) styleEl.textContent = styleMatch[1];
-  container.prepend(styleEl);
+  await new Promise<void>((resolve) => {
+    iframe.onload = () => resolve();
+    iframe.srcdoc = fullHtml;
+  });
 
-  const link = document.createElement("link");
-  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
-  link.rel = "stylesheet";
-  container.prepend(link);
+  await new Promise(r => setTimeout(r, 800));
 
-  document.body.appendChild(container);
+  const iframeDoc = iframe.contentDocument;
+  if (!iframeDoc) { document.body.removeChild(iframe); throw new Error("Cannot access iframe document"); }
 
-  await new Promise(r => setTimeout(r, 500));
-  await document.fonts.ready;
-
-  const slideEl = container.querySelector(".slide") as HTMLElement;
-  if (!slideEl) { document.body.removeChild(container); throw new Error("Slide element not found"); }
+  const slideEl = iframeDoc.querySelector(".slide") as HTMLElement;
+  if (!slideEl) { document.body.removeChild(iframe); throw new Error("Slide element not found"); }
 
   const canvas = await html2canvas(slideEl, {
     width: 1440,
@@ -502,6 +512,8 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
     useCORS: true,
     logging: false,
     backgroundColor: "#ffffff",
+    windowWidth: 1440,
+    windowHeight: 810,
   });
 
   const imgData = canvas.toDataURL("image/png");
@@ -509,5 +521,5 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
   pdf.addImage(imgData, "PNG", 0, 0, 1440, 810);
   pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
 
-  document.body.removeChild(container);
+  document.body.removeChild(iframe);
 }
