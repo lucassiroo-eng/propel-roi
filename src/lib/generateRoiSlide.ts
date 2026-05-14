@@ -433,3 +433,72 @@ ${quoteCards}
 function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+
+// ── PDF generation via html2canvas (lazy-loaded from CDN) + jsPDF ──
+
+let html2canvasPromise: Promise<any> | null = null;
+
+function loadHtml2Canvas(): Promise<any> {
+  if (html2canvasPromise) return html2canvasPromise;
+  if ((window as any).html2canvas) return Promise.resolve((window as any).html2canvas);
+  html2canvasPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    script.onload = () => resolve((window as any).html2canvas);
+    script.onerror = () => reject(new Error("Failed to load html2canvas"));
+    document.head.appendChild(script);
+  });
+  return html2canvasPromise;
+}
+
+export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
+  const { default: jsPDF } = await import("jspdf");
+  const html2canvas = await loadHtml2Canvas();
+
+  const fullHtml = generateRoiSlideHtml(data);
+
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "1440px";
+  container.style.height = "810px";
+  container.style.zIndex = "-1";
+  container.innerHTML = fullHtml
+    .replace(/<!DOCTYPE html>[\s\S]*?<body>/, "")
+    .replace(/<\/body>[\s\S]*$/, "");
+
+  const styleEl = document.createElement("style");
+  const styleMatch = fullHtml.match(/<style>([\s\S]*?)<\/style>/);
+  if (styleMatch) styleEl.textContent = styleMatch[1];
+  container.prepend(styleEl);
+
+  const link = document.createElement("link");
+  link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
+  link.rel = "stylesheet";
+  container.prepend(link);
+
+  document.body.appendChild(container);
+
+  await new Promise(r => setTimeout(r, 500));
+  await document.fonts.ready;
+
+  const slideEl = container.querySelector(".slide") as HTMLElement;
+  if (!slideEl) { document.body.removeChild(container); throw new Error("Slide element not found"); }
+
+  const canvas = await html2canvas(slideEl, {
+    width: 1440,
+    height: 810,
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: "#ffffff",
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
+  pdf.addImage(imgData, "PNG", 0, 0, 1440, 810);
+  pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
+
+  document.body.removeChild(container);
+}
