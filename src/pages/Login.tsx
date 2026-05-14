@@ -22,20 +22,28 @@ export default function Login() {
   const [resetting, setResetting] = useState(false);
 
   const handleForgotPassword = async () => {
-    if (!email.trim()) {
+    const trimmed = email.trim();
+    if (!trimmed) {
       setError(t("login.placeholder"));
       return;
     }
     setResetting(true);
     setError(null);
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin + import.meta.env.BASE_URL,
-    });
-    setResetting(false);
-    if (error) {
-      toast.error(t("login.reset_error"));
-    } else {
-      toast.success(t("login.reset_sent"));
+    try {
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(trimmed, {
+        redirectTo: window.location.origin + import.meta.env.BASE_URL,
+      });
+      if (resetErr) {
+        console.error("Reset password error:", resetErr);
+        setError(resetErr.message);
+      } else {
+        toast.success(t("login.reset_sent"));
+      }
+    } catch (err: any) {
+      console.error("Reset password exception:", err);
+      setError(err.message ?? t("login.reset_error"));
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -140,18 +148,6 @@ export default function Login() {
                   required
                   minLength={6}
                 />
-                {!isSignUp && (
-                  <div className="text-right">
-                    <button
-                      type="button"
-                      className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
-                      onClick={handleForgotPassword}
-                      disabled={resetting}
-                    >
-                      {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
-                    </button>
-                  </div>
-                )}
                 {error && <p className="text-sm text-destructive">{error}</p>}
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
@@ -169,6 +165,19 @@ export default function Login() {
                   )}
                 </Button>
               </form>
+
+              {!isSignUp && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
+                    onClick={handleForgotPassword}
+                    disabled={resetting}
+                  >
+                    {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
+                  </button>
+                </div>
+              )}
 
               <p className="text-center text-sm text-muted-foreground">
                 {isSignUp ? t("login.have_account") : t("login.no_account")}{" "}
