@@ -21,7 +21,7 @@ import {
   moduleLabel,
   deriveRequiredModules,
   analyzeBundle,
-  findOptimalBundle,
+  getBundlePepm,
   getAddonDetails,
   classifyPains,
   MODULES_INCLUDED_IN_CORE,
@@ -137,23 +137,30 @@ export function StepOffering({
   const requiredModuleKeys = useMemo(() => requiredModules.map(rm => rm.module), [requiredModules]);
 
   // ── Bundle analysis ──
-  const starterBundle = useMemo(() => {
-    if (!bundles) return null;
-    return bundles.find(b => b.bundle_name.toLowerCase().includes("starter operations") || b.bundle_name.toLowerCase().includes("starter op")) ?? null;
-  }, [bundles]);
-
-  const recommendedBundle = useMemo(() => {
-    if (!bundles || !lineItems || !painModules) return null;
-    return findOptimalBundle(bundles, requiredModuleKeys, lineItems, offering.billing, offering.tier, seats, painModules, selectedPains, painBenefits);
+  const allAnalyses = useMemo(() => {
+    if (!bundles || !lineItems || !painModules) return [];
+    return bundles
+      .filter(b => getBundlePepm(b, offering.billing, offering.tier) > 0)
+      .map(b => analyzeBundle(b, requiredModuleKeys, lineItems, offering.billing, offering.tier, seats, painModules, selectedPains, painBenefits));
   }, [bundles, lineItems, painModules, requiredModuleKeys, offering.billing, offering.tier, seats, selectedPains, painBenefits]);
 
+  const recommendedBundle = useMemo(() => {
+    if (allAnalyses.length === 0) return null;
+    return [...allAnalyses].sort((a, b) => {
+      const covDiff = b.coveredRequired.length - a.coveredRequired.length;
+      if (covDiff !== 0) return covDiff;
+      return a.totalAnnual - b.totalAnnual;
+    })[0];
+  }, [allAnalyses]);
+
   const starterAnalysis = useMemo(() => {
-    if (!starterBundle || !lineItems || !painModules) return null;
-    return analyzeBundle(starterBundle, requiredModuleKeys, lineItems, offering.billing, offering.tier, seats, painModules, selectedPains, painBenefits);
-  }, [starterBundle, lineItems, painModules, requiredModuleKeys, offering.billing, offering.tier, seats, selectedPains, painBenefits]);
+    if (allAnalyses.length === 0 || !recommendedBundle) return null;
+    const cheapest = [...allAnalyses].sort((a, b) => a.totalAnnual - b.totalAnnual)[0];
+    return cheapest.bundle.id !== recommendedBundle.bundle.id ? cheapest : null;
+  }, [allAnalyses, recommendedBundle]);
 
   const selectedBundleId = offering.bundle_id ?? recommendedBundle?.bundle.id ?? null;
-  const isStarterSelected = selectedBundleId === starterBundle?.id;
+  const isStarterSelected = starterAnalysis ? selectedBundleId === starterAnalysis.bundle.id : false;
 
   const selectedAnalysis = useMemo(() => {
     if (isStarterSelected && starterAnalysis) return starterAnalysis;
@@ -462,9 +469,11 @@ export function StepOffering({
                   <Package className={`h-5 w-5 ${isStarterSelected ? "text-white" : "text-muted-foreground"}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">Starter Operations</p>
+                  <p className="text-sm font-bold text-foreground">{starterAnalysis.bundle.bundle_name}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    + {starterAnalysis.uncoveredRequired.length} {t("offering.addons").toLowerCase()}
+                    {starterAnalysis.uncoveredRequired.length > 0
+                      ? `+ ${starterAnalysis.uncoveredRequired.length} ${t("offering.addons").toLowerCase()}`
+                      : t("offering.all_recommended")}
                   </p>
                 </div>
               </div>

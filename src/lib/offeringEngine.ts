@@ -214,7 +214,7 @@ export function parseModulesFromBundle(b: BundleRow): string[] {
   )];
 }
 
-function getBundlePepm(
+export function getBundlePepm(
   b: BundleRow,
   billing: "monthly" | "yearly",
   tier: "business" | "enterprise",
