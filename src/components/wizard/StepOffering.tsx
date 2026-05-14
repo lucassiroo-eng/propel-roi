@@ -80,7 +80,6 @@ export function StepOffering({
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [generatingSlide, setGeneratingSlide] = useState(false);
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
   const [slideHtml, setSlideHtml] = useState("");
   const [slidePrompt, setSlidePrompt] = useState("");
@@ -296,17 +295,14 @@ export function StepOffering({
     });
   }
 
-  async function handleDownloadSlidePdf() {
+  function handleDownloadSlidePdf() {
     const data = getSlideData();
     if (!data) return;
-    setGeneratingSlide(true);
     try {
-      await generateRoiSlidePdf(data);
-      toast.success("ROI Slide PDF downloaded");
+      generateRoiSlidePdf(data);
+      toast.success("ROI Slide opened — use Save as PDF in the print dialog");
     } catch (err: any) {
-      toast.error("Failed to generate PDF: " + err.message);
-    } finally {
-      setGeneratingSlide(false);
+      toast.error("Failed to open slide: " + err.message);
     }
   }
 
@@ -702,8 +698,8 @@ export function StepOffering({
             <FileDown className="h-4 w-4" />
             ROI PDF
           </Button>
-          <Button variant="outline" size="lg" onClick={handleDownloadSlidePdf} disabled={!configuration || !roiConfig || generatingSlide} className="gap-2">
-            {generatingSlide ? <Loader2 className="h-4 w-4 animate-spin" /> : <Image className="h-4 w-4" />}
+          <Button variant="outline" size="lg" onClick={handleDownloadSlidePdf} disabled={!configuration || !roiConfig} className="gap-2">
+            <Image className="h-4 w-4" />
             ROI Slide
           </Button>
           <Button variant="ghost" size="lg" onClick={handleShowSlidePrompt} disabled={!configuration || !roiConfig} className="gap-2">
@@ -757,9 +753,8 @@ export function StepOffering({
                 variant="outline"
                 className="gap-2 flex-1"
                 onClick={handleDownloadSlidePdf}
-                disabled={generatingSlide}
               >
-                {generatingSlide ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+                <FileDown className="h-4 w-4" />
                 Download PDF
               </Button>
             </div>
