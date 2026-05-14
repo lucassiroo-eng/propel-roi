@@ -10,26 +10,6 @@ export interface HubSpotNote {
   created_at: string;
 }
 
-export interface AirtableSuggestion {
-  pain_id: string;
-  rationale: string;
-}
-
-export interface AirtableEmail {
-  date: string;
-  subject: string;
-  body: string;
-  direction: string;
-  from: string;
-}
-
-export interface AirtableCall {
-  date: string;
-  transcript: string;
-  duration_seconds: number;
-  owner: string;
-}
-
 export interface ProspectData {
   company_name: string;
   deal_name: string;
@@ -40,11 +20,11 @@ export interface ProspectData {
   contact_name: string;
   contact_email: string;
   hubspot_notes: HubSpotNote[];
-  airtable_suggestions?: AirtableSuggestion[];
-  airtable_stats?: { email_count: number; call_count: number };
-  airtable_emails?: AirtableEmail[];
-  airtable_calls?: AirtableCall[];
-  fetch_source?: "airtable" | "hubspot";
+  deal_context?: string;
+  company_context?: string;
+  contacts_breakdown?: string;
+  atlas_stats?: { notes: number; emails: number; calls: number };
+  fetch_source?: "atlas" | "hubspot";
 }
 
 export interface PainOverride {

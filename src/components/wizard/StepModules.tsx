@@ -57,12 +57,8 @@ interface Props {
 function buildDealContent(data: ProspectData): string {
   const parts: string[] = [];
 
-  for (const e of (data.airtable_emails ?? []).slice(0, 15)) {
-    parts.push(`[Email ${e.date}] From: ${e.from} | ${e.subject}\n${e.body.slice(0, 500)}`);
-  }
-  for (const c of (data.airtable_calls ?? []).slice(0, 5)) {
-    parts.push(`[Call ${c.date}] ${c.owner} (${Math.round(c.duration_seconds / 60)} min)\n${c.transcript.slice(0, 2000)}`);
-  }
+  if (data.deal_context) parts.push(data.deal_context.slice(0, 6000));
+  if (data.company_context) parts.push("=== COMPANY CONTEXT ===\n" + data.company_context.slice(0, 3000));
   for (const n of (data.hubspot_notes ?? []).slice(0, 15)) {
     parts.push(`[Note ${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 1000)}`);
   }
@@ -76,8 +72,7 @@ function getModuleColor(moduleId: string): string {
 
 export function StepModules({ data, selectedModules, moduleSuggestions, onSelectionChange }: Props) {
   const hasContent =
-    (data.airtable_emails?.length ?? 0) > 0 ||
-    (data.airtable_calls?.length ?? 0) > 0 ||
+    !!data.deal_context ||
     (data.hubspot_notes?.length ?? 0) > 0;
 
   const needsAnalysis = moduleSuggestions.length === 0 && hasContent;

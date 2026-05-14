@@ -699,19 +699,13 @@ export function StepOffering({
       {/* ROI Slide preview dialog */}
       <Dialog open={slideDialogOpen} onOpenChange={setSlideDialogOpen}>
         <DialogContent className="max-w-[960px] p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-5 pb-3">
-            <DialogTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Image className="h-5 w-5" />
-                ROI Slide
-              </span>
-              <Button onClick={handleDownloadSlidePdf} disabled={downloadingPdf} className="gap-2">
-                {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-                Descargar PDF
-              </Button>
+          <DialogHeader className="px-6 pt-5 pb-3 pr-12">
+            <DialogTitle className="flex items-center gap-2">
+              <Image className="h-5 w-5" />
+              ROI Slide
             </DialogTitle>
           </DialogHeader>
-          <div className="px-6 pb-6">
+          <div className="px-6 pb-4">
             <div className="rounded-lg border overflow-hidden bg-gray-100" style={{ height: "516px" }}>
               <iframe
                 srcDoc={slideHtml}
@@ -721,6 +715,12 @@ export function StepOffering({
                 title="ROI Slide Preview"
               />
             </div>
+          </div>
+          <div className="px-6 pb-5">
+            <Button onClick={handleDownloadSlidePdf} disabled={downloadingPdf} className="w-full gap-2" size="lg">
+              {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+              Descargar PDF
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

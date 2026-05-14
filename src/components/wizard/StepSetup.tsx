@@ -17,6 +17,7 @@ import type { ProspectData, HubSpotNote, ModuleSuggestion, RoiConfig } from "@/h
 import { type Stakeholder } from "@/lib/moduleHours";
 import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
+import { extractDealIdFromUrl, fetchDealByHubspotId, fetchAtlasCompany, fetchAtlasCompanyByCrmId } from "@/lib/atlasClient";
 
 const WORKER = "https://noshow.lucassiroo.workers.dev";
 
@@ -53,49 +54,22 @@ const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: str
 // Module reference block sent to the unified analysis edge function
 const MODULE_REF_BLOCK = buildModulePromptBlock();
 
-function isIncoming(dir: string): boolean {
-  const d = dir.toLowerCase();
-  return d === "incoming" || d === "inbound";
-}
-
-function sampleTranscript(t: string, budget: number): string {
-  if (t.length <= budget) return t;
-  const third = Math.floor(budget / 3);
-  return t.slice(0, third) + "\n[...]\n" + t.slice(t.length / 2 - third / 2, t.length / 2 + third / 2) + "\n[...]\n" + t.slice(-third);
-}
-
 function buildDealContent(data: ProspectData): string {
   const sections: string[] = [];
+
+  if (data.deal_context) {
+    sections.push(data.deal_context.slice(0, 6000));
+  }
+
+  if (data.company_context) {
+    sections.push("=== COMPANY CONTEXT ===\n" + data.company_context.slice(0, 3000));
+  }
 
   const notes = (data.hubspot_notes ?? []).slice(0, 3);
   if (notes.length > 0) {
     sections.push("=== NOTES ===");
     for (const n of notes) {
       sections.push(`[${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 400)}`);
-    }
-  }
-
-  const calls = (data.airtable_calls ?? []).slice(0, 2);
-  if (calls.length > 0) {
-    sections.push("=== CALLS ===");
-    for (const c of calls) {
-      sections.push(`[${c.date}] ${c.owner}\n${sampleTranscript(c.transcript, 2000)}`);
-    }
-  }
-
-  const emails = data.airtable_emails ?? [];
-  const incoming = emails.filter(e => isIncoming(e.direction)).slice(0, 5);
-  const outgoing = emails.filter(e => !isIncoming(e.direction)).slice(0, 3);
-  if (incoming.length > 0) {
-    sections.push("=== INCOMING ===");
-    for (const e of incoming) {
-      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 300)}`);
-    }
-  }
-  if (outgoing.length > 0) {
-    sections.push("=== OUTGOING ===");
-    for (const e of outgoing) {
-      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 200)}`);
     }
   }
 
@@ -116,22 +90,21 @@ interface Props {
 export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats, selectedModules, moduleSuggestions, onSelectionChange }: Props) {
   const { t } = useTranslation();
   const [fetching, setFetching] = useState(false);
-  const [fetchPhase, setFetchPhase] = useState<"idle" | "airtable" | "hubspot" | "done">("idle");
+  const [fetchPhase, setFetchPhase] = useState<"idle" | "atlas" | "hubspot" | "done">("idle");
   const { headcounts, hourly_costs } = roiConfig;
 
   // Module analysis state
   const [analyzing, setAnalyzing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const analysisStarted = useRef(false);
-  const [contentPopup, setContentPopup] = useState<"emails" | "calls" | "notes" | null>(null);
+  const [contentPopup, setContentPopup] = useState<"notes" | null>(null);
 
   const hasContent =
-    (data.airtable_emails?.length ?? 0) > 0 ||
-    (data.airtable_calls?.length ?? 0) > 0 ||
+    !!data.deal_context ||
     (data.hubspot_notes?.length ?? 0) > 0;
 
   const needsAnalysis = moduleSuggestions.length === 0 && hasContent;
-  const contentFingerprint = (data.airtable_emails?.length ?? 0) + (data.airtable_calls?.length ?? 0) + (data.hubspot_notes?.length ?? 0);
+  const contentFingerprint = (data.deal_context?.length ?? 0) + (data.hubspot_notes?.length ?? 0);
 
   // Sync seats from headcount sum
   useEffect(() => {
@@ -156,7 +129,7 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     onRoiConfigChange({ ...roiConfig, hourly_costs: { ...hourly_costs, [key]: Math.max(0, value) } });
   }
 
-  // ── Deal fetch: Airtable first (content), then HubSpot (metadata + notes) ──
+  // ── Deal fetch: Atlas (Supabase) first, then HubSpot fallback ──
   async function handleFetch() {
     const url = data.hubspot_deal_url?.trim();
     if (!url) { toast.error(t("prospect.hubspot_paste_first")); return; }
@@ -165,69 +138,86 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     const toastParts: string[] = [];
 
     try {
-      // 1) Airtable — emails & calls
-      setFetchPhase("airtable");
-      try {
-        const atRes = await fetch(`${WORKER}/airtable`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deal_url: url }),
-        });
-        const atResult = atRes.ok ? await atRes.json() : null;
-        if (atResult && !atResult.error) {
-          const emails = atResult.emails ?? [];
-          const calls = atResult.calls ?? [];
-          if (emails.length > 0 || calls.length > 0) {
-            updates.airtable_emails = emails;
-            updates.airtable_calls = calls;
-            updates.airtable_stats = { email_count: emails.length, call_count: calls.length };
-            toastParts.push(`Airtable: ${emails.length} emails, ${calls.length} calls`);
-          }
-          if (atResult.deal?.company_name) updates.company_name = atResult.deal.company_name;
-          if (atResult.deal?.name) updates.deal_name = atResult.deal.name;
-          if (atResult.deal?.contacts_info) {
-            const ci = atResult.deal.contacts_info;
-            const nameMatch = ci.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);
-            const emailMatch = ci.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
-            if (nameMatch) updates.contact_name = nameMatch[1];
-            if (emailMatch) updates.contact_email = emailMatch[0];
-          }
-        }
-      } catch { /* Airtable failed, continue to HubSpot */ }
-
-      // 2) HubSpot — metadata, country, industry, notes
-      setFetchPhase("hubspot");
-      try {
-        const hsRes = await fetch(`${WORKER}/hubspot`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deal_url: url }),
-        });
-        if (hsRes.ok) {
-          const hs = await hsRes.json();
-          if (!hs.error) {
-            if (hs.deal_name && !updates.deal_name) updates.deal_name = hs.deal_name;
-            if (hs.company_name) updates.company_name = hs.company_name;
-            if (hs.contact_name && !updates.contact_name) updates.contact_name = hs.contact_name;
-            if (hs.contact_email && !updates.contact_email) updates.contact_email = hs.contact_email;
-            const mappedCountry = mapCountry(hs.country ?? "");
-            if (mappedCountry) updates.country = mappedCountry;
-            const mappedIndustry = mapIndustry(hs.industry ?? "");
-            if (mappedIndustry) updates.sector = mappedIndustry;
-            const empCount = parseInt(hs.employees);
-            if (empCount > 0) updates.seats = Math.min(Math.max(empCount, 10), 5000);
-            const notes: HubSpotNote[] = hs.notes ?? [];
-            if (notes.length > 0) {
-              updates.hubspot_notes = notes;
-              toastParts.push(`${notes.length} notes`);
+      // 1) Atlas — deal context + company info
+      setFetchPhase("atlas");
+      const dealId = extractDealIdFromUrl(url);
+      let atlasOk = false;
+      if (dealId) {
+        try {
+          const deal = await fetchDealByHubspotId(dealId);
+          if (deal) {
+            atlasOk = true;
+            updates.fetch_source = "atlas";
+            if (deal.deal_name) updates.deal_name = deal.deal_name;
+            if (deal.deal_context) updates.deal_context = deal.deal_context;
+            updates.atlas_stats = {
+              notes: deal.numero_de_notas ?? 0,
+              emails: deal.numero_de_emails ?? 0,
+              calls: deal.numero_de_calls ?? 0,
+            };
+            if (deal.contacts_info) {
+              const nameMatch = deal.contacts_info.match(/([A-ZÀ-ÿ][a-zà-ÿ]+ [A-ZÀ-ÿ][a-zà-ÿ]+)/);
+              const emailMatch = deal.contacts_info.match(/[\w.+-]+@[\w-]+\.[\w.]+/);
+              if (nameMatch) updates.contact_name = nameMatch[1];
+              if (emailMatch) updates.contact_email = emailMatch[0];
             }
-            if (!toastParts.length) toastParts.push(`HubSpot: ${hs.company_name ?? "Deal found"}`);
+
+            const company = deal.atlas_id
+              ? await fetchAtlasCompany(deal.atlas_id)
+              : deal.crm_id
+                ? await fetchAtlasCompanyByCrmId(deal.crm_id)
+                : null;
+            if (company) {
+              if (company.company_name) updates.company_name = company.company_name;
+              if (company.company_context) updates.company_context = company.company_context;
+              if (company.contacts_breakdown) updates.contacts_breakdown = company.contacts_breakdown;
+              const empCount = parseInt(company.company_size);
+              if (empCount > 0) updates.seats = Math.min(Math.max(empCount, 10), 5000);
+              const mappedCountry = mapCountry(company.country ?? "");
+              if (mappedCountry) updates.country = mappedCountry;
+              const mappedIndustry = mapIndustry(company.industry ?? "");
+              if (mappedIndustry) updates.sector = mappedIndustry;
+              toastParts.push(`Atlas: ${company.company_name} (${company.company_size} emp)`);
+            }
           }
-        }
-      } catch { /* HubSpot failed */ }
+        } catch { /* Atlas failed, continue to HubSpot */ }
+      }
+
+      // 2) HubSpot fallback — metadata, country, industry, notes
+      if (!atlasOk) {
+        setFetchPhase("hubspot");
+        try {
+          const hsRes = await fetch(`${WORKER}/hubspot`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deal_url: url }),
+          });
+          if (hsRes.ok) {
+            const hs = await hsRes.json();
+            if (!hs.error) {
+              if (hs.deal_name && !updates.deal_name) updates.deal_name = hs.deal_name;
+              if (hs.company_name) updates.company_name = hs.company_name;
+              if (hs.contact_name && !updates.contact_name) updates.contact_name = hs.contact_name;
+              if (hs.contact_email && !updates.contact_email) updates.contact_email = hs.contact_email;
+              const mappedCountry = mapCountry(hs.country ?? "");
+              if (mappedCountry) updates.country = mappedCountry;
+              const mappedIndustry = mapIndustry(hs.industry ?? "");
+              if (mappedIndustry) updates.sector = mappedIndustry;
+              const empCount = parseInt(hs.employees);
+              if (empCount > 0) updates.seats = Math.min(Math.max(empCount, 10), 5000);
+              const notes: HubSpotNote[] = hs.notes ?? [];
+              if (notes.length > 0) {
+                updates.hubspot_notes = notes;
+                toastParts.push(`${notes.length} notes`);
+              }
+              updates.fetch_source = "hubspot";
+              if (!toastParts.length) toastParts.push(`HubSpot: ${hs.company_name ?? "Deal found"}`);
+            }
+          }
+        } catch { /* HubSpot failed */ }
+      }
 
       // 3) Apply merged results
-      const hasContent = updates.airtable_emails?.length || updates.airtable_calls?.length || updates.hubspot_notes?.length;
-      updates.fetch_source = updates.airtable_emails?.length ? "airtable" : updates.hubspot_notes?.length ? "hubspot" : undefined;
-
+      const hasContent = updates.deal_context || updates.hubspot_notes?.length;
       if (updates.company_name || hasContent) {
         onChange(updates);
         toast.success(toastParts.join(" · ") || "Deal fetched");
@@ -311,10 +301,9 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     return MODULE_CATALOG.filter(m => !used.has(m.id));
   }, [moduleSuggestions, selectedModules]);
 
-  const emails = data.airtable_emails ?? [];
-  const calls = data.airtable_calls ?? [];
   const notes = data.hubspot_notes ?? [];
   const source = data.fetch_source;
+  const stats = data.atlas_stats;
   const totalPeople = headcounts.employee + headcounts.hr + headcounts.manager;
 
   return (
@@ -352,35 +341,36 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
           <div className="flex gap-2 flex-wrap items-center">
             {fetching && (
               <Badge variant="outline" className="gap-1.5 text-xs animate-pulse">
-                {fetchPhase === "airtable" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
-                {fetchPhase === "airtable" ? t("setup.searching_airtable") : t("setup.fetching_hubspot")}
+                {fetchPhase === "atlas" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
+                {fetchPhase === "atlas" ? "Searching Atlas..." : t("setup.fetching_hubspot")}
               </Badge>
             )}
             {source && !fetching && (
               <>
                 <Badge variant="outline" className="gap-1.5 text-xs">
-                  {source === "airtable" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
+                  {source === "atlas" ? <Database className="h-3 w-3" /> : <Cloud className="h-3 w-3" />}
                   <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                  {source === "airtable" ? "Airtable" : "HubSpot"}
+                  {source === "atlas" ? "Atlas" : "HubSpot"}
                 </Badge>
-                {emails.length > 0 && (
-                  <button onClick={() => setContentPopup("emails")}>
-                    <Badge variant="outline" className="gap-1 text-xs hover:bg-accent cursor-pointer transition-colors">
-                      <Mail className="h-3 w-3" /> {emails.length} {t("content.emails").toLowerCase()}
-                    </Badge>
-                  </button>
+                {stats && stats.emails > 0 && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Mail className="h-3 w-3" /> {stats.emails} emails
+                  </Badge>
                 )}
-                {calls.length > 0 && (
-                  <button onClick={() => setContentPopup("calls")}>
-                    <Badge variant="outline" className="gap-1 text-xs hover:bg-accent cursor-pointer transition-colors">
-                      <Phone className="h-3 w-3" /> {calls.length} {t("content.calls").toLowerCase()}
-                    </Badge>
-                  </button>
+                {stats && stats.calls > 0 && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Phone className="h-3 w-3" /> {stats.calls} calls
+                  </Badge>
+                )}
+                {stats && stats.notes > 0 && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <FileText className="h-3 w-3" /> {stats.notes} notes
+                  </Badge>
                 )}
                 {notes.length > 0 && (
                   <button onClick={() => setContentPopup("notes")}>
                     <Badge variant="outline" className="gap-1 text-xs hover:bg-accent cursor-pointer transition-colors">
-                      <FileText className="h-3 w-3" /> {notes.length} {t("content.notes").toLowerCase()}
+                      <FileText className="h-3 w-3" /> {notes.length} HubSpot notes
                     </Badge>
                   </button>
                 )}
@@ -438,9 +428,8 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       {/* Content popups */}
       <ContentDialog
         type={contentPopup}
-        emails={emails}
-        calls={calls}
         notes={notes}
+        dealContext={data.deal_context}
         onClose={() => setContentPopup(null)}
       />
 
@@ -686,69 +675,44 @@ function ModuleCard({ suggestion, isSelected, onToggle }: {
   );
 }
 
-// ── Content Dialog (emails, calls, notes) ──
-function ContentDialog({ type, emails, calls, notes, onClose }: {
-  type: "emails" | "calls" | "notes" | null;
-  emails: ProspectData["airtable_emails"];
-  calls: ProspectData["airtable_calls"];
+// ── Content Dialog (notes / deal context) ──
+function ContentDialog({ type, notes, dealContext, onClose }: {
+  type: "notes" | null;
   notes: ProspectData["hubspot_notes"];
+  dealContext?: string;
   onClose: () => void;
 }) {
-  const [expanded, setExpanded] = useState<number | null>(null);
   const { t } = useTranslation();
 
-  const title = type === "emails" ? t("content.emails") : type === "calls" ? t("content.calls") : t("content.notes");
-  const items = type === "emails" ? (emails ?? []).map((e, i) => ({
-    id: i,
-    header: `${e.date} — ${e.subject}`,
-    sub: `From: ${e.from}${e.direction ? ` (${e.direction})` : ""}`,
-    body: e.body,
-  })) : type === "calls" ? (calls ?? []).map((c, i) => ({
-    id: i,
-    header: `${c.date} — ${c.owner}`,
-    sub: `${Math.round(c.duration_seconds / 60)} min`,
-    body: c.transcript,
-  })) : type === "notes" ? (notes ?? []).map((n, i) => ({
-    id: i,
-    header: n.created_at,
-    sub: "",
-    body: n.body.replace(/<[^>]*>/g, ""),
-  })) : [];
-
   return (
-    <Dialog open={!!type} onOpenChange={(v) => { if (!v) { onClose(); setExpanded(null); } }}>
+    <Dialog open={!!type} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="max-w-lg max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {type === "emails" ? <Mail className="h-4 w-4" /> : type === "calls" ? <Phone className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
-            {title} ({items.length})
+            <FileText className="h-4 w-4" />
+            {t("content.notes")}
           </DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-2">
-          <div className="space-y-1">
-            {items.map(item => (
-              <div key={item.id} className="border border-border/50 rounded-lg overflow-hidden">
-                <button
-                  className="w-full text-left px-3 py-2.5 hover:bg-muted/30 transition-colors flex items-center justify-between"
-                  onClick={() => setExpanded(expanded === item.id ? null : item.id)}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-foreground truncate">{item.header}</p>
-                    {item.sub && <p className="text-[10px] text-muted-foreground truncate">{item.sub}</p>}
-                  </div>
-                  <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground shrink-0 ml-2 transition-transform ${expanded === item.id ? "rotate-180" : ""}`} />
-                </button>
-                {expanded === item.id && (
-                  <div className="px-3 pb-3 border-t border-border/30">
-                    <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed mt-2 max-h-60 overflow-y-auto">
-                      {item.body.slice(0, 2000)}
-                      {item.body.length > 2000 && "..."}
-                    </p>
-                  </div>
-                )}
+          <div className="space-y-3">
+            {dealContext && (
+              <div className="border border-border/50 rounded-lg p-3">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Deal Context</p>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                  {dealContext.slice(0, 4000)}
+                  {dealContext.length > 4000 && "..."}
+                </p>
+              </div>
+            )}
+            {(notes ?? []).map((n, i) => (
+              <div key={i} className="border border-border/50 rounded-lg p-3">
+                <p className="text-[10px] text-muted-foreground mb-1">{n.created_at}</p>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto">
+                  {n.body.replace(/<[^>]*>/g, "").slice(0, 1000)}
+                </p>
               </div>
             ))}
-            {items.length === 0 && (
+            {!dealContext && (notes ?? []).length === 0 && (
               <p className="text-xs text-muted-foreground text-center py-4">{t("setup.no_items")}</p>
             )}
           </div>
