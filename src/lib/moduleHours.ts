@@ -14,16 +14,6 @@ export const MODULE_HOURS: HoursEntry[] = [
   { module_id: "core",              stakeholder: "hr",       hours_per_month: 30.0, scales_with: "onboardings" },
   { module_id: "core",              stakeholder: "manager",  hours_per_month: 2.0,  scales_with: "managers" },
 
-  // Time Off
-  { module_id: "time_off",          stakeholder: "employee", hours_per_month: 0.2,  scales_with: "employees" },
-  { module_id: "time_off",          stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
-  { module_id: "time_off",          stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
-
-  // Time Tracking
-  { module_id: "time_tracking",     stakeholder: "employee", hours_per_month: 0.7,  scales_with: "employees" },
-  { module_id: "time_tracking",     stakeholder: "hr",       hours_per_month: 4.0,  scales_with: "hr_ftes" },
-  { module_id: "time_tracking",     stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
-
   // Shift Management
   { module_id: "time_planning",     stakeholder: "employee", hours_per_month: 0.1,  scales_with: "employees" },
   { module_id: "time_planning",     stakeholder: "hr",       hours_per_month: 4.0,  scales_with: "hr_ftes" },
@@ -144,19 +134,9 @@ export function getCountForEntry(entry: HoursEntry, multipliers: RoiMultipliers)
 
 export const SAVINGS_DESCRIPTIONS: Record<string, Partial<Record<Stakeholder, string>>> = {
   core: {
-    employee: "Self-service profile updates replace emailing HR (~2 min/change × ~1/month). Payslips and certificates downloadable on mobile — zero HR requests.",
-    hr: "Single employee database eliminates duplicate spreadsheets and copy-paste. Automated approval workflows for data changes — no manual routing. Onboarding/offboarding checklists run automatically (~2.5h/week).",
-    manager: "Team dashboard shows pending approvals, org structure, direct reports in one click. No more emailing HR for headcount, contract dates, or employee details.",
-  },
-  time_off: {
-    employee: "Request leave from mobile in 30 seconds — no paper forms or email chains. Real-time balance visible anytime — eliminates balance-check queries.",
-    hr: "Auto-accrual engine replaces manual balance calculations. Payroll integration syncs leave data automatically — no re-entry. Policy rules prevent over-approval before it happens (~1.5h/week).",
-    manager: "Visual team calendar shows who's off — no checking spreadsheets. One-click approve/reject with conflict detection alerts.",
-  },
-  time_tracking: {
-    employee: "Mobile/desktop clock-in replaces paper timesheets (~2 min/day × 20 days). Forgot to clock in? Edit requests with manager approval in-app.",
-    hr: "Time data flows to payroll automatically — no weekly reconciliation. Overtime calculated per labour law — no manual compliance checks. Missing entries trigger automatic reminders (~1h/week).",
-    manager: "Real-time attendance dashboard replaces morning roll calls. Anomaly alerts (late arrivals, missed clock-outs) sent automatically.",
+    employee: "Self-service profile updates replace emailing HR (~2 min/change × ~1/month). Payslips and certificates downloadable on mobile — zero HR requests. Request leave from mobile in 30 seconds — real-time balance visible anytime. Mobile/desktop clock-in replaces paper timesheets (~2 min/day × 20 days).",
+    hr: "Single employee database eliminates duplicate spreadsheets and copy-paste. Automated approval workflows for data changes — no manual routing. Onboarding/offboarding checklists run automatically (~2.5h/week). Auto-accrual engine replaces manual balance calculations. Time data flows to payroll automatically — no weekly reconciliation. Overtime calculated per labour law — no manual compliance checks.",
+    manager: "Team dashboard shows pending approvals, org structure, direct reports in one click. Visual team calendar shows who's off — one-click approve/reject with conflict detection. Real-time attendance dashboard replaces morning roll calls. Anomaly alerts sent automatically.",
   },
   time_planning: {
     employee: "View upcoming shifts on mobile — no paper rosters or WhatsApp groups. Request shift swaps directly in-app — manager notified instantly (6 min/month).",
