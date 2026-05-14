@@ -28,7 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdfFromIframe } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -81,6 +81,8 @@ export function StepOffering({
   const [showDetails, setShowDetails] = useState(false);
   const [slideDialogOpen, setSlideDialogOpen] = useState(false);
   const [slideHtml, setSlideHtml] = useState("");
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const slideIframeRef = useRef<HTMLIFrameElement>(null);
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -280,13 +282,17 @@ export function StepOffering({
     setSlideDialogOpen(true);
   }
 
-  function handleDownloadSlidePdf() {
-    const data = getSlideData();
-    if (!data) return;
+  async function handleDownloadSlidePdf() {
+    if (!slideIframeRef.current) return;
+    setDownloadingPdf(true);
     try {
-      generateRoiSlidePdf(data);
+      const name = `ROI-Slide-${state?.prospect.company_name || "report"}.pdf`;
+      await generateRoiSlidePdfFromIframe(slideIframeRef.current, name);
+      toast.success("PDF descargado");
     } catch (err: any) {
-      toast.error("Failed to open slide: " + err.message);
+      toast.error("Error al generar PDF: " + err.message);
+    } finally {
+      setDownloadingPdf(false);
     }
   }
 
@@ -701,8 +707,8 @@ export function StepOffering({
                 <Image className="h-5 w-5" />
                 ROI Slide
               </span>
-              <Button onClick={handleDownloadSlidePdf} className="gap-2">
-                <FileDown className="h-4 w-4" />
+              <Button onClick={handleDownloadSlidePdf} disabled={downloadingPdf} className="gap-2">
+                {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
                 Descargar PDF
               </Button>
             </DialogTitle>
@@ -710,10 +716,11 @@ export function StepOffering({
           <div className="px-6 pb-6">
             <div className="rounded-lg border overflow-hidden bg-gray-100" style={{ height: "516px" }}>
               <iframe
+                ref={slideIframeRef}
                 srcDoc={slideHtml}
                 className="border-0"
                 style={{ width: "1440px", height: "810px", transform: "scale(0.636)", transformOrigin: "top left" }}
-                sandbox="allow-same-origin"
+                sandbox="allow-same-origin allow-scripts"
                 title="ROI Slide Preview"
               />
             </div>

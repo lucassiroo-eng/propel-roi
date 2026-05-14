@@ -459,30 +459,46 @@ function escHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-// ── PDF generation via native browser print (pixel-perfect) ──
+// ── PDF generation: capture the preview iframe with html2canvas + jsPDF ──
 
-export function generateRoiSlidePdf(data: RoiSlideData): void {
-  const html = generateRoiSlideHtml(data);
+let html2canvasLoaded: Promise<any> | null = null;
 
-  const printCss = `
-  @media print {
-    @page { size: 1440px 810px; margin: 0; }
-    body { background: #fff !important; margin: 0; padding: 0; display: block; min-height: auto; }
-    .slide { box-shadow: none; }
-  }`;
-  const printHtml = html.replace("</style>", printCss + "\n</style>");
+function loadHtml2Canvas(): Promise<any> {
+  if ((window as any).html2canvas) return Promise.resolve((window as any).html2canvas);
+  if (html2canvasLoaded) return html2canvasLoaded;
+  html2canvasLoaded = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    s.onload = () => resolve((window as any).html2canvas);
+    s.onerror = () => reject(new Error("Failed to load html2canvas"));
+    document.head.appendChild(s);
+  });
+  return html2canvasLoaded;
+}
 
-  const w = window.open("", "_blank");
-  if (!w) throw new Error("Popup blocked — allow popups for this site");
-  w.document.write(printHtml);
-  w.document.close();
+export async function generateRoiSlidePdfFromIframe(iframe: HTMLIFrameElement, fileName: string): Promise<void> {
+  const [{ default: jsPDF }, html2canvas] = await Promise.all([
+    import("jspdf"),
+    loadHtml2Canvas(),
+  ]);
 
-  w.onafterprint = () => w.close();
+  const doc = iframe.contentDocument;
+  if (!doc) throw new Error("Cannot access iframe");
 
-  const fonts = (w.document as any).fonts;
-  if (fonts?.ready) {
-    fonts.ready.then(() => w.print());
-  } else {
-    setTimeout(() => w.print(), 1200);
-  }
+  const slide = doc.querySelector(".slide") as HTMLElement;
+  if (!slide) throw new Error("Slide element not found");
+
+  const canvas = await html2canvas(slide, {
+    width: 1440,
+    height: 810,
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: "#ffffff",
+  });
+
+  const img = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
+  pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+  pdf.save(fileName);
 }
