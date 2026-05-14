@@ -67,35 +67,35 @@ function sampleTranscript(t: string, budget: number): string {
 function buildDealContent(data: ProspectData): string {
   const sections: string[] = [];
 
-  const notes = (data.hubspot_notes ?? []).slice(0, 5);
+  const notes = (data.hubspot_notes ?? []).slice(0, 3);
   if (notes.length > 0) {
-    sections.push("=== CALL NOTES (structured summaries — high value) ===");
+    sections.push("=== NOTES ===");
     for (const n of notes) {
-      sections.push(`[${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 600)}`);
+      sections.push(`[${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 400)}`);
     }
   }
 
-  const calls = (data.airtable_calls ?? []).slice(0, 3);
+  const calls = (data.airtable_calls ?? []).slice(0, 2);
   if (calls.length > 0) {
-    sections.push("=== CALL TRANSCRIPTS ===");
+    sections.push("=== CALLS ===");
     for (const c of calls) {
-      sections.push(`[Call ${c.date}] ${c.owner}\n${sampleTranscript(c.transcript, 3000)}`);
+      sections.push(`[${c.date}] ${c.owner}\n${sampleTranscript(c.transcript, 2000)}`);
     }
   }
 
   const emails = data.airtable_emails ?? [];
-  const incoming = emails.filter(e => isIncoming(e.direction)).slice(0, 8);
-  const outgoing = emails.filter(e => !isIncoming(e.direction)).slice(0, 5);
+  const incoming = emails.filter(e => isIncoming(e.direction)).slice(0, 5);
+  const outgoing = emails.filter(e => !isIncoming(e.direction)).slice(0, 3);
   if (incoming.length > 0) {
-    sections.push("=== INCOMING EMAILS (from prospect) ===");
+    sections.push("=== INCOMING ===");
     for (const e of incoming) {
-      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 500)}`);
+      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 300)}`);
     }
   }
   if (outgoing.length > 0) {
-    sections.push("=== OUTGOING EMAILS ===");
+    sections.push("=== OUTGOING ===");
     for (const e of outgoing) {
-      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 300)}`);
+      sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 200)}`);
     }
   }
 

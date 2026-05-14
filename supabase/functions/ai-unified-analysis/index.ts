@@ -1,4 +1,3 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const AZURE_URL = "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages";
@@ -94,7 +93,7 @@ function confidenceLabel(c: number): "strong" | "possible" {
 
 const ANALYSIS_TOOL = {
   name: "analyze_deal",
-  description: "Extract max 15 evidence items from deal content, map to modules and pains",
+  description: "Return max 8 evidence items mapped to modules",
   input_schema: {
     type: "object",
     properties: {
@@ -103,7 +102,7 @@ const ANALYSIS_TOOL = {
         items: {
           type: "object",
           properties: {
-            quote: { type: "string", description: "Max 1 sentence. Verbatim: exact prospect words. Other: contextual summary." },
+            quote: { type: "string" },
             attribution: { type: "string", enum: ["client_verbatim", "client_paraphrase", "pae_interpretation", "inferred"] },
             strength: { type: "string", enum: ["strong", "moderate", "weak"] },
             source_type: { type: "string", enum: ["call", "incoming_email", "outgoing_email", "note"] },
@@ -121,36 +120,16 @@ const ANALYSIS_TOOL = {
 };
 
 function buildSystemPrompt(moduleBlock: string, painBlock: string, country: string, sector: string, seats: number): string {
-  return `Evidence-extraction engine for Factorial HR. Extract prospect pains from deal communications and map to modules/pains.
+  return `Extract prospect pains from HR deal communications. Return max 8 evidence items, strongest first. Short quotes (max 15 words). Ignore seller pitch.
 
-Extract the PROSPECT's problems, needs, and current tools/processes. Max 15 evidence items, prioritize strong signals.
+Attribution: client_verbatim, client_paraphrase, pae_interpretation, inferred.
+Strength: strong, moderate, weak.
+source_who: name or role.
 
-CONTENT PRIORITY:
-1. CALL NOTES / SUMMARIES — high value, contain structured pain descriptions
-2. CALL TRANSCRIPTS — prospect's own words about their problems
-3. INCOMING EMAILS — prospect describing their situation
-4. OUTGOING EMAILS — only if they quote or describe the prospect's situation
-
-Attribution: client_verbatim (exact words from call/email), client_paraphrase (close paraphrase), pae_interpretation (described in notes/summaries), inferred (from context).
-Strength: strong (explicit pain or need), moderate (implies need), weak (inferred from context).
-
-Quote format — keep to 1 sentence max:
-- client_verbatim: prospect's exact words in original language
-- client_paraphrase: "[Who], during [source], mentioned: [paraphrase]"
-- pae_interpretation: "According to call notes, [situation]"
-- inferred: "Given [context], [why relevant]"
-
-source_who: name or role of speaker (e.g. "HR Director", "María García").
-
-MODULES:
+Modules (map each evidence to ≥1):
 ${moduleBlock}
-
-PAINS (match via trigger phrases):
-${painBlock}
-
-Context: Country=${country}, Sector=${sector}, Employees=${seats}
-
-Rules: one evidence can map to multiple modules. Each must have ≥1 module. Pain mapping optional. Same language as source.`;
+${painBlock ? "\nPains (optional, match via triggers):\n" + painBlock : ""}
+Context: ${country}, ${sector || "general"}, ${seats} employees. Same language as source.`;
 }
 
 Deno.serve(async (req) => {
@@ -166,37 +145,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    let painBlock = pains_ref ?? "";
-    if (!painBlock) {
-      const supabaseAdmin = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      );
-      const { data: pains } = await supabaseAdmin
-        .from("pain_library")
-        .select("pain_id, persona, pain_statement, trigger_phrases")
-        .eq("is_archived", false)
-        .order("display_order");
-
-      painBlock = (pains ?? []).map((p: any) => {
-        let line = "- " + p.pain_id + ": [" + p.persona + "] " + p.pain_statement;
-        if (p.trigger_phrases) line += " | Triggers: " + p.trigger_phrases;
-        return line;
-      }).join("\n");
-    }
-
+    const painBlock = pains_ref ?? "";
     const moduleBlock = modules_ref ?? "";
     const systemPrompt = buildSystemPrompt(moduleBlock, painBlock, country ?? "ES", sector ?? "", seats ?? 50);
 
-    const contentTrimmed = content.slice(0, 18000);
-    const userMessage = "Extract evidence of prospect pains. Max 15 items, strongest first.\n\n" + contentTrimmed;
+    const contentTrimmed = content.slice(0, 15000);
+    const userMessage = contentTrimmed;
 
     let result: any = null;
     let azureError = "";
     try {
       const res = await azureFetch({
         model: "claude-opus-4-6",
-        max_tokens: 1536,
+        max_tokens: 1024,
         temperature: 0,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
