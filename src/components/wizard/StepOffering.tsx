@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Check, X, Loader2, Plus, FileDown, FileText,
+  Check, X, Loader2, Plus, FileDown, FileText, Image, Copy, Code,
   ExternalLink, Package, Star, Save, Eye, Globe,
   ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search, UserPlus, Receipt,
 } from "lucide-react";
@@ -29,6 +29,7 @@ import {
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
 import { generateRoiPdf, type RoiPdfData } from "@/lib/generateRoiPdf";
+import { buildRoiSlideData, generateRoiSlideHtml, generateUserPrompt } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -79,6 +80,9 @@ export function StepOffering({
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [slideDialogOpen, setSlideDialogOpen] = useState(false);
+  const [slideHtml, setSlideHtml] = useState("");
+  const [slidePrompt, setSlidePrompt] = useState("");
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -275,6 +279,23 @@ export function StepOffering({
     };
     const doc = generateRoiPdf(pdfData);
     doc.save(`ROI-${state.prospect.company_name || "report"}.pdf`);
+  }
+
+  function handleGenerateSlide() {
+    if (!configuration || !roiConfig || !state) return;
+    const lang = state.prospect.country === "FR" ? "fr" : "es";
+    const data = buildRoiSlideData({
+      companyName: state.prospect.company_name || "Company",
+      country: state.prospect.country,
+      language: lang,
+      configModules: configuration.configModules,
+      roiConfig,
+      annualCost: effectiveCost,
+      moduleSuggestions,
+    });
+    setSlideHtml(generateRoiSlideHtml(data));
+    setSlidePrompt(generateUserPrompt(data));
+    setSlideDialogOpen(true);
   }
 
   function selectPack(bundleId: number) { onChange({ bundle_id: bundleId }); }
@@ -661,10 +682,9 @@ export function StepOffering({
             <FileDown className="h-4 w-4" />
             ROI PDF
           </Button>
-          <Button variant="outline" size="lg" disabled className="gap-2 relative opacity-60">
-            <FileText className="h-4 w-4" />
-            {t("offering.detailed_doc")}
-            <span className="absolute -top-2 -right-2 bg-amber-400 text-[9px] font-bold text-amber-900 px-1.5 py-0.5 rounded-full leading-none">TO COME</span>
+          <Button variant="outline" size="lg" onClick={handleGenerateSlide} disabled={!configuration || !roiConfig} className="gap-2">
+            <Image className="h-4 w-4" />
+            ROI Slide
           </Button>
           <Button variant="secondary" size="lg" onClick={onSave} className="gap-2">
             <Save className="h-4 w-4" />
@@ -683,6 +703,75 @@ export function StepOffering({
           </div>
         )}
       </div>
+
+      {/* ROI Slide dialog */}
+      <Dialog open={slideDialogOpen} onOpenChange={setSlideDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Image className="h-5 w-5" />
+              ROI Slide
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="rounded-lg border overflow-hidden" style={{ aspectRatio: "16/9" }}>
+              <iframe
+                srcDoc={slideHtml}
+                className="w-full h-full border-0"
+                style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+                title="ROI Slide Preview"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="gap-2 flex-1"
+                onClick={() => {
+                  const blob = new Blob([slideHtml], { type: "text/html" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `ROI-Slide-${state?.prospect.company_name || "report"}.html`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success("Slide HTML downloaded");
+                }}
+              >
+                <FileDown className="h-4 w-4" />
+                Download HTML
+              </Button>
+              <Button
+                variant="outline"
+                className="gap-2 flex-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(slidePrompt);
+                  toast.success("User prompt copied to clipboard");
+                }}
+              >
+                <Copy className="h-4 w-4" />
+                Copy User Prompt
+              </Button>
+              <Button
+                variant="outline"
+                className="gap-2 flex-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(slideHtml);
+                  toast.success("HTML copied to clipboard");
+                }}
+              >
+                <Code className="h-4 w-4" />
+                Copy HTML
+              </Button>
+            </div>
+            <details className="rounded-lg border">
+              <summary className="px-4 py-2 text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors">
+                User Prompt (JSON)
+              </summary>
+              <pre className="px-4 py-3 text-xs overflow-x-auto bg-muted/20 max-h-60 overflow-y-auto">{slidePrompt}</pre>
+            </details>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
