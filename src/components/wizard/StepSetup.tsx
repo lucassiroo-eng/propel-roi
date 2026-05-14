@@ -53,22 +53,41 @@ const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: str
 // Module reference block sent to the unified analysis edge function
 const MODULE_REF_BLOCK = buildModulePromptBlock();
 
+function isIncoming(dir: string): boolean {
+  const d = dir.toLowerCase();
+  return d === "incoming" || d === "inbound";
+}
+
+function sampleTranscript(t: string, budget: number): string {
+  if (t.length <= budget) return t;
+  const third = Math.floor(budget / 3);
+  return t.slice(0, third) + "\n[...]\n" + t.slice(t.length / 2 - third / 2, t.length / 2 + third / 2) + "\n[...]\n" + t.slice(-third);
+}
+
 function buildDealContent(data: ProspectData): string {
   const sections: string[] = [];
 
-  const calls = (data.airtable_calls ?? []).slice(0, 5);
+  const notes = (data.hubspot_notes ?? []).slice(0, 5);
+  if (notes.length > 0) {
+    sections.push("=== CALL NOTES (structured summaries — high value) ===");
+    for (const n of notes) {
+      sections.push(`[${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 600)}`);
+    }
+  }
+
+  const calls = (data.airtable_calls ?? []).slice(0, 3);
   if (calls.length > 0) {
-    sections.push("=== CALLS ===");
+    sections.push("=== CALL TRANSCRIPTS ===");
     for (const c of calls) {
-      sections.push(`[Call ${c.date}] ${c.owner}\n${c.transcript.slice(0, 1500)}`);
+      sections.push(`[Call ${c.date}] ${c.owner}\n${sampleTranscript(c.transcript, 3000)}`);
     }
   }
 
   const emails = data.airtable_emails ?? [];
-  const incoming = emails.filter(e => e.direction === "INCOMING").slice(0, 8);
-  const outgoing = emails.filter(e => e.direction !== "INCOMING").slice(0, 5);
+  const incoming = emails.filter(e => isIncoming(e.direction)).slice(0, 8);
+  const outgoing = emails.filter(e => !isIncoming(e.direction)).slice(0, 5);
   if (incoming.length > 0) {
-    sections.push("=== INCOMING EMAILS ===");
+    sections.push("=== INCOMING EMAILS (from prospect) ===");
     for (const e of incoming) {
       sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 500)}`);
     }
@@ -77,14 +96,6 @@ function buildDealContent(data: ProspectData): string {
     sections.push("=== OUTGOING EMAILS ===");
     for (const e of outgoing) {
       sections.push(`[${e.date}] ${e.from} | ${e.subject}\n${e.body.slice(0, 300)}`);
-    }
-  }
-
-  const notes = (data.hubspot_notes ?? []).slice(0, 5);
-  if (notes.length > 0) {
-    sections.push("=== NOTES ===");
-    for (const n of notes) {
-      sections.push(`[${n.created_at}]\n${n.body.replace(/<[^>]*>/g, "").slice(0, 500)}`);
     }
   }
 

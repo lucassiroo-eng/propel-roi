@@ -123,15 +123,21 @@ const ANALYSIS_TOOL = {
 function buildSystemPrompt(moduleBlock: string, painBlock: string, country: string, sector: string, seats: number): string {
   return `Evidence-extraction engine for Factorial HR. Extract prospect pains from deal communications and map to modules/pains.
 
-ONLY extract the PROSPECT's problems — ignore seller pitch. Max 15 evidence items, prioritize strong signals.
+Extract the PROSPECT's problems, needs, and current tools/processes. Max 15 evidence items, prioritize strong signals.
 
-Attribution: client_verbatim (exact words from call/email), client_paraphrase (close paraphrase), pae_interpretation (seller described prospect situation), inferred (from context).
-Strength: strong (explicit pain), moderate (implies need), weak (inferred from context).
+CONTENT PRIORITY:
+1. CALL NOTES / SUMMARIES — high value, contain structured pain descriptions
+2. CALL TRANSCRIPTS — prospect's own words about their problems
+3. INCOMING EMAILS — prospect describing their situation
+4. OUTGOING EMAILS — only if they quote or describe the prospect's situation
+
+Attribution: client_verbatim (exact words from call/email), client_paraphrase (close paraphrase), pae_interpretation (described in notes/summaries), inferred (from context).
+Strength: strong (explicit pain or need), moderate (implies need), weak (inferred from context).
 
 Quote format — keep to 1 sentence max:
 - client_verbatim: prospect's exact words in original language
 - client_paraphrase: "[Who], during [source], mentioned: [paraphrase]"
-- pae_interpretation: "According to seller notes, [situation]"
+- pae_interpretation: "According to call notes, [situation]"
 - inferred: "Given [context], [why relevant]"
 
 source_who: name or role of speaker (e.g. "HR Director", "María García").
