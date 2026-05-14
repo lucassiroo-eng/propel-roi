@@ -61,11 +61,12 @@ export default function Home() {
     for (const s of sessions as any[]) {
       const prospect = s.prospects;
       if (!prospect) continue;
-      const pid = prospect.id ?? s.prospect_id;
+      const name = (prospect.company_name ?? "").trim().toLowerCase();
+      const key = name || s.prospect_id;
       const entry: SessionEntry = { id: s.id, status: s.status, roi_eur: s.roi_eur, updated_at: s.updated_at };
-      if (!map.has(pid)) {
-        map.set(pid, {
-          prospectId: pid,
+      if (!map.has(key)) {
+        map.set(key, {
+          prospectId: prospect.id ?? s.prospect_id,
           companyName: prospect.company_name ?? "Untitled",
           country: prospect.country ?? "",
           seats: prospect.seats ?? null,
@@ -75,9 +76,15 @@ export default function Home() {
           hasDocument: s.status === "generated",
         });
       } else {
-        const group = map.get(pid)!;
+        const group = map.get(key)!;
         group.sessions.push(entry);
         if (s.status === "generated") group.hasDocument = true;
+        if (prospect.seats && (!group.seats || prospect.seats > group.seats)) {
+          group.seats = prospect.seats;
+        }
+        if (prospect.hubspot_deal_url && !group.hubspotUrl) {
+          group.hubspotUrl = prospect.hubspot_deal_url;
+        }
       }
     }
     return Array.from(map.values());
