@@ -203,6 +203,9 @@ Deno.serve(async (req) => {
 
     const evidence: any[] = result.evidence;
 
+    const CLIENT_ATTRS = new Set(["client_verbatim", "client_paraphrase"]);
+    const INTERNAL_SOURCES = new Set(["outgoing_email", "note"]);
+
     const moduleMap = new Map<string, { items: any[]; bestQuote: any }>();
     for (const ev of evidence) {
       for (const modId of (ev.modules ?? [])) {
@@ -211,11 +214,19 @@ Deno.serve(async (req) => {
         }
         const entry = moduleMap.get(modId)!;
         entry.items.push(ev);
+
+        const evIsClient = CLIENT_ATTRS.has(ev.attribution) && !INTERNAL_SOURCES.has(ev.source_type);
+        const bestIsClient = entry.bestQuote
+          ? CLIENT_ATTRS.has(entry.bestQuote.attribution) && !INTERNAL_SOURCES.has(entry.bestQuote.source_type)
+          : false;
+
         const evScore = (STRENGTH[ev.strength] ?? 0.5) * (ATTR_MULT[ev.attribution] ?? 0.5);
         const bestScore = entry.bestQuote
           ? (STRENGTH[entry.bestQuote.strength] ?? 0.5) * (ATTR_MULT[entry.bestQuote.attribution] ?? 0.5)
           : 0;
-        if (evScore > bestScore) {
+
+        // Prefer client evidence over internal; within the same tier, pick highest score
+        if ((!bestIsClient && evIsClient) || (evIsClient === bestIsClient && evScore > bestScore)) {
           entry.bestQuote = ev;
         }
       }
@@ -227,18 +238,13 @@ Deno.serve(async (req) => {
 
       let quote = "";
       if (bestQuote) {
-        const who = bestQuote.source_who || "the prospect";
-        const sourceType = bestQuote.source_type === "call" ? "a call"
-          : bestQuote.source_type === "incoming_email" ? "an email"
-          : bestQuote.source_type === "outgoing_email" ? "seller notes"
-          : "internal notes";
-        const dateStr = bestQuote.source_date ? " (" + bestQuote.source_date + ")" : "";
-
-        if (bestQuote.attribution === "client_verbatim") {
-          quote = who + ", in " + sourceType + dateStr + ", said: «" + bestQuote.quote + "»";
-        } else if (bestQuote.attribution === "client_paraphrase") {
-          quote = who + ", in " + sourceType + dateStr + ", mentioned: «" + bestQuote.quote + "»";
+        const isClientQuote = CLIENT_ATTRS.has(bestQuote.attribution) && !INTERNAL_SOURCES.has(bestQuote.source_type);
+        if (isClientQuote) {
+          // Client evidence: wrap in guillemets with a brief relevance explanation
+          const who = bestQuote.source_who || "The prospect";
+          quote = "«" + bestQuote.quote + "» — " + who + " has a clear need for this module";
         } else {
+          // Internal/inferred evidence: just the raw quote, no wrapper
           quote = bestQuote.quote;
         }
       }
