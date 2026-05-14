@@ -237,21 +237,22 @@ Deno.serve(async (req) => {
     let result: any = null;
     try {
       const res = await azureFetch({
-        model: "claude-sonnet-4-6",
+        model: "claude-opus-4-6",
         max_tokens: 4096,
         temperature: 0,
         system: systemPrompt,
         messages: [{ role: "user", content: userMessage }],
         tools: [ANALYSIS_TOOL],
         tool_choice: { type: "tool", name: "analyze_deal" },
-      }, 15000);
+      }, 30000);
 
       if (res.ok) {
         const data = await res.json();
         const toolBlock = data.content?.find((b: any) => b.type === "tool_use");
         result = toolBlock?.input ?? null;
       } else {
-        console.error("Azure error:", res.status, await res.text());
+        const errText = await res.text();
+        console.error("Azure error:", res.status, errText);
       }
     } catch (err) {
       console.error("Azure call failed:", err);
