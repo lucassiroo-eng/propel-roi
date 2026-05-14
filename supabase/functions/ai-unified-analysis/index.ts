@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
     const moduleBlock = modules_ref ?? "";
     const systemPrompt = buildSystemPrompt(moduleBlock, painBlock, country ?? "ES", sector ?? "", seats ?? 50);
 
-    const contentTrimmed = content.slice(0, 12000);
+    const contentTrimmed = content.slice(0, 18000);
     const userMessage = "Extract evidence of prospect pains. Max 15 items, strongest first.\n\n" + contentTrimmed;
 
     let result: any = null;
