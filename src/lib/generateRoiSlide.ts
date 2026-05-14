@@ -274,11 +274,10 @@ function generateSummarySlideBody(data: RoiSlideData): string {
     return `      <div class="quote-card" style="border-color: ${color};">
         <div class="quote-icon" style="background:${color};">&#x2713;</div>
         <div class="quote-body">
-          <div class="quote-text"><span class="who">${escHtml(h.module_name)}</span></div>
-          <span class="quote-action" style="color: ${color};">${escHtml(h.benefit)}</span>
+          <div class="quote-text"><span class="who">${escHtml(h.module_name)}</span> &mdash; <span class="quote-action" style="color: ${color};">${escHtml(h.benefit)}</span></div>
         </div>
       </div>`;
-  }).join("\n\n");
+  }).join("\n");
 
   const brandHtml = buildBrandHtml(data);
 
@@ -389,28 +388,28 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .header {
     grid-column: 1 / -1;
     display: flex; justify-content: space-between; align-items: center;
-    padding: 24px 44px 18px 44px;
+    padding: 20px 44px 14px 44px;
     border-bottom: 1px solid #F3F4F6;
   }
-  .header-left .title { font-size: 34px; font-weight: 800; font-style: italic; color: #1F2937; line-height: 1.15; }
+  .header-left .title { font-size: 32px; font-weight: 800; font-style: italic; color: #1F2937; line-height: 1.15; }
   .header-left .title .accent { color: #FF355E; }
   .header-left .subtitle { font-size: 13px; color: #6B7280; margin-top: 2px; font-weight: 500; }
-  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-  .header-date { font-size: 12px; color: #9CA3AF; font-weight: 500; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .header-date { font-size: 11px; color: #9CA3AF; font-weight: 500; }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .header-brand .company-name { font-size: 17px; font-weight: 700; color: #1F2937; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .header-brand .brand-divider { width: 1px; height: 24px; background: #D1D5DB; }
-  .header-brand img { height: 22px; object-fit: contain; }
+  .header-brand .company-name { font-size: 16px; font-weight: 700; color: #1F2937; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-brand .brand-divider { width: 1px; height: 22px; background: #D1D5DB; }
+  .header-brand img { height: 20px; object-fit: contain; }
 
   .card-area {
     grid-row: 2 / 4;
-    display: flex; flex-direction: column; justify-content: center; gap: 14px;
-    padding: 24px 20px 24px 36px;
+    display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    padding: 20px 20px 20px 36px;
   }
   .kpi-card {
     background: linear-gradient(145deg, #FF355E 0%, #FF5C7F 100%);
-    border-radius: 18px;
-    padding: 20px 16px; text-align: center;
+    border-radius: 16px;
+    padding: 16px 14px; text-align: center;
     flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
     box-shadow: 0 6px 20px rgba(255, 53, 94, 0.2);
     position: relative;
@@ -421,10 +420,10 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
     width: 80px; height: 80px; border-radius: 50%;
     background: rgba(255,255,255,0.08);
   }
-  .kpi-icon svg { width: 38px; height: 38px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-  .kpi-label { color: #fff; font-size: 17px; font-weight: 700; margin: 6px 0 10px 0; letter-spacing: 0.02em; }
-  .kpi-value-box { background: #fff; border-radius: 12px; padding: 10px 28px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  .kpi-value { color: #FF355E; font-size: 23px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .kpi-icon svg { width: 32px; height: 32px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
+  .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 22px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   .right-col {
     display: flex; flex-direction: column;
@@ -432,7 +431,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   }
 
   .table-section {
-    padding: 16px 44px 0 48px;
+    padding: 12px 44px 0 48px;
     flex: 1;
     display: flex; flex-direction: column; justify-content: center;
   }
@@ -466,29 +465,26 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .total-row td { padding-top: ${rowPad + 4}px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
 
   .quotes-section {
-    padding: 18px 44px 14px 48px;
+    padding: 10px 44px 8px 48px;
     border-top: 1px solid #F3F4F6;
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 6px;
     flex: 0 0 auto;
   }
-  .quotes-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 4px; }
+  .quotes-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 2px; }
   .quote-card {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 18px;
-    border-radius: 12px;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    border-radius: 10px;
     background: #F9FAFB;
-    border-left: 4px solid;
-    transition: transform 0.15s;
+    border-left: 3px solid;
   }
-  .quote-card:hover { transform: translateX(2px); }
-  .quote-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; color: #fff; }
-  .quote-body { flex: 1; }
-  .quote-text { font-size: 14px; color: #374151; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .quote-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
+  .quote-body { flex: 1; min-width: 0; }
+  .quote-text { font-size: 12px; color: #374151; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .quote-text .who { font-weight: 700; }
-  .quote-text .pain { font-style: italic; color: #4B5563; }
-  .quote-action { font-size: 13px; font-weight: 600; margin-top: 3px; display: block; }
+  .quote-action { font-weight: 600; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 24px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 14px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 </style>
 </head>
@@ -737,29 +733,29 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .header {
     grid-column: 1 / -1;
     display: flex; justify-content: space-between; align-items: center;
-    padding: 24px 44px 18px 44px;
+    padding: 20px 44px 14px 44px;
     border-bottom: 1px solid #F3F4F6;
   }
-  .header-left .title { font-size: 34px; font-weight: 800; font-style: italic; color: #1F2937; line-height: 1.15; }
+  .header-left .title { font-size: 32px; font-weight: 800; font-style: italic; color: #1F2937; line-height: 1.15; }
   .header-left .title .accent { color: #FF355E; }
   .header-left .subtitle { font-size: 13px; color: #6B7280; margin-top: 2px; font-weight: 500; }
-  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-  .header-date { font-size: 12px; color: #9CA3AF; font-weight: 500; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .header-date { font-size: 11px; color: #9CA3AF; font-weight: 500; }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .header-brand .company-name { font-size: 17px; font-weight: 700; color: #1F2937; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .header-brand .brand-divider { width: 1px; height: 24px; background: #D1D5DB; }
-  .header-brand img { height: 22px; object-fit: contain; }
+  .header-brand .company-name { font-size: 16px; font-weight: 700; color: #1F2937; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-brand .brand-divider { width: 1px; height: 22px; background: #D1D5DB; }
+  .header-brand img { height: 20px; object-fit: contain; }
 
   /* ── Summary slide (slide 1) ── */
   .card-area {
     grid-row: 2 / 4;
-    display: flex; flex-direction: column; justify-content: center; gap: 14px;
-    padding: 24px 20px 24px 36px;
+    display: flex; flex-direction: column; justify-content: center; gap: 12px;
+    padding: 20px 20px 20px 36px;
   }
   .kpi-card {
     background: linear-gradient(145deg, #FF355E 0%, #FF5C7F 100%);
-    border-radius: 18px;
-    padding: 20px 16px; text-align: center;
+    border-radius: 16px;
+    padding: 16px 14px; text-align: center;
     flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
     box-shadow: 0 6px 20px rgba(255, 53, 94, 0.2);
     position: relative; overflow: hidden;
@@ -769,14 +765,14 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
     width: 80px; height: 80px; border-radius: 50%;
     background: rgba(255,255,255,0.08);
   }
-  .kpi-icon svg { width: 38px; height: 38px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-  .kpi-label { color: #fff; font-size: 17px; font-weight: 700; margin: 6px 0 10px 0; letter-spacing: 0.02em; }
-  .kpi-value-box { background: #fff; border-radius: 12px; padding: 10px 28px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-  .kpi-value { color: #FF355E; font-size: 23px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .kpi-icon svg { width: 32px; height: 32px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
+  .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 22px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
   .right-col { display: flex; flex-direction: column; overflow: hidden; }
 
-  .table-section { padding: 16px 44px 0 48px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .table-section { padding: 12px 44px 0 48px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
   .module-table { width: 100%; border-collapse: collapse; }
   .module-table thead th {
     color: #9CA3AF; font-size: 12px; font-weight: 600;
@@ -810,26 +806,24 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .module-table .total-row .total-savings { font-size: 22px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
 
   .quotes-section {
-    padding: 18px 44px 14px 48px;
+    padding: 10px 44px 8px 48px;
     border-top: 1px solid #F3F4F6;
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 6px;
     flex: 0 0 auto;
   }
-  .quotes-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 4px; }
+  .quotes-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 2px; }
   .quote-card {
-    display: flex; align-items: flex-start; gap: 12px;
-    padding: 14px 18px; border-radius: 12px;
-    background: #F9FAFB; border-left: 4px solid;
-    transition: transform 0.15s;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-radius: 10px;
+    background: #F9FAFB; border-left: 3px solid;
   }
-  .quote-card:hover { transform: translateX(2px); }
-  .quote-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; color: #fff; }
-  .quote-body { flex: 1; }
-  .quote-text { font-size: 14px; color: #374151; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .quote-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
+  .quote-body { flex: 1; min-width: 0; }
+  .quote-text { font-size: 12px; color: #374151; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .quote-text .who { font-weight: 700; }
-  .quote-action { font-size: 13px; font-weight: 600; margin-top: 3px; display: block; }
+  .quote-action { font-weight: 600; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 24px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 14px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 
   /* ── Detail slides ── */
