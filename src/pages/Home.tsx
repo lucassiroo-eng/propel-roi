@@ -2,20 +2,33 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, TrendingUp, Clock, Loader2, Sparkles, ChevronRight, BarChart3 } from "lucide-react";
+import { Plus, LogOut, TrendingUp, Clock, Loader2, Sparkles, ChevronRight, BarChart3, FileText, History } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { statusI18nKey } from "@/lib/i18nHelpers";
 
-const FLAG: Record<string, string> = { ES: "🇪🇸", FR: "🇫🇷" };
+const FLAG: Record<string, string> = { ES: "\u{1F1EA}\u{1F1F8}", FR: "\u{1F1EB}\u{1F1F7}" };
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600",
   sent: "bg-blue-50 text-blue-600",
   accepted: "bg-emerald-50 text-emerald-600",
   declined: "bg-red-50 text-red-600",
+  generated: "bg-violet-50 text-violet-600",
 };
+
+interface CompanyGroup {
+  prospectId: string;
+  companyName: string;
+  country: string;
+  seats: number | null;
+  sector: string | null;
+  hubspotUrl: string | null;
+  latestSession: { id: string; status: string; roi_eur: number | null; updated_at: string };
+  sessionCount: number;
+  hasDocument: boolean;
+}
 
 export default function Home() {
   const { user, signOut } = useAuth();
@@ -27,12 +40,40 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("roi_sessions")
-        .select("id, status, roi_eur, total_annual_benefit_eur, updated_at, prospect_id, prospects(company_name, country, seats, sector)")
+        .select("id, status, roi_eur, total_annual_benefit_eur, updated_at, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
+  const companies = (() => {
+    if (!sessions?.length) return [];
+    const map = new Map<string, CompanyGroup>();
+    for (const s of sessions as any[]) {
+      const prospect = s.prospects;
+      if (!prospect) continue;
+      const pid = prospect.id ?? s.prospect_id;
+      if (!map.has(pid)) {
+        map.set(pid, {
+          prospectId: pid,
+          companyName: prospect.company_name ?? "Untitled",
+          country: prospect.country ?? "",
+          seats: prospect.seats ?? null,
+          sector: prospect.sector ?? null,
+          hubspotUrl: prospect.hubspot_deal_url ?? null,
+          latestSession: { id: s.id, status: s.status, roi_eur: s.roi_eur, updated_at: s.updated_at },
+          sessionCount: 1,
+          hasDocument: s.status === "generated",
+        });
+      } else {
+        const group = map.get(pid)!;
+        group.sessionCount++;
+        if (s.status === "generated") group.hasDocument = true;
+      }
+    }
+    return Array.from(map.values());
+  })();
 
   const locale = i18n.language.startsWith("es") ? es : i18n.language.startsWith("fr") ? fr : undefined;
 
@@ -74,7 +115,7 @@ export default function Home() {
           <p className="text-sm text-gray-400">{user?.email}</p>
         </div>
 
-        {/* New Session CTA — featured card */}
+        {/* New Session CTA */}
         <button
           onClick={() => navigate("/session/new")}
           className="w-full rounded-2xl p-5 text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
@@ -95,7 +136,7 @@ export default function Home() {
           </div>
         </button>
 
-        {/* Recent sessions */}
+        {/* Companies list — 1 entry per company */}
         <div>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{t("home.recent")}</h2>
 
@@ -103,57 +144,69 @@ export default function Home() {
             <div className="flex justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
             </div>
-          ) : !sessions?.length ? (
+          ) : !companies.length ? (
             <div className="rounded-2xl bg-white/70 backdrop-blur-sm border border-white py-12 text-center">
               <TrendingUp className="mx-auto h-10 w-10 mb-3" style={{ color: "#e05c75", opacity: 0.3 }} />
               <p className="text-gray-400 text-sm">{t("home.empty")}</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {sessions.map((s: any) => {
-                const prospect = s.prospects;
-                const country = prospect?.country ?? "";
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => navigate(`/session/${s.id}`)}
-                    className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border border-white/80 p-4 text-left hover:bg-white transition-colors hover:shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl">{FLAG[country] ?? "🌍"}</span>
-                          <span className="font-semibold text-gray-800 truncate text-sm">
-                            {prospect?.company_name ?? t("home.untitled")}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {prospect?.seats && (
-                            <span className="text-[11px] text-gray-400">{t("home.seats", { count: prospect.seats })}</span>
-                          )}
-                          {prospect?.sector && (
-                            <span className="text-[11px] text-gray-400 truncate max-w-[140px]">{prospect.sector}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1.5 shrink-0">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[s.status] ?? "bg-gray-100 text-gray-500"}`}>
-                          {t(statusI18nKey(s.status))}
+              {companies.map((c) => (
+                <button
+                  key={c.prospectId}
+                  onClick={() => navigate(`/session/${c.latestSession.id}`)}
+                  className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border border-white/80 p-4 text-left hover:bg-white transition-colors hover:shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">{FLAG[c.country] ?? "\u{1F30D}"}</span>
+                        <span className="font-semibold text-gray-800 truncate text-sm">
+                          {c.companyName}
                         </span>
-                        {s.roi_eur != null && (
-                          <span className="text-sm font-bold" style={{ color: "#e05c75" }}>
-                            €{Number(s.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
-                          </span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {c.seats && (
+                          <span className="text-[11px] text-gray-400">{t("home.seats", { count: c.seats })}</span>
+                        )}
+                        {c.sector && (
+                          <span className="text-[11px] text-gray-400 truncate max-w-[140px]">{c.sector}</span>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 mt-2.5 text-[11px] text-gray-300">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(s.updated_at), { addSuffix: true, locale })}
+                    <div className="flex flex-col items-end gap-1.5 shrink-0">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[c.latestSession.status] ?? "bg-gray-100 text-gray-500"}`}>
+                        {t(statusI18nKey(c.latestSession.status))}
+                      </span>
+                      {c.latestSession.roi_eur != null && (
+                        <span className="text-sm font-bold" style={{ color: "#e05c75" }}>
+                          €{Number(c.latestSession.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
+                        </span>
+                      )}
                     </div>
-                  </button>
-                );
-              })}
+                  </div>
+                  <div className="flex items-center justify-between mt-2.5">
+                    <div className="flex items-center gap-1 text-[11px] text-gray-300">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(c.latestSession.updated_at), { addSuffix: true, locale })}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {c.hasDocument && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
+                          <FileText className="h-2.5 w-2.5" />
+                          ROI
+                        </span>
+                      )}
+                      {c.sessionCount > 1 && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+                          <History className="h-2.5 w-2.5" />
+                          {c.sessionCount}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
         </div>

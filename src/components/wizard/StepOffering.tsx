@@ -281,8 +281,13 @@ export function StepOffering({
   }
 
   function handlePreviewSlide() {
+    if (!roiConfig || roiConfig.headcounts.employee <= 0 || roiConfig.headcounts.hr <= 0 || roiConfig.headcounts.manager <= 0) {
+      toast.error(t("setup.fill_team"));
+      return;
+    }
     const data = getSlideData();
-    if (!data) return;
+    if (!data) { toast.error("No data to generate slide"); return; }
+    if (data.modules.length === 0) { toast.error("No modules with savings — check team headcounts"); return; }
     setSlideHtml(generateRoiSlideHtml(data));
     setSlideDialogOpen(true);
   }

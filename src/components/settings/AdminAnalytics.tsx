@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { Users, Activity, FileCheck, Globe, TrendingUp } from "lucide-react";
+import { Users, Activity, FileCheck, Globe, TrendingUp, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserStat {
@@ -31,9 +31,22 @@ interface HubspotCall {
   calls: number;
 }
 
+interface DealTrack {
+  deal_id: string;
+  company_name: string;
+  opened_at: string;
+  has_roi: boolean;
+}
+
+interface DealFunnel {
+  date: string;
+  opened: number;
+  roi_generated: number;
+}
+
 const COLORS = [
-  "hsl(348, 100%, 60%)", // radical red
-  "hsl(240, 25%, 19%)",  // midnight
+  "hsl(348, 100%, 60%)",
+  "hsl(240, 25%, 19%)",
   "hsl(239, 84%, 67%)",
   "hsl(38, 92%, 50%)",
   "hsl(160, 84%, 39%)",
@@ -49,6 +62,8 @@ export default function AdminAnalytics() {
   const [pains, setPains] = useState<PainCount[]>([]);
   const [modules, setModules] = useState<ModuleCount[]>([]);
   const [hubspot, setHubspot] = useState<HubspotCall[]>([]);
+  const [deals, setDeals] = useState<DealTrack[]>([]);
+  const [dealFunnel, setDealFunnel] = useState<DealFunnel[]>([]);
   const [totalSessions, setTotalSessions] = useState(0);
   const [totalCompleted, setTotalCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -60,7 +75,7 @@ export default function AdminAnalytics() {
   async function loadData() {
     setLoading(true);
     try {
-      await Promise.all([loadUsers(), loadPainsAndModules(), loadHubspot()]);
+      await Promise.all([loadUsers(), loadPainsAndModules(), loadHubspot(), loadDeals()]);
     } finally {
       setLoading(false);
     }
@@ -75,7 +90,6 @@ export default function AdminAnalytics() {
 
     const userIds = [...new Set(sessions.map((s) => s.pae_id))];
 
-    // Resolve emails via the DB function
     const { data: emailRows } = await supabase.rpc("get_user_emails", {
       _user_ids: userIds,
     });
@@ -180,9 +194,65 @@ export default function AdminAnalytics() {
     );
   }
 
+  async function loadDeals() {
+    const { data: prospects } = await supabase
+      .from("prospects")
+      .select("id, company_name, hubspot_deal_url, created_at");
+
+    if (!prospects) return;
+
+    const { data: sessions } = await supabase
+      .from("roi_sessions")
+      .select("prospect_id, status");
+
+    const sessionMap = new Map<string, boolean>();
+    for (const s of (sessions ?? [])) {
+      const has = sessionMap.get(s.prospect_id) ?? false;
+      if (s.status === "generated") sessionMap.set(s.prospect_id, true);
+      else if (!has) sessionMap.set(s.prospect_id, false);
+    }
+
+    const dealMap = new Map<string, DealTrack>();
+    const funnelMap = new Map<string, { opened: number; roi_generated: number }>();
+
+    for (const p of prospects) {
+      const url = p.hubspot_deal_url as string | null;
+      if (!url) continue;
+      const m = url.match(/\/deal\/(\d+)/) ?? url.match(/\/record\/0-3\/(\d+)/);
+      const dealId = m ? m[1] : null;
+      if (!dealId || dealMap.has(dealId)) continue;
+
+      const hasRoi = sessionMap.get(p.id) ?? false;
+      dealMap.set(dealId, {
+        deal_id: dealId,
+        company_name: (p.company_name as string) ?? dealId,
+        opened_at: (p.created_at as string) ?? "",
+        has_roi: hasRoi,
+      });
+
+      const date = p.created_at ? new Date(p.created_at as string).toISOString().slice(0, 10) : "unknown";
+      if (!funnelMap.has(date)) funnelMap.set(date, { opened: 0, roi_generated: 0 });
+      const entry = funnelMap.get(date)!;
+      entry.opened++;
+      if (hasRoi) entry.roi_generated++;
+    }
+
+    setDeals(
+      Array.from(dealMap.values()).sort((a, b) => b.opened_at.localeCompare(a.opened_at))
+    );
+    setDealFunnel(
+      Array.from(funnelMap.entries())
+        .map(([date, v]) => ({ date, ...v }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+    );
+  }
+
   const completionRate = totalSessions > 0
     ? Math.round((totalCompleted / totalSessions) * 100)
     : 0;
+
+  const totalDeals = deals.length;
+  const dealsWithRoi = deals.filter(d => d.has_roi).length;
 
   if (loading) {
     return (
@@ -205,7 +275,7 @@ export default function AdminAnalytics() {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <KpiCard icon={<Users className="h-4 w-4" />} label="Active users" value={users.length} />
         <KpiCard icon={<Activity className="h-4 w-4" />} label="Analyses started" value={totalSessions} />
         <KpiCard
@@ -215,11 +285,113 @@ export default function AdminAnalytics() {
           sub={`${completionRate}% rate`}
         />
         <KpiCard
+          icon={<Target className="h-4 w-4" />}
+          label="Unique deals"
+          value={totalDeals}
+          sub={`${dealsWithRoi} with ROI`}
+        />
+        <KpiCard
           icon={<Globe className="h-4 w-4" />}
           label="HubSpot imports"
           value={hubspot.reduce((s, h) => s + h.calls, 0)}
         />
       </div>
+
+      {/* Deal funnel chart */}
+      {dealFunnel.length > 0 && (
+        <Card className="border-border/50">
+          <CardHeader className="pb-0 pt-4 px-4">
+            <CardTitle className="text-sm font-medium">Deals Opened vs. ROI Generated</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="h-52">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dealFunnel}>
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={{ stroke: "hsl(var(--border))" }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    allowDecimals={false}
+                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Legend
+                    wrapperStyle={{ fontSize: "11px" }}
+                  />
+                  <Bar dataKey="opened" name="Deals opened" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="roi_generated" name="ROI generated" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Deal tracker table */}
+      {deals.length > 0 && (
+        <Card className="border-border/50 overflow-hidden">
+          <CardHeader className="pb-0 pt-4 px-4">
+            <CardTitle className="text-sm font-medium">Deal Tracker</CardTitle>
+          </CardHeader>
+          <CardContent className="px-0 pb-0">
+            <div className="overflow-x-auto max-h-64 overflow-y-auto">
+              <table className="w-full text-xs">
+                <thead className="sticky top-0 bg-card">
+                  <tr className="border-b border-border/60">
+                    <th className="text-left font-medium text-muted-foreground px-4 py-2.5">Company</th>
+                    <th className="text-left font-medium text-muted-foreground px-3 py-2.5 w-28">Deal ID</th>
+                    <th className="text-center font-medium text-muted-foreground px-3 py-2.5 w-20">ROI Doc</th>
+                    <th className="text-right font-medium text-muted-foreground px-4 py-2.5 w-28 hidden sm:table-cell">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deals.map((d, i) => (
+                    <tr
+                      key={d.deal_id}
+                      className={cn(
+                        "border-b border-border/30 transition-colors hover:bg-muted/30",
+                        i % 2 === 0 && "bg-muted/10"
+                      )}
+                    >
+                      <td className="px-4 py-2.5 font-medium text-foreground truncate max-w-[200px]">
+                        {d.company_name}
+                      </td>
+                      <td className="px-3 py-2.5 text-muted-foreground font-mono text-[10px]">
+                        {d.deal_id}
+                      </td>
+                      <td className="text-center px-3 py-2.5">
+                        <span className={cn(
+                          "inline-flex items-center justify-center min-w-[20px] rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                          d.has_roi
+                            ? "bg-primary/10 text-primary"
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          {d.has_roi ? "Yes" : "No"}
+                        </span>
+                      </td>
+                      <td className="text-right px-4 py-2.5 text-muted-foreground hidden sm:table-cell">
+                        {d.opened_at ? formatRelative(d.opened_at) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Users table */}
       <Card className="border-border/50 overflow-hidden">

@@ -341,29 +341,29 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .total-row .total-savings { font-size: ${totalFont}px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
 
   .quotes-section {
-    padding: 14px 44px 10px 48px;
+    padding: 18px 44px 14px 48px;
     border-top: 1px solid #F3F4F6;
-    display: flex; flex-direction: column; gap: 8px;
+    display: flex; flex-direction: column; gap: 10px;
     flex: 0 0 auto;
   }
-  .quotes-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 2px; }
+  .quotes-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 4px; }
   .quote-card {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 10px 14px;
-    border-radius: 10px;
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 18px;
+    border-radius: 12px;
     background: #F9FAFB;
-    border-left: 3px solid;
+    border-left: 4px solid;
     transition: transform 0.15s;
   }
   .quote-card:hover { transform: translateX(2px); }
-  .quote-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
+  .quote-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; color: #fff; }
   .quote-body { flex: 1; }
-  .quote-text { font-size: 12px; color: #374151; line-height: 1.45; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .quote-text { font-size: 14px; color: #374151; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .quote-text .who { font-weight: 700; }
   .quote-text .pain { font-style: italic; color: #4B5563; }
-  .quote-action { font-size: 11px; font-weight: 600; margin-top: 2px; display: block; }
+  .quote-action { font-size: 13px; font-weight: 600; margin-top: 3px; display: block; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 14px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 24px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 </style>
 </head>
