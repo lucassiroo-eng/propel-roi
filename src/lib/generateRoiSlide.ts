@@ -202,6 +202,16 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   };
   const t = i18n[lang] ?? i18n.es;
 
+  const mc = data.modules.length;
+  const rowPad = mc <= 3 ? 16 : mc <= 5 ? 12 : mc <= 7 ? 9 : 7;
+  const pillPadV = mc <= 3 ? 9 : mc <= 5 ? 7 : 5;
+  const pillPadH = mc <= 3 ? 20 : mc <= 5 ? 17 : 14;
+  const pillFont = mc <= 3 ? 15 : mc <= 5 ? 14 : 12;
+  const cellFont = mc <= 3 ? 18 : mc <= 5 ? 16 : 15;
+  const dotSize = mc <= 3 ? 8 : 6;
+  const totalFont = mc <= 3 ? 24 : mc <= 5 ? 22 : 20;
+  const totalLabelFont = mc <= 3 ? 17 : mc <= 5 ? 16 : 15;
+
   const moduleRows = data.modules.map((m, i) => {
     const color = PILL_COLORS[i % PILL_COLORS.length];
     return `          <tr>
@@ -303,9 +313,9 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   }
   .module-table { width: 100%; border-collapse: collapse; }
   .module-table thead th {
-    color: #9CA3AF; font-size: 10px; font-weight: 600;
+    color: #9CA3AF; font-size: ${mc <= 5 ? 12 : 10}px; font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.08em;
-    padding: 0 0 10px 0; text-align: left;
+    padding: 0 0 ${mc <= 5 ? 14 : 10}px 0; text-align: left;
     border-bottom: 1px solid #F3F4F6;
   }
   .module-table thead th:nth-child(2) { text-align: center; width: 120px; }
@@ -313,22 +323,22 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
 
   .module-table tbody tr { transition: background 0.15s; }
   .module-table tbody tr:hover { background: #FAFAFA; }
-  .module-table tbody td { padding: 7px 0; vertical-align: middle; border-bottom: 1px solid #F9FAFB; font-variant-numeric: tabular-nums; }
-  .module-table tbody td:nth-child(2) { text-align: center; font-size: 15px; color: #374151; font-weight: 600; width: 120px; }
-  .module-table tbody td:nth-child(3) { text-align: right; font-size: 15px; color: #374151; font-weight: 600; width: 120px; }
+  .module-table tbody td { padding: ${rowPad}px 0; vertical-align: middle; border-bottom: 1px solid #F9FAFB; font-variant-numeric: tabular-nums; }
+  .module-table tbody td:nth-child(2) { text-align: center; font-size: ${cellFont}px; color: #374151; font-weight: 600; width: 120px; }
+  .module-table tbody td:nth-child(3) { text-align: right; font-size: ${cellFont}px; color: #374151; font-weight: 600; width: 120px; }
 
   .pill {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 14px; border-radius: 20px;
-    color: #fff; font-weight: 700; font-size: 12px; white-space: nowrap;
+    padding: ${pillPadV}px ${pillPadH}px; border-radius: 20px;
+    color: #fff; font-weight: 700; font-size: ${pillFont}px; white-space: nowrap;
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
   }
-  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+  .pill .dot { width: ${dotSize}px; height: ${dotSize}px; border-radius: 50%; background: rgba(255,255,255,0.5); }
 
-  .total-row td { padding-top: 10px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
-  .total-row .total-label { font-size: 15px; font-weight: 700; color: #1F2937; }
-  .total-row .total-hours { font-size: 16px; font-weight: 700; color: #374151; text-align: center; font-variant-numeric: tabular-nums; }
-  .total-row .total-savings { font-size: 20px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
+  .total-row td { padding-top: ${rowPad + 4}px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
+  .total-row .total-label { font-size: ${totalLabelFont}px; font-weight: 700; color: #1F2937; }
+  .total-row .total-hours { font-size: ${totalLabelFont + 1}px; font-weight: 700; color: #374151; text-align: center; font-variant-numeric: tabular-nums; }
+  .total-row .total-savings { font-size: ${totalFont}px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
 
   .quotes-section {
     padding: 14px 44px 10px 48px;
