@@ -9,17 +9,14 @@ import { toast } from "sonner";
 import {
   Loader2, Link as LinkIcon, Mail, Phone, FileText,
   Database, Cloud, CheckCircle2, Users, Briefcase, Shield,
-  Sparkles, Check, Plus, Search, Quote, ChevronDown, FlaskConical,
+  Sparkles, Check, Plus, Search, Quote, ChevronDown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { ProspectData, HubSpotNote, ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 import { type Stakeholder } from "@/lib/moduleHours";
 import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
-import { downloadEvidenceExcel } from "@/lib/evidenceExcel";
 
 const WORKER = "https://noshow.lucassiroo.workers.dev";
 
@@ -53,85 +50,8 @@ const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: str
   manager:  { labelKey: "stakeholder.manager",     sublabelKey: "stakeholder.manager_sub", icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.06)",  border: "rgba(245,158,11,0.2)" },
 };
 
-// ── AI module analysis ──
-const AI_TOOL = {
-  name: "recommend_modules",
-  description: "Recommend Factorial HR modules based on deal content analysis",
-  input_schema: {
-    type: "object" as const,
-    properties: {
-      recommendations: {
-        type: "array" as const,
-        items: {
-          type: "object" as const,
-          properties: {
-            module_id: { type: "string" as const, enum: MODULE_CATALOG.map(m => m.id) },
-            confidence: { type: "string" as const, enum: ["strong", "possible"] },
-            quote: { type: "string" as const, description: "A verbatim quote from the PROSPECT (client) describing their pain or problem — NOT the seller's pitch. Copy-paste the prospect's exact words in their original language. Max 2 sentences. If no prospect quote exists, write a short paraphrase (≤15 words) of the prospect's situation prefixed with ~." },
-          },
-          required: ["module_id", "confidence", "quote"],
-        },
-      },
-    },
-    required: ["recommendations"],
-  },
-};
-
-const SYSTEM_PROMPT = `You are an expert Factorial HR pain-detection engine. Your job is to read deal communications and identify PROSPECT PAINS — problems, frustrations, inefficiencies, and unmet needs described by the prospect — then map each pain to the Factorial module that solves it.
-
-CRITICAL RULES:
-1. ONLY analyze what the PROSPECT says/describes (their problems, complaints, current situation, needs).
-2. IGNORE the Factorial seller's pitch — when the seller mentions modules, features, or product benefits, that is NOT evidence of a prospect need. The seller talking about "control horario" does not mean the prospect needs Time Tracking. Seller phrases like "le hemos hablado de...", "le comenté que Factorial tiene...", "le propuse..." are SELLER PITCH — skip them entirely.
-3. Look for PAINS and SYMPTOMS, not module names. A prospect saying "tardamos 2 días en cerrar nómina" is a pain → payroll. A prospect saying "tenemos los datos en Excel" is a pain → core.
-4. Be AGGRESSIVE in detection — if you see any signal of a real problem, include it. It's better to over-detect (the user can deselect) than to miss modules.
-
-CONTENT PRIORITY (trust in this order):
-1. CALL TRANSCRIPTS — highest value. The prospect's voice during discovery calls reveals real pains.
-2. INCOMING EMAILS — emails FROM the prospect describing their situation.
-3. OUTGOING EMAILS — seller's emails have lower value, but prospect replies quoted within them count.
-4. NOTES — lowest priority. These are often internal seller notes about what they pitched, NOT prospect pains. Only use notes if they clearly describe a prospect's situation (e.g., "the client mentioned they do X manually").
-
-CONFIDENCE:
-- "strong" = prospect DESCRIBES a concrete pain, problem, or inefficiency that a module solves. E.g., prospect says "tardamos 3 horas en cuadrar fichajes" → time_tracking (strong).
-- "possible" = pain is IMPLIED from context — industry norms, company size, or indirect references. E.g., company has 500 employees → likely needs time_off, core.
-
-QUOTES — THIS IS CRITICAL:
-- The quote MUST be the PROSPECT's (client's) own words describing their pain, problem, or current situation. NEVER quote the Factorial seller pitching a product.
-- In call transcripts: quote what the CLIENT said, not the seller. Look for phrases like "nosotros hacemos...", "el problema es...", "actualmente tenemos...", "nos cuesta mucho...".
-- In emails: only quote INCOMING emails (from the prospect). Ignore outgoing seller emails unless they contain a quoted reply from the prospect.
-- In notes: only quote if the note explicitly attributes words to the client (e.g., "el cliente comenta que...", "nos dice que..."). Do NOT quote the seller's internal notes about what modules to pitch.
-- VERBATIM copy-paste in the ORIGINAL language. Never translate. Max 2 sentences.
-- If no direct prospect quote exists for a module, prefix with "~" and write a ≤15 word paraphrase of the prospect's situation (not the seller's recommendation).
-- NEVER fabricate quotes. If you cannot find any prospect evidence, use "~" with a brief contextual paraphrase.
-
-PAIN → MODULE MAPPING (look for these prospect symptoms):
-core: employee data scattered across systems, manual onboarding, no employee directory, certificates by email
-time_off: leave tracked in spreadsheets, employees don't know their balance, managers approve by email
-time_tracking: manual timesheets, no clock-in system, overtime not tracked, legal compliance (registro jornada)
-time_planning: shifts planned in Excel/WhatsApp, scheduling conflicts, manual rotas
-compensations: salary reviews in spreadsheets, no salary bands, budget overruns on comp
-payroll: payroll prep takes days, manual data copy, errors after payroll run, discrepancies
-benefits: employees don't know their benefits, flex retribution is manual, enrollment chaos
-expenses: paper receipts, Excel expense reports, slow reimbursement, no spend visibility
-recruitment: candidates lost in email, interview scheduling chaos, no ATS, no hiring metrics
-performance: reviews in Word/email, no goal tracking, managers don't complete reviews
-trainings: training tracked in spreadsheets, compliance training hard to monitor, no audit trail
-lms: training created in PowerPoint, no way to test knowledge, course creation takes weeks
-engagement: annual survey in Google Forms, low participation, no team-level insights, eNPS
-complaints: no whistleblower channel, complaints by email, EU directive compliance
-procurement: purchase orders by email, no approval workflow, maverick spend
-projects: project cost unknown until finished, no time logging per project
-headcount_planning: workforce planning in yearly spreadsheet, no budget impact modeling
-space: desk booking chaos, no office occupancy data, hybrid work management
-software_management: unknown SaaS license count, unused licenses, surprise renewals
-it_inventory: laptops tracked in spreadsheet, forgotten equipment on offboarding
-crm: no talent pool, alumni in email list, manual referrals
-one: HR answers same questions repeatedly, employees can't find policies
-analytics: HR reporting is manual Excel, no dashboards, outdated headcount data
-wellhub: no wellness program, employees ask about gym benefits
-
-FULL MODULE REFERENCE:
-${buildModulePromptBlock()}`;
+// Module reference block sent to the unified analysis edge function
+const MODULE_REF_BLOCK = buildModulePromptBlock();
 
 function buildDealContent(data: ProspectData): string {
   const sections: string[] = [];
@@ -184,10 +104,8 @@ interface Props {
 
 export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats, selectedModules, moduleSuggestions, onSelectionChange }: Props) {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const [fetching, setFetching] = useState(false);
   const [fetchPhase, setFetchPhase] = useState<"idle" | "airtable" | "hubspot" | "done">("idle");
-  const [evidenceLoading, setEvidenceLoading] = useState(false);
   const { headcounts, hourly_costs } = roiConfig;
 
   // Module analysis state
@@ -314,65 +232,49 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
     }
   }
 
-  // ── AI module analysis ──
+  // ── Unified AI analysis (single call → modules + pains) ──
   async function runAnalysis() {
     setAnalyzing(true);
     try {
       const content = buildDealContent(data);
       if (!content.trim()) throw new Error("No deal content to analyze");
 
-      const res = await fetch(`${WORKER}/ai`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-opus-4-6", max_tokens: 4096, temperature: 0,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: `Company: ${data.company_name} | Sector: ${data.sector} | Country: ${data.country} | Employees: ${data.seats}\n\nAnalyze the following deal communications. Focus on pains and problems described by the PROSPECT (not the seller's pitch). Be thorough — identify every module that could help.\n\n${content}` }],
-          tools: [AI_TOOL],
-          tool_choice: { type: "tool", name: "recommend_modules" },
-        }),
+      const { data: result, error } = await supabase.functions.invoke("ai-unified-analysis", {
+        body: {
+          content,
+          country: data.country,
+          sector: data.sector,
+          seats: data.seats,
+          modules_ref: MODULE_REF_BLOCK,
+        },
       });
+      if (error) throw error;
 
-      const aiData = await res.json();
-      if (!res.ok) throw new Error(aiData?.error ?? `AI error ${res.status}`);
-      const toolBlock = aiData.content?.find((b: any) => b.type === "tool_use");
-      const recs: ModuleSuggestion[] = toolBlock?.input?.recommendations ?? [];
+      const moduleSugs: ModuleSuggestion[] = (result?.modules ?? [])
+        .filter((m: any) => {
+          const validIds = new Set(MODULE_CATALOG.map(c => c.id));
+          return validIds.has(m.module_id);
+        })
+        .map((m: any) => ({
+          module_id: m.module_id,
+          confidence: m.confidence as "strong" | "possible",
+          quote: m.quote || "",
+        }));
 
-      const validIds = new Set(MODULE_CATALOG.map(m => m.id));
       const seen = new Set<string>();
-      const valid = recs.filter(r => {
-        if (!validIds.has(r.module_id) || seen.has(r.module_id)) return false;
-        seen.add(r.module_id);
+      const deduped = moduleSugs.filter(s => {
+        if (seen.has(s.module_id)) return false;
+        seen.add(s.module_id);
         return true;
       });
 
-      const strong = valid.filter(r => r.confidence === "strong").map(r => r.module_id);
-      onSelectionChange(strong, valid);
-      toast.success(t("toast.modules_identified", { count: valid.length }));
+      const strongIds = deduped.filter(r => r.confidence === "strong").map(r => r.module_id);
+      onSelectionChange(strongIds, deduped);
+      toast.success(t("toast.modules_identified", { count: deduped.length }));
     } catch (err: any) {
       toast.error(err.message ?? t("toast.analysis_failed"));
     } finally {
       setAnalyzing(false);
-    }
-  }
-
-  async function runEvidenceAnalysis() {
-    setEvidenceLoading(true);
-    try {
-      const content = buildDealContent(data);
-      if (!content.trim()) throw new Error("No deal content");
-
-      const { data: result, error } = await supabase.functions.invoke("ai-evidence-analysis", {
-        body: { content, country: data.country, sector: data.sector, seats: data.seats, language: "auto" },
-      });
-      if (error) throw error;
-      if (!result?.evidence?.length) throw new Error("No evidence extracted");
-
-      downloadEvidenceExcel(result, data.company_name || "analysis");
-      toast.success(`Evidence analysis: ${result.evidence.length} items → ${result.matches.length} modules`);
-    } catch (err: any) {
-      toast.error(err.message ?? "Evidence analysis failed");
-    } finally {
-      setEvidenceLoading(false);
     }
   }
 
@@ -722,20 +624,6 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
         <AddModuleDialog open={addOpen} onOpenChange={setAddOpen} modules={availableToAdd} onAdd={addModule} />
 
-        {/* Evidence analysis download */}
-        {hasContent && !analyzing && moduleSuggestions.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full text-xs text-muted-foreground border-dashed"
-            onClick={runEvidenceAnalysis}
-            disabled={evidenceLoading}
-          >
-            {evidenceLoading
-              ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Running 2-pass evidence analysis...</>
-              : <><FlaskConical className="h-3.5 w-3.5 mr-1.5" /> Download evidence analysis</>}
-          </Button>
-        )}
       </div>
     </div>
   );
