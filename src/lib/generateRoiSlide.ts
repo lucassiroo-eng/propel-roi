@@ -1055,10 +1055,12 @@ async function inlineExternalImages(root: HTMLElement): Promise<void> {
 }
 
 async function captureSlide(slide: HTMLElement, html2canvas: any): Promise<string> {
+  await inlineExternalImages(slide);
   const canvas = await html2canvas(slide, {
     width: 1440, height: 810, scale: 2,
     useCORS: true, logging: false, backgroundColor: "#ffffff",
     windowWidth: 1440, windowHeight: 810,
+    foreignObjectRendering: true,
   });
   return canvas.toDataURL("image/png");
 }
