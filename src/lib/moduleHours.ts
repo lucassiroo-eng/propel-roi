@@ -447,7 +447,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     compensations: {
       hr: [
-        "Ciclos centralizados de mérito y bonus con control presupuestario previenen sobregastos",
+        "Automatiza la gestión de bonos y aumentos, eliminando procesos manuales y errores de cálculo en el presupuesto",
         "Enrutamiento de aprobaciones automatizado — elimina cadenas de emails y conflictos de versiones",
         "Gestión de bandas salariales en el sistema — sin malabares con hojas de cálculo",
       ],
