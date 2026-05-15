@@ -145,8 +145,8 @@ export const MODULE_CATALOG: ModuleDef[] = [
     ],
   },
   {
-    id: "benefits",
-    label: "Salary Advance",
+    id: "benefits_standard",
+    label: "Benefits Standard",
     category: "Benefits & Wellbeing",
     color: catColor("Benefits & Wellbeing"),
     signals: [
@@ -160,6 +160,20 @@ export const MODULE_CATALOG: ModuleDef[] = [
       "Automated enrollment windows with eligibility rules",
       "Vendor sync — no manual reconciliation",
       "Real-time utilisation reporting and tax optimisation visibility",
+    ],
+  },
+  {
+    id: "benefits",
+    label: "Salary Advance",
+    category: "Benefits & Wellbeing",
+    color: catColor("Benefits & Wellbeing"),
+    signals: [
+      "Employees ask for salary advances and we handle it manually",
+      "No way to offer earned wage access to employees",
+    ],
+    savings: [
+      "Automated salary advance with eligibility rules",
+      "Employee self-service — no manual HR processing",
     ],
   },
   {

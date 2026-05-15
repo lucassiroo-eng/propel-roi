@@ -6,6 +6,7 @@ import {
   getSavingsDescriptions,
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
+import jsPDF from "jspdf";
 
 const PILL_COLORS = ["#4B5563", "#F97316", "#0F766E", "#E11D48", "#DB2777", "#059669", "#7C3AED", "#C026D3"];
 
@@ -104,18 +105,16 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
       modHours += h;
       modMoney += h * hourly_costs[s];
     }
-    if (modHours > 0) {
-      const catalog = MODULE_CATALOG.find(m => m.id === modId);
-      modules.push({
-        id: modId,
-        name: catalog?.label ?? moduleLabel(modId),
-        hours_per_month: Math.round(modHours),
-        annual_savings: Math.round(modMoney * 12),
-        in_bundle: bundleSet.has(modId),
-      });
-      totalHours += modHours;
-      totalSavings += modMoney * 12;
-    }
+    const catalog = MODULE_CATALOG.find(m => m.id === modId);
+    modules.push({
+      id: modId,
+      name: catalog?.label ?? moduleLabel(modId),
+      hours_per_month: Math.round(modHours),
+      annual_savings: Math.round(modMoney * 12),
+      in_bundle: bundleSet.has(modId),
+    });
+    totalHours += modHours;
+    totalSavings += modMoney * 12;
   }
 
   const roiPercent = annualCost > 0 ? Math.round(((totalSavings - annualCost) / annualCost) * 100) : 0;
@@ -247,8 +246,8 @@ function generateSummarySlideBody(data: RoiSlideData): string {
     const color = PILL_COLORS[i % PILL_COLORS.length];
     return `          <tr>
             <td><span class="pill" style="background:${color};padding:${pillPadV}px ${pillPadH}px;font-size:${pillFont}px;"><span class="dot" style="width:${dotSize}px;height:${dotSize}px;"></span>${escHtml(m.name)}</span></td>
-            <td style="font-size:${cellFont}px;">${m.hours_per_month}h</td>
-            <td style="font-size:${cellFont}px;">${fmtEur(m.annual_savings)}</td>
+            <td style="font-size:${cellFont}px;">${m.hours_per_month > 0 ? `${m.hours_per_month}h` : "—"}</td>
+            <td style="font-size:${cellFont}px;">${m.annual_savings > 0 ? fmtEur(m.annual_savings) : "—"}</td>
           </tr>`;
   };
 
@@ -1021,8 +1020,7 @@ async function captureSlide(slide: HTMLElement, html2canvas: any): Promise<strin
 }
 
 export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
-  const [{ default: jsPDF }, html2canvas, fontCss] = await Promise.all([
-    import("jspdf"),
+  const [html2canvas, fontCss] = await Promise.all([
     loadHtml2Canvas(),
     getInlineFontCss(),
   ]);
@@ -1056,8 +1054,7 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
 }
 
 export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideInput): Promise<void> {
-  const [{ default: jsPDF }, html2canvas, fontCss] = await Promise.all([
-    import("jspdf"),
+  const [html2canvas, fontCss] = await Promise.all([
     loadHtml2Canvas(),
     getInlineFontCss(),
   ]);

@@ -23,7 +23,9 @@ const MODULE_ALIASES: Record<string, string> = {
   "compensation": "compensations",
   "compensations": "compensations",
   "benefits": "benefits",
-  "benefits standard (retribucion flexible)": "benefits",
+  "benefits standard": "benefits_standard",
+  "benefits standard (retribucion flexible)": "benefits_standard",
+  "retribucion flexible": "benefits_standard",
   "benefits plus": "benefits",
   "projects": "projects",
   "project management": "projects",
@@ -86,6 +88,7 @@ const MODULE_LABELS: Record<string, string> = {
   expenses: "Expenses",
   compensations: "Compensation",
   benefits: "Salary Advance",
+  benefits_standard: "Benefits Standard",
   projects: "Projects",
   procurement: "Procurement",
   lms: "LMS",
@@ -183,8 +186,8 @@ const STARTER_MODULES: Record<string, string[]> = {
   "starter essential": ["Core", "Time Tracking", "Time Off", "Trainings"],
   "starter consulting": ["Core", "Time Tracking", "Time Off", "Projects"],
   "starter people": ["Core", "Performance", "Trainings", "Engagement"],
-  "starter compensation": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits"],
-  "starter compensations": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits"],
+  "starter compensation": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits Standard", "Benefits"],
+  "starter compensations": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits Standard", "Benefits"],
 };
 
 export function parseModulesFromBundle(b: BundleRow): string[] {
