@@ -1025,7 +1025,7 @@ async function inlineExternalImages(root: HTMLElement): Promise<void> {
 async function captureSlide(slide: HTMLElement, html2canvas: any, useForeignObject = true, fontCss?: string): Promise<string> {
   await inlineExternalImages(slide);
   let injectedStyle: HTMLStyleElement | null = null;
-  if (fontCss && useForeignObject) {
+  if (fontCss) {
     injectedStyle = slide.ownerDocument.createElement("style");
     injectedStyle.textContent = fontCss;
     slide.prepend(injectedStyle);
@@ -1107,7 +1107,7 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
     for (let i = 0; i < slides.length; i++) {
       if (i > 0) pdf.addPage([1440, 810], "landscape");
       const isSummary = i === 0;
-      const img = await captureSlide(slides[i], html2canvas, isSummary, isSummary ? fontCss : undefined);
+      const img = await captureSlide(slides[i], html2canvas, isSummary, fontCss);
       pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     }
 
