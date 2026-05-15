@@ -687,7 +687,7 @@ export function StepOffering({
                   <div className="text-center">
                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider">ROI</p>
                     <p className="text-lg font-bold text-emerald-600 tabular-nums">
-                      {((roiSavings.annual / effectiveCost) * 100).toFixed(0)}%
+                      {(((roiSavings.annual - effectiveCost) / effectiveCost) * 100).toFixed(0)}%
                     </p>
                   </div>
                   <div className="text-center">

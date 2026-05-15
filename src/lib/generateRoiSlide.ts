@@ -424,7 +424,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
     background: rgba(255,255,255,0.08);
   }
   .kpi-icon svg { width: 32px; height: 32px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-  .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
+  .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; white-space: nowrap; }
   .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 100%; }
   .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .kpi-sub { color: #FF355E; font-size: 12px; font-weight: 600; white-space: nowrap; opacity: 0.85; }
@@ -777,7 +777,7 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
     background: rgba(255,255,255,0.08);
   }
   .kpi-icon svg { width: 32px; height: 32px; fill: none; stroke: rgba(255,255,255,0.95); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-  .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
+  .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; white-space: nowrap; }
   .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 100%; }
   .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .kpi-sub { color: #FF355E; font-size: 12px; font-weight: 600; white-space: nowrap; opacity: 0.85; }
