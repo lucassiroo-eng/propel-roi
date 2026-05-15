@@ -186,8 +186,8 @@ const STARTER_MODULES: Record<string, string[]> = {
   "starter essential": ["Core", "Time Tracking", "Time Off", "Trainings"],
   "starter consulting": ["Core", "Time Tracking", "Time Off", "Projects"],
   "starter people": ["Core", "Performance", "Trainings", "Engagement"],
-  "starter compensation": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits Standard", "Benefits"],
-  "starter compensations": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits Standard", "Benefits"],
+  "starter compensation": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits Standard"],
+  "starter compensations": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits Standard"],
 };
 
 export function parseModulesFromBundle(b: BundleRow): string[] {
