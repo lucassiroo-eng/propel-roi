@@ -17,7 +17,7 @@ import type { ProspectData, ModuleSuggestion, RoiConfig } from "@/hooks/useWizar
 import { type Stakeholder } from "@/lib/moduleHours";
 import { MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
-import { extractDealIdFromUrl, fetchDealByHubspotId } from "@/lib/atlasClient";
+import { extractDealIdFromUrl, fetchDealByHubspotId, fetchAtlasCompany } from "@/lib/atlasClient";
 
 
 const STAKEHOLDER_META: Record<Stakeholder, { labelKey: string; sublabelKey: string; icon: typeof Users; color: string; bg: string; border: string }> = {
@@ -121,6 +121,10 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
       const updates: Partial<ProspectData> = { fetch_source: "atlas" };
       if (deal.deal_name) updates.deal_name = deal.deal_name;
       if (deal.deal_context) updates.deal_context = deal.deal_context;
+      if (deal.atlas_id) {
+        const company = await fetchAtlasCompany(deal.atlas_id);
+        if (company?.company_name) updates.company_name = company.company_name;
+      }
       updates.atlas_stats = {
         notes: deal.numero_de_notas ?? 0,
         emails: deal.numero_de_emails ?? 0,
