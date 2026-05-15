@@ -18,6 +18,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   "Strategic HR":           "#8B5CF6",
   "IT & Facilities":        "#0D9488",
   "AI":                     "#E05C75",
+  "Salary Advance":         "#10B981",
   "Integrations":           "#6366F1",
 };
 
@@ -165,15 +166,19 @@ export const MODULE_CATALOG: ModuleDef[] = [
   {
     id: "benefits",
     label: "Salary Advance",
-    category: "Benefits & Wellbeing",
-    color: catColor("Benefits & Wellbeing"),
+    category: "Salary Advance",
+    color: catColor("Salary Advance"),
     signals: [
-      "Employees ask for salary advances and we handle it manually",
-      "No way to offer earned wage access to employees",
+      "Employees don't know what benefits they're eligible for",
+      "Flexible remuneration is a nightmare in spreadsheets",
+      "Benefits enrollment is manual with lots of back-and-forth",
+      "We can't report on benefits utilisation",
     ],
     savings: [
-      "Automated salary advance with eligibility rules",
-      "Employee self-service — no manual HR processing",
+      "Self-service enrollment: meals, transport, childcare, health insurance",
+      "Automated enrollment windows with eligibility rules",
+      "Vendor sync — no manual reconciliation",
+      "Real-time utilisation reporting and tax optimisation visibility",
     ],
   },
   {
