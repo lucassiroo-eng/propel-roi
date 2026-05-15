@@ -465,26 +465,26 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .total-row td { padding-top: ${rowPad + 4}px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
 
   .quotes-section {
-    padding: 10px 44px 8px 48px;
+    padding: 12px 44px 10px 48px;
     border-top: 1px solid #F3F4F6;
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: column; gap: 7px;
     flex: 0 0 auto;
   }
-  .quotes-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 2px; }
+  .quotes-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 3px; }
   .quote-card {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 14px;
-    border-radius: 10px;
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 16px;
+    border-radius: 11px;
     background: #F9FAFB;
     border-left: 3px solid;
   }
-  .quote-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
+  .quote-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; color: #fff; }
   .quote-body { flex: 1; min-width: 0; }
-  .quote-text { font-size: 12px; color: #374151; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .quote-text { font-size: 13px; color: #374151; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .quote-text .who { font-weight: 700; }
   .quote-action { font-weight: 600; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 14px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 12px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 </style>
 </head>
@@ -806,24 +806,24 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .module-table .total-row .total-savings { font-size: 22px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
 
   .quotes-section {
-    padding: 10px 44px 8px 48px;
+    padding: 12px 44px 10px 48px;
     border-top: 1px solid #F3F4F6;
-    display: flex; flex-direction: column; gap: 6px;
+    display: flex; flex-direction: column; gap: 7px;
     flex: 0 0 auto;
   }
-  .quotes-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 2px; }
+  .quotes-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9CA3AF; margin-bottom: 3px; }
   .quote-card {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 14px; border-radius: 10px;
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 16px; border-radius: 11px;
     background: #F9FAFB; border-left: 3px solid;
   }
-  .quote-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; color: #fff; }
+  .quote-icon { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; color: #fff; }
   .quote-body { flex: 1; min-width: 0; }
-  .quote-text { font-size: 12px; color: #374151; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .quote-text { font-size: 13px; color: #374151; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .quote-text .who { font-weight: 700; }
   .quote-action { font-weight: 600; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 14px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 12px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 
   /* ── Detail slides ── */
