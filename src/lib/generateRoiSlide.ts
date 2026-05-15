@@ -1106,8 +1106,7 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
     for (let i = 0; i < slides.length; i++) {
       if (i > 0) pdf.addPage([1440, 810], "landscape");
-      const isSummary = i === 0;
-      const img = await captureSlide(slides[i], html2canvas, isSummary, fontCss);
+      const img = await captureSlide(slides[i], html2canvas, true, fontCss);
       pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     }
 
