@@ -175,35 +175,35 @@ export interface BundleAnalysis {
 
 // ── Helpers ──
 
+const STARTER_MODULES: Record<string, string[]> = {
+  "starter operations": ["Core", "Time Tracking", "Time Off"],
+  "starter planning": ["Core", "Time Tracking", "Time Off", "Shifts"],
+  "starter productivity": ["Core", "Time Tracking", "Time Off", "Performance"],
+  "starter essentials": ["Core", "Time Tracking", "Time Off", "Trainings"],
+  "starter essential": ["Core", "Time Tracking", "Time Off", "Trainings"],
+  "starter consulting": ["Core", "Time Tracking", "Time Off", "Projects"],
+  "starter people": ["Core", "Performance", "Trainings", "Engagement"],
+  "starter compensation": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits"],
+  "starter compensations": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits"],
+};
+
 export function parseModulesFromBundle(b: BundleRow): string[] {
   if (!b.included_modules) return [];
-  // Handle "Starter X + Module1 + Module2" format
   const raw = b.included_modules;
-  
-  // Check if it references another Starter bundle
-  const starterMatch = raw.match(/^(Starter \w+)\s*\+\s*(.*)/i);
+
+  // Match "Starter X" optionally followed by "+ extras"
+  const starterMatch = raw.match(/^(Starter\s+\w+)\s*(?:\+\s*(.*))?$/i);
   if (starterMatch) {
-    // We need to expand the starter reference — for now parse both parts
     const starterName = starterMatch[1].trim().toLowerCase();
-    const extras = starterMatch[2].split(/[+,]/).map(s => s.trim()).filter(Boolean);
-    
-    // Known starter expansions
-    const STARTER_MODULES: Record<string, string[]> = {
-      "starter operations": ["Core", "Time Tracking", "Time Off"],
-      "starter planning": ["Core", "Time Tracking", "Time Off", "Shifts"],
-      "starter productivity": ["Core", "Time Tracking", "Time Off", "Performance"],
-      "starter essentials": ["Core", "Time Tracking", "Time Off", "Trainings"],
-      "starter essential": ["Core", "Time Tracking", "Time Off", "Trainings"],
-      "starter consulting": ["Core", "Time Tracking", "Time Off", "Projects"],
-      "starter people": ["Core", "Performance", "Trainings", "Engagement"],
-      "starter compensation": ["Core", "Time Tracking", "Time Off", "Compensation", "Benefits"],
-    };
-    
-    const starterMods = STARTER_MODULES[starterName] ?? [];
-    const allMods = [...starterMods, ...extras];
-    return [...new Set(allMods.map(canonicalModule).filter(Boolean))];
+    const starterMods = STARTER_MODULES[starterName];
+    if (starterMods) {
+      const extras = starterMatch[2]
+        ? starterMatch[2].split(/[+,]/).map(s => s.trim()).filter(Boolean)
+        : [];
+      return [...new Set([...starterMods, ...extras].map(canonicalModule).filter(Boolean))];
+    }
   }
-  
+
   // Simple comma/plus separated list
   return [...new Set(
     raw.split(/[,+]/)
