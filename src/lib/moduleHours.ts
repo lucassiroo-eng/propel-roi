@@ -10,9 +10,18 @@ export interface HoursEntry {
 
 export const MODULE_HOURS: HoursEntry[] = [
   // Core
-  { module_id: "core",              stakeholder: "employee", hours_per_month: 0.5,  scales_with: "employees" },
-  { module_id: "core",              stakeholder: "hr",       hours_per_month: 30.0, scales_with: "onboardings" },
-  { module_id: "core",              stakeholder: "manager",  hours_per_month: 2.0,  scales_with: "managers" },
+  { module_id: "core",              stakeholder: "employee", hours_per_month: 0.3,  scales_with: "employees" },
+  { module_id: "core",              stakeholder: "hr",       hours_per_month: 10.0, scales_with: "onboardings" },
+  { module_id: "core",              stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
+
+  // Time-off
+  { module_id: "time_off",          stakeholder: "hr",       hours_per_month: 10.0, scales_with: "hr_ftes" },
+  { module_id: "time_off",          stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
+
+  // Time Tracking
+  { module_id: "time_tracking",     stakeholder: "employee", hours_per_month: 0.2,  scales_with: "employees" },
+  { module_id: "time_tracking",     stakeholder: "hr",       hours_per_month: 10.0, scales_with: "hr_ftes" },
+  { module_id: "time_tracking",     stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
   // Shift Management
   { module_id: "time_planning",     stakeholder: "employee", hours_per_month: 0.1,  scales_with: "employees" },
@@ -140,20 +149,41 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       employee: [
         "Self-service profile updates and document downloads remove routine HR requests",
         "Payslips and certificates always accessible on mobile — no waiting",
+      ],
+      hr: [
+        "Single employee database eliminates duplicate spreadsheets and copy-paste",
+        "Automated approval workflows for data changes — no manual routing",
+        "Onboarding/offboarding checklists run automatically",
+      ],
+      manager: [
+        "Team dashboard shows pending approvals, org structure, direct reports in one click",
+        "No more emailing HR for headcount, contract dates, or employee details",
+      ],
+    },
+    time_off: {
+      hr: [
+        "Auto-accrual engine replaces manual balance calculations",
+        "Payroll integration syncs leave data automatically — no re-entry",
+        "Policy rules prevent over-approval before it happens",
+      ],
+      manager: [
+        "Visual team calendar shows who's off — no checking spreadsheets",
+        "One-click approve/reject with conflict detection alerts",
+      ],
+    },
+    time_tracking: {
+      employee: [
         "Clock-in from any device replaces paper timesheets",
         "Missed clock-ins resolved in-app with manager approval — no chasing",
       ],
       hr: [
-        "Single employee database eliminates duplicate spreadsheets and manual copy-paste",
-        "Automated workflows handle data changes, onboarding, and offboarding without manual routing",
-        "Leave balances and time data flow to payroll automatically — no re-entry or reconciliation",
-        "Overtime and compliance checks run automatically — no manual verification",
+        "Time data flows to payroll automatically — no weekly reconciliation",
+        "Overtime calculated per labour law — no manual compliance checks",
+        "Missing entries trigger automatic reminders",
       ],
       manager: [
-        "Team dashboard surfaces pending approvals, org structure, and direct reports instantly",
-        "Visual team calendar shows who's off — no spreadsheet checks or HR calls",
-        "One-click approve/reject with built-in conflict detection",
-        "Anomaly alerts for late arrivals and missed clock-outs sent automatically",
+        "Real-time attendance dashboard replaces morning roll calls",
+        "Anomaly alerts (late arrivals, missed clock-outs) sent automatically",
       ],
     },
     time_planning: {
@@ -340,20 +370,41 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       employee: [
         "Autoservicio para actualizar perfil y descargar documentos elimina peticiones rutinarias a RRHH",
         "Nóminas y certificados siempre accesibles desde el móvil — sin esperas",
+      ],
+      hr: [
+        "Base de datos única de empleados elimina hojas de cálculo duplicadas y copiar-pegar",
+        "Flujos de aprobación automatizados para cambios de datos — sin enrutamiento manual",
+        "Checklists de onboarding/offboarding se ejecutan automáticamente",
+      ],
+      manager: [
+        "Panel de equipo muestra aprobaciones pendientes, organigrama y reportes directos en un clic",
+        "Ya no es necesario enviar emails a RRHH para headcount, fechas de contrato o datos de empleados",
+      ],
+    },
+    time_off: {
+      hr: [
+        "Motor de acumulación automática sustituye cálculos manuales de saldos",
+        "Integración con nómina sincroniza datos de ausencias automáticamente — sin reintroducción",
+        "Reglas de política previenen sobre-aprobación antes de que ocurra",
+      ],
+      manager: [
+        "Calendario visual del equipo muestra quién está ausente — sin consultar hojas de cálculo",
+        "Aprobar/rechazar con un clic con alertas de detección de conflictos",
+      ],
+    },
+    time_tracking: {
+      employee: [
         "Fichaje desde cualquier dispositivo sustituye los partes en papel",
         "Fichajes olvidados resueltos en la app con aprobación del manager — sin perseguir a nadie",
       ],
       hr: [
-        "Base de datos única de empleados elimina hojas de cálculo duplicadas y copiar-pegar manual",
-        "Flujos automatizados gestionan cambios de datos, onboarding y offboarding sin enrutamiento manual",
-        "Saldos de vacaciones y datos de tiempo fluyen a nómina automáticamente — sin reintroducción ni conciliación",
-        "Horas extra y controles de cumplimiento se ejecutan automáticamente — sin verificación manual",
+        "Datos de tiempo fluyen a nómina automáticamente — sin conciliación semanal",
+        "Horas extra calculadas según legislación laboral — sin verificación manual",
+        "Fichajes olvidados generan recordatorios automáticos",
       ],
       manager: [
-        "Panel de equipo muestra aprobaciones pendientes, organigrama y reportes directos al instante",
-        "Calendario visual del equipo muestra quién está ausente — sin consultar hojas de cálculo ni llamar a RRHH",
-        "Aprobar/rechazar con un clic con detección de conflictos integrada",
-        "Alertas de anomalías por llegadas tarde y fichajes olvidados enviadas automáticamente",
+        "Panel de asistencia en tiempo real sustituye el control matutino",
+        "Alertas de anomalías (llegadas tarde, fichajes olvidados) enviadas automáticamente",
       ],
     },
     time_planning: {
@@ -540,20 +591,41 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       employee: [
         "Mise à jour du profil et téléchargement de documents en libre-service élimine les demandes courantes aux RH",
         "Bulletins de paie et certificats toujours accessibles sur mobile — sans attente",
+      ],
+      hr: [
+        "Base de données unique des employés élimine les tableurs en double et le copier-coller",
+        "Workflows d'approbation automatisés pour les changements de données — sans routage manuel",
+        "Checklists d'onboarding/offboarding s'exécutent automatiquement",
+      ],
+      manager: [
+        "Tableau de bord d'équipe affiche approbations en attente, organigramme et rapports directs en un clic",
+        "Plus besoin d'envoyer des emails aux RH pour les effectifs, dates de contrat ou détails des employés",
+      ],
+    },
+    time_off: {
+      hr: [
+        "Moteur d'accumulation automatique remplace les calculs manuels de soldes",
+        "Intégration paie synchronise les données de congés automatiquement — sans re-saisie",
+        "Règles de politique empêchent la sur-approbation avant qu'elle ne se produise",
+      ],
+      manager: [
+        "Calendrier d'équipe visuel montre qui est absent — sans consulter de tableurs",
+        "Approuver/refuser en un clic avec alertes de détection de conflits",
+      ],
+    },
+    time_tracking: {
+      employee: [
         "Pointage depuis n'importe quel appareil remplace les feuilles de présence papier",
         "Pointages oubliés résolus dans l'appli avec approbation du manager — sans relance",
       ],
       hr: [
-        "Base de données unique des employés élimine les tableurs en double et le copier-coller manuel",
-        "Workflows automatisés gèrent les changements de données, l'onboarding et l'offboarding sans routage manuel",
-        "Soldes de congés et données de temps alimentent la paie automatiquement — sans re-saisie ni rapprochement",
-        "Heures supplémentaires et contrôles de conformité s'exécutent automatiquement — sans vérification manuelle",
+        "Données de temps alimentent la paie automatiquement — sans rapprochement hebdomadaire",
+        "Heures supplémentaires calculées selon la législation du travail — sans vérification manuelle",
+        "Pointages manquants déclenchent des rappels automatiques",
       ],
       manager: [
-        "Tableau de bord d'équipe affiche les approbations en attente, l'organigramme et les rapports directs instantanément",
-        "Calendrier d'équipe visuel montre qui est absent — sans consulter de tableurs ni appeler les RH",
-        "Approuver/refuser en un clic avec détection de conflits intégrée",
-        "Alertes d'anomalies pour retards et pointages oubliés envoyées automatiquement",
+        "Tableau de bord de présence en temps réel remplace l'appel du matin",
+        "Alertes d'anomalies (retards, pointages oubliés) envoyées automatiquement",
       ],
     },
     time_planning: {
