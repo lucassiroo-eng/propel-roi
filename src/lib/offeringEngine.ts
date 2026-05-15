@@ -194,6 +194,10 @@ export function parseModulesFromBundle(b: BundleRow): string[] {
   if (!b.included_modules) return [];
   const raw = b.included_modules;
 
+  // Try resolving via bundle_name first (most reliable)
+  const byName = STARTER_MODULES[b.bundle_name.trim().toLowerCase()];
+  if (byName) return [...new Set(byName.map(canonicalModule).filter(Boolean))];
+
   // Match "Starter X" optionally followed by "+ extras"
   const starterMatch = raw.match(/^(Starter\s+\w+)\s*(?:\+\s*(.*))?$/i);
   if (starterMatch) {
@@ -207,9 +211,9 @@ export function parseModulesFromBundle(b: BundleRow): string[] {
     }
   }
 
-  // Simple comma/plus separated list
+  // Simple comma/plus/and separated list
   return [...new Set(
-    raw.split(/[,+]/)
+    raw.split(/[,+]|\band\b/)
       .map(s => s.trim())
       .filter(Boolean)
       .map(canonicalModule)
