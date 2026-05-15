@@ -28,7 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlideHtml, type RoiSlideInput } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlideHtml, generateMultiSlidePdf, type RoiSlideInput } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -77,7 +77,7 @@ export function StepOffering({
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState<string | null>(null);
 
   // ── Data fetching ──
   const { data: bundles, isLoading: bundlesLoading } = useQuery({
@@ -271,25 +271,6 @@ export function StepOffering({
     return buildRoiSlideData(input);
   }
 
-  async function handleDownloadSlidePdf() {
-    if (!roiConfig || roiConfig.headcounts.employee <= 0 || roiConfig.headcounts.hr <= 0 || roiConfig.headcounts.manager <= 0) {
-      toast.error(t("setup.fill_team"));
-      return;
-    }
-    const data = getSlideData();
-    if (!data) { toast.error("No data to generate slide"); return; }
-    if (data.modules.length === 0) { toast.error("No modules with savings — check team headcounts"); return; }
-    setDownloadingPdf(true);
-    try {
-      await generateRoiSlidePdf(data);
-      toast.success("PDF descargado");
-    } catch (err: any) {
-      toast.error("Error al generar PDF: " + err.message);
-    } finally {
-      setDownloadingPdf(false);
-    }
-  }
-
   function downloadHtmlBlob(html: string, filename: string) {
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
@@ -314,16 +295,43 @@ export function StepOffering({
   function handleDownloadHtmlSingle() {
     const data = validateSlideReady();
     if (!data) return;
-    const html = generateRoiSlideHtml(data);
-    downloadHtmlBlob(html, `ROI-Slide-${data.company_name || "report"}.html`);
+    downloadHtmlBlob(generateRoiSlideHtml(data), `ROI-Slide-${data.company_name || "report"}.html`);
   }
 
   function handleDownloadHtmlAll() {
     const data = validateSlideReady();
     const input = getSlideInput();
     if (!data || !input) return;
-    const html = generateMultiSlideHtml(data, input);
-    downloadHtmlBlob(html, `ROI-Report-${data.company_name || "report"}.html`);
+    downloadHtmlBlob(generateMultiSlideHtml(data, input), `ROI-Report-${data.company_name || "report"}.html`);
+  }
+
+  async function handleDownloadPdfSingle() {
+    const data = validateSlideReady();
+    if (!data) return;
+    setDownloadingPdf("single");
+    try {
+      await generateRoiSlidePdf(data);
+      toast.success("PDF descargado");
+    } catch (err: any) {
+      toast.error("Error al generar PDF: " + err.message);
+    } finally {
+      setDownloadingPdf(null);
+    }
+  }
+
+  async function handleDownloadPdfAll() {
+    const data = validateSlideReady();
+    const input = getSlideInput();
+    if (!data || !input) return;
+    setDownloadingPdf("all");
+    try {
+      await generateMultiSlidePdf(data, input);
+      toast.success("PDF descargado");
+    } catch (err: any) {
+      toast.error("Error al generar PDF: " + err.message);
+    } finally {
+      setDownloadingPdf(null);
+    }
   }
 
   function selectPack(bundleId: number) { onChange({ bundle_id: bundleId }); }
@@ -713,19 +721,35 @@ export function StepOffering({
             {t("offering.save")}
           </Button>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          <Button size="lg" onClick={handleDownloadSlidePdf} disabled={!configuration || !roiConfig || downloadingPdf} className="gap-2">
-            {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-            PDF
-          </Button>
-          <Button size="lg" onClick={handleDownloadHtmlSingle} disabled={!configuration || !roiConfig} className="gap-2 bg-gray-800 hover:bg-gray-700 text-white">
-            <Globe className="h-4 w-4" />
-            HTML Slide
-          </Button>
-          <Button size="lg" onClick={handleDownloadHtmlAll} disabled={!configuration || !roiConfig} className="gap-2 bg-gray-800 hover:bg-gray-700 text-white">
-            <Globe className="h-4 w-4" />
-            HTML Completo
-          </Button>
+
+        {/* ROI Download: 1 slide */}
+        <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">ROI Slide</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button size="sm" onClick={handleDownloadPdfSingle} disabled={!configuration || !roiConfig || !!downloadingPdf} className="gap-1.5">
+              {downloadingPdf === "single" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              PDF
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleDownloadHtmlSingle} disabled={!configuration || !roiConfig || !!downloadingPdf} className="gap-1.5">
+              <Globe className="h-3.5 w-3.5" />
+              HTML
+            </Button>
+          </div>
+        </div>
+
+        {/* ROI Download: all slides */}
+        <div className="rounded-xl border border-border bg-muted/20 p-3 space-y-2">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">ROI Completo</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button size="sm" onClick={handleDownloadPdfAll} disabled={!configuration || !roiConfig || !!downloadingPdf} className="gap-1.5">
+              {downloadingPdf === "all" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              PDF
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleDownloadHtmlAll} disabled={!configuration || !roiConfig || !!downloadingPdf} className="gap-1.5">
+              <Globe className="h-3.5 w-3.5" />
+              HTML
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -1014,3 +1014,86 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
     document.body.removeChild(iframe);
   }
 }
+
+export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideInput): Promise<void> {
+  const [{ default: jsPDF }, html2canvas] = await Promise.all([
+    import("jspdf"),
+    loadHtml2Canvas(),
+  ]);
+
+  const html = generateMultiSlideHtml(data, input);
+
+  const fontReadyScript = `
+    <script>
+      document.fonts.ready.then(function() {
+        document.body.offsetHeight;
+        window.__fontsReady = true;
+      });
+    </script>
+  `;
+  const captureHtml = html
+    .replace(
+      "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
+      "background: #fff; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0;",
+    )
+    .replace("</head>", fontReadyScript + "</head>");
+
+  const slideCount = (html.match(/class="slide/g) || []).length;
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:1440px;height:${810 * slideCount}px;border:none;pointer-events:none;z-index:-1;`;
+  document.body.appendChild(iframe);
+
+  try {
+    await new Promise<void>((resolve) => {
+      iframe.onload = () => resolve();
+      iframe.srcdoc = captureHtml;
+    });
+
+    const iframeDoc = iframe.contentDocument!;
+    const iframeWin = iframe.contentWindow!;
+
+    await Promise.race([
+      iframeDoc.fonts.ready,
+      new Promise(r => setTimeout(r, 5000)),
+    ]);
+
+    await new Promise<void>((resolve) => {
+      const check = () => {
+        if ((iframeWin as any).__fontsReady) { resolve(); return; }
+        setTimeout(check, 100);
+      };
+      check();
+      setTimeout(resolve, 5000);
+    });
+
+    await new Promise(r => setTimeout(r, 300));
+
+    const slides = iframeDoc.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
+    if (slides.length === 0) throw new Error("No slides found");
+
+    const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
+
+    for (let i = 0; i < slides.length; i++) {
+      if (i > 0) pdf.addPage([1440, 810], "landscape");
+
+      const canvas = await html2canvas(slides[i], {
+        width: 1440,
+        height: 810,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 1440,
+        windowHeight: 810,
+        onclone: (clonedDoc: Document) => { clonedDoc.body.offsetHeight; },
+      });
+
+      const img = canvas.toDataURL("image/png");
+      pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+    }
+
+    pdf.save(`ROI-Report-${data.company_name || "report"}.pdf`);
+  } finally {
+    document.body.removeChild(iframe);
+  }
+}
