@@ -423,7 +423,8 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
   .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 100%; }
   .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .kpi-card:last-child .kpi-value { font-size: 16px; }
+  .kpi-card:last-child .kpi-value { font-size: 14px; }
+  .kpi-card:last-child .kpi-value-box { padding: 6px 10px; }
 
   .right-col {
     display: flex; flex-direction: column;
@@ -522,6 +523,8 @@ interface ModuleDetail {
   total_annual: number;
 }
 
+const CORE_SUBMODULES = new Set(["time_tracking", "time_off"]);
+
 function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDetail[] {
   const { roiConfig, configModules } = input;
   const { headcounts, hourly_costs } = roiConfig;
@@ -533,14 +536,10 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
     expense_submitters: roiConfig.expense_submitters,
   };
 
-  const details: ModuleDetail[] = [];
-  for (const modId of configModules) {
-    const slideModule = data.modules.find(m => m.id === modId);
-    if (!slideModule) continue;
+  function buildRows(modId: string) {
     const hours = getEffectiveHours(modId, roiConfig.hours_overrides);
     const rows: ModuleDetailRow[] = [];
     let totalH = 0, totalM = 0, totalA = 0;
-
     for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
       const hpm = hours[s];
       if (hpm === 0) continue;
@@ -551,21 +550,42 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
       const monthly = totalHours * hourly_costs[s];
       const annual = monthly * 12;
       const bullets = descs[modId]?.[s] ?? [];
-      rows.push({
-        stakeholder: s,
-        hours_per_person: hpm,
-        count: Math.round(count * 100) / 100,
-        total_hours: Math.round(totalHours * 100) / 100,
-        hourly_cost: hourly_costs[s],
-        monthly_savings: Math.round(monthly),
-        annual_savings: Math.round(annual),
-        scales_with: scalesWith,
-        bullets,
-      });
-      totalH += totalHours;
-      totalM += monthly;
-      totalA += annual;
+      rows.push({ stakeholder: s, hours_per_person: hpm, count: Math.round(count * 100) / 100, total_hours: Math.round(totalHours * 100) / 100, hourly_cost: hourly_costs[s], monthly_savings: Math.round(monthly), annual_savings: Math.round(annual), scales_with: scalesWith, bullets });
+      totalH += totalHours; totalM += monthly; totalA += annual;
     }
+    return { rows, totalH, totalM, totalA };
+  }
+
+  const details: ModuleDetail[] = [];
+  const skip = new Set<string>();
+
+  for (const modId of configModules) {
+    if (skip.has(modId)) continue;
+    const slideModule = data.modules.find(m => m.id === modId);
+    if (!slideModule) continue;
+
+    const { rows, totalH, totalM, totalA } = buildRows(modId);
+
+    // Merge time_tracking & time_off into Core
+    if (modId === "core") {
+      for (const sub of CORE_SUBMODULES) {
+        if (!configModules.includes(sub)) continue;
+        skip.add(sub);
+        const subResult = buildRows(sub);
+        const subCatalog = MODULE_CATALOG.find(m => m.id === sub);
+        const subLabel = subCatalog?.label ?? moduleLabel(sub);
+        for (const r of subResult.rows) {
+          const merged = { ...r, bullets: r.bullets.map(b => `[${subLabel}] ${b}`) };
+          rows.push(merged);
+        }
+      }
+    }
+
+    if (rows.length === 0) continue;
+
+    const recalcH = rows.reduce((s, r) => s + r.total_hours, 0);
+    const recalcM = rows.reduce((s, r) => s + r.monthly_savings, 0);
+    const recalcA = rows.reduce((s, r) => s + r.annual_savings, 0);
 
     const colorIdx = data.modules.findIndex(m => m.id === modId);
     details.push({
@@ -573,9 +593,9 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
       name: slideModule.name,
       color: PILL_COLORS[colorIdx >= 0 ? colorIdx % PILL_COLORS.length : 0],
       rows,
-      total_hours: Math.round(totalH * 100) / 100,
-      total_monthly: Math.round(totalM),
-      total_annual: Math.round(totalA),
+      total_hours: Math.round(recalcH * 100) / 100,
+      total_monthly: Math.round(recalcM),
+      total_annual: Math.round(recalcA),
     });
   }
   return details;
@@ -625,12 +645,19 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
               <td class="annual-cell">${fmtEur(r.annual_savings)}</td>
             </tr>`).join("\n");
 
-  const descriptionCards = detail.rows.filter(r => r.bullets.length > 0).map(r => {
-    const color = r.stakeholder === "employee" ? "#3B82F6" : r.stakeholder === "hr" ? "#10B981" : "#F59E0B";
-    const lis = r.bullets.map(b => `<li>${escHtml(b)}</li>`).join("");
+  const bulletsByStakeholder = new Map<Stakeholder, string[]>();
+  for (const r of detail.rows) {
+    if (r.bullets.length === 0) continue;
+    const existing = bulletsByStakeholder.get(r.stakeholder) ?? [];
+    existing.push(...r.bullets);
+    bulletsByStakeholder.set(r.stakeholder, existing);
+  }
+  const descriptionCards = [...bulletsByStakeholder.entries()].map(([s, bullets]) => {
+    const color = s === "employee" ? "#3B82F6" : s === "hr" ? "#10B981" : "#F59E0B";
+    const lis = bullets.map(b => `<li>${escHtml(b)}</li>`).join("");
     return `
         <div class="desc-card" style="border-color:${color};">
-          <div class="desc-label">${sLabels[r.stakeholder]}</div>
+          <div class="desc-label">${sLabels[s]}</div>
           <ul class="desc-bullets">${lis}</ul>
         </div>`;
   }).join("\n");
@@ -769,7 +796,8 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
   .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 100%; }
   .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .kpi-card:last-child .kpi-value { font-size: 16px; }
+  .kpi-card:last-child .kpi-value { font-size: 14px; }
+  .kpi-card:last-child .kpi-value-box { padding: 6px 10px; }
 
   .right-col { display: flex; flex-direction: column; overflow: hidden; }
 
