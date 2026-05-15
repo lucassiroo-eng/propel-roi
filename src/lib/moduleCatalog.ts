@@ -9,6 +9,7 @@ export interface ModuleDef {
 
 export const CATEGORY_COLORS: Record<string, string> = {
   "Core":                   "#6B7280",
+  "Shift Management":       "#2563EB",
   "Compensation & Payroll": "#FB923C",
   "Benefits & Wellbeing":   "#F59E0B",
   "Compliance":             "#EF4444",
@@ -88,8 +89,8 @@ export const MODULE_CATALOG: ModuleDef[] = [
   {
     id: "time_planning",
     label: "Shift Management",
-    category: "Core",
-    color: catColor("Core"),
+    category: "Shift Management",
+    color: catColor("Shift Management"),
     signals: [
       "Creating the weekly schedule takes hours in Excel",
       "Employees check schedules on paper or WhatsApp",
