@@ -1025,16 +1025,19 @@ function prepareCaptureHtml(html: string, bodyStyleFrom: string, bodyStyleTo: st
 async function waitForIframeFonts(iframe: HTMLIFrameElement): Promise<void> {
   const iframeDoc = iframe.contentDocument!;
   const iframeWin = iframe.contentWindow!;
-  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 4000))]);
+  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 5000))]);
   await new Promise<void>((resolve) => {
     const check = () => {
       if ((iframeWin as any).__fontsReady) { resolve(); return; }
       setTimeout(check, 50);
     };
     check();
-    setTimeout(resolve, 4000);
+    setTimeout(resolve, 5000);
   });
-  await new Promise(r => setTimeout(r, 400));
+  try {
+    await Promise.race([iframeDoc.fonts.load("700 16px Inter"), new Promise(r => setTimeout(r, 2000))]);
+  } catch { /* best effort */ }
+  await new Promise(r => setTimeout(r, 500));
 }
 
 async function inlineExternalImages(root: HTMLElement): Promise<void> {
@@ -1054,15 +1057,25 @@ async function inlineExternalImages(root: HTMLElement): Promise<void> {
   }));
 }
 
-async function captureSlide(slide: HTMLElement, html2canvas: any): Promise<string> {
+async function captureSlide(slide: HTMLElement, html2canvas: any, useForeignObject = true, fontCss?: string): Promise<string> {
   await inlineExternalImages(slide);
-  const canvas = await html2canvas(slide, {
-    width: 1440, height: 810, scale: 2,
-    useCORS: true, logging: false, backgroundColor: "#ffffff",
-    windowWidth: 1440, windowHeight: 810,
-    foreignObjectRendering: true,
-  });
-  return canvas.toDataURL("image/png");
+  let injectedStyle: HTMLStyleElement | null = null;
+  if (fontCss && useForeignObject) {
+    injectedStyle = slide.ownerDocument.createElement("style");
+    injectedStyle.textContent = fontCss;
+    slide.prepend(injectedStyle);
+  }
+  try {
+    const canvas = await html2canvas(slide, {
+      width: 1440, height: 810, scale: 2,
+      useCORS: true, logging: false, backgroundColor: "#ffffff",
+      windowWidth: 1440, windowHeight: 810,
+      foreignObjectRendering: useForeignObject,
+    });
+    return canvas.toDataURL("image/png");
+  } finally {
+    if (injectedStyle) injectedStyle.remove();
+  }
 }
 
 export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
@@ -1090,7 +1103,7 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
     const slide = iframe.contentDocument!.querySelector(".slide") as HTMLElement;
     if (!slide) throw new Error("Slide element not found");
 
-    const img = await captureSlide(slide, html2canvas);
+    const img = await captureSlide(slide, html2canvas, true, fontCss);
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
     pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
@@ -1128,7 +1141,8 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
     for (let i = 0; i < slides.length; i++) {
       if (i > 0) pdf.addPage([1440, 810], "landscape");
-      const img = await captureSlide(slides[i], html2canvas);
+      const isSummary = i === 0;
+      const img = await captureSlide(slides[i], html2canvas, isSummary, isSummary ? fontCss : undefined);
       pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     }
 
