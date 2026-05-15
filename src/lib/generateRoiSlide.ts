@@ -926,25 +926,37 @@ function loadHtml2Canvas(): Promise<any> {
 
 let cachedFontCss: string | null = null;
 
+function arrayBufferToBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 8192;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length)));
+  }
+  return btoa(binary);
+}
+
 async function getInlineFontCss(): Promise<string> {
   if (cachedFontCss) return cachedFontCss;
   try {
-    const cssResp = await fetch("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap", {
-      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120" },
-    });
+    const cssResp = await fetch("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
     let css = await cssResp.text();
     const urlRe = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g;
+    const entries: { url: string; b64: string; mime: string }[] = [];
     const urls = new Set<string>();
     let m: RegExpExecArray | null;
     while ((m = urlRe.exec(css)) !== null) urls.add(m[1]);
-    for (const url of urls) {
+    await Promise.all([...urls].map(async (url) => {
       try {
         const resp = await fetch(url);
         const buf = await resp.arrayBuffer();
-        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-        const mime = url.includes(".woff2") ? "font/woff2" : "font/woff";
-        css = css.replaceAll(url, `data:${mime};base64,${b64}`);
+        const b64 = arrayBufferToBase64(buf);
+        const mime = url.includes(".woff2") ? "font/woff2" : url.includes(".ttf") ? "font/ttf" : "font/woff";
+        entries.push({ url, b64, mime });
       } catch { /* keep original URL as fallback */ }
+    }));
+    for (const e of entries) {
+      css = css.replaceAll(e.url, `data:${e.mime};base64,${e.b64}`);
     }
     cachedFontCss = css;
     return css;
@@ -953,35 +965,55 @@ async function getInlineFontCss(): Promise<string> {
   }
 }
 
-function prepareCaptureHtml(html: string, bodyStyleFrom: string, bodyStyleTo: string): string {
-  return html
-    .replace(bodyStyleFrom, bodyStyleTo)
-    .replace(
-      '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">',
-      "",
-    );
+const GOOGLE_FONTS_LINK = '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">';
+
+function prepareCaptureHtml(html: string, bodyStyleFrom: string, bodyStyleTo: string, fontCss: string): string {
+  let out = html.replace(bodyStyleFrom, bodyStyleTo);
+  if (fontCss) {
+    out = out.replace(GOOGLE_FONTS_LINK, "");
+  }
+  return out;
 }
 
 async function waitForIframeFonts(iframe: HTMLIFrameElement): Promise<void> {
   const iframeDoc = iframe.contentDocument!;
   const iframeWin = iframe.contentWindow!;
-  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 3000))]);
+  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 4000))]);
   await new Promise<void>((resolve) => {
     const check = () => {
       if ((iframeWin as any).__fontsReady) { resolve(); return; }
       setTimeout(check, 50);
     };
     check();
-    setTimeout(resolve, 3000);
+    setTimeout(resolve, 4000);
   });
-  await new Promise(r => setTimeout(r, 200));
+  await new Promise(r => setTimeout(r, 400));
+}
+
+async function inlineExternalImages(root: HTMLElement): Promise<void> {
+  const imgs = root.querySelectorAll("img");
+  await Promise.all(Array.from(imgs).map(async (img) => {
+    if (!img.src || img.src.startsWith("data:")) return;
+    try {
+      const resp = await fetch(img.src, { mode: "cors" });
+      const blob = await resp.blob();
+      const dataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+      img.src = dataUrl;
+    } catch { /* keep original */ }
+  }));
 }
 
 async function captureSlide(slide: HTMLElement, html2canvas: any): Promise<string> {
+  await inlineExternalImages(slide);
   const canvas = await html2canvas(slide, {
     width: 1440, height: 810, scale: 2,
     useCORS: true, logging: false, backgroundColor: "#ffffff",
     windowWidth: 1440, windowHeight: 810,
+    foreignObjectRendering: true,
   });
   return canvas.toDataURL("image/png");
 }
@@ -998,6 +1030,7 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
     html,
     "background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh;",
     "background: #fff; margin: 0; padding: 0;",
+    fontCss,
   ).replace("</style>", `</style>\n<style>${fontCss}</style>\n<script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});</script>`);
 
   const iframe = document.createElement("iframe");
@@ -1032,6 +1065,7 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
     html,
     "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
     "background: #fff; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0;",
+    fontCss,
   ).replace("</style>", `</style>\n<style>${fontCss}</style>\n<script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});</script>`);
 
   const slideCount = (html.match(/class="slide/g) || []).length;
