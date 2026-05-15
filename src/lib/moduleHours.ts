@@ -138,77 +138,77 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
   en: {
     core: {
       employee: [
-        "Self-service profile updates — no emails to HR",
-        "Payslips and certificates downloadable on mobile",
-        "Leave requests from mobile with real-time balance",
-        "Digital clock-in replaces paper timesheets",
+        "Self-service profile updates and document downloads remove routine HR requests",
+        "Payslips and certificates always accessible on mobile — no waiting",
+        "Clock-in from any device replaces paper timesheets",
+        "Missed clock-ins resolved in-app with manager approval — no chasing",
       ],
       hr: [
-        "Single employee database — no duplicate spreadsheets",
-        "Automated approval workflows for data changes",
-        "Onboarding/offboarding checklists run automatically",
-        "Auto-accrual engine replaces manual balance calculations",
-        "Time data flows to payroll automatically",
-        "Overtime calculated per labour law automatically",
+        "Single employee database eliminates duplicate spreadsheets and manual copy-paste",
+        "Automated workflows handle data changes, onboarding, and offboarding without manual routing",
+        "Leave balances and time data flow to payroll automatically — no re-entry or reconciliation",
+        "Overtime and compliance checks run automatically — no manual verification",
       ],
       manager: [
-        "Team dashboard with pending approvals and org structure",
-        "Visual team calendar — approve/reject with conflict detection",
-        "Real-time attendance dashboard",
-        "Automatic anomaly alerts",
+        "Team dashboard surfaces pending approvals, org structure, and direct reports instantly",
+        "Visual team calendar shows who's off — no spreadsheet checks or HR calls",
+        "One-click approve/reject with built-in conflict detection",
+        "Anomaly alerts for late arrivals and missed clock-outs sent automatically",
       ],
     },
     time_planning: {
       employee: [
-        "View upcoming shifts on mobile — no paper rosters",
-        "Request shift swaps in-app — manager notified instantly",
+        "Upcoming shifts visible on mobile — no paper rosters or group chats",
+        "Shift swap requests handled in-app with instant manager notification",
       ],
       hr: [
-        "Auto-generated rosters from demand and labour rules",
-        "Overtime and rest compliance checked automatically",
-        "Eliminates manual Excel roster creation",
+        "Auto-generated rosters from demand, labour rules, and preferences",
+        "Overtime and rest-period compliance checked automatically",
+        "Eliminates weekly manual roster creation entirely",
       ],
       manager: [
-        "Drag-and-drop planner with conflict detection",
-        "Coverage gap warnings and overtime alerts before publishing",
+        "Drag-and-drop planner with instant conflict detection",
+        "Coverage gap warnings and overtime alerts surfaced before publishing",
+        "Reduces roster preparation to a fraction of previous time",
       ],
     },
     payroll: {
       hr: [
-        "Auto-sync from time, leave, expenses and variable comp",
-        "Eliminates manual data prep before each payroll run",
+        "Time, leave, expenses, and variable pay auto-sync into payroll — no manual prep",
         "Discrepancy detection catches errors before submission",
+        "Eliminates manual data consolidation across each pay run",
       ],
     },
     expenses: {
       employee: [
-        "Mobile receipt capture with OCR — snap, categorise, submit",
-        "Policy checks at submission prevent rejections",
+        "Mobile receipt capture with OCR auto-categorises and submits expenses instantly",
+        "Policy checks at submission prevent rejections and back-and-forth corrections",
       ],
       hr: [
-        "Automated reconciliation with accounting integration",
-        "Policy violations flagged automatically before approval",
+        "Automated reconciliation and approval workflows integrate directly with accounting",
+        "Policy violations flagged before approval — no manual review of every line",
+        "Reduces month-end expense processing significantly",
       ],
       manager: [
-        "One-click approvals with pre-validated policy checks",
-        "Team spend dashboards with budget alerts",
+        "One-click approvals on pre-validated, policy-checked submissions",
+        "Team spend dashboards with budget alerts remove the need to chase reports",
       ],
     },
     compensations: {
       hr: [
-        "Centralised merit/bonus cycles with budget guardrails",
-        "Salary band management in-system — no spreadsheet conflicts",
-        "Automated approval routing — no email chains",
+        "Centralised merit and bonus cycles with budget guardrails prevent overspend",
+        "Approval routing automated — eliminates email chains and version conflicts",
+        "Salary band management in-system — no spreadsheet juggling",
       ],
       manager: [
-        "Guided review with salary data, benchmarks and remaining budget",
-        "Submit compensation decisions in-app",
+        "Guided review surfaces team salary data, benchmarks, and remaining budget in one place",
+        "Compensation decisions submitted in-app — no email threads or offline tracking",
       ],
     },
     benefits: {
       hr: [
-        "Automated enrollment windows with eligibility rules",
-        "Vendor integration syncs selections automatically",
+        "Automated enrolment windows with eligibility rules remove manual coordination",
+        "Vendor integration syncs benefit selections — no manual reconciliation",
       ],
     },
     wellhub: {
@@ -220,111 +220,112 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     complaints: {
       hr: [
-        "Anonymous reporting portal with case management",
-        "EU Whistleblower Directive compliance out-of-the-box",
-        "Case tracking and deadline alerts",
+        "Anonymous reporting portal with built-in case management replaces email-based handling",
+        "EU Whistleblower Directive compliance covered out-of-the-box",
+        "Deadline alerts and case tracking eliminate manual follow-up",
       ],
     },
     engagement: {
       hr: [
-        "Automated survey creation, scheduling and distribution",
-        "Real-time dashboards by team/department",
+        "Automated survey creation, scheduling, and distribution remove manual setup",
+        "Real-time dashboards by team and department — no manual Excel analysis",
       ],
       manager: [
-        "Team engagement scores with trend indicators",
-        "Declining score alerts and suggested action plans",
+        "Team engagement scores in a live dashboard with trend indicators",
+        "Declining score alerts with suggested actions — no manual interpretation needed",
       ],
     },
     performance: {
       hr: [
-        "Automated review cycles: launch, reminders, calibration",
-        "Replaces manual templates and chasing",
+        "Automated review cycles handle launch, reminders, completion tracking, and calibration",
+        "Replaces Word and Excel templates and eliminates manual chasing across cycles",
       ],
       manager: [
-        "Pre-populated review forms with historical data",
-        "Team performance dashboard for 1:1 prep",
+        "Pre-populated review forms with historical performance data reduce prep time",
+        "Team performance dashboard ready for every one-to-one — no manual compilation",
       ],
     },
     trainings: {
       hr: [
-        "Automated rollout with completion tracking",
-        "Compliance reporting and subsidy documentation",
+        "Automated training rollout with completion tracking and compliance reporting",
+        "Subsidy and tax credit documentation generated automatically — no manual admin",
       ],
     },
     lms: {
       hr: [
-        "Course builder with templates and AI-assisted content",
-        "Content library with version control and analytics",
+        "Course builder with templates and AI-assisted content creation accelerates development",
+        "Content library with version control and completion analytics replaces manual tracking",
       ],
     },
     recruitment: {
       hr: [
-        "End-to-end ATS: posting, pipeline, scheduling, scorecards",
-        "Automated candidate status updates and templates",
+        "End-to-end ATS covers job posting, pipeline, interview scheduling, and scorecards",
+        "Automated candidate communications and status updates remove manual outreach",
+        "Reduces time-to-hire admin significantly across every open role",
       ],
       manager: [
-        "Structured interview scorecards replace free-form notes",
-        "Side-by-side candidate comparison",
+        "Structured interview scorecards replace free-form notes for every candidate",
+        "Side-by-side candidate comparison accelerates and standardises hiring decisions",
       ],
     },
     procurement: {
       hr: [
-        "Digital PO workflows with multi-level approval",
-        "Maverick spend visibility — identifies off-process purchases",
+        "Digital PO workflows with multi-level approval routing eliminate manual follow-up",
+        "Maverick spend visibility identifies off-process purchases automatically",
       ],
     },
     projects: {
       hr: [
-        "Project cost and profitability reports auto-generated",
-        "Replaces manual cost allocation spreadsheets",
+        "Project cost and profitability reports auto-generated from live time data",
+        "Replaces manual cost allocation spreadsheets across every project",
       ],
       manager: [
-        "Real-time dashboards: allocation, budget burn, profitability",
-        "Replaces manual tracking and month-end reconciliation",
+        "Real-time project dashboards show allocation, budget burn, and profitability at a glance",
+        "Replaces manual tracking and month-end reconciliation entirely",
       ],
     },
     crm: {
       hr: [
-        "Candidate pools and alumni networks with nurture workflows",
-        "Referral program tracking replaces manual outreach",
+        "Candidate pools and alumni networks managed with automated nurture workflows",
+        "Referral programme tracking replaces manual outreach and spreadsheet management",
       ],
     },
     headcount_planning: {
       hr: [
-        "Scenario-based workforce planning with budget impact",
-        "Replaces spreadsheet-based headcount forecasting",
+        "Scenario-based workforce planning with real-time budget impact replaces spreadsheet modelling",
+        "Headcount forecasting kept current without manual rebuilding",
       ],
       manager: [
-        "Approved vs. actual headcount at a glance",
-        "Structured position request workflow",
+        "Approved vs. actual headcount visible at a glance — no data requests to HR",
+        "Structured position request workflow replaces informal email requisitions",
       ],
     },
     space: {
       hr: [
-        "Occupancy analytics and booking rules automated",
-        "Capacity planning based on real usage data",
+        "Occupancy analytics and booking rules automated — no manual data collection",
+        "Capacity planning based on real usage data replaces guesswork",
       ],
     },
     software_management: {
       hr: [
-        "SaaS license tracking with usage monitoring — identifies shelfware",
-        "Renewal reminders and spend dashboards",
+        "SaaS licence tracking with usage monitoring identifies shelfware automatically",
+        "Renewal reminders and spend dashboards replace manual vendor tracking",
       ],
     },
     it_inventory: {
       hr: [
-        "Centralised IT asset register linked to employee lifecycle",
-        "Auto-provisioning on hire, auto-deprovisioning on exit",
+        "Centralised IT asset register linked to the employee lifecycle — always up-to-date",
+        "Auto-provisioning on hire and auto-deprovisioning on exit remove manual IT tasks",
       ],
     },
     one: {
       employee: [
-        "AI answers HR questions instantly: policies, balances",
-        "No more searching the intranet or waiting for HR email",
+        "AI answers HR questions instantly — policy lookups, balance checks, document requests",
+        "Reduces time spent searching the intranet or waiting for HR email responses",
       ],
       hr: [
-        "AI handles routine queries: leave, payslips, policies",
-        "Reduces HR inbox volume — frees capacity for strategic work",
+        "AI handles routine queries on leave, payslips, and policies without HR involvement",
+        "Frees HR team from repetitive inbox requests to focus on higher-value work",
       ],
     },
     analytics: {
@@ -337,77 +338,77 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
   es: {
     core: {
       employee: [
-        "Autoservicio para actualizar datos personales — sin emails a RRHH",
-        "Nóminas y certificados descargables desde el móvil",
-        "Solicitud de vacaciones desde el móvil con saldo en tiempo real",
-        "Fichaje digital que sustituye los partes en papel",
+        "Autoservicio para actualizar perfil y descargar documentos elimina peticiones rutinarias a RRHH",
+        "Nóminas y certificados siempre accesibles desde el móvil — sin esperas",
+        "Fichaje desde cualquier dispositivo sustituye los partes en papel",
+        "Fichajes olvidados resueltos en la app con aprobación del manager — sin perseguir a nadie",
       ],
       hr: [
-        "Base de datos única de empleados — sin hojas de cálculo duplicadas",
-        "Flujos de aprobación automáticos para cambios de datos",
-        "Checklists de onboarding/offboarding automatizados",
-        "Motor de devengo automático para cálculo de saldos",
-        "Los datos de tiempo fluyen a nómina automáticamente",
-        "Horas extra calculadas según legislación laboral",
+        "Base de datos única de empleados elimina hojas de cálculo duplicadas y copiar-pegar manual",
+        "Flujos automatizados gestionan cambios de datos, onboarding y offboarding sin enrutamiento manual",
+        "Saldos de vacaciones y datos de tiempo fluyen a nómina automáticamente — sin reintroducción ni conciliación",
+        "Horas extra y controles de cumplimiento se ejecutan automáticamente — sin verificación manual",
       ],
       manager: [
-        "Panel de equipo con aprobaciones pendientes y organigrama",
-        "Calendario visual del equipo — aprobar/rechazar con detección de conflictos",
-        "Dashboard de asistencia en tiempo real",
-        "Alertas automáticas de anomalías",
+        "Panel de equipo muestra aprobaciones pendientes, organigrama y reportes directos al instante",
+        "Calendario visual del equipo muestra quién está ausente — sin consultar hojas de cálculo ni llamar a RRHH",
+        "Aprobar/rechazar con un clic con detección de conflictos integrada",
+        "Alertas de anomalías por llegadas tarde y fichajes olvidados enviadas automáticamente",
       ],
     },
     time_planning: {
       employee: [
-        "Consulta de turnos desde el móvil — sin listas en papel",
-        "Solicitud de cambio de turno en la app — notificación inmediata al manager",
+        "Turnos próximos visibles en el móvil — sin cuadrantes en papel ni grupos de chat",
+        "Solicitudes de cambio de turno gestionadas en la app con notificación inmediata al manager",
       ],
       hr: [
-        "Generación automática de cuadrantes según demanda y normativa",
-        "Cumplimiento de horas extra y descansos verificado automáticamente",
-        "Elimina la creación manual de cuadrantes en Excel",
+        "Cuadrantes generados automáticamente según demanda, normativa laboral y preferencias",
+        "Cumplimiento de horas extra y periodos de descanso verificado automáticamente",
+        "Elimina por completo la creación manual semanal de cuadrantes",
       ],
       manager: [
-        "Planificador drag-and-drop con detección de conflictos",
-        "Alertas de cobertura y horas extra antes de publicar",
+        "Planificador drag-and-drop con detección instantánea de conflictos",
+        "Alertas de cobertura y horas extra mostradas antes de publicar",
+        "Reduce la preparación de cuadrantes a una fracción del tiempo anterior",
       ],
     },
     payroll: {
       hr: [
-        "Sincronización automática de tiempo, ausencias, gastos y variable",
-        "Elimina la preparación manual de datos antes de cada nómina",
-        "Detección de discrepancias antes del envío",
+        "Tiempo, ausencias, gastos y variable se sincronizan automáticamente con nómina — sin preparación manual",
+        "Detección de discrepancias captura errores antes del envío",
+        "Elimina la consolidación manual de datos en cada ciclo de nómina",
       ],
     },
     expenses: {
       employee: [
-        "Captura de recibos con OCR desde el móvil — foto, categorizar y enviar",
-        "Validación de políticas al enviar evita rechazos",
+        "Captura de recibos con OCR desde el móvil que auto-categoriza y envía gastos al instante",
+        "Validación de políticas al enviar evita rechazos y correcciones de ida y vuelta",
       ],
       hr: [
-        "Conciliación automática con integración contable",
-        "Violaciones de política señaladas automáticamente",
+        "Conciliación automática y flujos de aprobación integrados directamente con contabilidad",
+        "Violaciones de política señaladas antes de la aprobación — sin revisión manual línea por línea",
+        "Reduce significativamente el procesamiento de gastos a fin de mes",
       ],
       manager: [
-        "Aprobaciones con un clic y validación previa de políticas",
-        "Dashboards de gasto del equipo con alertas de presupuesto",
+        "Aprobaciones con un clic sobre envíos pre-validados y con políticas verificadas",
+        "Dashboards de gasto del equipo con alertas de presupuesto eliminan la necesidad de perseguir informes",
       ],
     },
     compensations: {
       hr: [
-        "Ciclos centralizados de mérito/bonus con control de presupuesto",
-        "Gestión de bandas salariales en el sistema — sin conflictos de versiones",
-        "Enrutamiento de aprobaciones automatizado",
+        "Ciclos centralizados de mérito y bonus con control presupuestario previenen sobregastos",
+        "Enrutamiento de aprobaciones automatizado — elimina cadenas de emails y conflictos de versiones",
+        "Gestión de bandas salariales en el sistema — sin malabares con hojas de cálculo",
       ],
       manager: [
-        "Revisión guiada con datos salariales, benchmarks y presupuesto restante",
-        "Decisiones de compensación directamente en la app",
+        "Revisión guiada muestra datos salariales del equipo, benchmarks y presupuesto restante en un solo lugar",
+        "Decisiones de compensación enviadas en la app — sin hilos de email ni seguimiento offline",
       ],
     },
     benefits: {
       hr: [
-        "Ventanas de inscripción automáticas con reglas de elegibilidad",
-        "Integración con proveedores sincroniza selecciones automáticamente",
+        "Ventanas de inscripción automáticas con reglas de elegibilidad eliminan la coordinación manual",
+        "Integración con proveedores sincroniza selecciones de beneficios — sin conciliación manual",
       ],
     },
     wellhub: {
@@ -419,111 +420,112 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     complaints: {
       hr: [
-        "Portal de denuncias anónimas con gestión de casos",
-        "Cumplimiento de la Directiva de Denunciantes de la UE incluido",
-        "Seguimiento de casos con alertas de plazos",
+        "Portal de denuncias anónimas con gestión de casos integrada sustituye la gestión por email",
+        "Cumplimiento de la Directiva de Denunciantes de la UE cubierto de serie",
+        "Alertas de plazos y seguimiento de casos eliminan el seguimiento manual",
       ],
     },
     engagement: {
       hr: [
-        "Creación, programación y distribución automatizada de encuestas",
-        "Dashboards en tiempo real por equipo/departamento",
+        "Creación, programación y distribución automatizada de encuestas eliminan la configuración manual",
+        "Dashboards en tiempo real por equipo y departamento — sin análisis manual en Excel",
       ],
       manager: [
-        "Puntuaciones de engagement del equipo con indicadores de tendencia",
-        "Alertas por puntuaciones en descenso y planes de acción sugeridos",
+        "Puntuaciones de engagement del equipo en un dashboard en vivo con indicadores de tendencia",
+        "Alertas por puntuaciones en descenso con acciones sugeridas — sin interpretación manual",
       ],
     },
     performance: {
       hr: [
-        "Ciclos de evaluación automatizados: lanzamiento, recordatorios, calibración",
-        "Sustituye plantillas manuales y seguimiento por email",
+        "Ciclos de evaluación automatizados gestionan lanzamiento, recordatorios, seguimiento y calibración",
+        "Sustituye plantillas de Word y Excel y elimina el seguimiento manual entre ciclos",
       ],
       manager: [
-        "Formularios pre-rellenados con datos históricos de rendimiento",
-        "Dashboard de rendimiento del equipo para preparar 1:1s",
+        "Formularios pre-rellenados con datos históricos de rendimiento reducen el tiempo de preparación",
+        "Dashboard de rendimiento del equipo listo para cada 1:1 — sin recopilación manual",
       ],
     },
     trainings: {
       hr: [
-        "Despliegue automatizado con seguimiento de finalización",
-        "Reportes de cumplimiento y documentación de subvenciones",
+        "Despliegue automatizado de formación con seguimiento de finalización y reportes de cumplimiento",
+        "Documentación de subvenciones y créditos fiscales generada automáticamente — sin admin manual",
       ],
     },
     lms: {
       hr: [
-        "Constructor de cursos con plantillas y contenido asistido por IA",
-        "Biblioteca de contenido con control de versiones y analíticas",
+        "Constructor de cursos con plantillas y creación de contenido asistida por IA acelera el desarrollo",
+        "Biblioteca de contenido con control de versiones y analíticas de finalización sustituye el seguimiento manual",
       ],
     },
     recruitment: {
       hr: [
-        "ATS completo: publicación, pipeline, agenda, scorecards",
-        "Actualizaciones automáticas de estado y plantillas de comunicación",
+        "ATS completo cubre publicación de ofertas, pipeline, agenda de entrevistas y scorecards",
+        "Comunicaciones automáticas con candidatos y actualizaciones de estado eliminan el contacto manual",
+        "Reduce significativamente la admin de contratación en cada posición abierta",
       ],
       manager: [
-        "Scorecards de entrevista estructurados sustituyen notas libres",
-        "Comparación lado a lado de candidatos",
+        "Scorecards de entrevista estructurados sustituyen notas libres para cada candidato",
+        "Comparación lado a lado de candidatos acelera y estandariza las decisiones de contratación",
       ],
     },
     procurement: {
       hr: [
-        "Flujos digitales de órdenes de compra con aprobación multinivel",
-        "Visibilidad del gasto irregular — identifica compras fuera de proceso",
+        "Flujos digitales de órdenes de compra con aprobación multinivel eliminan el seguimiento manual",
+        "Visibilidad del gasto irregular identifica compras fuera de proceso automáticamente",
       ],
     },
     projects: {
       hr: [
-        "Informes de coste y rentabilidad de proyectos auto-generados",
-        "Sustituye hojas de cálculo de asignación de costes",
+        "Informes de coste y rentabilidad de proyectos auto-generados a partir de datos de tiempo en vivo",
+        "Sustituye hojas de cálculo de asignación de costes en cada proyecto",
       ],
       manager: [
-        "Dashboards en tiempo real: asignación, consumo de presupuesto, rentabilidad",
-        "Sustituye el seguimiento manual y la conciliación mensual",
+        "Dashboards de proyecto en tiempo real muestran asignación, consumo de presupuesto y rentabilidad de un vistazo",
+        "Sustituye por completo el seguimiento manual y la conciliación mensual",
       ],
     },
     crm: {
       hr: [
-        "Pools de candidatos y redes de alumni con flujos de nurturing",
-        "Seguimiento del programa de referidos automatizado",
+        "Pools de candidatos y redes de alumni gestionados con flujos de nurturing automatizados",
+        "Seguimiento del programa de referidos sustituye el contacto manual y la gestión en hojas de cálculo",
       ],
     },
     headcount_planning: {
       hr: [
-        "Planificación de plantilla con escenarios e impacto presupuestario",
-        "Sustituye la previsión de headcount en hojas de cálculo",
+        "Planificación de plantilla con escenarios e impacto presupuestario en tiempo real sustituye el modelado en hojas de cálculo",
+        "Previsión de headcount actualizada sin reconstrucción manual",
       ],
       manager: [
-        "Headcount aprobado vs. real de un vistazo",
-        "Flujo estructurado de solicitud de posiciones",
+        "Headcount aprobado vs. real visible de un vistazo — sin solicitar datos a RRHH",
+        "Flujo estructurado de solicitud de posiciones sustituye las peticiones informales por email",
       ],
     },
     space: {
       hr: [
-        "Analíticas de ocupación y reglas de reserva automatizadas",
-        "Planificación de capacidad basada en datos reales de uso",
+        "Analíticas de ocupación y reglas de reserva automatizadas — sin recopilación manual de datos",
+        "Planificación de capacidad basada en datos reales de uso sustituye las estimaciones",
       ],
     },
     software_management: {
       hr: [
-        "Seguimiento de licencias SaaS con monitorización de uso",
-        "Recordatorios de renovación y dashboards de gasto",
+        "Seguimiento de licencias SaaS con monitorización de uso identifica software sin utilizar automáticamente",
+        "Recordatorios de renovación y dashboards de gasto sustituyen el seguimiento manual de proveedores",
       ],
     },
     it_inventory: {
       hr: [
-        "Registro centralizado de activos IT vinculado al ciclo de vida del empleado",
-        "Aprovisionamiento automático al alta, desaprovisionamiento al baja",
+        "Registro centralizado de activos IT vinculado al ciclo de vida del empleado — siempre actualizado",
+        "Aprovisionamiento automático al alta y desaprovisionamiento a la baja eliminan tareas manuales de IT",
       ],
     },
     one: {
       employee: [
-        "La IA responde preguntas de RRHH al instante: políticas, saldos",
-        "Sin buscar en la intranet ni esperar respuesta de RRHH",
+        "La IA responde preguntas de RRHH al instante — consultas de políticas, saldos y solicitud de documentos",
+        "Reduce el tiempo buscando en la intranet o esperando respuestas de RRHH por email",
       ],
       hr: [
-        "La IA gestiona consultas rutinarias: vacaciones, nóminas, políticas",
-        "Reduce el volumen de emails de RRHH — libera capacidad estratégica",
+        "La IA gestiona consultas rutinarias sobre vacaciones, nóminas y políticas sin intervención de RRHH",
+        "Libera al equipo de RRHH de peticiones repetitivas para centrarse en trabajo de mayor valor",
       ],
     },
     analytics: {
@@ -536,77 +538,77 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
   fr: {
     core: {
       employee: [
-        "Mise à jour des données personnelles en libre-service — sans email aux RH",
-        "Bulletins de paie et certificats téléchargeables sur mobile",
-        "Demande de congés depuis le mobile avec solde en temps réel",
-        "Pointage digital remplace les feuilles de présence papier",
+        "Mise à jour du profil et téléchargement de documents en libre-service élimine les demandes courantes aux RH",
+        "Bulletins de paie et certificats toujours accessibles sur mobile — sans attente",
+        "Pointage depuis n'importe quel appareil remplace les feuilles de présence papier",
+        "Pointages oubliés résolus dans l'appli avec approbation du manager — sans relance",
       ],
       hr: [
-        "Base de données unique des employés — pas de tableurs en double",
-        "Flux d'approbation automatiques pour les changements de données",
-        "Checklists d'onboarding/offboarding automatisés",
-        "Moteur d'acquisition automatique pour le calcul des soldes",
-        "Les données de temps alimentent la paie automatiquement",
-        "Heures supplémentaires calculées selon la législation du travail",
+        "Base de données unique des employés élimine les tableurs en double et le copier-coller manuel",
+        "Workflows automatisés gèrent les changements de données, l'onboarding et l'offboarding sans routage manuel",
+        "Soldes de congés et données de temps alimentent la paie automatiquement — sans re-saisie ni rapprochement",
+        "Heures supplémentaires et contrôles de conformité s'exécutent automatiquement — sans vérification manuelle",
       ],
       manager: [
-        "Tableau de bord d'équipe avec approbations en attente et organigramme",
-        "Calendrier d'équipe visuel — approuver/refuser avec détection de conflits",
-        "Dashboard de présence en temps réel",
-        "Alertes automatiques d'anomalies",
+        "Tableau de bord d'équipe affiche les approbations en attente, l'organigramme et les rapports directs instantanément",
+        "Calendrier d'équipe visuel montre qui est absent — sans consulter de tableurs ni appeler les RH",
+        "Approuver/refuser en un clic avec détection de conflits intégrée",
+        "Alertes d'anomalies pour retards et pointages oubliés envoyées automatiquement",
       ],
     },
     time_planning: {
       employee: [
-        "Consultation des plannings depuis le mobile — pas de listes papier",
-        "Demande d'échange d'horaire dans l'appli — notification instantanée au manager",
+        "Prochains créneaux visibles sur mobile — sans plannings papier ni groupes de discussion",
+        "Demandes d'échange de créneaux gérées dans l'appli avec notification instantanée au manager",
       ],
       hr: [
-        "Plannings générés automatiquement selon la demande et la réglementation",
-        "Conformité heures supplémentaires et repos vérifiée automatiquement",
-        "Élimine la création manuelle de plannings Excel",
+        "Plannings générés automatiquement selon la demande, la réglementation et les préférences",
+        "Conformité heures supplémentaires et périodes de repos vérifiée automatiquement",
+        "Élimine entièrement la création manuelle hebdomadaire des plannings",
       ],
       manager: [
-        "Planificateur glisser-déposer avec détection de conflits",
-        "Alertes de couverture et heures supplémentaires avant publication",
+        "Planificateur glisser-déposer avec détection instantanée de conflits",
+        "Alertes de couverture et heures supplémentaires affichées avant publication",
+        "Réduit la préparation des plannings à une fraction du temps précédent",
       ],
     },
     payroll: {
       hr: [
-        "Synchronisation automatique temps, absences, frais et variable",
-        "Élimine la préparation manuelle des données avant chaque paie",
-        "Détection des écarts avant l'envoi",
+        "Temps, congés, frais et variable se synchronisent automatiquement avec la paie — sans préparation manuelle",
+        "Détection des écarts capture les erreurs avant l'envoi",
+        "Élimine la consolidation manuelle des données à chaque cycle de paie",
       ],
     },
     expenses: {
       employee: [
-        "Capture de reçus par OCR depuis le mobile — photo, catégoriser et envoyer",
-        "Vérification des politiques à l'envoi évite les refus",
+        "Capture de reçus par OCR sur mobile qui auto-catégorise et soumet les frais instantanément",
+        "Vérification des politiques à la soumission évite les refus et les allers-retours de corrections",
       ],
       hr: [
-        "Rapprochement automatique avec intégration comptable",
-        "Violations de politique signalées automatiquement",
+        "Rapprochement automatique et workflows d'approbation intégrés directement à la comptabilité",
+        "Violations de politique signalées avant approbation — sans revue manuelle ligne par ligne",
+        "Réduit significativement le traitement des frais en fin de mois",
       ],
       manager: [
-        "Approbation en un clic avec validation préalable des politiques",
-        "Tableaux de bord des dépenses d'équipe avec alertes budgétaires",
+        "Approbation en un clic sur des soumissions pré-validées et conformes aux politiques",
+        "Tableaux de bord des dépenses d'équipe avec alertes budgétaires éliminent le besoin de relancer pour les rapports",
       ],
     },
     compensations: {
       hr: [
-        "Cycles centralisés de mérite/bonus avec contrôle budgétaire",
-        "Gestion des grilles salariales dans le système — pas de conflits de versions",
-        "Routage des approbations automatisé",
+        "Cycles centralisés de mérite et bonus avec garde-fous budgétaires préviennent les dépassements",
+        "Routage des approbations automatisé — élimine les chaînes d'emails et conflits de versions",
+        "Gestion des grilles salariales dans le système — sans jongler avec les tableurs",
       ],
       manager: [
-        "Révision guidée avec données salariales, benchmarks et budget restant",
-        "Décisions de rémunération directement dans l'application",
+        "Révision guidée affiche données salariales de l'équipe, benchmarks et budget restant en un seul endroit",
+        "Décisions de rémunération soumises dans l'appli — sans fils d'emails ni suivi hors ligne",
       ],
     },
     benefits: {
       hr: [
-        "Fenêtres d'inscription automatiques avec règles d'éligibilité",
-        "Intégration fournisseur synchronise les choix automatiquement",
+        "Fenêtres d'inscription automatiques avec règles d'éligibilité éliminent la coordination manuelle",
+        "Intégration fournisseur synchronise les choix de prestations — sans rapprochement manuel",
       ],
     },
     wellhub: {
@@ -618,111 +620,112 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     complaints: {
       hr: [
-        "Portail de signalement anonyme avec gestion de dossiers",
-        "Conformité Directive Lanceurs d'Alerte UE incluse",
-        "Suivi des dossiers avec alertes de délais",
+        "Portail de signalement anonyme avec gestion de dossiers intégrée remplace la gestion par email",
+        "Conformité Directive Lanceurs d'Alerte UE couverte de base",
+        "Alertes de délais et suivi des dossiers éliminent le suivi manuel",
       ],
     },
     engagement: {
       hr: [
-        "Création, programmation et distribution automatisées d'enquêtes",
-        "Tableaux de bord en temps réel par équipe/département",
+        "Création, programmation et distribution automatisées d'enquêtes éliminent la configuration manuelle",
+        "Tableaux de bord en temps réel par équipe et département — sans analyse manuelle sur Excel",
       ],
       manager: [
-        "Scores d'engagement d'équipe avec indicateurs de tendance",
-        "Alertes en cas de baisse et plans d'action suggérés",
+        "Scores d'engagement d'équipe dans un dashboard en direct avec indicateurs de tendance",
+        "Alertes en cas de baisse avec actions suggérées — sans interprétation manuelle nécessaire",
       ],
     },
     performance: {
       hr: [
-        "Cycles d'évaluation automatisés : lancement, rappels, calibration",
-        "Remplace les modèles manuels et le suivi par email",
+        "Cycles d'évaluation automatisés gèrent le lancement, les rappels, le suivi de complétion et la calibration",
+        "Remplace les modèles Word et Excel et élimine le suivi manuel entre les cycles",
       ],
       manager: [
-        "Formulaires pré-remplis avec données historiques de performance",
-        "Dashboard de performance d'équipe pour préparer les 1:1",
+        "Formulaires pré-remplis avec données historiques de performance réduisent le temps de préparation",
+        "Dashboard de performance d'équipe prêt pour chaque entretien individuel — sans compilation manuelle",
       ],
     },
     trainings: {
       hr: [
-        "Déploiement automatisé avec suivi de complétion",
-        "Rapports de conformité et documentation de subventions",
+        "Déploiement automatisé de formations avec suivi de complétion et rapports de conformité",
+        "Documentation de subventions et crédits d'impôt générée automatiquement — sans admin manuelle",
       ],
     },
     lms: {
       hr: [
-        "Constructeur de cours avec modèles et contenu assisté par IA",
-        "Bibliothèque de contenu avec contrôle de version et analytiques",
+        "Constructeur de cours avec modèles et création de contenu assistée par IA accélère le développement",
+        "Bibliothèque de contenu avec contrôle de version et analytiques de complétion remplace le suivi manuel",
       ],
     },
     recruitment: {
       hr: [
-        "ATS complet : publication, pipeline, planification, scorecards",
-        "Mises à jour automatiques de statut et modèles de communication",
+        "ATS complet couvre la publication d'offres, le pipeline, la planification d'entretiens et les scorecards",
+        "Communications automatiques avec les candidats et mises à jour de statut éliminent les relances manuelles",
+        "Réduit significativement l'admin de recrutement pour chaque poste ouvert",
       ],
       manager: [
-        "Scorecards d'entretien structurés remplacent les notes libres",
-        "Comparaison côte à côte des candidats",
+        "Scorecards d'entretien structurés remplacent les notes libres pour chaque candidat",
+        "Comparaison côte à côte des candidats accélère et standardise les décisions d'embauche",
       ],
     },
     procurement: {
       hr: [
-        "Flux digitaux de bons de commande avec approbation multiniveau",
-        "Visibilité des dépenses hors processus",
+        "Flux digitaux de bons de commande avec approbation multiniveau éliminent le suivi manuel",
+        "Visibilité des dépenses hors processus identifie les achats non conformes automatiquement",
       ],
     },
     projects: {
       hr: [
-        "Rapports de coût et rentabilité des projets auto-générés",
-        "Remplace les tableurs d'allocation de coûts",
+        "Rapports de coût et rentabilité des projets auto-générés à partir des données de temps en direct",
+        "Remplace les tableurs d'allocation de coûts pour chaque projet",
       ],
       manager: [
-        "Tableaux de bord temps réel : allocation, consommation budget, rentabilité",
-        "Remplace le suivi manuel et la réconciliation mensuelle",
+        "Tableaux de bord projet en temps réel montrent allocation, consommation budget et rentabilité d'un coup d'œil",
+        "Remplace entièrement le suivi manuel et la réconciliation mensuelle",
       ],
     },
     crm: {
       hr: [
-        "Viviers de candidats et réseaux alumni avec flux de nurturing",
-        "Suivi du programme de cooptation automatisé",
+        "Viviers de candidats et réseaux alumni gérés avec des flux de nurturing automatisés",
+        "Suivi du programme de cooptation remplace les relances manuelles et la gestion sur tableur",
       ],
     },
     headcount_planning: {
       hr: [
-        "Planification des effectifs par scénarios avec impact budgétaire",
-        "Remplace la prévision d'effectifs sur tableur",
+        "Planification des effectifs par scénarios avec impact budgétaire en temps réel remplace la modélisation sur tableur",
+        "Prévision d'effectifs maintenue à jour sans reconstruction manuelle",
       ],
       manager: [
-        "Effectifs approuvés vs. réels en un coup d'œil",
-        "Flux structuré de demande de postes",
+        "Effectifs approuvés vs. réels visibles d'un coup d'œil — sans demander de données aux RH",
+        "Flux structuré de demande de postes remplace les réquisitions informelles par email",
       ],
     },
     space: {
       hr: [
-        "Analytiques d'occupation et règles de réservation automatisées",
-        "Planification de capacité basée sur les données réelles d'usage",
+        "Analytiques d'occupation et règles de réservation automatisées — sans collecte manuelle de données",
+        "Planification de capacité basée sur les données réelles d'usage remplace les estimations",
       ],
     },
     software_management: {
       hr: [
-        "Suivi des licences SaaS avec surveillance de l'utilisation",
-        "Rappels de renouvellement et tableaux de bord des dépenses",
+        "Suivi des licences SaaS avec surveillance de l'utilisation identifie les logiciels inutilisés automatiquement",
+        "Rappels de renouvellement et tableaux de bord des dépenses remplacent le suivi manuel des fournisseurs",
       ],
     },
     it_inventory: {
       hr: [
-        "Registre centralisé des actifs IT lié au cycle de vie de l'employé",
-        "Provisionnement auto à l'embauche, déprovisionnement au départ",
+        "Registre centralisé des actifs IT lié au cycle de vie de l'employé — toujours à jour",
+        "Provisionnement auto à l'embauche et déprovisionnement au départ éliminent les tâches IT manuelles",
       ],
     },
     one: {
       employee: [
-        "L'IA répond aux questions RH instantanément : politiques, soldes",
-        "Plus besoin de chercher dans l'intranet ou d'attendre un email RH",
+        "L'IA répond aux questions RH instantanément — consultation de politiques, soldes et demandes de documents",
+        "Réduit le temps passé à chercher dans l'intranet ou à attendre les réponses RH par email",
       ],
       hr: [
-        "L'IA gère les requêtes routinières : congés, bulletins, politiques",
-        "Réduit le volume d'emails RH — libère de la capacité stratégique",
+        "L'IA gère les requêtes routinières sur les congés, bulletins et politiques sans intervention RH",
+        "Libère l'équipe RH des demandes répétitives pour se concentrer sur le travail à plus forte valeur",
       ],
     },
     analytics: {
