@@ -28,7 +28,7 @@ export default function Session() {
   }
 
   const canNext =
-    step === 0 ? (!!state.prospect.company_name && state.selectedModules.length > 0) :
+    step === 0 ? (!!(state.prospect.company_name || state.prospect.deal_name) && state.selectedModules.length > 0) :
     true;
 
   const handleNext = async () => {
