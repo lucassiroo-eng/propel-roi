@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Check, X, Loader2, Plus, FileDown, Image,
-  ExternalLink, Package, Star, Save, Eye, Globe,
+  Check, X, Loader2, Plus, FileDown,
+  Package, Star, Save, Eye, Globe,
   ArrowLeft, ChevronDown, ChevronRight, Users, Shield, Briefcase, Quote, Percent, Search, UserPlus, Receipt,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlideHtml, type RoiSlideInput } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlidePdf, generateMultiSlideHtml, type RoiSlideInput } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -74,13 +74,9 @@ export function StepOffering({
   onSave, onSaveAndExit,
 }: Props) {
   const { t } = useTranslation();
-  const [generatingPptx, setGeneratingPptx] = useState(false);
-  const [pptxUrl, setPptxUrl] = useState<string | null>(null);
   const [hypothesisOpen, setHypothesisOpen] = useState(false);
   const [addModuleOpen, setAddModuleOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  const [slideDialogOpen, setSlideDialogOpen] = useState(false);
-  const [slideHtml, setSlideHtml] = useState("");
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // ── Data fetching ──
@@ -254,19 +250,6 @@ export function StepOffering({
   }, [configuration, selectedAnalysis, offering.discount_pct, offering.cost_override]);
 
   // ── Generate PPTX ──
-  const handleGeneratePptx = async () => {
-    if (!sessionId || sessionId === "new") { toast.error(t("toast.save_session_first")); return; }
-    setGeneratingPptx(true);
-    try {
-      const { error: roiErr } = await supabase.functions.invoke("roi-engine", { body: { session_id: sessionId } });
-      if (roiErr) throw roiErr;
-      const { data, error } = await supabase.functions.invoke("generate-pptx", { body: { session_id: sessionId } });
-      if (error) throw error;
-      if (data?.pptx_url) { setPptxUrl(data.pptx_url); toast.success(t("toast.pptx_generated")); }
-    } catch (err: any) { toast.error(t("toast.generation_failed", { message: err.message })); }
-    finally { setGeneratingPptx(false); }
-  };
-
   function getSlideInput(): RoiSlideInput | null {
     if (!configuration || !roiConfig || !state) return null;
     const lang = state.prospect.country === "FR" ? "fr" : "es";
@@ -288,7 +271,7 @@ export function StepOffering({
     return buildRoiSlideData(input);
   }
 
-  function handlePreviewSlide() {
+  async function handleDownloadSlidePdf() {
     if (!roiConfig || roiConfig.headcounts.employee <= 0 || roiConfig.headcounts.hr <= 0 || roiConfig.headcounts.manager <= 0) {
       toast.error(t("setup.fill_team"));
       return;
@@ -296,13 +279,6 @@ export function StepOffering({
     const data = getSlideData();
     if (!data) { toast.error("No data to generate slide"); return; }
     if (data.modules.length === 0) { toast.error("No modules with savings — check team headcounts"); return; }
-    setSlideHtml(generateRoiSlideHtml(data));
-    setSlideDialogOpen(true);
-  }
-
-  async function handleDownloadSlidePdf() {
-    const data = getSlideData();
-    if (!data) return;
     setDownloadingPdf(true);
     try {
       await generateRoiSlidePdf(data);
@@ -315,9 +291,14 @@ export function StepOffering({
   }
 
   function handleDownloadHtml() {
+    if (!roiConfig || roiConfig.headcounts.employee <= 0 || roiConfig.headcounts.hr <= 0 || roiConfig.headcounts.manager <= 0) {
+      toast.error(t("setup.fill_team"));
+      return;
+    }
     const input = getSlideInput();
     const data = input ? buildRoiSlideData(input) : null;
-    if (!data || !input) return;
+    if (!data || !input) { toast.error("No data to generate slide"); return; }
+    if (data.modules.length === 0) { toast.error("No modules with savings — check team headcounts"); return; }
     const html = generateMultiSlideHtml(data, input);
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
@@ -705,65 +686,28 @@ export function StepOffering({
       {/* 5. ACTION BUTTONS                          */}
       {/* ═══════════════════════════════════════════ */}
       <div className="space-y-3 pt-2">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <Button variant="outline" size="lg" onClick={() => setHypothesisOpen(true)} className="gap-2">
             <Eye className="h-4 w-4" />
             {t("offering.check_hypothesis")}
-          </Button>
-          <Button size="lg" onClick={handlePreviewSlide} disabled={!configuration || !roiConfig} className="gap-2">
-            <Image className="h-4 w-4" />
-            ROI Slide
           </Button>
           <Button variant="secondary" size="lg" onClick={onSave} className="gap-2">
             <Save className="h-4 w-4" />
             {t("offering.save")}
           </Button>
         </div>
-
-        {pptxUrl && (
-          <div className="flex gap-2">
-            <Button variant="outline" className="flex-1" asChild>
-              <a href={pptxUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-4 w-4 mr-2" /> {t("offering.view_link")}</a>
-            </Button>
-            <Button variant="outline" className="flex-1" asChild>
-              <a href={pptxUrl} download={`ROI-${state?.prospect.company_name || "report"}.pptx`}><FileDown className="h-4 w-4 mr-2" /> {t("offering.download")}</a>
-            </Button>
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-3">
+          <Button size="lg" onClick={handleDownloadSlidePdf} disabled={!configuration || !roiConfig || downloadingPdf} className="gap-2">
+            {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
+            Descargar PDF
+          </Button>
+          <Button size="lg" onClick={handleDownloadHtml} disabled={!configuration || !roiConfig} className="gap-2 bg-gray-800 hover:bg-gray-700 text-white">
+            <Globe className="h-4 w-4" />
+            Descargar HTML
+          </Button>
+        </div>
       </div>
 
-      {/* ROI Slide preview dialog */}
-      <Dialog open={slideDialogOpen} onOpenChange={setSlideDialogOpen}>
-        <DialogContent className="max-w-[960px] p-0 overflow-hidden">
-          <DialogHeader className="px-6 pt-5 pb-3 pr-12">
-            <DialogTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              ROI Slide
-            </DialogTitle>
-          </DialogHeader>
-          <div className="px-6 pb-4">
-            <div className="rounded-lg border overflow-hidden bg-gray-100" style={{ height: "516px" }}>
-              <iframe
-                srcDoc={slideHtml}
-                className="border-0"
-                style={{ width: "1440px", height: "810px", transform: "scale(0.636)", transformOrigin: "top left" }}
-                sandbox="allow-same-origin"
-                title="ROI Slide Preview"
-              />
-            </div>
-          </div>
-          <div className="px-6 pb-5 flex gap-3">
-            <Button onClick={handleDownloadSlidePdf} disabled={downloadingPdf} className="flex-1 gap-2" size="lg">
-              {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-              Descargar PDF
-            </Button>
-            <Button onClick={handleDownloadHtml} className="flex-1 gap-2 bg-gray-800 hover:bg-gray-700 text-white" size="lg">
-              <Globe className="h-4 w-4" />
-              Descargar HTML
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
