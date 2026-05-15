@@ -924,89 +924,94 @@ function loadHtml2Canvas(): Promise<any> {
   return html2canvasLoaded;
 }
 
+let cachedFontCss: string | null = null;
+
+async function getInlineFontCss(): Promise<string> {
+  if (cachedFontCss) return cachedFontCss;
+  try {
+    const cssResp = await fetch("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap", {
+      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120" },
+    });
+    let css = await cssResp.text();
+    const urlRe = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g;
+    const urls = new Set<string>();
+    let m: RegExpExecArray | null;
+    while ((m = urlRe.exec(css)) !== null) urls.add(m[1]);
+    for (const url of urls) {
+      try {
+        const resp = await fetch(url);
+        const buf = await resp.arrayBuffer();
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+        const mime = url.includes(".woff2") ? "font/woff2" : "font/woff";
+        css = css.replaceAll(url, `data:${mime};base64,${b64}`);
+      } catch { /* keep original URL as fallback */ }
+    }
+    cachedFontCss = css;
+    return css;
+  } catch {
+    return "";
+  }
+}
+
+function prepareCaptureHtml(html: string, bodyStyleFrom: string, bodyStyleTo: string): string {
+  return html
+    .replace(bodyStyleFrom, bodyStyleTo)
+    .replace(
+      '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">',
+      "",
+    );
+}
+
+async function waitForIframeFonts(iframe: HTMLIFrameElement): Promise<void> {
+  const iframeDoc = iframe.contentDocument!;
+  const iframeWin = iframe.contentWindow!;
+  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 3000))]);
+  await new Promise<void>((resolve) => {
+    const check = () => {
+      if ((iframeWin as any).__fontsReady) { resolve(); return; }
+      setTimeout(check, 50);
+    };
+    check();
+    setTimeout(resolve, 3000);
+  });
+  await new Promise(r => setTimeout(r, 200));
+}
+
+async function captureSlide(slide: HTMLElement, html2canvas: any): Promise<string> {
+  const canvas = await html2canvas(slide, {
+    width: 1440, height: 810, scale: 2,
+    useCORS: true, logging: false, backgroundColor: "#ffffff",
+    windowWidth: 1440, windowHeight: 810,
+  });
+  return canvas.toDataURL("image/png");
+}
+
 export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
-  const [{ default: jsPDF }, html2canvas] = await Promise.all([
+  const [{ default: jsPDF }, html2canvas, fontCss] = await Promise.all([
     import("jspdf"),
     loadHtml2Canvas(),
+    getInlineFontCss(),
   ]);
 
   const html = generateRoiSlideHtml(data);
+  const captureHtml = prepareCaptureHtml(
+    html,
+    "background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh;",
+    "background: #fff; margin: 0; padding: 0;",
+  ).replace("</style>", `</style>\n<style>${fontCss}</style>\n<script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});</script>`);
 
-  // Inject a font-preload script that blocks until Inter is fully loaded,
-  // and swap to a white background with no centering wrapper.
-  const fontReadyScript = `
-    <script>
-      document.fonts.ready.then(function() {
-        // Force the browser to lay out text with the loaded font
-        document.body.offsetHeight;
-        window.__fontsReady = true;
-      });
-    </script>
-  `;
-  const captureHtml = html
-    .replace(
-      "background: #f3f4f6; display: flex; justify-content: center; align-items: center; min-height: 100vh;",
-      "background: #fff; margin: 0; padding: 0;",
-    )
-    .replace("</head>", fontReadyScript + "</head>");
-
-  // Use an offscreen-but-visible iframe so the browser actually renders & rasterises fonts.
-  // opacity:0 prevents painting pixels but the browser still loads fonts;
-  // moving it offscreen with left:-9999px ensures it is invisible to the user.
   const iframe = document.createElement("iframe");
   iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:1440px;height:810px;border:none;pointer-events:none;z-index:-1;";
   document.body.appendChild(iframe);
 
   try {
-    // 1. Wait for the iframe document to load
-    await new Promise<void>((resolve) => {
-      iframe.onload = () => resolve();
-      iframe.srcdoc = captureHtml;
-    });
+    await new Promise<void>((resolve) => { iframe.onload = () => resolve(); iframe.srcdoc = captureHtml; });
+    await waitForIframeFonts(iframe);
 
-    const iframeDoc = iframe.contentDocument!;
-    const iframeWin = iframe.contentWindow!;
-
-    // 2. Wait for fonts to be ready inside the iframe (with a timeout fallback)
-    await Promise.race([
-      iframeDoc.fonts.ready,
-      new Promise(r => setTimeout(r, 5000)),
-    ]);
-
-    // Also wait for the in-page script to confirm fonts are laid out
-    await new Promise<void>((resolve) => {
-      const check = () => {
-        if ((iframeWin as any).__fontsReady) { resolve(); return; }
-        setTimeout(check, 100);
-      };
-      check();
-      // Hard timeout so we never hang
-      setTimeout(resolve, 5000);
-    });
-
-    // Small extra delay for any final paint/reflow after font swap
-    await new Promise(r => setTimeout(r, 300));
-
-    const slide = iframeDoc.querySelector(".slide") as HTMLElement;
+    const slide = iframe.contentDocument!.querySelector(".slide") as HTMLElement;
     if (!slide) throw new Error("Slide element not found");
 
-    const canvas = await html2canvas(slide, {
-      width: 1440,
-      height: 810,
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      // Ensure html2canvas uses the iframe's own window so it picks up loaded fonts
-      windowWidth: 1440,
-      windowHeight: 810,
-      onclone: (clonedDoc: Document) => {
-        // Force a reflow in the cloned document so font metrics are correct
-        clonedDoc.body.offsetHeight;
-      },
-    });
-
-    const img = canvas.toDataURL("image/png");
+    const img = await captureSlide(slide, html2canvas);
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
     pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
@@ -1016,27 +1021,18 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
 }
 
 export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideInput): Promise<void> {
-  const [{ default: jsPDF }, html2canvas] = await Promise.all([
+  const [{ default: jsPDF }, html2canvas, fontCss] = await Promise.all([
     import("jspdf"),
     loadHtml2Canvas(),
+    getInlineFontCss(),
   ]);
 
   const html = generateMultiSlideHtml(data, input);
-
-  const fontReadyScript = `
-    <script>
-      document.fonts.ready.then(function() {
-        document.body.offsetHeight;
-        window.__fontsReady = true;
-      });
-    </script>
-  `;
-  const captureHtml = html
-    .replace(
-      "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
-      "background: #fff; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0;",
-    )
-    .replace("</head>", fontReadyScript + "</head>");
+  const captureHtml = prepareCaptureHtml(
+    html,
+    "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
+    "background: #fff; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0;",
+  ).replace("</style>", `</style>\n<style>${fontCss}</style>\n<script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});</script>`);
 
   const slideCount = (html.match(/class="slide/g) || []).length;
   const iframe = document.createElement("iframe");
@@ -1044,51 +1040,16 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
   document.body.appendChild(iframe);
 
   try {
-    await new Promise<void>((resolve) => {
-      iframe.onload = () => resolve();
-      iframe.srcdoc = captureHtml;
-    });
+    await new Promise<void>((resolve) => { iframe.onload = () => resolve(); iframe.srcdoc = captureHtml; });
+    await waitForIframeFonts(iframe);
 
-    const iframeDoc = iframe.contentDocument!;
-    const iframeWin = iframe.contentWindow!;
-
-    await Promise.race([
-      iframeDoc.fonts.ready,
-      new Promise(r => setTimeout(r, 5000)),
-    ]);
-
-    await new Promise<void>((resolve) => {
-      const check = () => {
-        if ((iframeWin as any).__fontsReady) { resolve(); return; }
-        setTimeout(check, 100);
-      };
-      check();
-      setTimeout(resolve, 5000);
-    });
-
-    await new Promise(r => setTimeout(r, 300));
-
-    const slides = iframeDoc.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
+    const slides = iframe.contentDocument!.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
     if (slides.length === 0) throw new Error("No slides found");
 
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
-
     for (let i = 0; i < slides.length; i++) {
       if (i > 0) pdf.addPage([1440, 810], "landscape");
-
-      const canvas = await html2canvas(slides[i], {
-        width: 1440,
-        height: 810,
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        windowWidth: 1440,
-        windowHeight: 810,
-        onclone: (clonedDoc: Document) => { clonedDoc.body.offsetHeight; },
-      });
-
-      const img = canvas.toDataURL("image/png");
+      const img = await captureSlide(slides[i], html2canvas);
       pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     }
 
