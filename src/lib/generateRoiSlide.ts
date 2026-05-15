@@ -333,7 +333,7 @@ function generateSummarySlideBody(data: RoiSlideData): string {
         <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="4" y1="10" x2="20" y2="10"/><rect x="8" y="13" width="3" height="3" rx="0.5"/><rect x="13" y="13" width="3" height="3" rx="0.5"/></svg>
       </div>
       <div class="kpi-label">${t.kpi_roi}</div>
-      <div class="kpi-value-box"><span class="kpi-value">${data.roi_percent}% &middot; ${t.payback} ${data.payback_months} ${t.months}</span></div>
+      <div class="kpi-value-box"><span class="kpi-value">${data.roi_percent}%</span><br><span class="kpi-sub">${t.payback} ${data.payback_months} ${t.months}</span></div>
     </div>
   </div>
 
@@ -441,8 +441,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
   .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 100%; }
   .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .kpi-card:last-child .kpi-value { font-size: 14px; }
-  .kpi-card:last-child .kpi-value-box { padding: 6px 10px; }
+  .kpi-sub { color: #FF355E; font-size: 12px; font-weight: 600; white-space: nowrap; opacity: 0.85; }
 
   .right-col {
     display: flex; flex-direction: column;
@@ -814,8 +813,7 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .kpi-label { color: #fff; font-size: 15px; font-weight: 700; margin: 4px 0 8px 0; letter-spacing: 0.02em; }
   .kpi-value-box { background: #fff; border-radius: 10px; padding: 8px 14px; display: inline-block; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 100%; }
   .kpi-value { color: #FF355E; font-size: 20px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .kpi-card:last-child .kpi-value { font-size: 14px; }
-  .kpi-card:last-child .kpi-value-box { padding: 6px 10px; }
+  .kpi-sub { color: #FF355E; font-size: 12px; font-weight: 600; white-space: nowrap; opacity: 0.85; }
 
   .right-col { display: flex; flex-direction: column; overflow: hidden; }
 
