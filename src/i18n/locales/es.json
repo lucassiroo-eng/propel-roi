@@ -263,6 +263,7 @@
   "toast.analysis_failed": "El análisis de módulos falló",
 
   "home.untitled": "Sin titulo",
+  "home.versions": "{{count}} versiones",
 
   "help.write_markdown": "Escribe markdown aqui...",
   "help.preview": "Vista previa",

@@ -3,13 +3,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, TrendingUp, Clock, Loader2, Sparkles, ChevronRight, ChevronDown, BarChart3, FileText, History } from "lucide-react";
+import { Plus, LogOut, TrendingUp, Clock, Loader2, Sparkles, ChevronRight, ChevronDown, BarChart3, FileText, History, Globe } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { statusI18nKey } from "@/lib/i18nHelpers";
 
 const FLAG: Record<string, string> = { ES: "\u{1F1EA}\u{1F1F8}", FR: "\u{1F1EB}\u{1F1F7}" };
+const LANG_FLAG: Record<string, string> = { en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}" };
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600",
@@ -109,12 +110,26 @@ export default function Home() {
           </div>
           <span className="font-bold text-gray-800 text-base">Propel ROI</span>
         </div>
-        <button
-          onClick={signOut}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-white/60 transition-colors"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <div className="relative group">
+            <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-white/60 transition-colors text-sm">
+              {LANG_FLAG[i18n.language?.substring(0, 2)] ?? "\u{1F310}"}
+            </button>
+            <div className="hidden group-hover:block absolute right-0 top-full mt-1 bg-white rounded-xl shadow-lg border border-gray-100 py-1 min-w-[120px] z-20">
+              {[["en", "\u{1F1EC}\u{1F1E7} English"], ["es", "\u{1F1EA}\u{1F1F8} Español"], ["fr", "\u{1F1EB}\u{1F1F7} Français"]].map(([lng, label]) => (
+                <button key={lng} onClick={() => { i18n.changeLanguage(lng); localStorage.setItem("propel_locale", lng); }} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors">
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={signOut}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-white/60 transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </header>
 
       <main className="relative z-10 px-5 pt-8 pb-24 max-w-lg mx-auto space-y-6">
@@ -233,7 +248,7 @@ export default function Home() {
                           className="w-full flex items-center justify-center gap-1.5 py-2 border-t border-gray-100 text-[11px] font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-50/50 transition-colors"
                         >
                           <History className="h-3 w-3" />
-                          {c.sessions.length} versiones
+                          {t("home.versions", { count: c.sessions.length })}
                           {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                         </button>
 

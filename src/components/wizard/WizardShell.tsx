@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Save, Loader2, Globe } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, Loader2, Globe, Home } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ export interface WizardShellProps {
 
 export function WizardShell({ step, saving, onBack, onNext, canNext = true, children, companyName, totalSteps, wide, nextLabel }: WizardShellProps) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const total = totalSteps ?? STEP_KEYS.length;
   const maxW = wide ? "max-w-5xl" : "max-w-2xl";
 
@@ -54,9 +56,14 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
         <div className={`${maxW} mx-auto space-y-3`}>
           {/* Company name + language + save indicator */}
           <div className="flex items-center justify-between">
-            <h1 className="text-base font-semibold text-foreground truncate max-w-[60%]">
-              {companyName || t("wizard.new_session")}
-            </h1>
+            <div className="flex items-center gap-2 min-w-0">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="h-7 w-7 p-0 shrink-0">
+                <Home className="h-4 w-4" />
+              </Button>
+              <h1 className="text-base font-semibold text-foreground truncate">
+                {companyName || t("wizard.new_session")}
+              </h1>
+            </div>
             <div className="flex items-center gap-2">
               {saving && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">

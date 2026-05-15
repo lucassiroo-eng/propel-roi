@@ -263,6 +263,7 @@
   "toast.analysis_failed": "Module analysis failed",
 
   "home.untitled": "Untitled",
+  "home.versions": "{{count}} versions",
 
   "help.write_markdown": "Write markdown here...",
   "help.preview": "Preview",

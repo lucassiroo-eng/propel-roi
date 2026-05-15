@@ -263,6 +263,7 @@
   "toast.analysis_failed": "L'analyse des modules a échoué",
 
   "home.untitled": "Sans titre",
+  "home.versions": "{{count}} versions",
 
   "help.write_markdown": "Ecrivez du markdown ici...",
   "help.preview": "Apercu",
