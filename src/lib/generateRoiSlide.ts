@@ -484,7 +484,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .quote-text .who { font-weight: 700; }
   .quote-action { font-weight: 600; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 12px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 22px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 </style>
 </head>
@@ -823,7 +823,7 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .quote-text .who { font-weight: 700; }
   .quote-action { font-weight: 600; }
 
-  .footer { grid-column: 2 / 3; padding: 0 44px 12px 48px; align-self: end; }
+  .footer { grid-column: 2 / 3; padding: 0 44px 22px 48px; align-self: end; }
   .footer p { color: #B0B8C4; font-size: 9px; line-height: 1.3; }
 
   /* ── Detail slides ── */
