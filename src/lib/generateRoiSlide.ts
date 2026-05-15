@@ -106,33 +106,19 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
     return { hours: h, money: m };
   }
 
-  const coreAbsorbed = new Set(["time_tracking", "time_off"]);
-
   for (const modId of configModules) {
-    if (coreAbsorbed.has(modId)) continue;
-
-    let modHours: number, modMoney: number;
     const base = calcModule(modId);
-    modHours = base.hours; modMoney = base.money;
-
-    if (modId === "core") {
-      for (const sub of coreAbsorbed) {
-        if (!configModules.includes(sub)) continue;
-        const s = calcModule(sub);
-        modHours += s.hours; modMoney += s.money;
-      }
-    }
 
     const catalog = MODULE_CATALOG.find(m => m.id === modId);
     modules.push({
       id: modId,
       name: catalog?.label ?? moduleLabel(modId),
-      hours_per_month: Math.round(modHours),
-      annual_savings: Math.round(modMoney * 12),
+      hours_per_month: Math.round(base.hours),
+      annual_savings: Math.round(base.money * 12),
       in_bundle: bundleSet.has(modId),
     });
-    totalHours += modHours;
-    totalSavings += modMoney * 12;
+    totalHours += base.hours;
+    totalSavings += base.money * 12;
   }
 
   const roiPercent = annualCost > 0 ? Math.round(((totalSavings - annualCost) / annualCost) * 100) : 0;
@@ -540,8 +526,6 @@ interface ModuleDetail {
   total_annual: number;
 }
 
-const CORE_SUBMODULES = new Set(["time_tracking", "time_off"]);
-
 function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDetail[] {
   const { roiConfig, configModules } = input;
   const { headcounts, hourly_costs } = roiConfig;
@@ -574,29 +558,12 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
   }
 
   const details: ModuleDetail[] = [];
-  const skip = new Set<string>();
 
   for (const modId of configModules) {
-    if (skip.has(modId)) continue;
     const slideModule = data.modules.find(m => m.id === modId);
     if (!slideModule) continue;
 
-    const { rows, totalH, totalM, totalA } = buildRows(modId);
-
-    // Merge time_tracking & time_off into Core
-    if (modId === "core") {
-      for (const sub of CORE_SUBMODULES) {
-        if (!configModules.includes(sub)) continue;
-        skip.add(sub);
-        const subResult = buildRows(sub);
-        const subCatalog = MODULE_CATALOG.find(m => m.id === sub);
-        const subLabel = subCatalog?.label ?? moduleLabel(sub);
-        for (const r of subResult.rows) {
-          const merged = { ...r, bullets: r.bullets.map(b => `[${subLabel}] ${b}`) };
-          rows.push(merged);
-        }
-      }
-    }
+    const { rows } = buildRows(modId);
 
     if (rows.length === 0) continue;
 
