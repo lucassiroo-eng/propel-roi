@@ -28,7 +28,7 @@ import {
 } from "@/lib/offeringEngine";
 import { MODULE_CATALOG, CATEGORY_COLORS } from "@/lib/moduleCatalog";
 import { getEffectiveHours, getCountForEntry, SAVINGS_DESCRIPTIONS, MODULE_HOURS, type Stakeholder, type RoiMultipliers } from "@/lib/moduleHours";
-import { buildRoiSlideData, generateRoiSlidePdf, generateMultiSlideHtml, type RoiSlideInput } from "@/lib/generateRoiSlide";
+import { buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlideHtml, type RoiSlideInput } from "@/lib/generateRoiSlide";
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
@@ -290,23 +290,40 @@ export function StepOffering({
     }
   }
 
-  function handleDownloadHtml() {
-    if (!roiConfig || roiConfig.headcounts.employee <= 0 || roiConfig.headcounts.hr <= 0 || roiConfig.headcounts.manager <= 0) {
-      toast.error(t("setup.fill_team"));
-      return;
-    }
-    const input = getSlideInput();
-    const data = input ? buildRoiSlideData(input) : null;
-    if (!data || !input) { toast.error("No data to generate slide"); return; }
-    if (data.modules.length === 0) { toast.error("No modules with savings — check team headcounts"); return; }
-    const html = generateMultiSlideHtml(data, input);
+  function downloadHtmlBlob(html: string, filename: string) {
     const blob = new Blob([html], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ROI-Report-${data.company_name || "report"}.html`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function validateSlideReady(): ReturnType<typeof getSlideData> {
+    if (!roiConfig || roiConfig.headcounts.employee <= 0 || roiConfig.headcounts.hr <= 0 || roiConfig.headcounts.manager <= 0) {
+      toast.error(t("setup.fill_team"));
+      return null;
+    }
+    const data = getSlideData();
+    if (!data) { toast.error("No data to generate slide"); return null; }
+    if (data.modules.length === 0) { toast.error("No modules with savings — check team headcounts"); return null; }
+    return data;
+  }
+
+  function handleDownloadHtmlSingle() {
+    const data = validateSlideReady();
+    if (!data) return;
+    const html = generateRoiSlideHtml(data);
+    downloadHtmlBlob(html, `ROI-Slide-${data.company_name || "report"}.html`);
+  }
+
+  function handleDownloadHtmlAll() {
+    const data = validateSlideReady();
+    const input = getSlideInput();
+    if (!data || !input) return;
+    const html = generateMultiSlideHtml(data, input);
+    downloadHtmlBlob(html, `ROI-Report-${data.company_name || "report"}.html`);
   }
 
   function selectPack(bundleId: number) { onChange({ bundle_id: bundleId }); }
@@ -696,14 +713,18 @@ export function StepOffering({
             {t("offering.save")}
           </Button>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <Button size="lg" onClick={handleDownloadSlidePdf} disabled={!configuration || !roiConfig || downloadingPdf} className="gap-2">
             {downloadingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />}
-            Descargar PDF
+            PDF
           </Button>
-          <Button size="lg" onClick={handleDownloadHtml} disabled={!configuration || !roiConfig} className="gap-2 bg-gray-800 hover:bg-gray-700 text-white">
+          <Button size="lg" onClick={handleDownloadHtmlSingle} disabled={!configuration || !roiConfig} className="gap-2 bg-gray-800 hover:bg-gray-700 text-white">
             <Globe className="h-4 w-4" />
-            Descargar HTML
+            HTML Slide
+          </Button>
+          <Button size="lg" onClick={handleDownloadHtmlAll} disabled={!configuration || !roiConfig} className="gap-2 bg-gray-800 hover:bg-gray-700 text-white">
+            <Globe className="h-4 w-4" />
+            HTML Completo
           </Button>
         </div>
       </div>
