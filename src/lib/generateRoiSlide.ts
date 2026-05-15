@@ -1084,34 +1084,59 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
   ]);
 
   const html = generateMultiSlideHtml(data, input);
-  const captureHtml = prepareCaptureHtml(
-    html,
-    "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
-    "background: #fff; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0;",
-    fontCss,
-  ).replace("</style>", `</style>\n<style>${fontCss}</style>\n<script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});</script>`);
 
-  const slideCount = (html.match(/class="slide/g) || []).length;
-  const iframe = document.createElement("iframe");
-  iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:1440px;height:${810 * slideCount}px;border:none;pointer-events:none;z-index:-1;`;
-  document.body.appendChild(iframe);
+  // Extract the <style> block from the multi-slide HTML
+  const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
+  const baseCss = styleMatch ? styleMatch[1] : "";
+
+  // Render all slides in one iframe to get computed HTML
+  const layoutIframe = document.createElement("iframe");
+  layoutIframe.style.cssText = `position:fixed;left:-9999px;top:0;width:1440px;height:9999px;border:none;pointer-events:none;z-index:-1;`;
+  document.body.appendChild(layoutIframe);
 
   try {
-    await new Promise<void>((resolve) => { iframe.onload = () => resolve(); iframe.srcdoc = captureHtml; });
-    await waitForIframeFonts(iframe);
+    const layoutHtml = prepareCaptureHtml(
+      html,
+      "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
+      "background: #fff; margin: 0; padding: 0;",
+      fontCss,
+    ).replace("</style>", `</style>\n<style>${fontCss}</style>`);
+    await new Promise<void>((resolve) => { layoutIframe.onload = () => resolve(); layoutIframe.srcdoc = layoutHtml; });
 
-    const slides = iframe.contentDocument!.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
+    const slides = layoutIframe.contentDocument!.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
     if (slides.length === 0) throw new Error("No slides found");
 
+    // Grab each slide's outerHTML
+    const slideHtmls = Array.from(slides).map(s => s.outerHTML);
+
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
-    for (let i = 0; i < slides.length; i++) {
+
+    // Capture each slide in its own isolated iframe
+    for (let i = 0; i < slideHtmls.length; i++) {
       if (i > 0) pdf.addPage([1440, 810], "landscape");
-      const img = await captureSlide(slides[i], html2canvas, true, fontCss);
-      pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+
+      const singleHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${baseCss}</style><style>${fontCss}</style><script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});<\/script></head><body style="margin:0;padding:0;background:#fff;">${slideHtmls[i]}</body></html>`;
+
+      const capIframe = document.createElement("iframe");
+      capIframe.style.cssText = "position:fixed;left:-9999px;top:0;width:1440px;height:810px;border:none;pointer-events:none;z-index:-1;";
+      document.body.appendChild(capIframe);
+
+      try {
+        await new Promise<void>((resolve) => { capIframe.onload = () => resolve(); capIframe.srcdoc = singleHtml; });
+        await waitForIframeFonts(capIframe);
+
+        const slide = capIframe.contentDocument!.querySelector(".slide") as HTMLElement;
+        if (!slide) continue;
+
+        const img = await captureSlide(slide, html2canvas, true, fontCss);
+        pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+      } finally {
+        document.body.removeChild(capIframe);
+      }
     }
 
     pdf.save(`ROI-Report-${data.company_name || "report"}.pdf`);
   } finally {
-    document.body.removeChild(iframe);
+    document.body.removeChild(layoutIframe);
   }
 }
