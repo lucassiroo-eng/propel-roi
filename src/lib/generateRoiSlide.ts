@@ -94,17 +94,35 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   let totalHours = 0;
   let totalSavings = 0;
 
-  for (const modId of configModules) {
+  function calcModule(modId: string) {
     const hours = getEffectiveHours(modId, roiConfig.hours_overrides);
-    let modHours = 0;
-    let modMoney = 0;
+    let h = 0, m = 0;
     for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
       const entry = MODULE_HOURS.find(e => e.module_id === modId && e.stakeholder === s);
       const count = entry ? getCountForEntry(entry, multipliers) : headcounts[s];
-      const h = hours[s] * count;
-      modHours += h;
-      modMoney += h * hourly_costs[s];
+      const sh = hours[s] * count;
+      h += sh; m += sh * hourly_costs[s];
     }
+    return { hours: h, money: m };
+  }
+
+  const coreAbsorbed = new Set(["time_tracking", "time_off"]);
+
+  for (const modId of configModules) {
+    if (coreAbsorbed.has(modId)) continue;
+
+    let modHours: number, modMoney: number;
+    const base = calcModule(modId);
+    modHours = base.hours; modMoney = base.money;
+
+    if (modId === "core") {
+      for (const sub of coreAbsorbed) {
+        if (!configModules.includes(sub)) continue;
+        const s = calcModule(sub);
+        modHours += s.hours; modMoney += s.money;
+      }
+    }
+
     const catalog = MODULE_CATALOG.find(m => m.id === modId);
     modules.push({
       id: modId,
@@ -1037,12 +1055,10 @@ async function inlineExternalImages(root: HTMLElement): Promise<void> {
 }
 
 async function captureSlide(slide: HTMLElement, html2canvas: any): Promise<string> {
-  await inlineExternalImages(slide);
   const canvas = await html2canvas(slide, {
     width: 1440, height: 810, scale: 2,
     useCORS: true, logging: false, backgroundColor: "#ffffff",
     windowWidth: 1440, windowHeight: 810,
-    foreignObjectRendering: true,
   });
   return canvas.toDataURL("image/png");
 }
