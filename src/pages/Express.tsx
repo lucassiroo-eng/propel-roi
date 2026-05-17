@@ -1,14 +1,18 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowLeft, ArrowRight, Check, Download,
   FileText, Loader2, Search, Send, Users, Shield,
-  Briefcase, X, Zap, ChevronRight,
+  Briefcase, X, Zap, ChevronRight, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +22,9 @@ import {
 import {
   MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock,
 } from "@/lib/moduleCatalog";
-import { moduleLabel } from "@/lib/offeringEngine";
+import {
+  moduleLabel, parseModulesFromBundle, type BundleRow,
+} from "@/lib/offeringEngine";
 import {
   getEffectiveHours, getCountForEntry, MODULE_HOURS,
   type Stakeholder, type RoiMultipliers,
@@ -70,6 +76,24 @@ export default function Express() {
 
   // Step 3
   const [dlPdf, setDlPdf] = useState<string | null>(null);
+
+  // ── Bundles ────────────────────────────────────────────
+  const { data: bundles } = useQuery({
+    queryKey: ["express_bundles", country],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("bundles").select("*").eq("country", country);
+      if (error) throw error;
+      return data as BundleRow[];
+    },
+  });
+
+  const validBundles = useMemo(() => {
+    if (!bundles) return [];
+    return bundles.filter(b => {
+      const mods = parseModulesFromBundle(b);
+      return mods.length >= 2;
+    });
+  }, [bundles]);
 
   // ── Fetch deal ──────────────────────────────────────────
   async function handleFetch() {
@@ -127,10 +151,10 @@ export default function Express() {
           const deduped: ModuleSuggestion[] = (res?.modules ?? [])
             .filter((m: any) => valid.has(m.module_id))
             .map((m: any) => ({ module_id: m.module_id, confidence: m.confidence as "strong" | "possible", quote: m.quote || "" }))
-            .filter((s: ModuleSuggestion) => { if (seen.has(s.module_id)) return false; seen.add(s.module_id); return true; });
+            .filter((sg: ModuleSuggestion) => { if (seen.has(sg.module_id)) return false; seen.add(sg.module_id); return true; });
 
           setModuleSuggestions(deduped);
-          setSelectedModules(deduped.filter(x => x.confidence === "strong").map(x => x.module_id));
+          setSelectedModules(deduped.map(x => x.module_id));
           setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `${deduped.length} módulos identificados`, done: true }; return u; });
         } catch {
           setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Análisis no disponible", done: true }; return u; });
@@ -147,9 +171,15 @@ export default function Express() {
     }
   }
 
-  // ── Module toggle ──────────────────────────────────────
+  // ── Module toggle / bundle add ─────────────────────────
   function toggle(id: string) {
     setSelectedModules(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
+  }
+
+  function addBundle(b: BundleRow) {
+    const mods = parseModulesFromBundle(b);
+    setSelectedModules(prev => Array.from(new Set([...prev, ...mods])));
+    toast.success(`${b.bundle_name}: ${mods.length} módulos añadidos`);
   }
 
   // ── Grouped catalog ────────────────────────────────────
@@ -264,7 +294,7 @@ export default function Express() {
                 {msgs.map((m, i) => (
                   <div key={i} className="flex items-center gap-2.5 text-sm" style={{ animation: "fadeIn 0.3s ease-out both", animationDelay: `${i * 60}ms` }}>
                     {m.done ? (
-                      <div className="w-4.5 h-4.5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><Check className="h-2.5 w-2.5 text-white" /></div>
+                      <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><Check className="h-2.5 w-2.5 text-white" /></div>
                     ) : (
                       <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
                     )}
@@ -279,174 +309,214 @@ export default function Express() {
 
       {/* ──────────── STEP 1: Modules ──────────── */}
       {step === 1 && (
-        <main className="flex-1 overflow-hidden flex flex-col">
-          <div className="max-w-5xl mx-auto w-full px-5 py-5 flex-1 overflow-hidden flex flex-col">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 overflow-hidden min-h-0">
-              {/* Left: Catalog */}
-              <div className="flex flex-col min-h-0">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-foreground">Catálogo</h2>
-                  <span className="text-[11px] text-muted-foreground">{MODULE_CATALOG.length} módulos</span>
-                </div>
-                <div className="relative mb-3">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input placeholder="Buscar..." value={catSearch} onChange={e => setCatSearch(e.target.value)} className="pl-9 h-9 text-sm" />
-                </div>
-                <ScrollArea className="flex-1">
-                  <div className="space-y-4 pr-2 pb-4">
-                    {Object.entries(grouped).map(([cat, mods]) => (
-                      <div key={cat}>
-                        <div className="flex items-center gap-2 mb-1.5 sticky top-0 bg-background py-1">
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CATEGORY_COLORS[cat] ?? "#94A3B8" }} />
-                          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{cat}</span>
-                          <span className="text-[10px] text-muted-foreground">({mods.length})</span>
+        <>
+          <main className="flex-1 overflow-hidden">
+            <div className="max-w-5xl mx-auto w-full px-5 py-5 h-full flex flex-col overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 overflow-hidden min-h-0">
+                {/* Left: Catalog */}
+                <div className="flex flex-col min-h-0">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-foreground">Catálogo</h2>
+                    <span className="text-[11px] text-muted-foreground">{MODULE_CATALOG.length} módulos</span>
+                  </div>
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input placeholder="Buscar..." value={catSearch} onChange={e => setCatSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+                  </div>
+                  <ScrollArea className="flex-1">
+                    <div className="space-y-4 pr-2 pb-4">
+                      {/* Bundles */}
+                      {!catSearch && validBundles.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Bundles</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {validBundles.map(b => {
+                              const mods = parseModulesFromBundle(b);
+                              const allIn = mods.every(m => selectedModules.includes(m));
+                              return (
+                                <button
+                                  key={b.id}
+                                  onClick={() => addBundle(b)}
+                                  disabled={allIn}
+                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                    allIn
+                                      ? "bg-foreground/5 text-muted-foreground"
+                                      : "bg-foreground text-background hover:bg-foreground/90"
+                                  }`}
+                                >
+                                  {allIn && <Check className="h-3 w-3" />}
+                                  {b.bundle_name}
+                                  <span className="opacity-60">({mods.length})</span>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                        {mods.map(m => {
-                          const sel = selectedModules.includes(m.id);
+                      )}
+
+                      {/* Module categories */}
+                      {Object.entries(grouped).map(([cat, mods]) => (
+                        <div key={cat}>
+                          <div className="flex items-center gap-2 mb-1.5 sticky top-0 bg-background py-1">
+                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CATEGORY_COLORS[cat] ?? "#94A3B8" }} />
+                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{cat}</span>
+                            <span className="text-[10px] text-muted-foreground">({mods.length})</span>
+                          </div>
+                          {mods.map(m => {
+                            const sel = selectedModules.includes(m.id);
+                            return (
+                              <button key={m.id} onClick={() => toggle(m.id)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between group ${sel ? "bg-foreground/5 text-foreground font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
+                                {m.label}
+                                {sel ? <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-40 transition-opacity shrink-0" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                {/* Right: Selected */}
+                <div className="flex flex-col min-h-0">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-semibold text-foreground">Seleccionados</h2>
+                    <span className="text-[11px] font-semibold text-foreground tabular-nums bg-foreground/10 px-2 py-0.5 rounded-full">{selectedModules.length}</span>
+                  </div>
+                  {selectedModules.length === 0 ? (
+                    <div className="flex-1 border border-dashed border-border rounded-xl flex items-center justify-center">
+                      <p className="text-sm text-muted-foreground">Selecciona módulos del catálogo</p>
+                    </div>
+                  ) : (
+                    <ScrollArea className="flex-1">
+                      <div className="space-y-2 pr-2 pb-4">
+                        {selectedModules.map(id => {
+                          const cat = MODULE_CATALOG.find(m => m.id === id);
+                          const sug = moduleSuggestions.find(sg => sg.module_id === id);
                           return (
-                            <button key={m.id} onClick={() => toggle(m.id)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between group ${sel ? "bg-foreground/5 text-foreground font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                              {m.label}
-                              {sel ? <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-40 transition-opacity shrink-0" />}
-                            </button>
+                            <div key={id} className="rounded-lg border border-border bg-card p-3 flex items-start gap-3 group hover:shadow-sm transition-shadow" style={{ animation: "fadeIn 0.25s ease-out" }}>
+                              <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-sm font-medium text-foreground">{cat?.label ?? moduleLabel(id)}</span>
+                                  {sug?.confidence === "strong" && <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">AI</span>}
+                                  {sug?.confidence === "possible" && <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Posible</span>}
+                                </div>
+                                {sug?.quote && <p className="text-xs text-muted-foreground mt-1 italic leading-relaxed line-clamp-2">&ldquo;{sug.quote}&rdquo;</p>}
+                              </div>
+                              <button onClick={() => toggle(id)} className="shrink-0 h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100">
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-
-              {/* Right: Selected */}
-              <div className="flex flex-col min-h-0">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-foreground">Seleccionados</h2>
-                  <span className="text-[11px] font-semibold text-foreground tabular-nums bg-foreground/10 px-2 py-0.5 rounded-full">{selectedModules.length}</span>
+                    </ScrollArea>
+                  )}
                 </div>
-                {selectedModules.length === 0 ? (
-                  <div className="flex-1 border border-dashed border-border rounded-xl flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">Selecciona módulos del catálogo</p>
-                  </div>
-                ) : (
-                  <ScrollArea className="flex-1">
-                    <div className="space-y-2 pr-2 pb-4">
-                      {selectedModules.map(id => {
-                        const cat = MODULE_CATALOG.find(m => m.id === id);
-                        const sug = moduleSuggestions.find(s => s.module_id === id);
-                        return (
-                          <div key={id} className="rounded-lg border border-border bg-card p-3 flex items-start gap-3 group hover:shadow-sm transition-shadow" style={{ animation: "fadeIn 0.25s ease-out" }}>
-                            <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-medium text-foreground">{cat?.label ?? moduleLabel(id)}</span>
-                                {sug?.confidence === "strong" && <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">AI</span>}
-                                {sug?.confidence === "possible" && <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Posible</span>}
-                              </div>
-                              {sug?.quote && <p className="text-xs text-muted-foreground mt-1 italic leading-relaxed line-clamp-2">&ldquo;{sug.quote}&rdquo;</p>}
-                            </div>
-                            <button onClick={() => toggle(id)} className="shrink-0 h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100">
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                )}
               </div>
             </div>
-
-            <div className="flex justify-end pt-4 border-t border-border mt-4">
+          </main>
+          <footer className="sticky bottom-0 z-10 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-3">
+            <div className="max-w-5xl mx-auto flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{selectedModules.length} módulos seleccionados</span>
               <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="bg-foreground text-background hover:bg-foreground/90">
                 Continuar <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
-          </div>
-        </main>
+          </footer>
+        </>
       )}
 
       {/* ──────────── STEP 2: Config ──────────── */}
       {step === 2 && (
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-5 py-6 space-y-6">
-            <div className="text-center">
-              <h2 className="text-lg font-bold text-foreground">Configurar ROI</h2>
-              <p className="text-sm text-muted-foreground mt-1">{companyName || dealName || "Empresa"} · {selectedModules.length} módulos</p>
-            </div>
-
-            {/* Stakeholders */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
-                const m = STAKE_META[key];
-                const Icon = m.icon;
-                return (
-                  <div key={key} className="rounded-xl p-4 space-y-3" style={{ backgroundColor: m.bg, border: `1.5px solid ${m.border}` }}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: m.color }}><Icon className="h-3.5 w-3.5 text-white" /></div>
-                      <span className="text-sm font-semibold text-foreground">{m.label}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Personas</label>
-                        <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums bg-white/80" value={roiConfig.headcounts[key]} onChange={e => setRoiConfig(p => ({ ...p, headcounts: { ...p.headcounts, [key]: Math.max(0, parseInt(e.target.value) || 0) } }))} />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">€/hora</label>
-                        <Input type="number" min={0} step={5} className="h-9 text-center font-bold tabular-nums bg-white/80" value={roiConfig.hourly_costs[key]} onChange={e => setRoiConfig(p => ({ ...p, hourly_costs: { ...p.hourly_costs, [key]: Math.max(0, parseFloat(e.target.value) || 0) } }))} />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Extra inputs */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Altas/año</Label>
-                <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+        <>
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-2xl mx-auto px-5 py-6 space-y-6">
+              {/* Company + Country row */}
+              <div className="flex gap-3 items-end">
+                <div className="flex-1 space-y-1.5">
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Empresa</Label>
+                  <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={dealName || "Nombre de la empresa"} className="h-10 font-semibold text-base" />
+                </div>
+                <div className="w-[170px] space-y-1.5">
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">País</Label>
+                  <Select value={country} onValueChange={v => setCountry(v as "ES" | "FR")}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ES">{"\u{1F1EA}\u{1F1F8}"} España</SelectItem>
+                      <SelectItem value="FR">{"\u{1F1EB}\u{1F1F7}"} France</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              {selectedModules.includes("expenses") && (
+
+              <p className="text-sm text-muted-foreground">{selectedModules.length} módulos seleccionados</p>
+
+              {/* Stakeholders */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
+                  const m = STAKE_META[key];
+                  const Icon = m.icon;
+                  return (
+                    <div key={key} className="rounded-xl p-4 space-y-3" style={{ backgroundColor: m.bg, border: `1.5px solid ${m.border}` }}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: m.color }}><Icon className="h-3.5 w-3.5 text-white" /></div>
+                        <span className="text-sm font-semibold text-foreground">{m.label}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Personas</label>
+                          <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums bg-white/80" value={roiConfig.headcounts[key]} onChange={e => setRoiConfig(p => ({ ...p, headcounts: { ...p.headcounts, [key]: Math.max(0, parseInt(e.target.value) || 0) } }))} />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">€/hora</label>
+                          <Input type="number" min={0} step={5} className="h-9 text-center font-bold tabular-nums bg-white/80" value={roiConfig.hourly_costs[key]} onChange={e => setRoiConfig(p => ({ ...p, hourly_costs: { ...p.hourly_costs, [key]: Math.max(0, parseFloat(e.target.value) || 0) } }))} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Extra inputs */}
+              <div className="grid grid-cols-3 gap-4">
                 <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Submitters gastos</Label>
-                  <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Altas/año</Label>
+                  <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                </div>
+                <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Coste Factorial €/año</Label>
+                  <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
+                </div>
+                {selectedModules.includes("expenses") && (
+                  <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
+                    <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Submitters gastos</Label>
+                    <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                  </div>
+                )}
+              </div>
+
+              {/* ROI preview */}
+              {roi && roi.savings > 0 && (
+                <div className="rounded-xl border border-border bg-muted/30 p-4">
+                  <div className="grid grid-cols-4 gap-3 text-center">
+                    <div><p className="text-[11px] text-muted-foreground mb-0.5">Ahorro/año</p><p className="text-lg font-bold text-foreground tabular-nums">{fmtEur(roi.savings)} €</p></div>
+                    <div><p className="text-[11px] text-muted-foreground mb-0.5">Coste/año</p><p className="text-lg font-bold text-foreground tabular-nums">{fmtEur(roi.cost)} €</p></div>
+                    <div><p className="text-[11px] text-muted-foreground mb-0.5">ROI</p><p className="text-lg font-bold text-emerald-600 tabular-nums">{roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—"}</p></div>
+                    <div><p className="text-[11px] text-muted-foreground mb-0.5">Payback</p><p className="text-lg font-bold text-foreground tabular-nums">{roi.savings > 0 ? `${roi.payback.toFixed(0)} m` : "—"}</p></div>
+                  </div>
                 </div>
               )}
-              <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Coste Factorial €/año</Label>
-                <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
-              </div>
-              <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">País</Label>
-                <div className="flex gap-2">
-                  {(["ES", "FR"] as const).map(c => (
-                    <button key={c} onClick={() => setCountry(c)} className={`flex-1 h-9 rounded-md text-sm font-semibold transition-colors ${country === c ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground"}`}>
-                      {c === "ES" ? "\u{1F1EA}\u{1F1F8} España" : "\u{1F1EB}\u{1F1F7} France"}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
-
-            {/* Company name */}
-            <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-              <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Nombre empresa (PDF)</Label>
-              <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={dealName || "Empresa"} className="h-9 font-medium" />
-            </div>
-
-            {/* ROI preview */}
-            {roi && roi.savings > 0 && (
-              <div className="rounded-xl border border-border bg-muted/30 p-4">
-                <div className="grid grid-cols-4 gap-3 text-center">
-                  <div><p className="text-[11px] text-muted-foreground mb-0.5">Ahorro/año</p><p className="text-lg font-bold text-foreground tabular-nums">{fmtEur(roi.savings)} €</p></div>
-                  <div><p className="text-[11px] text-muted-foreground mb-0.5">Coste/año</p><p className="text-lg font-bold text-foreground tabular-nums">{fmtEur(roi.cost)} €</p></div>
-                  <div><p className="text-[11px] text-muted-foreground mb-0.5">ROI</p><p className="text-lg font-bold text-emerald-600 tabular-nums">{roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—"}</p></div>
-                  <div><p className="text-[11px] text-muted-foreground mb-0.5">Payback</p><p className="text-lg font-bold text-foreground tabular-nums">{roi.savings > 0 ? `${roi.payback.toFixed(0)} m` : "—"}</p></div>
-                </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex justify-between gap-3 pt-2">
+          </main>
+          <footer className="sticky bottom-0 z-10 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-3">
+            <div className="max-w-2xl mx-auto flex justify-between gap-3">
               <Button variant="outline" onClick={() => setStep(1)}>
                 <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
               </Button>
@@ -454,8 +524,8 @@ export default function Express() {
                 Ver resultado <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
-          </div>
-        </main>
+          </footer>
+        </>
       )}
 
       {/* ──────────── STEP 3: Results ──────────── */}

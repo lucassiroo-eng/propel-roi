@@ -148,11 +148,11 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     core: {
       employee: [
         "Self-service profile updates and document downloads remove routine HR requests",
-        "Payslips and certificates always accessible on mobile — no waiting",
+        "Payslips and certificates are always accessible on mobile, with no waiting",
       ],
       hr: [
         "Single employee database eliminates duplicate spreadsheets and copy-paste",
-        "Automated approval workflows for data changes — no manual routing",
+        "Automated approval workflows handle data changes without manual routing",
         "Onboarding/offboarding checklists run automatically",
       ],
       manager: [
@@ -163,22 +163,22 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     time_off: {
       hr: [
         "Auto-accrual engine replaces manual balance calculations",
-        "Payroll integration syncs leave data automatically — no re-entry",
+        "Payroll integration syncs leave data automatically, eliminating re-entry",
         "Policy rules prevent over-approval before it happens",
       ],
       manager: [
-        "Visual team calendar shows who's off — no checking spreadsheets",
+        "Visual team calendar shows who's off without checking spreadsheets",
         "One-click approve/reject with conflict detection alerts",
       ],
     },
     time_tracking: {
       employee: [
         "Clock-in from any device replaces paper timesheets",
-        "Missed clock-ins resolved in-app with manager approval — no chasing",
+        "Missed clock-ins are resolved in-app with manager approval, no chasing needed",
       ],
       hr: [
-        "Time data flows to payroll automatically — no weekly reconciliation",
-        "Overtime calculated per labour law — no manual compliance checks",
+        "Time data flows to payroll automatically, removing weekly reconciliation",
+        "Overtime is calculated per labour law, so manual compliance checks disappear",
         "Missing entries trigger automatic reminders",
       ],
       manager: [
@@ -188,7 +188,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     time_planning: {
       employee: [
-        "Upcoming shifts visible on mobile — no paper rosters or group chats",
+        "Upcoming shifts are visible on mobile, replacing paper rosters and group chats",
         "Shift swap requests handled in-app with instant manager notification",
       ],
       hr: [
@@ -204,7 +204,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     payroll: {
       hr: [
-        "Time, leave, expenses, and variable pay auto-sync into payroll — no manual prep",
+        "Time, leave, expenses, and variable pay all auto-sync into payroll without manual prep",
         "Discrepancy detection catches errors before submission",
         "Eliminates manual data consolidation across each pay run",
       ],
@@ -216,7 +216,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
       hr: [
         "Automated reconciliation and approval workflows integrate directly with accounting",
-        "Policy violations flagged before approval — no manual review of every line",
+        "Policy violations are flagged before approval, so there is no need to review every line manually",
         "Reduces month-end expense processing significantly",
       ],
       manager: [
@@ -227,24 +227,24 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     compensations: {
       hr: [
         "Centralised merit and bonus cycles with budget guardrails prevent overspend",
-        "Approval routing automated — eliminates email chains and version conflicts",
-        "Salary band management in-system — no spreadsheet juggling",
+        "Approval routing is fully automated, eliminating email chains and version conflicts",
+        "Salary bands are managed in-system, so there is no spreadsheet juggling",
       ],
       manager: [
         "Guided review surfaces team salary data, benchmarks, and remaining budget in one place",
-        "Compensation decisions submitted in-app — no email threads or offline tracking",
+        "Compensation decisions are submitted in-app, replacing email threads and offline tracking",
       ],
     },
     benefits: {
       hr: [
         "Automated enrolment windows with eligibility rules remove manual coordination",
-        "Vendor integration syncs benefit selections — no manual reconciliation",
+        "Vendor integration syncs benefit selections without manual reconciliation",
       ],
     },
     wellhub: {
       hr: [
         "Integrated wellness platform in the HR portal",
-        "Single sign-on — no separate provider registration",
+        "Single sign-on removes the need for separate provider registration",
         "Automated usage reporting",
       ],
     },
@@ -258,11 +258,11 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     engagement: {
       hr: [
         "Automated survey creation, scheduling, and distribution remove manual setup",
-        "Real-time dashboards by team and department — no manual Excel analysis",
+        "Real-time dashboards break results down by team and department, replacing manual Excel analysis",
       ],
       manager: [
         "Team engagement scores in a live dashboard with trend indicators",
-        "Declining score alerts with suggested actions — no manual interpretation needed",
+        "Declining score alerts come with suggested actions, removing the need for manual interpretation",
       ],
     },
     performance: {
@@ -272,13 +272,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
       manager: [
         "Pre-populated review forms with historical performance data reduce prep time",
-        "Team performance dashboard ready for every one-to-one — no manual compilation",
+        "Team performance dashboard is ready for every one-to-one without manual compilation",
       ],
     },
     trainings: {
       hr: [
         "Automated training rollout with completion tracking and compliance reporting",
-        "Subsidy and tax credit documentation generated automatically — no manual admin",
+        "Subsidy and tax credit documentation is generated automatically, removing manual admin",
       ],
     },
     lms: {
@@ -326,13 +326,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
         "Headcount forecasting kept current without manual rebuilding",
       ],
       manager: [
-        "Approved vs. actual headcount visible at a glance — no data requests to HR",
+        "Approved vs. actual headcount is visible at a glance, without requesting data from HR",
         "Structured position request workflow replaces informal email requisitions",
       ],
     },
     space: {
       hr: [
-        "Occupancy analytics and booking rules automated — no manual data collection",
+        "Occupancy analytics and booking rules are automated, removing manual data collection",
         "Capacity planning based on real usage data replaces guesswork",
       ],
     },
@@ -344,13 +344,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     it_inventory: {
       hr: [
-        "Centralised IT asset register linked to the employee lifecycle — always up-to-date",
+        "Centralised IT asset register linked to the employee lifecycle, always up-to-date",
         "Auto-provisioning on hire and auto-deprovisioning on exit remove manual IT tasks",
       ],
     },
     one: {
       employee: [
-        "AI answers HR questions instantly — policy lookups, balance checks, document requests",
+        "AI answers HR questions instantly, from policy lookups and balance checks to document requests",
         "Reduces time spent searching the intranet or waiting for HR email responses",
       ],
       hr: [
@@ -369,11 +369,11 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     core: {
       employee: [
         "Autoservicio para actualizar perfil y descargar documentos elimina peticiones rutinarias a RRHH",
-        "Nóminas y certificados siempre accesibles desde el móvil — sin esperas",
+        "Las nóminas y certificados están siempre accesibles desde el móvil, sin esperas",
       ],
       hr: [
         "Base de datos única de empleados elimina hojas de cálculo duplicadas y copiar-pegar",
-        "Flujos de aprobación automatizados para cambios de datos — sin enrutamiento manual",
+        "Los flujos de aprobación automatizados gestionan los cambios de datos sin enrutamiento manual",
         "Checklists de onboarding/offboarding se ejecutan automáticamente",
       ],
       manager: [
@@ -384,22 +384,22 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     time_off: {
       hr: [
         "Motor de acumulación automática sustituye cálculos manuales de saldos",
-        "Integración con nómina sincroniza datos de ausencias automáticamente — sin reintroducción",
+        "La integración con nómina sincroniza los datos de ausencias automáticamente, sin reintroducción",
         "Reglas de política previenen sobre-aprobación antes de que ocurra",
       ],
       manager: [
-        "Calendario visual del equipo muestra quién está ausente — sin consultar hojas de cálculo",
+        "El calendario visual del equipo muestra quién está ausente sin necesidad de consultar hojas de cálculo",
         "Aprobar/rechazar con un clic con alertas de detección de conflictos",
       ],
     },
     time_tracking: {
       employee: [
         "Fichaje desde cualquier dispositivo sustituye los partes en papel",
-        "Fichajes olvidados resueltos en la app con aprobación del manager — sin perseguir a nadie",
+        "Los fichajes olvidados se resuelven en la app con aprobación del manager, sin perseguir a nadie",
       ],
       hr: [
-        "Datos de tiempo fluyen a nómina automáticamente — sin conciliación semanal",
-        "Horas extra calculadas según legislación laboral — sin verificación manual",
+        "Los datos de tiempo se sincronizan con nómina de forma automática, sin conciliación semanal",
+        "Las horas extra se calculan según la legislación laboral, sin verificación manual",
         "Fichajes olvidados generan recordatorios automáticos",
       ],
       manager: [
@@ -409,7 +409,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     time_planning: {
       employee: [
-        "Turnos próximos visibles en el móvil — sin cuadrantes en papel ni grupos de chat",
+        "Los turnos próximos se consultan en el móvil, sin cuadrantes en papel ni grupos de chat",
         "Solicitudes de cambio de turno gestionadas en la app con notificación inmediata al manager",
       ],
       hr: [
@@ -425,7 +425,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     payroll: {
       hr: [
-        "Tiempo, ausencias, gastos y variable se sincronizan automáticamente con nómina — sin preparación manual",
+        "Tiempo, ausencias, gastos y variable se sincronizan automáticamente con nómina, sin preparación manual",
         "Detección de discrepancias captura errores antes del envío",
         "Elimina la consolidación manual de datos en cada ciclo de nómina",
       ],
@@ -437,7 +437,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
       hr: [
         "Conciliación automática y flujos de aprobación integrados directamente con contabilidad",
-        "Violaciones de política señaladas antes de la aprobación — sin revisión manual línea por línea",
+        "Las violaciones de política se señalan antes de la aprobación, sin necesidad de revisar cada línea manualmente",
         "Reduce significativamente el procesamiento de gastos a fin de mes",
       ],
       manager: [
@@ -448,24 +448,24 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     compensations: {
       hr: [
         "Automatiza la gestión de bonos y aumentos, eliminando procesos manuales y errores de cálculo en el presupuesto",
-        "Enrutamiento de aprobaciones automatizado — elimina cadenas de emails y conflictos de versiones",
-        "Gestión de bandas salariales en el sistema — sin malabares con hojas de cálculo",
+        "El enrutamiento de aprobaciones se automatiza por completo, eliminando cadenas de emails y conflictos de versiones",
+        "Las bandas salariales se gestionan directamente en el sistema, sin malabares con hojas de cálculo",
       ],
       manager: [
         "Revisión guiada muestra datos salariales del equipo, benchmarks y presupuesto restante en un solo lugar",
-        "Decisiones de compensación enviadas en la app — sin hilos de email ni seguimiento offline",
+        "Las decisiones de compensación se envían desde la app, sin hilos de email ni seguimiento offline",
       ],
     },
     benefits: {
       hr: [
         "Ventanas de inscripción automáticas con reglas de elegibilidad eliminan la coordinación manual",
-        "Integración con proveedores sincroniza selecciones de beneficios — sin conciliación manual",
+        "La integración con proveedores sincroniza las selecciones de beneficios, sin conciliación manual",
       ],
     },
     wellhub: {
       hr: [
         "Plataforma de bienestar integrada en el portal de RRHH",
-        "Single sign-on — sin registro separado con el proveedor",
+        "Single sign-on integrado, sin registro separado con el proveedor",
         "Reportes de uso automatizados",
       ],
     },
@@ -479,11 +479,11 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     engagement: {
       hr: [
         "Creación, programación y distribución automatizada de encuestas eliminan la configuración manual",
-        "Dashboards en tiempo real por equipo y departamento — sin análisis manual en Excel",
+        "Los dashboards en tiempo real desglosan resultados por equipo y departamento, eliminando el análisis manual en Excel",
       ],
       manager: [
         "Puntuaciones de engagement del equipo en un dashboard en vivo con indicadores de tendencia",
-        "Alertas por puntuaciones en descenso con acciones sugeridas — sin interpretación manual",
+        "Las alertas por puntuaciones en descenso incluyen acciones sugeridas, sin necesidad de interpretación manual",
       ],
     },
     performance: {
@@ -493,13 +493,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
       manager: [
         "Formularios pre-rellenados con datos históricos de rendimiento reducen el tiempo de preparación",
-        "Dashboard de rendimiento del equipo listo para cada 1:1 — sin recopilación manual",
+        "El dashboard de rendimiento del equipo está listo para cada 1:1 sin recopilación manual",
       ],
     },
     trainings: {
       hr: [
         "Despliegue automatizado de formación con seguimiento de finalización y reportes de cumplimiento",
-        "Documentación de subvenciones y créditos fiscales generada automáticamente — sin admin manual",
+        "La documentación de subvenciones y créditos fiscales se genera automáticamente, sin administración manual",
       ],
     },
     lms: {
@@ -547,13 +547,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
         "Previsión de headcount actualizada sin reconstrucción manual",
       ],
       manager: [
-        "Headcount aprobado vs. real visible de un vistazo — sin solicitar datos a RRHH",
+        "El headcount aprobado frente al real se ve de un vistazo, sin solicitar datos a RRHH",
         "Flujo estructurado de solicitud de posiciones sustituye las peticiones informales por email",
       ],
     },
     space: {
       hr: [
-        "Analíticas de ocupación y reglas de reserva automatizadas — sin recopilación manual de datos",
+        "Las analíticas de ocupación y las reglas de reserva se automatizan, sin recopilación manual de datos",
         "Planificación de capacidad basada en datos reales de uso sustituye las estimaciones",
       ],
     },
@@ -565,13 +565,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     it_inventory: {
       hr: [
-        "Registro centralizado de activos IT vinculado al ciclo de vida del empleado — siempre actualizado",
+        "El registro centralizado de activos IT está vinculado al ciclo de vida del empleado y se mantiene siempre actualizado",
         "Aprovisionamiento automático al alta y desaprovisionamiento a la baja eliminan tareas manuales de IT",
       ],
     },
     one: {
       employee: [
-        "La IA responde preguntas de RRHH al instante — consultas de políticas, saldos y solicitud de documentos",
+        "La IA responde al instante sobre políticas, saldos de vacaciones o solicitudes de documentos",
         "Reduce el tiempo buscando en la intranet o esperando respuestas de RRHH por email",
       ],
       hr: [
@@ -590,11 +590,11 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     core: {
       employee: [
         "Mise à jour du profil et téléchargement de documents en libre-service élimine les demandes courantes aux RH",
-        "Bulletins de paie et certificats toujours accessibles sur mobile — sans attente",
+        "Les bulletins de paie et certificats sont toujours accessibles sur mobile, sans attente",
       ],
       hr: [
         "Base de données unique des employés élimine les tableurs en double et le copier-coller",
-        "Workflows d'approbation automatisés pour les changements de données — sans routage manuel",
+        "Les workflows d'approbation automatisés gèrent les changements de données sans routage manuel",
         "Checklists d'onboarding/offboarding s'exécutent automatiquement",
       ],
       manager: [
@@ -605,22 +605,22 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     time_off: {
       hr: [
         "Moteur d'accumulation automatique remplace les calculs manuels de soldes",
-        "Intégration paie synchronise les données de congés automatiquement — sans re-saisie",
+        "L'intégration paie synchronise les données de congés automatiquement, sans re-saisie",
         "Règles de politique empêchent la sur-approbation avant qu'elle ne se produise",
       ],
       manager: [
-        "Calendrier d'équipe visuel montre qui est absent — sans consulter de tableurs",
+        "Le calendrier visuel de l'équipe montre qui est absent sans consulter de tableurs",
         "Approuver/refuser en un clic avec alertes de détection de conflits",
       ],
     },
     time_tracking: {
       employee: [
         "Pointage depuis n'importe quel appareil remplace les feuilles de présence papier",
-        "Pointages oubliés résolus dans l'appli avec approbation du manager — sans relance",
+        "Les pointages oubliés se résolvent dans l'appli avec approbation du manager, sans relance",
       ],
       hr: [
-        "Données de temps alimentent la paie automatiquement — sans rapprochement hebdomadaire",
-        "Heures supplémentaires calculées selon la législation du travail — sans vérification manuelle",
+        "Les données de temps alimentent la paie automatiquement, sans rapprochement hebdomadaire",
+        "Les heures supplémentaires sont calculées selon la législation du travail, sans vérification manuelle",
         "Pointages manquants déclenchent des rappels automatiques",
       ],
       manager: [
@@ -630,7 +630,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     time_planning: {
       employee: [
-        "Prochains créneaux visibles sur mobile — sans plannings papier ni groupes de discussion",
+        "Les prochains créneaux sont visibles sur mobile, sans plannings papier ni groupes de discussion",
         "Demandes d'échange de créneaux gérées dans l'appli avec notification instantanée au manager",
       ],
       hr: [
@@ -646,7 +646,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     payroll: {
       hr: [
-        "Temps, congés, frais et variable se synchronisent automatiquement avec la paie — sans préparation manuelle",
+        "Temps, congés, frais et variable se synchronisent automatiquement avec la paie, sans préparation manuelle",
         "Détection des écarts capture les erreurs avant l'envoi",
         "Élimine la consolidation manuelle des données à chaque cycle de paie",
       ],
@@ -658,7 +658,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
       hr: [
         "Rapprochement automatique et workflows d'approbation intégrés directement à la comptabilité",
-        "Violations de politique signalées avant approbation — sans revue manuelle ligne par ligne",
+        "Les violations de politique sont signalées avant approbation, sans revue manuelle ligne par ligne",
         "Réduit significativement le traitement des frais en fin de mois",
       ],
       manager: [
@@ -669,24 +669,24 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     compensations: {
       hr: [
         "Cycles centralisés de mérite et bonus avec garde-fous budgétaires préviennent les dépassements",
-        "Routage des approbations automatisé — élimine les chaînes d'emails et conflits de versions",
-        "Gestion des grilles salariales dans le système — sans jongler avec les tableurs",
+        "Le routage des approbations est entièrement automatisé, ce qui élimine les chaînes d'emails et les conflits de versions",
+        "Les grilles salariales se gèrent directement dans le système, sans jongler avec les tableurs",
       ],
       manager: [
         "Révision guidée affiche données salariales de l'équipe, benchmarks et budget restant en un seul endroit",
-        "Décisions de rémunération soumises dans l'appli — sans fils d'emails ni suivi hors ligne",
+        "Les décisions de rémunération sont soumises dans l'appli, sans fils d'emails ni suivi hors ligne",
       ],
     },
     benefits: {
       hr: [
         "Fenêtres d'inscription automatiques avec règles d'éligibilité éliminent la coordination manuelle",
-        "Intégration fournisseur synchronise les choix de prestations — sans rapprochement manuel",
+        "L'intégration fournisseur synchronise les choix de prestations, sans rapprochement manuel",
       ],
     },
     wellhub: {
       hr: [
         "Plateforme de bien-être intégrée au portail RH",
-        "Authentification unique — pas d'inscription séparée",
+        "L'authentification unique évite toute inscription séparée",
         "Rapports d'utilisation automatisés",
       ],
     },
@@ -700,11 +700,11 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     engagement: {
       hr: [
         "Création, programmation et distribution automatisées d'enquêtes éliminent la configuration manuelle",
-        "Tableaux de bord en temps réel par équipe et département — sans analyse manuelle sur Excel",
+        "Les tableaux de bord en temps réel ventilent les résultats par équipe et département, remplaçant l'analyse manuelle sur Excel",
       ],
       manager: [
         "Scores d'engagement d'équipe dans un dashboard en direct avec indicateurs de tendance",
-        "Alertes en cas de baisse avec actions suggérées — sans interprétation manuelle nécessaire",
+        "Les alertes en cas de baisse proposent des actions concrètes, sans interprétation manuelle nécessaire",
       ],
     },
     performance: {
@@ -714,13 +714,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
       manager: [
         "Formulaires pré-remplis avec données historiques de performance réduisent le temps de préparation",
-        "Dashboard de performance d'équipe prêt pour chaque entretien individuel — sans compilation manuelle",
+        "Le dashboard de performance d'équipe est prêt pour chaque entretien individuel sans compilation manuelle",
       ],
     },
     trainings: {
       hr: [
         "Déploiement automatisé de formations avec suivi de complétion et rapports de conformité",
-        "Documentation de subventions et crédits d'impôt générée automatiquement — sans admin manuelle",
+        "La documentation de subventions et crédits d'impôt est générée automatiquement, sans administration manuelle",
       ],
     },
     lms: {
@@ -768,13 +768,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
         "Prévision d'effectifs maintenue à jour sans reconstruction manuelle",
       ],
       manager: [
-        "Effectifs approuvés vs. réels visibles d'un coup d'œil — sans demander de données aux RH",
+        "Les effectifs approuvés et réels sont visibles d'un coup d'oeil, sans demander de données aux RH",
         "Flux structuré de demande de postes remplace les réquisitions informelles par email",
       ],
     },
     space: {
       hr: [
-        "Analytiques d'occupation et règles de réservation automatisées — sans collecte manuelle de données",
+        "Les analytiques d'occupation et les règles de réservation sont automatisées, sans collecte manuelle de données",
         "Planification de capacité basée sur les données réelles d'usage remplace les estimations",
       ],
     },
@@ -786,13 +786,13 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     it_inventory: {
       hr: [
-        "Registre centralisé des actifs IT lié au cycle de vie de l'employé — toujours à jour",
+        "Le registre centralisé des actifs IT est lié au cycle de vie de l'employé et reste toujours à jour",
         "Provisionnement auto à l'embauche et déprovisionnement au départ éliminent les tâches IT manuelles",
       ],
     },
     one: {
       employee: [
-        "L'IA répond aux questions RH instantanément — consultation de politiques, soldes et demandes de documents",
+        "L'IA répond instantanément aux questions sur les politiques, les soldes de congés ou les demandes de documents",
         "Réduit le temps passé à chercher dans l'intranet ou à attendre les réponses RH par email",
       ],
       hr: [
@@ -802,7 +802,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     analytics: {
       hr: [
-        "Tableaux de bord pré-construits : effectifs, rotation, diversité",
+        "Tableaux de bord pré-construits pour les effectifs, la rotation et la diversité",
         "Constructeur de rapports personnalisés avec envoi programmé",
       ],
     },
