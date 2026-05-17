@@ -893,9 +893,9 @@ function HypothesisView({
   const selectedRow = moduleRows.find(r => r.moduleId === selectedModuleId);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" style={{ background: "linear-gradient(135deg, #fdf0f3 0%, #f5f0fd 40%, #f0f4fd 70%, #fdf0f7 100%)" }}>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-white/60 px-4 py-3">
+      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} className="gap-1.5">
             <ArrowLeft className="h-4 w-4" />

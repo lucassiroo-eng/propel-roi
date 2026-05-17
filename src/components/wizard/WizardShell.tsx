@@ -15,9 +15,9 @@ const STEP_KEYS = [
 ];
 
 const LANG_FLAG: Record<string, string> = {
-  en: "🇬🇧",
-  es: "🇪🇸",
-  fr: "🇫🇷",
+  en: "\u{1F1EC}\u{1F1E7}",
+  es: "\u{1F1EA}\u{1F1F8}",
+  fr: "\u{1F1EB}\u{1F1F7}",
 };
 
 export interface WizardShellProps {
@@ -45,19 +45,14 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative" style={{ background: "linear-gradient(135deg, #fdf0f3 0%, #f5f0fd 40%, #f0f4fd 70%, #fdf0f7 100%)" }}>
-      {/* Blobs */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #f9a8b8 0%, transparent 70%)" }} />
-        <div className="absolute top-1/2 -right-24 w-80 h-80 rounded-full opacity-15" style={{ background: "radial-gradient(circle, #c4b5fd 0%, transparent 70%)" }} />
-      </div>
+    <div className="min-h-screen flex flex-col relative bg-background">
       {/* Top bar */}
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-white/60 px-4 py-3">
+      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className={`${maxW} mx-auto space-y-3`}>
           {/* Company name + language + save indicator */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="h-7 w-7 p-0 shrink-0">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="h-9 w-9 p-0 shrink-0">
                 <Home className="h-4 w-4" />
               </Button>
               <h1 className="text-base font-semibold text-foreground truncate">
@@ -73,20 +68,20 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
               )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1">
+                  <Button variant="ghost" size="sm" className="h-9 px-2 text-xs gap-1">
                     <Globe className="h-3.5 w-3.5" />
-                    {LANG_FLAG[i18n.language?.substring(0, 2)] ?? "🌐"}
+                    {LANG_FLAG[i18n.language?.substring(0, 2)] ?? "\u{1F310}"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => changeLanguage("en")}>
-                    🇬🇧 English
+                    {"\u{1F1EC}\u{1F1E7}"} English
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => changeLanguage("es")}>
-                    🇪🇸 Español
+                    {"\u{1F1EA}\u{1F1F8}"} Espa{"ñ"}ol
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => changeLanguage("fr")}>
-                    🇫🇷 Français
+                    {"\u{1F1EB}\u{1F1F7}"} Fran{"ç"}ais
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -102,17 +97,14 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
                 <div key={key} className="flex items-center flex-1 min-w-0">
                   <div className="flex flex-col items-center w-full gap-0.5">
                     <div
-                      className="w-full h-1 rounded-full transition-colors"
-                      style={{
-                        background: isActive ? "#e05c75" : isDone ? "rgba(224,92,117,0.3)" : "rgba(0,0,0,0.08)"
-                      }}
+                      className={`w-full h-1 rounded-full transition-colors ${
+                        isActive ? "bg-primary" : isDone ? "bg-primary/30" : "bg-border"
+                      }`}
                     />
                     <span
-                      className="text-[9px] leading-tight text-center truncate w-full"
-                      style={{
-                        color: isActive ? "#e05c75" : isDone ? "#9ca3af" : "#d1d5db",
-                        fontWeight: isActive ? 600 : 400,
-                      }}
+                      className={`text-[11px] leading-tight text-center truncate w-full ${
+                        isActive ? "text-primary font-semibold" : "text-muted-foreground"
+                      }`}
                     >
                       {t(key)}
                     </span>
@@ -130,7 +122,7 @@ export function WizardShell({ step, saving, onBack, onNext, canNext = true, chil
       </main>
 
       {/* Footer nav */}
-      <footer className="sticky bottom-0 z-10 bg-white/80 backdrop-blur border-t border-white/60 px-4 py-3">
+      <footer className="sticky bottom-0 z-10 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-3">
         <div className={`flex gap-3 ${maxW} mx-auto`}>
           <Button variant="outline" onClick={onBack} className="flex-1">
             <ArrowLeft className="h-4 w-4 mr-1" />

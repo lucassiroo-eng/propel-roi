@@ -79,16 +79,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #fdf0f3 0%, #f5f0fd 40%, #f0f4fd 70%, #fdf0f7 100%)" }}>
-      {/* Blobs */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-30" style={{ background: "radial-gradient(circle, #f9a8b8 0%, transparent 70%)" }} />
-        <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #c4b5fd 0%, transparent 70%)" }} />
-      </div>
-      <Card className="relative w-full max-w-sm bg-white/80 backdrop-blur-sm border-white/80 shadow-sm rounded-2xl">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-background">
+      <Card className="relative w-full max-w-sm bg-card border border-border shadow-sm rounded-2xl">
         <CardHeader className="text-center space-y-3">
           <img src={factorialLogo} alt="Factorial" className="mx-auto h-8" />
-          <CardTitle className="text-xl font-bold" style={{ color: "#e05c75" }}>{t("login.title")}</CardTitle>
+          <CardTitle className="text-xl font-bold text-primary">{t("login.title")}</CardTitle>
           <CardDescription>{t("login.description")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -170,7 +165,7 @@ export default function Login() {
                 <div className="text-center">
                   <button
                     type="button"
-                    className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={handleForgotPassword}
                     disabled={resetting}
                   >
@@ -183,7 +178,7 @@ export default function Login() {
                 {isSignUp ? t("login.have_account") : t("login.no_account")}{" "}
                 <button
                   type="button"
-                  className="text-primary underline underline-offset-2 hover:text-primary/80"
+                  className="text-primary underline underline-offset-2 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
                 >
                   {isSignUp ? t("login.sign_in") : t("login.sign_up")}

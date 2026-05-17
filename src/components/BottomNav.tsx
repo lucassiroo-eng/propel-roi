@@ -35,7 +35,7 @@ export function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-20 bg-background/90 backdrop-blur border-t">
+    <nav className="fixed bottom-0 inset-x-0 z-20 bg-card/95 backdrop-blur-sm border-t border-border">
       <div className="max-w-lg mx-auto flex">
         {tabs.map((t) => {
           const active = pathname.startsWith(t.path) && (t.path !== "/" || pathname === "/");
@@ -44,7 +44,7 @@ export function BottomNav() {
               key={t.path}
               onClick={() => navigate(t.path)}
               className={cn(
-                "flex-1 flex flex-col items-center gap-0.5 py-2 text-xs transition-colors",
+                "flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
                 active ? "text-primary" : "text-muted-foreground"
               )}
             >
