@@ -12,7 +12,7 @@ import {
 import {
   ArrowLeft, ArrowRight, Check, Download,
   FileText, Loader2, Search, Send, Users, Shield,
-  Briefcase, X, Zap, ChevronRight, Package,
+  Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,7 @@ import {
   MODULE_CATALOG, CATEGORY_COLORS, buildModulePromptBlock,
 } from "@/lib/moduleCatalog";
 import {
-  moduleLabel, parseModulesFromBundle, type BundleRow,
+  moduleLabel, parseModulesFromBundle, getBundlePepm, type BundleRow,
 } from "@/lib/offeringEngine";
 import {
   getEffectiveHours, getCountForEntry, MODULE_HOURS,
@@ -66,6 +66,8 @@ export default function Express() {
   const [moduleSuggestions, setModuleSuggestions] = useState<ModuleSuggestion[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [catSearch, setCatSearch] = useState("");
+  const [selectedBundle, setSelectedBundle] = useState<BundleRow | null>(null);
+  const [bundlesOpen, setBundlesOpen] = useState(false);
 
   // Step 2
   const [roiConfig, setRoiConfig] = useState<RoiConfig>({
@@ -176,11 +178,38 @@ export default function Express() {
     setSelectedModules(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
   }
 
-  function addBundle(b: BundleRow) {
-    const mods = parseModulesFromBundle(b);
-    setSelectedModules(prev => Array.from(new Set([...prev, ...mods])));
-    toast.success(`${b.bundle_name}: ${mods.length} módulos añadidos`);
+  function selectBundle(b: BundleRow) {
+    const prev = selectedBundle ? parseModulesFromBundle(selectedBundle) : [];
+    const next = parseModulesFromBundle(b);
+    setSelectedModules(cur => {
+      const withoutPrev = cur.filter(m => !prev.includes(m));
+      return Array.from(new Set([...withoutPrev, ...next]));
+    });
+    setSelectedBundle(b);
+    setBundlesOpen(false);
+    toast.success(`${b.bundle_name} seleccionado`);
   }
+
+  function clearBundle() {
+    if (!selectedBundle) return;
+    const bundleMods = parseModulesFromBundle(selectedBundle);
+    setSelectedModules(cur => cur.filter(m => !bundleMods.includes(m)));
+    setSelectedBundle(null);
+  }
+
+  const bundleModuleIds = useMemo(() => {
+    if (!selectedBundle) return new Set<string>();
+    return new Set(parseModulesFromBundle(selectedBundle));
+  }, [selectedBundle]);
+
+  const addonModules = useMemo(() => {
+    return selectedModules.filter(id => !bundleModuleIds.has(id));
+  }, [selectedModules, bundleModuleIds]);
+
+  const bundlePepm = useMemo(() => {
+    if (!selectedBundle) return 0;
+    return getBundlePepm(selectedBundle, "yearly", "business");
+  }, [selectedBundle]);
 
   // ── Grouped catalog ────────────────────────────────────
   const grouped = useMemo(() => {
@@ -220,7 +249,8 @@ export default function Express() {
         companyName: companyName || dealName || "Company",
         country, language: lang,
         configModules: selectedModules,
-        bundleName: "Factorial", bundleModules: selectedModules,
+        bundleName: selectedBundle?.bundle_name ?? "Factorial",
+        bundleModules: selectedBundle ? [...bundleModuleIds] : selectedModules,
         roiConfig, annualCost,
       };
       const data = buildRoiSlideData(input);
@@ -319,45 +349,89 @@ export default function Express() {
                     <h2 className="text-sm font-semibold text-foreground">Catálogo</h2>
                     <span className="text-[11px] text-muted-foreground">{MODULE_CATALOG.length} módulos</span>
                   </div>
+
+                  {/* Bundle selector (collapsible) */}
+                  {!catSearch && validBundles.length > 0 && (
+                    <div className="mb-3">
+                      <button
+                        onClick={() => setBundlesOpen(o => !o)}
+                        className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-left hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">
+                            {selectedBundle ? selectedBundle.bundle_name : "Elegir bundle"}
+                          </span>
+                          {selectedBundle && bundlePepm > 0 && (
+                            <span className="text-[11px] text-muted-foreground tabular-nums">
+                              {bundlePepm.toFixed(2)} €/pers/mes
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {selectedBundle && (
+                            <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                              {parseModulesFromBundle(selectedBundle).length} mods
+                            </span>
+                          )}
+                          {bundlesOpen
+                            ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                        </div>
+                      </button>
+                      {bundlesOpen && (
+                        <div className="mt-1.5 rounded-lg border border-border bg-card overflow-hidden">
+                          {selectedBundle && (
+                            <button
+                              onClick={clearBundle}
+                              className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted/50 transition-colors border-b border-border"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                              Sin bundle
+                            </button>
+                          )}
+                          {validBundles.map((b, i) => {
+                            const mods = parseModulesFromBundle(b);
+                            const pepm = getBundlePepm(b, "yearly", "business");
+                            const active = selectedBundle?.id === b.id;
+                            return (
+                              <button
+                                key={b.id}
+                                onClick={() => selectBundle(b)}
+                                className={`w-full flex items-center justify-between px-3 py-2.5 text-left transition-colors ${
+                                  active ? "bg-foreground/5" : "hover:bg-muted/50"
+                                } ${i > 0 || selectedBundle ? "border-t border-border" : ""}`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                    active ? "border-foreground" : "border-border"
+                                  }`}>
+                                    {active && <div className="w-2 h-2 rounded-full bg-foreground" />}
+                                  </div>
+                                  <span className={`text-sm truncate ${active ? "font-semibold text-foreground" : "text-foreground"}`}>
+                                    {b.bundle_name}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground shrink-0">{mods.length} mods</span>
+                                </div>
+                                {pepm > 0 && (
+                                  <span className="text-xs text-muted-foreground tabular-nums shrink-0 ml-2">
+                                    {pepm.toFixed(2)} €
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="relative mb-3">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input placeholder="Buscar..." value={catSearch} onChange={e => setCatSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+                    <Input placeholder="Buscar módulo..." value={catSearch} onChange={e => setCatSearch(e.target.value)} className="pl-9 h-9 text-sm" />
                   </div>
                   <ScrollArea className="flex-1">
                     <div className="space-y-4 pr-2 pb-4">
-                      {/* Bundles */}
-                      {!catSearch && validBundles.length > 0 && (
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Bundles</span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {validBundles.map(b => {
-                              const mods = parseModulesFromBundle(b);
-                              const allIn = mods.every(m => selectedModules.includes(m));
-                              return (
-                                <button
-                                  key={b.id}
-                                  onClick={() => addBundle(b)}
-                                  disabled={allIn}
-                                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                                    allIn
-                                      ? "bg-foreground/5 text-muted-foreground"
-                                      : "bg-foreground text-background hover:bg-foreground/90"
-                                  }`}
-                                >
-                                  {allIn && <Check className="h-3 w-3" />}
-                                  {b.bundle_name}
-                                  <span className="opacity-60">({mods.length})</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Module categories */}
                       {Object.entries(grouped).map(([cat, mods]) => (
                         <div key={cat}>
                           <div className="flex items-center gap-2 mb-1.5 sticky top-0 bg-background py-1">
@@ -367,10 +441,28 @@ export default function Express() {
                           </div>
                           {mods.map(m => {
                             const sel = selectedModules.includes(m.id);
+                            const inBundle = bundleModuleIds.has(m.id);
                             return (
-                              <button key={m.id} onClick={() => toggle(m.id)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between group ${sel ? "bg-foreground/5 text-foreground font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                                {m.label}
-                                {sel ? <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-40 transition-opacity shrink-0" />}
+                              <button
+                                key={m.id}
+                                onClick={() => !inBundle && toggle(m.id)}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between group ${
+                                  inBundle
+                                    ? "bg-foreground/5 text-muted-foreground cursor-default"
+                                    : sel
+                                      ? "bg-foreground/5 text-foreground font-medium"
+                                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                }`}
+                              >
+                                <span className="flex items-center gap-2">
+                                  {m.label}
+                                  {inBundle && <span className="text-[10px] text-muted-foreground/60">bundle</span>}
+                                </span>
+                                {inBundle
+                                  ? <Check className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
+                                  : sel
+                                    ? <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                                    : <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-40 transition-opacity shrink-0" />}
                               </button>
                             );
                           })}
@@ -393,14 +485,44 @@ export default function Express() {
                   ) : (
                     <ScrollArea className="flex-1">
                       <div className="space-y-2 pr-2 pb-4">
-                        {selectedModules.map(id => {
+                        {/* Bundle group */}
+                        {selectedBundle && parseModulesFromBundle(selectedBundle).filter(id => selectedModules.includes(id)).length > 0 && (
+                          <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-1.5" style={{ animation: "fadeIn 0.25s ease-out" }}>
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <Package className="h-3.5 w-3.5 text-foreground" />
+                                <span className="text-xs font-semibold text-foreground">{selectedBundle.bundle_name}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {bundlePepm > 0 && (
+                                  <span className="text-[10px] tabular-nums text-muted-foreground">{bundlePepm.toFixed(2)} €/pers/mes</span>
+                                )}
+                                <button onClick={clearBundle} className="h-5 w-5 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                            {parseModulesFromBundle(selectedBundle).filter(id => selectedModules.includes(id)).map(id => {
+                              const cat = MODULE_CATALOG.find(m => m.id === id);
+                              return (
+                                <div key={id} className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-background/60 text-sm">
+                                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
+                                  <span className="text-foreground/80">{cat?.label ?? moduleLabel(id)}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Add-on modules */}
+                        {addonModules.map(id => {
                           const cat = MODULE_CATALOG.find(m => m.id === id);
                           const sug = moduleSuggestions.find(sg => sg.module_id === id);
                           return (
                             <div key={id} className="rounded-lg border border-border bg-card p-3 flex items-start gap-3 group hover:shadow-sm transition-shadow" style={{ animation: "fadeIn 0.25s ease-out" }}>
-                              <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
                                   <span className="text-sm font-medium text-foreground">{cat?.label ?? moduleLabel(id)}</span>
                                   {sug?.confidence === "strong" && <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">AI</span>}
                                   {sug?.confidence === "possible" && <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">Posible</span>}
@@ -422,7 +544,9 @@ export default function Express() {
           </main>
           <footer className="sticky bottom-0 z-10 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-3">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{selectedModules.length} módulos seleccionados</span>
+              <span className="text-xs text-muted-foreground">
+                {selectedBundle ? `${selectedBundle.bundle_name} + ${addonModules.length} add-ons` : `${selectedModules.length} módulos`}
+              </span>
               <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="bg-foreground text-background hover:bg-foreground/90">
                 Continuar <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
@@ -580,7 +704,7 @@ export default function Express() {
               <Button variant="outline" onClick={() => setStep(2)}>
                 <ArrowLeft className="h-4 w-4 mr-1" /> Editar config
               </Button>
-              <Button variant="outline" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setCompanyName(""); setDealName(""); }}>
+              <Button variant="outline" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); }}>
                 Nuevo análisis
               </Button>
             </div>
