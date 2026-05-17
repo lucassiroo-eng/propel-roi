@@ -145,26 +145,6 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
 
-        {/* New session CTA */}
-        <button
-          onClick={() => navigate("/session/new")}
-          className="w-full rounded-2xl p-5 text-left bg-primary transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <div className="flex items-start justify-between">
-            <div className="w-11 h-11 rounded-xl bg-primary-foreground/20 flex items-center justify-center mb-3">
-              <Plus className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 bg-primary-foreground/10 px-2 py-0.5 rounded-full">
-              {t("home.new_session")}
-            </span>
-          </div>
-          <p className="text-primary-foreground font-bold text-lg leading-snug">{t("home.new_session_desc", "Calcula el ROI de un prospect")}</p>
-          <p className="text-primary-foreground/70 text-sm mt-1 mb-3">{t("home.new_session_sub", "Emails + llamadas + cuantificación en minutos")}</p>
-          <div className="flex items-center gap-1 text-primary-foreground font-semibold text-sm">
-            {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
-          </div>
-        </button>
-
         {/* Express CTA */}
         <button
           onClick={() => navigate("/express")}
@@ -182,6 +162,26 @@ export default function Home() {
           <p className="text-background/60 text-sm mt-1 mb-3">Pega el deal link y genera el ROI en minutos</p>
           <div className="flex items-center gap-1 text-background font-semibold text-sm">
             Empezar <ChevronRight className="h-4 w-4" />
+          </div>
+        </button>
+
+        {/* New session CTA */}
+        <button
+          onClick={() => navigate("/session/new")}
+          className="w-full rounded-2xl p-5 text-left bg-primary transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <div className="flex items-start justify-between">
+            <div className="w-11 h-11 rounded-xl bg-primary-foreground/20 flex items-center justify-center mb-3">
+              <Plus className="h-6 w-6 text-primary-foreground" />
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 bg-primary-foreground/10 px-2 py-0.5 rounded-full">
+              {t("home.new_session")}
+            </span>
+          </div>
+          <p className="text-primary-foreground font-bold text-lg leading-snug">{t("home.new_session_desc", "Calcula el ROI de un prospect")}</p>
+          <p className="text-primary-foreground/70 text-sm mt-1 mb-3">{t("home.new_session_sub", "Emails + llamadas + cuantificación en minutos")}</p>
+          <div className="flex items-center gap-1 text-primary-foreground font-semibold text-sm">
+            {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
           </div>
         </button>
 
