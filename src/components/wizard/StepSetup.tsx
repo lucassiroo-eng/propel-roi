@@ -296,33 +296,41 @@ export function StepSetup({ data, roiConfig, onChange, onRoiConfigChange, seats,
 
         {/* Deal info card */}
         {data.deal_name && (
-          <div className="rounded-lg bg-white/60 border border-border/50 px-4 py-3 flex items-center justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-foreground">{data.company_name || data.deal_name}</p>
-              {data.company_name && data.deal_name && (
-                <p className="text-xs text-muted-foreground mt-0.5">{data.deal_name}</p>
-              )}
-              {data.contact_name && (
-                <p className="text-xs text-muted-foreground mt-0.5">{data.contact_name}{data.contact_email ? ` — ${data.contact_email}` : ""}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {data.seats > 0 && (
-                <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" />
-                  <span className="text-sm font-semibold tabular-nums">{data.seats}</span>
-                </div>
-              )}
-              {data.hubspot_deal_url && (
-                <a
-                  href={data.hubspot_deal_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-80 transition-opacity"
-                >
-                  <img src="/hubspot-logo.png" alt="HubSpot" className="h-6 w-6" />
-                </a>
-              )}
+          <div className="rounded-lg bg-white/60 border border-border/50 px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0 flex-1 space-y-1">
+                <Label className="text-[11px] text-muted-foreground">{t("setup.company_name_label")}</Label>
+                <Input
+                  value={data.company_name || ""}
+                  onChange={e => onChange({ company_name: e.target.value })}
+                  placeholder={data.deal_name || t("prospect.company_placeholder")}
+                  className="h-8 text-sm font-semibold border-dashed border-muted-foreground/20 bg-transparent hover:border-muted-foreground/40"
+                />
+                {data.deal_name && (
+                  <p className="text-xs text-muted-foreground">{data.deal_name}</p>
+                )}
+                {data.contact_name && (
+                  <p className="text-xs text-muted-foreground">{data.contact_name}{data.contact_email ? ` — ${data.contact_email}` : ""}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                {data.seats > 0 && (
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Users className="h-3.5 w-3.5" />
+                    <span className="text-sm font-semibold tabular-nums">{data.seats}</span>
+                  </div>
+                )}
+                {data.hubspot_deal_url && (
+                  <a
+                    href={data.hubspot_deal_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-80 transition-opacity"
+                  >
+                    <img src="/hubspot-logo.png" alt="HubSpot" className="h-6 w-6" />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         )}
