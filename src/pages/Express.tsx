@@ -11,7 +11,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, ArrowRight, Check, Download, Pencil,
+  ArrowLeft, ArrowRight, Check, Download, Pencil, Save,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
 } from "lucide-react";
@@ -27,7 +27,7 @@ import {
   moduleLabel, parseModulesFromBundle, getBundlePepm, type BundleRow,
 } from "@/lib/offeringEngine";
 import {
-  getEffectiveHours, getCountForEntry, MODULE_HOURS,
+  getEffectiveHours, getHoursForModule, getCountForEntry, MODULE_HOURS,
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
 import {
@@ -82,6 +82,8 @@ export default function Express() {
 
   // Step 3
   const [dlPdf, setDlPdf] = useState<string | null>(null);
+  const [hypothesesOpen, setHypothesesOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // ── Bundles ────────────────────────────────────────────
   const { data: bundles } = useQuery({
@@ -252,7 +254,7 @@ export default function Express() {
     const mul: RoiMultipliers = { headcounts, onboardings_per_year: roiConfig.onboardings_per_year, expense_submitters: roiConfig.expense_submitters };
     let mHrs = 0, mMon = 0;
     for (const modId of selectedModules) {
-      const hrs = getEffectiveHours(modId);
+      const hrs = getEffectiveHours(modId, roiConfig.hours_overrides);
       for (const sk of ["employee", "hr", "manager"] as Stakeholder[]) {
         const e = MODULE_HOURS.find(x => x.module_id === modId && x.stakeholder === sk);
         const cnt = e ? getCountForEntry(e, mul) : headcounts[sk];
@@ -716,7 +718,7 @@ export default function Express() {
               <Button variant="outline" onClick={() => setStep(1)}>
                 <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
               </Button>
-              <Button onClick={() => { setStep(3); saveToHistory(); }} disabled={roiConfig.headcounts.employee === 0} className="bg-foreground text-background hover:bg-foreground/90">
+              <Button onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="bg-foreground text-background hover:bg-foreground/90">
                 Ver resultado <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
@@ -727,68 +729,177 @@ export default function Express() {
       {/* ──────────── STEP 3: Results ──────────── */}
       {step === 3 && roi && (
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
-            <div className="text-center">
+          <div className="max-w-2xl mx-auto px-5 py-8 space-y-6">
+            {/* Hero */}
+            <div className="text-center space-y-1">
               <h2 className="text-2xl font-bold text-foreground">{companyName || dealName || "Empresa"}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{selectedModules.length} módulos · {totalPeople} personas</p>
+              <p className="text-sm text-muted-foreground">{selectedModules.length} módulos · {totalPeople} personas</p>
             </div>
 
             {/* KPIs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Ahorro anual", val: `${fmtEur(roi.savings)} €`, cls: "text-foreground" },
-                { label: "Coste anual", val: `${fmtEur(roi.cost)} €`, cls: "text-foreground" },
-                { label: "ROI", val: roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—", cls: roi.pct > 0 ? "text-emerald-600" : "text-foreground" },
-                { label: "Payback", val: roi.savings > 0 ? `${roi.payback.toFixed(0)} meses` : "—", cls: "text-foreground" },
+                { label: "Ahorro anual", val: `${fmtEur(roi.savings)} €`, accent: false },
+                { label: "Coste Factorial", val: `${fmtEur(roi.cost)} €`, accent: false },
+                { label: "ROI", val: roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—", accent: roi.pct > 0 },
+                { label: "Payback", val: roi.savings > 0 ? `${roi.payback.toFixed(1)} meses` : "—", accent: false },
               ].map(k => (
-                <div key={k.label} className="rounded-xl border border-border bg-card p-4 text-center">
-                  <p className="text-[11px] text-muted-foreground mb-1">{k.label}</p>
-                  <p className={`text-xl font-bold tabular-nums ${k.cls}`}>{k.val}</p>
+                <div key={k.label} className={`rounded-xl p-4 text-center ${k.accent ? "bg-emerald-50 border border-emerald-200" : "bg-card border border-border"}`}>
+                  <p className="text-[11px] text-muted-foreground mb-1 uppercase tracking-wider font-medium">{k.label}</p>
+                  <p className={`text-xl font-bold tabular-nums ${k.accent ? "text-emerald-600" : "text-foreground"}`}>{k.val}</p>
                 </div>
               ))}
             </div>
 
-            {/* Edit hypotheses */}
-            <button
-              onClick={() => setStep(2)}
-              className="w-full flex items-center gap-3 rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <Pencil className="h-4 w-4 text-muted-foreground shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">Editar hipótesis</p>
-                <p className="text-xs text-muted-foreground">{roiConfig.headcounts.employee} empleados · {roiConfig.headcounts.hr} FTEs HR · {roiConfig.headcounts.manager} managers · {fmtEur(annualCost)} €/año</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-            </button>
-
-            {/* PDF downloads */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-5 text-left hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-foreground flex items-center justify-center"><FileText className="h-5 w-5 text-background" /></div>
-                  <div><p className="text-sm font-semibold text-foreground">1 Slide</p><p className="text-xs text-muted-foreground">Resumen ejecutivo</p></div>
+            {/* Hypotheses editor */}
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <button
+                onClick={() => setHypothesesOpen(o => !o)}
+                className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Pencil className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Hipótesis por módulo</span>
+                  <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{selectedModules.length}</span>
                 </div>
-                <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                  {dlPdf === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Descargar PDF
-                </span>
+                {hypothesesOpen
+                  ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
               </button>
 
-              <button onClick={() => downloadPdf("detail")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-5 text-left hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-foreground flex items-center justify-center"><FileText className="h-5 w-5 text-background" /></div>
-                  <div><p className="text-sm font-semibold text-foreground">Detalle</p><p className="text-xs text-muted-foreground">Módulo por módulo</p></div>
+              {hypothesesOpen && (
+                <div className="border-t border-border">
+                  {/* General config summary */}
+                  <div className="px-4 py-3 bg-muted/20 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>{roiConfig.headcounts.employee} empleados</span>
+                    <span>{roiConfig.headcounts.hr} FTEs HR</span>
+                    <span>{roiConfig.headcounts.manager} managers</span>
+                    <button onClick={() => setStep(2)} className="text-foreground font-medium hover:underline underline-offset-2">
+                      Editar config
+                    </button>
+                  </div>
+
+                  {/* Module hours table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border bg-muted/10">
+                          <th className="text-left px-4 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Módulo</th>
+                          <th className="text-center px-2 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#3B82F6" }}>Emp h/m</th>
+                          <th className="text-center px-2 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#10B981" }}>HR h/m</th>
+                          <th className="text-center px-2 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#F59E0B" }}>Mgr h/m</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedModules.map((modId, idx) => {
+                          const cat = MODULE_CATALOG.find(m => m.id === modId);
+                          const defaults = getHoursForModule(modId);
+                          const overrides = roiConfig.hours_overrides?.[modId];
+                          return (
+                            <tr key={modId} className={idx > 0 ? "border-t border-border/60" : ""}>
+                              <td className="px-4 py-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
+                                  <span className="text-foreground text-sm">{cat?.label ?? moduleLabel(modId)}</span>
+                                </div>
+                              </td>
+                              {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
+                                const def = defaults[sk];
+                                const val = overrides?.[sk] ?? def;
+                                const hasOverride = overrides?.[sk] !== undefined && overrides[sk] !== def;
+                                return (
+                                  <td key={sk} className="px-2 py-1.5 text-center">
+                                    {def === 0 && !hasOverride ? (
+                                      <span className="text-muted-foreground/30 text-xs">—</span>
+                                    ) : (
+                                      <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        className={`w-16 h-7 text-center text-sm tabular-nums rounded-md border bg-transparent focus:outline-none focus:ring-1 focus:ring-ring ${
+                                          hasOverride ? "border-amber-300 bg-amber-50/50 font-semibold" : "border-border"
+                                        }`}
+                                        value={val}
+                                        onChange={e => {
+                                          const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                          setRoiConfig(prev => {
+                                            const ho = { ...(prev.hours_overrides ?? {}) };
+                                            ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
+                                            if (v === def) delete ho[modId]![sk];
+                                            if (Object.keys(ho[modId]!).length === 0) delete ho[modId];
+                                            return { ...prev, hours_overrides: ho };
+                                          });
+                                        }}
+                                      />
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <span className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                  {dlPdf === "detail" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Descargar PDF
-                </span>
+              )}
+            </div>
+
+            {/* PDF downloads */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-4 text-left hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-foreground/5 border border-border flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4 text-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">1 Slide</p>
+                    <p className="text-xs text-muted-foreground">Resumen ejecutivo</p>
+                  </div>
+                  <span className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors">
+                    {dlPdf === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  </span>
+                </div>
+              </button>
+
+              <button onClick={() => downloadPdf("detail")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-4 text-left hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-foreground/5 border border-border flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4 text-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Detalle</p>
+                    <p className="text-xs text-muted-foreground">Módulo por módulo</p>
+                  </div>
+                  <span className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors">
+                    {dlPdf === "detail" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  </span>
+                </div>
               </button>
             </div>
 
-            {/* New analysis */}
-            <div className="flex justify-center pt-2">
-              <Button variant="outline" size="sm" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); savedSessionId.current = null; }}>
-                Nuevo análisis
+            {/* Save + actions */}
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <Button
+                onClick={async () => {
+                  setSaving(true);
+                  await saveToHistory();
+                  setSaving(false);
+                  toast.success("ROI guardado");
+                  navigate("/");
+                }}
+                disabled={saving || !!savedSessionId.current}
+                className="w-full max-w-xs h-11 bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold"
+              >
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                {savedSessionId.current ? "Guardado" : "Guardar y volver"}
               </Button>
+              <button
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; setRoiConfig(p => ({ ...p, hours_overrides: undefined })); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Nuevo análisis
+              </button>
             </div>
           </div>
         </main>
