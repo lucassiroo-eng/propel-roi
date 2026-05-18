@@ -263,6 +263,7 @@ export default function Express() {
           pae_id: user.id,
           prospect_id: prospect!.id,
           status,
+          selected_pains: [],
           selected_modules: selectedModules as any,
           module_suggestions: moduleSuggestions as any,
           roi_config: roiConfig as any,
