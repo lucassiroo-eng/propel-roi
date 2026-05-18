@@ -284,7 +284,10 @@ function generateSummarySlideBody(data: RoiSlideData): string {
 
   const brandHtml = buildBrandHtml(data);
 
-  return `<div class="slide summary-slide" style="--row-pad:${rowPad}px;--total-font:${totalFont}px;--total-label-font:${totalLabelFont}px;">
+  const thFont = mc <= 5 ? 12 : 10;
+  const thPad = mc <= 5 ? 14 : 10;
+
+  return `<div class="slide summary-slide" style="--row-pad:${rowPad}px;--total-font:${totalFont}px;--total-label-font:${totalLabelFont}px;--cell-font:${cellFont}px;--pill-font:${pillFont}px;--pill-pad-v:${pillPadV}px;--pill-pad-h:${pillPadH}px;--dot-size:${dotSize}px;--group-font:${groupHeaderFont}px;--th-font:${thFont}px;--th-pad:${thPad}px;">
 
   <div class="header">
     <div class="header-left">
@@ -787,9 +790,9 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .table-section { padding: 12px 44px 0 48px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
   .module-table { width: 100%; border-collapse: collapse; }
   .module-table thead th {
-    color: #9CA3AF; font-size: 12px; font-weight: 600;
+    color: #9CA3AF; font-size: var(--th-font, 12px); font-weight: 600;
     text-transform: uppercase; letter-spacing: 0.08em;
-    padding: 0 0 14px 0; text-align: left;
+    padding: 0 0 var(--th-pad, 14px) 0; text-align: left;
     border-bottom: 1px solid #F3F4F6;
   }
   .module-table thead th:nth-child(2) { text-align: center; width: 120px; }
@@ -797,25 +800,25 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
 
   .module-table tbody tr { transition: background 0.15s; }
   .module-table tbody tr:hover { background: #FAFAFA; }
-  .module-table tbody td { padding: 12px 0; vertical-align: middle; border-bottom: 1px solid #F9FAFB; font-variant-numeric: tabular-nums; }
-  .module-table tbody td:nth-child(2) { text-align: center; font-size: 16px; color: #374151; font-weight: 600; width: 120px; }
-  .module-table tbody td:nth-child(3) { text-align: right; font-size: 16px; color: #374151; font-weight: 600; width: 120px; }
+  .module-table tbody td { padding: var(--row-pad, 12px) 0; vertical-align: middle; border-bottom: 1px solid #F9FAFB; font-variant-numeric: tabular-nums; }
+  .module-table tbody td:nth-child(2) { text-align: center; font-size: var(--cell-font, 16px); color: #374151; font-weight: 600; width: 120px; }
+  .module-table tbody td:nth-child(3) { text-align: right; font-size: var(--cell-font, 16px); color: #374151; font-weight: 600; width: 120px; }
 
   .pill {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 7px 17px; border-radius: 20px;
-    color: #fff; font-weight: 700; font-size: 14px; white-space: nowrap;
+    padding: var(--pill-pad-v, 7px) var(--pill-pad-h, 17px); border-radius: 20px;
+    color: #fff; font-weight: 700; font-size: var(--pill-font, 14px); white-space: nowrap;
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
   }
-  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+  .pill .dot { width: var(--dot-size, 6px); height: var(--dot-size, 6px); border-radius: 50%; background: rgba(255,255,255,0.5); }
 
-  .group-header td { padding: 6px 0 4px 0; border-bottom: none; }
-  .group-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9CA3AF; }
+  .group-header td { padding: calc(var(--row-pad, 12px) - 4px) 0 calc(var(--row-pad, 12px) - 6px) 0; border-bottom: none; }
+  .group-label { font-size: var(--group-font, 10px); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9CA3AF; }
 
-  .module-table .total-row td { padding-top: 16px !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
-  .module-table .total-row .total-label { font-size: 16px; font-weight: 700; color: #1F2937; }
-  .module-table .total-row .total-hours { font-size: 17px; font-weight: 700; color: #374151; text-align: center; font-variant-numeric: tabular-nums; }
-  .module-table .total-row .total-savings { font-size: 22px; font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
+  .module-table .total-row td { padding-top: calc(var(--row-pad, 12px) + 4px) !important; border-top: 2px solid #E5E7EB; border-bottom: none; }
+  .module-table .total-row .total-label { font-size: var(--total-label-font, 16px); font-weight: 700; color: #1F2937; }
+  .module-table .total-row .total-hours { font-size: var(--total-font, 17px); font-weight: 700; color: #374151; text-align: center; font-variant-numeric: tabular-nums; }
+  .module-table .total-row .total-savings { font-size: calc(var(--total-font, 22px) + 2px); font-weight: 800; color: #FF355E; text-align: right; font-variant-numeric: tabular-nums; }
 
   .quotes-section {
     padding: 12px 44px 10px 48px;

@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, ArrowRight, Check, Download,
+  ArrowLeft, ArrowRight, Check, Download, Pencil,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
 } from "lucide-react";
@@ -697,6 +697,19 @@ export default function Express() {
               ))}
             </div>
 
+            {/* Edit hypotheses */}
+            <button
+              onClick={() => setStep(2)}
+              className="w-full flex items-center gap-3 rounded-xl border border-dashed border-border bg-muted/30 px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Pencil className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">Editar hipótesis</p>
+                <p className="text-xs text-muted-foreground">{roiConfig.headcounts.employee} empleados · {roiConfig.headcounts.hr} FTEs HR · {roiConfig.headcounts.manager} managers · {fmtEur(annualCost)} €/año</p>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
+
             {/* PDF downloads */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-5 text-left hover:shadow-md transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
@@ -720,12 +733,9 @@ export default function Express() {
               </button>
             </div>
 
-            {/* Footer actions */}
-            <div className="flex items-center justify-center gap-3 pt-4">
-              <Button variant="outline" onClick={() => setStep(2)}>
-                <ArrowLeft className="h-4 w-4 mr-1" /> Editar config
-              </Button>
-              <Button variant="outline" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); }}>
+            {/* New analysis */}
+            <div className="flex justify-center pt-2">
+              <Button variant="outline" size="sm" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); }}>
                 Nuevo análisis
               </Button>
             </div>
