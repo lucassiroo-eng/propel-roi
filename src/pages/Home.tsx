@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Plus, LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap } from "lucide-react";
+import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,9 @@ interface SessionEntry {
   id: string;
   status: string;
   roi_eur: number | null;
+  roi_pct: number | null;
+  payback_months: number | null;
+  total_annual_benefit_eur: number | null;
   updated_at: string;
 }
 
@@ -55,7 +58,7 @@ export default function Home() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("roi_sessions")
-        .select("id, status, roi_eur, total_annual_benefit_eur, updated_at, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
+        .select("id, status, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -70,7 +73,12 @@ export default function Home() {
       if (!prospect) continue;
       const name = (prospect.company_name ?? "").trim().toLowerCase();
       const key = name || s.prospect_id;
-      const entry: SessionEntry = { id: s.id, status: s.status, roi_eur: s.roi_eur, updated_at: s.updated_at };
+      const entry: SessionEntry = {
+        id: s.id, status: s.status, roi_eur: s.roi_eur,
+        roi_pct: s.roi_pct, payback_months: s.payback_months,
+        total_annual_benefit_eur: s.total_annual_benefit_eur,
+        updated_at: s.updated_at,
+      };
       if (!map.has(key)) {
         map.set(key, {
           prospectId: prospect.id ?? s.prospect_id,
@@ -98,6 +106,7 @@ export default function Home() {
   })();
 
   const locale = i18n.language.startsWith("es") ? es : i18n.language.startsWith("fr") ? fr : undefined;
+  const fmtEur = (n: number) => n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background">
@@ -161,26 +170,6 @@ export default function Home() {
           <p className="text-background font-bold text-lg leading-snug">ROI Express</p>
           <p className="text-background/60 text-sm mt-1 mb-3">Pega el deal link y genera el ROI en minutos</p>
           <div className="flex items-center gap-1 text-background font-semibold text-sm">
-            Empezar <ChevronRight className="h-4 w-4" />
-          </div>
-        </button>
-
-        {/* New session CTA */}
-        <button
-          onClick={() => navigate("/session/new")}
-          className="w-full rounded-2xl p-5 text-left bg-primary transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <div className="flex items-start justify-between">
-            <div className="w-11 h-11 rounded-xl bg-primary-foreground/20 flex items-center justify-center mb-3">
-              <Plus className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary-foreground/60 bg-primary-foreground/10 px-2 py-0.5 rounded-full">
-              {t("home.new_session")}
-            </span>
-          </div>
-          <p className="text-primary-foreground font-bold text-lg leading-snug">{t("home.new_session_desc", "Calcula el ROI de un prospect")}</p>
-          <p className="text-primary-foreground/70 text-sm mt-1 mb-3">{t("home.new_session_sub", "Emails + llamadas + cuantificación en minutos")}</p>
-          <div className="flex items-center gap-1 text-primary-foreground font-semibold text-sm">
             {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
           </div>
         </button>
@@ -206,12 +195,9 @@ export default function Home() {
                 const hasHistory = c.sessions.length > 1;
 
                 return (
-                  <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
+                  <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden">
                     {/* Main card */}
-                    <button
-                      onClick={() => navigate(`/session/${latest.id}`)}
-                      className="w-full p-4 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-                    >
+                    <div className="p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -233,19 +219,6 @@ export default function Home() {
                           <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[latest.status] ?? "bg-gray-100 text-gray-500"}`}>
                             {t(statusI18nKey(latest.status))}
                           </span>
-                          {latest.roi_eur != null && (
-                            <span className="text-sm font-bold text-primary">
-                              €{Number(latest.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between mt-2.5">
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
-                        </div>
-                        <div className="flex items-center gap-2">
                           {c.hasDocument && (
                             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
                               <FileText className="h-2.5 w-2.5" />
@@ -254,7 +227,44 @@ export default function Home() {
                           )}
                         </div>
                       </div>
-                    </button>
+
+                      {/* ROI metrics row */}
+                      {(latest.roi_eur != null || latest.roi_pct != null) && (
+                        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/60">
+                          {latest.total_annual_benefit_eur != null && (
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Ahorro</p>
+                              <p className="text-sm font-bold text-foreground tabular-nums">{fmtEur(latest.total_annual_benefit_eur)} €</p>
+                            </div>
+                          )}
+                          {latest.roi_eur != null && (
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">ROI neto</p>
+                              <p className="text-sm font-bold text-foreground tabular-nums">{fmtEur(latest.roi_eur)} €</p>
+                            </div>
+                          )}
+                          {latest.roi_pct != null && latest.roi_pct > 0 && (
+                            <div className="shrink-0">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">ROI</p>
+                              <p className="text-sm font-bold text-emerald-600 tabular-nums">{latest.roi_pct}%</p>
+                            </div>
+                          )}
+                          {latest.payback_months != null && latest.payback_months > 0 && (
+                            <div className="shrink-0">
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Payback</p>
+                              <p className="text-sm font-bold text-foreground tabular-nums">{latest.payback_months}m</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="flex items-center mt-2.5">
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
+                        </div>
+                      </div>
+                    </div>
 
                     {/* History toggle */}
                     {hasHistory && (
@@ -274,10 +284,9 @@ export default function Home() {
                         {isExpanded && (
                           <div className="border-t border-border bg-muted/30">
                             {c.sessions.map((sess, i) => (
-                              <button
+                              <div
                                 key={sess.id}
-                                onClick={() => navigate(`/session/${sess.id}`)}
-                                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${i > 0 ? "border-t border-border/60" : ""}`}
+                                className={`flex items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-border/60" : ""}`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[sess.status] ?? "bg-gray-100 text-gray-500"}`}>
@@ -287,15 +296,17 @@ export default function Home() {
                                     {formatDistanceToNow(new Date(sess.updated_at), { addSuffix: true, locale })}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex items-center gap-3 shrink-0">
+                                  {sess.roi_pct != null && sess.roi_pct > 0 && (
+                                    <span className="text-xs font-bold text-emerald-600 tabular-nums">{sess.roi_pct}%</span>
+                                  )}
                                   {sess.roi_eur != null && (
-                                    <span className="text-xs font-semibold text-primary">
-                                      €{Number(sess.roi_eur).toLocaleString("es-ES", { maximumFractionDigits: 0 })}
+                                    <span className="text-xs font-semibold text-foreground tabular-nums">
+                                      {fmtEur(sess.roi_eur)} €
                                     </span>
                                   )}
-                                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                 </div>
-                              </button>
+                              </div>
                             ))}
                           </div>
                         )}
