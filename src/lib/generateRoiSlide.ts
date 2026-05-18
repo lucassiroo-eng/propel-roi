@@ -651,19 +651,18 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
     const brandHtml2 = buildBrandHtml(data);
     const toolName = escHtml(detail.tool_override.tool_name || "—");
     const monthlyCost = fmtEur(Math.round(detail.total_annual / 12));
-    const replacesLabel: Record<string, string> = { es: "Sustituye a", en: "Replaces", fr: "Remplace" };
-    const currentToolLabel: Record<string, string> = { es: "Herramienta actual", en: "Current tool", fr: "Outil actuel" };
-    const annualCostLabel: Record<string, string> = { es: "Coste anual", en: "Annual cost", fr: "Coût annuel" };
-    const monthlyCostLabel: Record<string, string> = { es: "Coste mensual", en: "Monthly cost", fr: "Coût mensuel" };
-    const savingsLabel: Record<string, string> = { es: "Ahorro anual", en: "Annual savings", fr: "Économies annuelles" };
-    const includedLabel: Record<string, string> = { es: "Incluido en Factorial", en: "Included in Factorial", fr: "Inclus dans Factorial" };
-    const noExtraCostLabel: Record<string, string> = { es: "Sin coste adicional", en: "No additional cost", fr: "Sans coût supplémentaire" };
+    const i18nTool: Record<string, Record<string, string>> = {
+      es: { subtitle: "Sustitución de herramienta", current: "Herramienta actual", cost_yr: "Coste anual", cost_mo: "Coste mensual", replacement: "Solución Factorial", included: "Incluido en la plataforma", saving: "Ahorro estimado" },
+      en: { subtitle: "Tool replacement", current: "Current tool", cost_yr: "Annual cost", cost_mo: "Monthly cost", replacement: "Factorial solution", included: "Included in the platform", saving: "Estimated savings" },
+      fr: { subtitle: "Remplacement d'outil", current: "Outil actuel", cost_yr: "Coût annuel", cost_mo: "Coût mensuel", replacement: "Solution Factorial", included: "Inclus dans la plateforme", saving: "Économies estimées" },
+    };
+    const tt = i18nTool[lang] ?? i18nTool.es;
 
     return `
   <div class="slide detail-slide">
     <div class="header">
       <div class="header-left">
-        <div class="title"><span class="module-pill" style="background:${detail.color};">${escHtml(detail.name)}</span> <span class="detail-label">${replacesLabel[lang] ?? replacesLabel.es} ${toolName}</span></div>
+        <div class="title"><span class="module-pill" style="background:${detail.color};">${escHtml(detail.name)}</span> <span class="detail-label">${t.detail_title}</span></div>
       </div>
       <div class="header-right">
         <div class="header-date">${escHtml(data.date)}</div>
@@ -671,60 +670,51 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
       </div>
     </div>
     <div class="detail-content" style="justify-content:center;align-items:center;">
-      <!-- Before / After comparison -->
-      <div style="display:flex;align-items:center;gap:40px;width:100%;max-width:1100px;">
-        <!-- BEFORE: Old tool -->
-        <div style="flex:1;background:#FEF2F2;border:2px solid #FECACA;border-radius:20px;padding:36px 32px;position:relative;text-align:center;">
-          <div style="position:absolute;top:-14px;left:28px;background:#EF4444;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.08em;">${currentToolLabel[lang] ?? currentToolLabel.es}</div>
-          <div style="font-size:36px;font-weight:800;color:#991B1B;margin-top:8px;text-decoration:line-through;text-decoration-thickness:3px;text-decoration-color:#EF4444;">${toolName}</div>
-          <div style="margin-top:24px;display:flex;gap:20px;justify-content:center;">
-            <div style="text-align:center;">
-              <div style="font-size:28px;font-weight:800;color:#EF4444;">${fmtEur(detail.total_annual)}</div>
-              <div style="font-size:12px;color:#991B1B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;">${annualCostLabel[lang] ?? annualCostLabel.es}</div>
-            </div>
-            <div style="width:1px;background:#FECACA;"></div>
-            <div style="text-align:center;">
-              <div style="font-size:28px;font-weight:800;color:#EF4444;">${monthlyCost}</div>
-              <div style="font-size:12px;color:#991B1B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;">${monthlyCostLabel[lang] ?? monthlyCostLabel.es}</div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Arrow -->
-        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;">
-          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-            <circle cx="32" cy="32" r="32" fill="#F0FDF4"/>
-            <path d="M22 32h20m0 0l-8-8m8 8l-8 8" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
+      <div style="font-size:14px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.08em;">${tt.subtitle}</div>
 
-        <!-- AFTER: Factorial -->
-        <div style="flex:1;background:#F0FDF4;border:2px solid #BBF7D0;border-radius:20px;padding:36px 32px;position:relative;text-align:center;">
-          <div style="position:absolute;top:-14px;left:28px;background:#16A34A;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.08em;">Factorial ${escHtml(detail.name)}</div>
-          <div style="font-size:20px;font-weight:700;color:#166534;margin-top:8px;">${includedLabel[lang] ?? includedLabel.es}</div>
-          <div style="font-size:14px;color:#15803D;margin-top:4px;font-weight:500;">${noExtraCostLabel[lang] ?? noExtraCostLabel.es}</div>
-          <div style="margin-top:20px;background:#fff;border-radius:14px;padding:16px 24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">${savingsLabel[lang] ?? savingsLabel.es}</div>
-            <div style="font-size:36px;font-weight:800;color:#16A34A;margin-top:4px;">${fmtEur(detail.total_annual)}</div>
-          </div>
+      <!-- Comparison table -->
+      <table style="width:100%;max-width:900px;border-collapse:collapse;margin-top:4px;">
+        <thead>
+          <tr>
+            <th style="width:50%;text-align:left;padding:0 0 14px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E7EB;">${tt.current}</th>
+            <th style="width:50%;text-align:left;padding:0 0 14px 24px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E7EB;">${tt.replacement}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:28px 0;vertical-align:top;border-bottom:1px solid #F3F4F6;">
+              <div style="font-size:26px;font-weight:800;color:#1F2937;">${toolName}</div>
+              <div style="display:flex;gap:32px;margin-top:20px;">
+                <div>
+                  <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_yr}</div>
+                  <div style="font-size:24px;font-weight:800;color:#1F2937;margin-top:4px;">${fmtEur(detail.total_annual)}</div>
+                </div>
+                <div>
+                  <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_mo}</div>
+                  <div style="font-size:24px;font-weight:800;color:#1F2937;margin-top:4px;">${monthlyCost}</div>
+                </div>
+              </div>
+            </td>
+            <td style="padding:28px 0 28px 24px;vertical-align:top;border-bottom:1px solid #F3F4F6;border-left:1px solid #F3F4F6;">
+              <div style="font-size:26px;font-weight:800;color:#1F2937;">Factorial ${escHtml(detail.name)}</div>
+              <div style="font-size:14px;color:#6B7280;margin-top:6px;font-weight:500;">${tt.included}</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Savings callout -->
+      <div style="display:flex;gap:16px;max-width:900px;width:100%;margin-top:8px;">
+        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:14px;font-weight:600;color:#6B7280;">${tt.saving}</div>
+          <div style="font-size:32px;font-weight:800;color:#FF355E;">${fmtEur(detail.total_annual)}<span style="font-size:14px;font-weight:600;color:#9CA3AF;margin-left:6px;">/ ${(i18nTool.es === tt ? "año" : lang === "en" ? "year" : "an")}</span></div>
+        </div>
+        <div style="background:#FAFAFA;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:center;min-width:120px;">
+          <div style="font-size:32px;font-weight:800;color:#374151;">${pctOfTotal}%</div>
         </div>
       </div>
 
-      <!-- Bottom summary bar -->
-      <div style="display:flex;gap:16px;max-width:1100px;width:100%;margin-top:12px;">
-        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:14px 20px;text-align:center;border-left:4px solid ${detail.color};">
-          <div style="font-size:22px;font-weight:800;color:${detail.color};">${toolName}</div>
-          <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;">${t.replaces_tool}</div>
-        </div>
-        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:14px 20px;text-align:center;border-left:4px solid #FF355E;">
-          <div style="font-size:22px;font-weight:800;color:#FF355E;">${fmtEur(detail.total_annual)}</div>
-          <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;">${t.tool_saving}</div>
-        </div>
-        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:14px 20px;text-align:center;border-left:4px solid #374151;">
-          <div style="font-size:22px;font-weight:800;color:#374151;">${pctOfTotal}%</div>
-          <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;">${t.pct_of_total}</div>
-        </div>
-      </div>
     </div>
   </div>`;
   }
@@ -1145,12 +1135,12 @@ async function captureSlide(slide: HTMLElement, html2canvas: any, useForeignObje
   }
   try {
     const canvas = await html2canvas(slide, {
-      width: 1440, height: 810, scale: 2,
+      width: 1440, height: 810, scale: 3,
       useCORS: true, logging: false, backgroundColor: "#ffffff",
       windowWidth: 1440, windowHeight: 810,
       foreignObjectRendering: useForeignObject,
     });
-    return canvas.toDataURL("image/jpeg", 0.92);
+    return canvas.toDataURL("image/png");
   } finally {
     if (injectedStyle) injectedStyle.remove();
   }
@@ -1183,7 +1173,7 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
 
     const img = await captureSlide(slide, html2canvas, true, fontCss);
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
-    pdf.addImage(img, "JPEG", 0, 0, 1440, 810);
+    pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
   } finally {
     document.body.removeChild(iframe);
@@ -1238,7 +1228,7 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
       if (!slide) continue;
 
       const img = await captureSlide(slide, html2canvas, true, fontCss);
-      pdf.addImage(img, "JPEG", 0, 0, 1440, 810);
+      pdf.addImage(img, "PNG", 0, 0, 1440, 810);
     }
 
     pdf.save(`ROI-Report-${data.company_name || "report"}.pdf`);
