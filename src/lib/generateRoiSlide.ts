@@ -1036,12 +1036,12 @@ async function captureSlide(slide: HTMLElement, html2canvas: any, useForeignObje
   }
   try {
     const canvas = await html2canvas(slide, {
-      width: 1440, height: 810, scale: 2,
+      width: 1440, height: 810, scale: 1.5,
       useCORS: true, logging: false, backgroundColor: "#ffffff",
       windowWidth: 1440, windowHeight: 810,
       foreignObjectRendering: useForeignObject,
     });
-    return canvas.toDataURL("image/png");
+    return canvas.toDataURL("image/jpeg", 0.85);
   } finally {
     if (injectedStyle) injectedStyle.remove();
   }
@@ -1074,7 +1074,7 @@ export async function generateRoiSlidePdf(data: RoiSlideData): Promise<void> {
 
     const img = await captureSlide(slide, html2canvas, true, fontCss);
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
-    pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+    pdf.addImage(img, "JPEG", 0, 0, 1440, 810);
     pdf.save(`ROI-Slide-${data.company_name || "report"}.pdf`);
   } finally {
     document.body.removeChild(iframe);
@@ -1133,7 +1133,7 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
         if (!slide) continue;
 
         const img = await captureSlide(slide, html2canvas, true, fontCss);
-        pdf.addImage(img, "PNG", 0, 0, 1440, 810);
+        pdf.addImage(img, "JPEG", 0, 0, 1440, 810);
       } finally {
         document.body.removeChild(capIframe);
       }
