@@ -649,33 +649,82 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
 
   if (detail.tool_override) {
     const brandHtml2 = buildBrandHtml(data);
+    const toolName = escHtml(detail.tool_override.tool_name || "—");
+    const monthlyCost = fmtEur(Math.round(detail.total_annual / 12));
+    const replacesLabel: Record<string, string> = { es: "Sustituye a", en: "Replaces", fr: "Remplace" };
+    const currentToolLabel: Record<string, string> = { es: "Herramienta actual", en: "Current tool", fr: "Outil actuel" };
+    const annualCostLabel: Record<string, string> = { es: "Coste anual", en: "Annual cost", fr: "Coût annuel" };
+    const monthlyCostLabel: Record<string, string> = { es: "Coste mensual", en: "Monthly cost", fr: "Coût mensuel" };
+    const savingsLabel: Record<string, string> = { es: "Ahorro anual", en: "Annual savings", fr: "Économies annuelles" };
+    const includedLabel: Record<string, string> = { es: "Incluido en Factorial", en: "Included in Factorial", fr: "Inclus dans Factorial" };
+    const noExtraCostLabel: Record<string, string> = { es: "Sin coste adicional", en: "No additional cost", fr: "Sans coût supplémentaire" };
+
     return `
   <div class="slide detail-slide">
     <div class="header">
       <div class="header-left">
-        <div class="title"><span class="module-pill" style="background:${detail.color};">${escHtml(detail.name)}</span> <span class="detail-label">${t.detail_title}</span></div>
+        <div class="title"><span class="module-pill" style="background:${detail.color};">${escHtml(detail.name)}</span> <span class="detail-label">${replacesLabel[lang] ?? replacesLabel.es} ${toolName}</span></div>
       </div>
       <div class="header-right">
         <div class="header-date">${escHtml(data.date)}</div>
         <div class="header-brand">${brandHtml2}</div>
       </div>
     </div>
-    <div class="detail-content" style="justify-content:center;align-items:center;text-align:center;">
-      <div class="kpi-strip" style="max-width:700px;">
-        <div class="detail-kpi" style="border-color:#7C3AED;">
-          <div class="detail-kpi-value" style="color:#7C3AED;">${escHtml(detail.tool_override.tool_name || "—")}</div>
-          <div class="detail-kpi-label">${t.replaces_tool}</div>
+    <div class="detail-content" style="justify-content:center;align-items:center;">
+      <!-- Before / After comparison -->
+      <div style="display:flex;align-items:center;gap:40px;width:100%;max-width:1100px;">
+        <!-- BEFORE: Old tool -->
+        <div style="flex:1;background:#FEF2F2;border:2px solid #FECACA;border-radius:20px;padding:36px 32px;position:relative;text-align:center;">
+          <div style="position:absolute;top:-14px;left:28px;background:#EF4444;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.08em;">${currentToolLabel[lang] ?? currentToolLabel.es}</div>
+          <div style="font-size:36px;font-weight:800;color:#991B1B;margin-top:8px;text-decoration:line-through;text-decoration-thickness:3px;text-decoration-color:#EF4444;">${toolName}</div>
+          <div style="margin-top:24px;display:flex;gap:20px;justify-content:center;">
+            <div style="text-align:center;">
+              <div style="font-size:28px;font-weight:800;color:#EF4444;">${fmtEur(detail.total_annual)}</div>
+              <div style="font-size:12px;color:#991B1B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;">${annualCostLabel[lang] ?? annualCostLabel.es}</div>
+            </div>
+            <div style="width:1px;background:#FECACA;"></div>
+            <div style="text-align:center;">
+              <div style="font-size:28px;font-weight:800;color:#EF4444;">${monthlyCost}</div>
+              <div style="font-size:12px;color:#991B1B;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;">${monthlyCostLabel[lang] ?? monthlyCostLabel.es}</div>
+            </div>
+          </div>
         </div>
-        <div class="detail-kpi" style="border-color:#FF355E;">
-          <div class="detail-kpi-value" style="color:#FF355E;">${fmtEur(detail.total_annual)}</div>
-          <div class="detail-kpi-label">${t.tool_saving}</div>
+
+        <!-- Arrow -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="32" fill="#F0FDF4"/>
+            <path d="M22 32h20m0 0l-8-8m8 8l-8 8" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </div>
-        <div class="detail-kpi" style="border-color:#374151;">
-          <div class="detail-kpi-value">${pctOfTotal}%</div>
-          <div class="detail-kpi-label">${t.pct_of_total}</div>
+
+        <!-- AFTER: Factorial -->
+        <div style="flex:1;background:#F0FDF4;border:2px solid #BBF7D0;border-radius:20px;padding:36px 32px;position:relative;text-align:center;">
+          <div style="position:absolute;top:-14px;left:28px;background:#16A34A;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;text-transform:uppercase;letter-spacing:0.08em;">Factorial ${escHtml(detail.name)}</div>
+          <div style="font-size:20px;font-weight:700;color:#166534;margin-top:8px;">${includedLabel[lang] ?? includedLabel.es}</div>
+          <div style="font-size:14px;color:#15803D;margin-top:4px;font-weight:500;">${noExtraCostLabel[lang] ?? noExtraCostLabel.es}</div>
+          <div style="margin-top:20px;background:#fff;border-radius:14px;padding:16px 24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">${savingsLabel[lang] ?? savingsLabel.es}</div>
+            <div style="font-size:36px;font-weight:800;color:#16A34A;margin-top:4px;">${fmtEur(detail.total_annual)}</div>
+          </div>
         </div>
       </div>
-      <p style="font-size:16px;color:#6B7280;margin-top:32px;max-width:600px;line-height:1.6;">${t.tool_cost}: <strong style="color:#1F2937;">${fmtEur(detail.total_annual)}</strong> — Factorial ${escHtml(detail.name)} ${t.replaces_tool.toLowerCase()} <strong style="color:#7C3AED;">${escHtml(detail.tool_override.tool_name || "—")}</strong></p>
+
+      <!-- Bottom summary bar -->
+      <div style="display:flex;gap:16px;max-width:1100px;width:100%;margin-top:12px;">
+        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:14px 20px;text-align:center;border-left:4px solid ${detail.color};">
+          <div style="font-size:22px;font-weight:800;color:${detail.color};">${toolName}</div>
+          <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;">${t.replaces_tool}</div>
+        </div>
+        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:14px 20px;text-align:center;border-left:4px solid #FF355E;">
+          <div style="font-size:22px;font-weight:800;color:#FF355E;">${fmtEur(detail.total_annual)}</div>
+          <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;">${t.tool_saving}</div>
+        </div>
+        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:14px 20px;text-align:center;border-left:4px solid #374151;">
+          <div style="font-size:22px;font-weight:800;color:#374151;">${pctOfTotal}%</div>
+          <div style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-top:3px;">${t.pct_of_total}</div>
+        </div>
+      </div>
     </div>
   </div>`;
   }
@@ -1096,12 +1145,12 @@ async function captureSlide(slide: HTMLElement, html2canvas: any, useForeignObje
   }
   try {
     const canvas = await html2canvas(slide, {
-      width: 1440, height: 810, scale: 1.5,
+      width: 1440, height: 810, scale: 2,
       useCORS: true, logging: false, backgroundColor: "#ffffff",
       windowWidth: 1440, windowHeight: 810,
       foreignObjectRendering: useForeignObject,
     });
-    return canvas.toDataURL("image/jpeg", 0.85);
+    return canvas.toDataURL("image/jpeg", 0.92);
   } finally {
     if (injectedStyle) injectedStyle.remove();
   }
