@@ -658,6 +658,8 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
     };
     const tt = i18nTool[lang] ?? i18nTool.es;
 
+    const yearLabel = lang === "en" ? "year" : lang === "fr" ? "an" : "año";
+
     return `
   <div class="slide detail-slide">
     <div class="header">
@@ -669,49 +671,46 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
         <div class="header-brand">${brandHtml2}</div>
       </div>
     </div>
-    <div class="detail-content" style="justify-content:center;align-items:center;">
+    <div class="detail-content" style="justify-content:center;padding:32px 80px 36px 80px;">
 
-      <div style="font-size:14px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.08em;">${tt.subtitle}</div>
+      <div style="font-size:12px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:20px;">${tt.subtitle}</div>
 
-      <!-- Comparison table -->
-      <table style="width:100%;max-width:900px;border-collapse:collapse;margin-top:4px;">
-        <thead>
-          <tr>
-            <th style="width:50%;text-align:left;padding:0 0 14px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E7EB;">${tt.current}</th>
-            <th style="width:50%;text-align:left;padding:0 0 14px 24px;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid #E5E7EB;">${tt.replacement}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding:28px 0;vertical-align:top;border-bottom:1px solid #F3F4F6;">
-              <div style="font-size:26px;font-weight:800;color:#1F2937;">${toolName}</div>
-              <div style="display:flex;gap:32px;margin-top:20px;">
-                <div>
-                  <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_yr}</div>
-                  <div style="font-size:24px;font-weight:800;color:#1F2937;margin-top:4px;">${fmtEur(detail.total_annual)}</div>
-                </div>
-                <div>
-                  <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_mo}</div>
-                  <div style="font-size:24px;font-weight:800;color:#1F2937;margin-top:4px;">${monthlyCost}</div>
-                </div>
-              </div>
-            </td>
-            <td style="padding:28px 0 28px 24px;vertical-align:top;border-bottom:1px solid #F3F4F6;border-left:1px solid #F3F4F6;">
-              <div style="font-size:26px;font-weight:800;color:#1F2937;">Factorial ${escHtml(detail.name)}</div>
-              <div style="font-size:14px;color:#6B7280;margin-top:6px;font-weight:500;">${tt.included}</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Savings callout -->
-      <div style="display:flex;gap:16px;max-width:900px;width:100%;margin-top:8px;">
-        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-size:14px;font-weight:600;color:#6B7280;">${tt.saving}</div>
-          <div style="font-size:32px;font-weight:800;color:#FF355E;">${fmtEur(detail.total_annual)}<span style="font-size:14px;font-weight:600;color:#9CA3AF;margin-left:6px;">/ ${(i18nTool.es === tt ? "año" : lang === "en" ? "year" : "an")}</span></div>
+      <div style="display:flex;gap:0;width:100%;border:1px solid #E5E7EB;border-radius:16px;overflow:hidden;">
+        <!-- Left: current tool -->
+        <div style="flex:1;padding:32px 36px;border-right:1px solid #E5E7EB;">
+          <div style="font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;">${tt.current}</div>
+          <div style="font-size:22px;font-weight:800;color:#1F2937;line-height:1.3;">${toolName}</div>
+          <div style="display:flex;gap:40px;margin-top:24px;">
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_yr}</div>
+              <div style="font-size:22px;font-weight:800;color:#1F2937;margin-top:6px;">${fmtEur(detail.total_annual)}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_mo}</div>
+              <div style="font-size:22px;font-weight:800;color:#1F2937;margin-top:6px;">${monthlyCost}</div>
+            </div>
+          </div>
         </div>
-        <div style="background:#FAFAFA;border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:center;min-width:120px;">
-          <div style="font-size:32px;font-weight:800;color:#374151;">${pctOfTotal}%</div>
+        <!-- Right: Factorial -->
+        <div style="flex:1;padding:32px 36px;">
+          <div style="font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:16px;">${tt.replacement}</div>
+          <div style="font-size:22px;font-weight:800;color:#1F2937;line-height:1.3;">Factorial ${escHtml(detail.name)}</div>
+          <div style="font-size:14px;color:#6B7280;margin-top:8px;font-weight:500;">${tt.included}</div>
+        </div>
+      </div>
+
+      <!-- Savings bar -->
+      <div style="display:flex;gap:12px;width:100%;margin-top:20px;">
+        <div style="flex:1;background:#FAFAFA;border-radius:12px;padding:22px 32px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-size:14px;font-weight:700;color:#6B7280;">${tt.saving}</div>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="font-size:28px;font-weight:800;color:#FF355E;">${fmtEur(detail.total_annual)}</span>
+            <span style="font-size:13px;font-weight:600;color:#9CA3AF;">/ ${yearLabel}</span>
+          </div>
+        </div>
+        <div style="background:#FAFAFA;border-radius:12px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;">
+          <div style="font-size:28px;font-weight:800;color:#374151;">${pctOfTotal}%</div>
+          <div style="font-size:10px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px;">${t.pct_of_total}</div>
         </div>
       </div>
 
