@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -49,6 +50,9 @@ interface Msg { text: string; done: boolean }
 export default function Express() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const savedSessionId = useRef<string | null>(null);
 
   const [step, setStep] = useState(0);
 
@@ -231,6 +235,52 @@ export default function Express() {
     if (!selectedBundle) return 0;
     return getBundlePepm(selectedBundle, "yearly", "business");
   }, [selectedBundle]);
+
+  // ── Save to history ─────────────────────────────────────
+  const saveToHistory = useCallback(async (status: "generated" | "draft" = "generated") => {
+    if (!user || savedSessionId.current) return;
+    try {
+      const { data: prospect, error: pErr } = await supabase
+        .from("prospects")
+        .insert({
+          pae_id: user.id,
+          company_name: companyName || dealName || "Express ROI",
+          deal_name: dealName || null,
+          country,
+          seats: roiConfig.headcounts.employee,
+        })
+        .select("id")
+        .single();
+      if (pErr) throw pErr;
+
+      const savings = roi?.savings ?? 0;
+      const roiPct = roi?.pct ?? 0;
+      const payback = roi?.payback ?? 0;
+
+      const { data: session, error: sErr } = await supabase
+        .from("roi_sessions")
+        .insert({
+          pae_id: user.id,
+          prospect_id: prospect!.id,
+          status,
+          selected_modules: selectedModules as any,
+          module_suggestions: moduleSuggestions as any,
+          roi_config: roiConfig as any,
+          factorial_annual_cost_eur: annualCost,
+          roi_eur: Math.round(savings - annualCost),
+          roi_pct: Math.round(roiPct),
+          payback_months: Math.round(payback),
+          total_annual_benefit_eur: Math.round(savings),
+        })
+        .select("id")
+        .single();
+      if (sErr) throw sErr;
+      savedSessionId.current = session!.id;
+      queryClient.invalidateQueries({ queryKey: ["roi_sessions"] });
+    } catch (err: any) {
+      console.error("Express save failed:", err.message);
+    }
+  }, [user, companyName, dealName, country, roiConfig, selectedModules, moduleSuggestions, annualCost, roi, queryClient]);
 
   // ── Grouped catalog ────────────────────────────────────
   const grouped = useMemo(() => {
@@ -665,7 +715,7 @@ export default function Express() {
               <Button variant="outline" onClick={() => setStep(1)}>
                 <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
               </Button>
-              <Button onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="bg-foreground text-background hover:bg-foreground/90">
+              <Button onClick={() => { setStep(3); saveToHistory(); }} disabled={roiConfig.headcounts.employee === 0} className="bg-foreground text-background hover:bg-foreground/90">
                 Ver resultado <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
@@ -735,7 +785,7 @@ export default function Express() {
 
             {/* New analysis */}
             <div className="flex justify-center pt-2">
-              <Button variant="outline" size="sm" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); }}>
+              <Button variant="outline" size="sm" onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); savedSessionId.current = null; }}>
                 Nuevo análisis
               </Button>
             </div>
