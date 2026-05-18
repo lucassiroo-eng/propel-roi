@@ -819,6 +819,75 @@ ${tableRows}
   </div>`;
 }
 
+function generateIndexSlide(data: RoiSlideData, details: ModuleDetail[], lang: string): string {
+  const brandHtml = buildBrandHtml(data);
+  const indexTitle: Record<string, string> = { es: "Índice", en: "Contents", fr: "Sommaire" };
+  const pageLabel: Record<string, string> = { es: "Pág.", en: "Page", fr: "Page" };
+  const summaryLabel: Record<string, string> = { es: "Resumen ROI", en: "ROI Summary", fr: "Résumé ROI" };
+  const detailLabel: Record<string, string> = { es: "Detalle del cálculo", en: "Calculation detail", fr: "Détail du calcul" };
+  const tIdx = indexTitle[lang] ?? indexTitle.es;
+  const tPage = pageLabel[lang] ?? pageLabel.es;
+  const tSummary = summaryLabel[lang] ?? summaryLabel.es;
+  const tDetail = detailLabel[lang] ?? detailLabel.es;
+
+  const rows = details.map((d, i) => {
+    const color = d.color;
+    const page = i + 3;
+    return `
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid #F3F4F6;vertical-align:middle;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:14px;vertical-align:middle;"></span>
+          <span style="font-size:16px;font-weight:600;color:#1F2937;">${escHtml(d.name)}</span>
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #F3F4F6;text-align:right;vertical-align:middle;">
+          <span style="font-size:15px;font-weight:600;color:#FF355E;">${fmtEur(d.total_annual)}</span>
+        </td>
+        <td style="padding:12px 0;border-bottom:1px solid #F3F4F6;text-align:right;vertical-align:middle;width:60px;">
+          <span style="font-size:14px;font-weight:500;color:#9CA3AF;">${page}</span>
+        </td>
+      </tr>`;
+  }).join("\n");
+
+  return `
+  <div class="slide detail-slide">
+    <div class="header">
+      <div class="header-left">
+        <div class="title"><span class="detail-label" style="font-size:28px;font-weight:800;color:#1F2937;font-style:italic;">${tIdx}</span></div>
+      </div>
+      <div class="header-right">
+        <div class="header-date">${escHtml(data.date)}</div>
+        <div class="header-brand">${brandHtml}</div>
+      </div>
+    </div>
+    <div class="detail-content" style="padding:28px 80px 36px 80px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;">${tDetail}</th>
+            <th style="text-align:right;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;">${(lang === "en" ? "Savings/yr" : lang === "fr" ? "Économies/an" : "Ahorro/año")}</th>
+            <th style="text-align:right;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;width:60px;">${tPage}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:12px 0;border-bottom:1px solid #F3F4F6;vertical-align:middle;">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#374151;margin-right:14px;vertical-align:middle;"></span>
+              <span style="font-size:16px;font-weight:600;color:#1F2937;">${tSummary}</span>
+            </td>
+            <td style="padding:12px 0;border-bottom:1px solid #F3F4F6;text-align:right;vertical-align:middle;">
+              <span style="font-size:15px;font-weight:700;color:#FF355E;">${fmtEur(data.total_annual_savings)}</span>
+            </td>
+            <td style="padding:12px 0;border-bottom:1px solid #F3F4F6;text-align:right;vertical-align:middle;width:60px;">
+              <span style="font-size:14px;font-weight:500;color:#9CA3AF;">1</span>
+            </td>
+          </tr>
+${rows}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
 export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput): string {
   const lang = data.language ?? "es";
   const mc = data.modules.length;
@@ -827,6 +896,7 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   const groupHeaderFont = mc <= 5 ? 11 : 10;
   const summarySlideBody = generateSummarySlideBody(data);
   const details = buildModuleDetails(input, data);
+  const indexSlide = generateIndexSlide(data, details, lang);
   const detailSlides = details.map(d => generateDetailSlideHtml(d, data, lang)).join("\n\n");
 
   return `<!DOCTYPE html>
@@ -838,7 +908,7 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', sans-serif; background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0; }
+  body { font-family: 'Inter', sans-serif; background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 60px 0; }
 
   @media print {
     body { background: #fff; gap: 0; padding: 0; }
@@ -853,6 +923,9 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.1);
     flex-shrink: 0;
+    border: 1px solid #E5E7EB;
+    border-top: 4px solid #374151;
+    border-radius: 4px;
   }
 
   .header {
@@ -1023,6 +1096,8 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
 <body>
 
 ${summarySlideBody}
+
+${indexSlide}
 
 ${detailSlides}
 
