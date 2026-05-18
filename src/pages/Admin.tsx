@@ -8,7 +8,7 @@ import { AuditHistory } from "@/components/admin/AuditHistory";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigate } from "react-router-dom";
-import { Loader2, ShieldCheck, History, BarChart3, TrendingUp, FileText, Users, Percent } from "lucide-react";
+import { Loader2, ShieldCheck, History, BarChart3, TrendingUp, FileText, Users, Percent, Globe, Building2, Package } from "lucide-react";
 import type { TableEditorConfig } from "@/hooks/useAdminTable";
 
 const TABLE_CONFIGS: Record<string, TableEditorConfig> = {
@@ -151,40 +151,97 @@ function MetricCard({ label, value, sub, icon: Icon, color }: { label: string; v
   );
 }
 
+interface CompanyDeal {
+  companyName: string;
+  country: string;
+  sector: string | null;
+  seats: number | null;
+  roiPct: number | null;
+  totalSavings: number | null;
+  status: string;
+  updatedAt: string;
+  modules: string[];
+}
+
+const SIZE_BUCKETS = [
+  { label: "1–50", min: 1, max: 50 },
+  { label: "51–150", min: 51, max: 150 },
+  { label: "151–500", min: 151, max: 500 },
+  { label: "500+", min: 501, max: Infinity },
+];
+
 function MetricsDashboard() {
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["admin_metrics_sessions"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("roi_sessions")
-        .select("id, status, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, factorial_annual_cost_eur, updated_at, prospect_id, prospects(company_name, country, seats)")
+        .select("id, status, roi_pct, total_annual_benefit_eur, selected_modules, updated_at, prospect_id, prospects(company_name, country, seats, sector)")
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data as any[];
     },
   });
 
-  const metrics = useMemo(() => {
-    if (!sessions?.length) return null;
-    const total = sessions.length;
-    const generated = sessions.filter(s => s.status === "generated").length;
-    const withRoi = sessions.filter(s => s.roi_pct != null && s.roi_pct > 0);
-    const avgRoi = withRoi.length > 0 ? Math.round(withRoi.reduce((a, s) => a + s.roi_pct, 0) / withRoi.length) : 0;
-    const totalSavings = sessions.reduce((a, s) => a + (s.total_annual_benefit_eur ?? 0), 0);
-    const avgSavings = withRoi.length > 0 ? Math.round(totalSavings / withRoi.length) : 0;
-    const totalCost = sessions.reduce((a, s) => a + (s.factorial_annual_cost_eur ?? 0), 0);
-    const withPayback = sessions.filter(s => s.payback_months != null && s.payback_months > 0);
-    const avgPayback = withPayback.length > 0 ? (withPayback.reduce((a, s) => a + s.payback_months, 0) / withPayback.length).toFixed(1) : "—";
+  const { deals, metrics } = useMemo(() => {
+    if (!sessions?.length) return { deals: [] as CompanyDeal[], metrics: null };
 
-    const byCountry: Record<string, number> = {};
+    const companyMap = new Map<string, CompanyDeal>();
     for (const s of sessions) {
-      const c = s.prospects?.country ?? "?";
-      byCountry[c] = (byCountry[c] ?? 0) + 1;
+      const p = s.prospects;
+      if (!p) continue;
+      const key = (p.company_name ?? "").trim().toLowerCase() || s.prospect_id;
+      if (companyMap.has(key)) continue;
+      companyMap.set(key, {
+        companyName: p.company_name ?? "Sin nombre",
+        country: p.country ?? "?",
+        sector: p.sector ?? null,
+        seats: p.seats ?? null,
+        roiPct: s.roi_pct,
+        totalSavings: s.total_annual_benefit_eur,
+        status: s.status,
+        updatedAt: s.updated_at,
+        modules: Array.isArray(s.selected_modules) ? s.selected_modules : [],
+      });
     }
 
-    const recent = sessions.slice(0, 10);
+    const all = Array.from(companyMap.values());
+    const total = all.length;
+    const generated = all.filter(d => d.status === "generated").length;
+    const withRoi = all.filter(d => d.roiPct != null && d.roiPct > 0);
+    const avgRoi = withRoi.length > 0 ? Math.round(withRoi.reduce((a, d) => a + d.roiPct!, 0) / withRoi.length) : 0;
+    const totalSavings = all.reduce((a, d) => a + (d.totalSavings ?? 0), 0);
 
-    return { total, generated, avgRoi, totalSavings, avgSavings, totalCost, avgPayback, byCountry, recent };
+    const byCountry: Record<string, number> = {};
+    for (const d of all) byCountry[d.country] = (byCountry[d.country] ?? 0) + 1;
+
+    const bySector: Record<string, number> = {};
+    for (const d of all) {
+      const sec = d.sector || "Sin sector";
+      bySector[sec] = (bySector[sec] ?? 0) + 1;
+    }
+
+    const bySize: Record<string, number> = {};
+    for (const d of all) {
+      if (!d.seats) { bySize["Desconocido"] = (bySize["Desconocido"] ?? 0) + 1; continue; }
+      const bucket = SIZE_BUCKETS.find(b => d.seats! >= b.min && d.seats! <= b.max);
+      const label = bucket?.label ?? "Desconocido";
+      bySize[label] = (bySize[label] ?? 0) + 1;
+    }
+
+    const moduleCounts: Record<string, number> = {};
+    const dealsWithModules = all.filter(d => d.modules.length > 0).length;
+    for (const d of all) {
+      for (const m of d.modules) moduleCounts[m] = (moduleCounts[m] ?? 0) + 1;
+    }
+    const moduleRates = Object.entries(moduleCounts)
+      .map(([id, count]) => ({ id, count, pct: dealsWithModules > 0 ? Math.round((count / dealsWithModules) * 100) : 0 }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      deals: all,
+      metrics: { total, generated, avgRoi, totalSavings, byCountry, bySector, bySize, moduleRates, dealsWithModules },
+    };
   }, [sessions]);
 
   const fmtEur = (n: number) => n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
@@ -203,58 +260,135 @@ function MetricsDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <MetricCard label="Total deals" value={String(metrics.total)} icon={FileText} color="#3B82F6" />
+      {/* Top KPIs */}
+      <div className="grid grid-cols-3 gap-3">
+        <MetricCard label="Empresas" value={String(metrics.total)} icon={Building2} color="#3B82F6" />
         <MetricCard label="ROI generado" value={String(metrics.generated)} sub={`${metrics.total > 0 ? Math.round((metrics.generated / metrics.total) * 100) : 0}% del total`} icon={TrendingUp} color="#10B981" />
-        <MetricCard label="ROI medio" value={`${metrics.avgRoi}%`} icon={Percent} color="#F59E0B" />
-        <MetricCard label="Payback medio" value={`${metrics.avgPayback}m`} icon={BarChart3} color="#8B5CF6" />
+        <MetricCard label="ROI medio" value={`${metrics.avgRoi}%`} sub={`${fmtEur(metrics.totalSavings)} € ahorro total`} icon={Percent} color="#F59E0B" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <MetricCard label="Ahorro total" value={`${fmtEur(metrics.totalSavings)} €`} icon={TrendingUp} color="#10B981" />
-        <MetricCard label="Ahorro medio" value={`${fmtEur(metrics.avgSavings)} €`} sub="por deal con ROI" icon={BarChart3} color="#3B82F6" />
-        <MetricCard label="Coste total" value={`${fmtEur(metrics.totalCost)} €`} sub="Factorial facturado" icon={FileText} color="#EF4444" />
+      {/* By country */}
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Por país</p>
+        </div>
+        <div className="flex gap-6">
+          {Object.entries(metrics.byCountry).sort((a, b) => b[1] - a[1]).map(([c, n]) => (
+            <div key={c} className="flex items-center gap-2.5">
+              <span className="text-xl">{c === "ES" ? "\u{1F1EA}\u{1F1F8}" : c === "FR" ? "\u{1F1EB}\u{1F1F7}" : "\u{1F30D}"}</span>
+              <div>
+                <p className="text-lg font-extrabold text-foreground tabular-nums">{n}</p>
+                <p className="text-[10px] text-muted-foreground">{metrics.total > 0 ? Math.round((n / metrics.total) * 100) : 0}%</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {Object.keys(metrics.byCountry).length > 0 && (
+      {/* By size */}
+      <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Por tamaño (empleados)</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {SIZE_BUCKETS.map(b => {
+            const n = metrics.bySize[b.label] ?? 0;
+            return (
+              <div key={b.label} className="rounded-xl bg-muted/30 px-4 py-3 text-center">
+                <p className="text-lg font-extrabold text-foreground tabular-nums">{n}</p>
+                <p className="text-[11px] text-muted-foreground font-medium">{b.label}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* By sector */}
+      {Object.keys(metrics.bySector).length > 1 && (
         <div className="rounded-2xl border border-border bg-card p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Por país</p>
-          <div className="flex gap-4">
-            {Object.entries(metrics.byCountry).sort((a, b) => b[1] - a[1]).map(([c, n]) => (
-              <div key={c} className="flex items-center gap-2">
-                <span className="text-lg">{c === "ES" ? "\u{1F1EA}\u{1F1F8}" : c === "FR" ? "\u{1F1EB}\u{1F1F7}" : "\u{1F30D}"}</span>
-                <span className="text-sm font-bold text-foreground">{n}</span>
-                <span className="text-xs text-muted-foreground">deals</span>
+          <div className="flex items-center gap-2 mb-4">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Por industria</p>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(metrics.bySector).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([sec, n]) => {
+              const pct = metrics.total > 0 ? Math.round((n / metrics.total) * 100) : 0;
+              return (
+                <div key={sec} className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-foreground truncate">{sec}</span>
+                      <span className="text-xs font-bold text-foreground tabular-nums shrink-0 ml-2">{n}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-foreground/60 transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Module attach rates */}
+      {metrics.moduleRates.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-muted-foreground" />
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">% con módulo</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground">{metrics.dealsWithModules} deals con módulos</span>
+          </div>
+          <div className="space-y-2">
+            {metrics.moduleRates.map(m => (
+              <div key={m.id} className="flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-foreground truncate">{m.id.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}</span>
+                    <span className="text-xs font-bold text-foreground tabular-nums shrink-0 ml-2">{m.pct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-emerald-500/70 transition-all" style={{ width: `${m.pct}%` }} />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* Recent deals */}
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <div className="px-5 py-3 border-b border-border">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Últimos deals</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Últimas empresas</p>
         </div>
         <div className="divide-y divide-border">
-          {metrics.recent.map((s: any) => (
-            <div key={s.id} className="px-5 py-3 flex items-center justify-between">
+          {deals.slice(0, 12).map((d, i) => (
+            <div key={i} className="px-5 py-3 flex items-center justify-between">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{s.prospects?.company_name ?? "Sin nombre"}</p>
-                <p className="text-[11px] text-muted-foreground">{s.prospects?.country ?? "?"} · {new Date(s.updated_at).toLocaleDateString("es-ES")}</p>
+                <p className="text-sm font-medium text-foreground truncate">{d.companyName}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {d.country === "ES" ? "\u{1F1EA}\u{1F1F8}" : d.country === "FR" ? "\u{1F1EB}\u{1F1F7}" : "\u{1F30D}"}{" "}
+                  {d.seats ? `${d.seats} emp` : ""}{d.sector ? ` · ${d.sector}` : ""} · {new Date(d.updatedAt).toLocaleDateString("es-ES")}
+                </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                {s.roi_pct != null && s.roi_pct > 0 && (
-                  <span className="text-xs font-bold text-emerald-600 tabular-nums">{s.roi_pct}%</span>
+                {d.roiPct != null && d.roiPct > 0 && (
+                  <span className="text-xs font-bold text-emerald-600 tabular-nums">{d.roiPct}%</span>
                 )}
-                {s.total_annual_benefit_eur != null && (
-                  <span className="text-xs font-semibold text-foreground tabular-nums">{fmtEur(s.total_annual_benefit_eur)} €</span>
+                {d.totalSavings != null && d.totalSavings > 0 && (
+                  <span className="text-xs font-semibold text-foreground tabular-nums">{fmtEur(d.totalSavings)} €</span>
                 )}
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                  s.status === "generated" ? "bg-violet-50 text-violet-600" :
-                  s.status === "sent" ? "bg-blue-50 text-blue-600" :
+                  d.status === "generated" ? "bg-violet-50 text-violet-600" :
+                  d.status === "sent" ? "bg-blue-50 text-blue-600" :
                   "bg-gray-100 text-gray-600"
                 }`}>
-                  {s.status}
+                  {d.status}
                 </span>
               </div>
             </div>
