@@ -141,12 +141,32 @@ export default function Express() {
 
       const content = deal.deal_context?.slice(0, 6000) ?? "";
       if (content.trim()) {
-        setMsgs(prev => [...prev, { text: "Analizando módulos recomendados...", done: false }]);
+        setMsgs(prev => [...prev, { text: "Analizando contenido...", done: false }]);
         setAnalyzing(true);
+
+        const progressHints = [
+          "Leyendo emails y notas...",
+          "Detectando pain points...",
+          "Evaluando módulos relevantes...",
+          "Calculando encaje por stakeholder...",
+        ];
+        let hintIdx = 0;
+        const hintTimer = setInterval(() => {
+          if (hintIdx < progressHints.length) {
+            const hint = progressHints[hintIdx++];
+            setMsgs(prev => {
+              const u = [...prev];
+              u[u.length - 1] = { text: hint, done: false };
+              return u;
+            });
+          }
+        }, 2200);
+
         try {
           const { data: res, error } = await supabase.functions.invoke("ai-unified-analysis", {
             body: { content, country, modules_ref: MODULE_REF },
           });
+          clearInterval(hintTimer);
           if (error) throw error;
           const valid = new Set(MODULE_CATALOG.map(c => c.id));
           const seen = new Set<string>();
@@ -159,6 +179,7 @@ export default function Express() {
           setSelectedModules(deduped.map(x => x.module_id));
           setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `${deduped.length} módulos identificados`, done: true }; return u; });
         } catch {
+          clearInterval(hintTimer);
           setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Análisis no disponible", done: true }; return u; });
         }
         setAnalyzing(false);
