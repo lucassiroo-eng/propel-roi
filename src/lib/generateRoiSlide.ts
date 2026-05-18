@@ -1271,7 +1271,7 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
     // Load layout iframe to extract slide HTML
     const layoutHtml = prepareCaptureHtml(
       html,
-      "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
+      "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 60px 0;",
       "background: #fff; margin: 0; padding: 0;",
       fontCss,
     ).replace("</style>", `</style>\n<style>${fontCss}</style>`);
