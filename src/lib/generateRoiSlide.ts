@@ -896,7 +896,6 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   const groupHeaderFont = mc <= 5 ? 11 : 10;
   const summarySlideBody = generateSummarySlideBody(data);
   const details = buildModuleDetails(input, data);
-  const indexSlide = generateIndexSlide(data, details, lang);
   const detailSlides = details.map(d => generateDetailSlideHtml(d, data, lang)).join("\n\n");
 
   return `<!DOCTYPE html>
@@ -1093,8 +1092,6 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
 <body>
 
 ${summarySlideBody}
-
-${indexSlide}
 
 ${detailSlides}
 
