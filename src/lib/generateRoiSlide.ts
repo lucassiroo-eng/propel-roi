@@ -682,12 +682,12 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
           <div style="font-size:22px;font-weight:800;color:#1F2937;line-height:1.3;">${toolName}</div>
           <div style="display:flex;gap:40px;margin-top:24px;">
             <div>
-              <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_yr}</div>
-              <div style="font-size:22px;font-weight:800;color:#1F2937;margin-top:6px;">${fmtEur(detail.total_annual)}</div>
+              <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">${tt.cost_yr}</div>
+              <div style="font-size:22px;font-weight:800;color:#1F2937;margin-top:6px;white-space:nowrap;">${fmtEur(detail.total_annual)}</div>
             </div>
             <div>
-              <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;">${tt.cost_mo}</div>
-              <div style="font-size:22px;font-weight:800;color:#1F2937;margin-top:6px;">${monthlyCost}</div>
+              <div style="font-size:11px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">${tt.cost_mo}</div>
+              <div style="font-size:22px;font-weight:800;color:#1F2937;margin-top:6px;white-space:nowrap;">${monthlyCost}</div>
             </div>
           </div>
         </div>
