@@ -236,6 +236,35 @@ export default function Express() {
     return getBundlePepm(selectedBundle, "yearly", "business");
   }, [selectedBundle]);
 
+  // ── Grouped catalog ────────────────────────────────────
+  const grouped = useMemo(() => {
+    const q = catSearch.toLowerCase();
+    const f = q ? MODULE_CATALOG.filter(m => m.label.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)) : MODULE_CATALOG;
+    const g: Record<string, typeof MODULE_CATALOG> = {};
+    for (const m of f) { if (!g[m.category]) g[m.category] = []; g[m.category].push(m); }
+    return g;
+  }, [catSearch]);
+
+  // ── ROI calc ───────────────────────────────────────────
+  const roi = useMemo(() => {
+    if (!selectedModules.length) return null;
+    const { headcounts, hourly_costs } = roiConfig;
+    const mul: RoiMultipliers = { headcounts, onboardings_per_year: roiConfig.onboardings_per_year, expense_submitters: roiConfig.expense_submitters };
+    let mHrs = 0, mMon = 0;
+    for (const modId of selectedModules) {
+      const hrs = getEffectiveHours(modId);
+      for (const sk of ["employee", "hr", "manager"] as Stakeholder[]) {
+        const e = MODULE_HOURS.find(x => x.module_id === modId && x.stakeholder === sk);
+        const cnt = e ? getCountForEntry(e, mul) : headcounts[sk];
+        const h = hrs[sk] * cnt;
+        mHrs += h; mMon += h * hourly_costs[sk];
+      }
+    }
+    const ann = mMon * 12;
+    const c = annualCost;
+    return { savings: ann, cost: c, pct: c > 0 ? ((ann - c) / c * 100) : 0, payback: ann > 0 ? (c / ann * 12) : 0, hrs: mHrs };
+  }, [selectedModules, roiConfig, annualCost]);
+
   // ── Save to history ─────────────────────────────────────
   const saveToHistory = useCallback(async (status: "generated" | "draft" = "generated") => {
     if (!user || savedSessionId.current) return;
@@ -282,35 +311,6 @@ export default function Express() {
       console.error("Express save failed:", err.message);
     }
   }, [user, companyName, dealName, country, roiConfig, selectedModules, moduleSuggestions, annualCost, roi, queryClient]);
-
-  // ── Grouped catalog ────────────────────────────────────
-  const grouped = useMemo(() => {
-    const q = catSearch.toLowerCase();
-    const f = q ? MODULE_CATALOG.filter(m => m.label.toLowerCase().includes(q) || m.category.toLowerCase().includes(q)) : MODULE_CATALOG;
-    const g: Record<string, typeof MODULE_CATALOG> = {};
-    for (const m of f) { if (!g[m.category]) g[m.category] = []; g[m.category].push(m); }
-    return g;
-  }, [catSearch]);
-
-  // ── ROI calc ───────────────────────────────────────────
-  const roi = useMemo(() => {
-    if (!selectedModules.length) return null;
-    const { headcounts, hourly_costs } = roiConfig;
-    const mul: RoiMultipliers = { headcounts, onboardings_per_year: roiConfig.onboardings_per_year, expense_submitters: roiConfig.expense_submitters };
-    let mHrs = 0, mMon = 0;
-    for (const modId of selectedModules) {
-      const hrs = getEffectiveHours(modId);
-      for (const sk of ["employee", "hr", "manager"] as Stakeholder[]) {
-        const e = MODULE_HOURS.find(x => x.module_id === modId && x.stakeholder === sk);
-        const cnt = e ? getCountForEntry(e, mul) : headcounts[sk];
-        const h = hrs[sk] * cnt;
-        mHrs += h; mMon += h * hourly_costs[sk];
-      }
-    }
-    const ann = mMon * 12;
-    const c = annualCost;
-    return { savings: ann, cost: c, pct: c > 0 ? ((ann - c) / c * 100) : 0, payback: ann > 0 ? (c / ann * 12) : 0, hrs: mHrs };
-  }, [selectedModules, roiConfig, annualCost]);
 
   // ── PDF ────────────────────────────────────────────────
   async function downloadPdf(type: "summary" | "detail") {
