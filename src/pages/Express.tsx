@@ -210,8 +210,9 @@ export default function Express() {
           body: { deal_url: url },
         });
         if (hsErr || !hs || hs.error) {
-          setMsgs([{ text: "Deal no encontrado", done: true }]);
+          setMsgs([{ text: "Deal no encontrado — selecciona módulos manualmente", done: true }]);
           toast.error("Deal no encontrado");
+          setTimeout(() => setStep(1), 1000);
           return;
         }
 
@@ -304,7 +305,8 @@ export default function Express() {
       setTimeout(() => setStep(1), 1000);
     } catch (err: any) {
       toast.error(err.message ?? "Error");
-      setMsgs(prev => [...prev, { text: "Error en la importación", done: true }]);
+      setMsgs(prev => [...prev, { text: "Error — selecciona módulos manualmente", done: true }]);
+      setTimeout(() => setStep(1), 1200);
     } finally {
       setFetching(false);
     }
