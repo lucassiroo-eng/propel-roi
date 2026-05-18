@@ -422,7 +422,7 @@ export function generateRoiSlideHtml(data: RoiSlideData): string {
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
   .header-date { font-size: 11px; color: #9CA3AF; font-weight: 500; }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .header-brand .company-name { font-size: 16px; font-weight: 700; color: #1F2937; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-brand .company-name { font-size: 16px; font-weight: 700; color: #1F2937; white-space: nowrap; }
   .header-brand .brand-divider { width: 1px; height: 22px; background: #D1D5DB; }
   .header-brand img { height: 20px; object-fit: contain; }
 
@@ -936,7 +936,7 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
   .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
   .header-date { font-size: 11px; color: #9CA3AF; font-weight: 500; }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .header-brand .company-name { font-size: 16px; font-weight: 700; color: #1F2937; max-width: 500px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .header-brand .company-name { font-size: 16px; font-weight: 700; color: #1F2937; white-space: nowrap; }
   .header-brand .brand-divider { width: 1px; height: 22px; background: #D1D5DB; }
   .header-brand img { height: 20px; object-fit: contain; }
 
