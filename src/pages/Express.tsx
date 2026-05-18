@@ -76,7 +76,7 @@ export default function Express() {
   // Step 2
   const [roiConfig, setRoiConfig] = useState<RoiConfig>({
     headcounts: { employee: 50, hr: 2, manager: 5 },
-    hourly_costs: { employee: 20, hr: 35, manager: 45 },
+    hourly_costs: { employee: 20, hr: 30, manager: 25 },
   });
   const [annualCost, setAnnualCost] = useState(0);
 
@@ -340,43 +340,53 @@ export default function Express() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}`}</style>
-
-      {/* Progress rail */}
-      <div className="h-0.5 bg-border">
-        <div className="h-full bg-foreground transition-all duration-500 ease-out" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
-      </div>
+      <style>{`
+        @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .fade-in{animation:fadeIn .3s ease-out both}
+        .slide-up{animation:slideUp .4s cubic-bezier(.16,1,.3,1) both}
+      `}</style>
 
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-card/95 backdrop-blur-sm border-b border-border px-4 py-2.5">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <button onClick={() => step === 0 ? navigate("/") : setStep(s => s - 1)} className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2">
-            {STEPS.map((label, i) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <div className={`w-6 h-6 rounded-full text-[11px] font-semibold flex items-center justify-center transition-colors ${i <= step ? "bg-foreground text-background" : "bg-border text-muted-foreground"}`}>
-                  {i < step ? <Check className="h-3 w-3" /> : i + 1}
+      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/60">
+        {/* Progress rail */}
+        <div className="h-[2px] bg-border/40">
+          <div className="h-full bg-foreground transition-all duration-700 ease-[cubic-bezier(.16,1,.3,1)]" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+        </div>
+        <div className="px-4 py-2.5">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <button onClick={() => step === 0 ? navigate("/") : setStep(s => s - 1)} className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <ArrowLeft className="h-4 w-4" />
+            </button>
+            <div className="flex items-center gap-1">
+              {STEPS.map((label, i) => (
+                <div key={label} className="flex items-center">
+                  <div className="flex items-center gap-1.5 px-1">
+                    <div className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${
+                      i < step ? "bg-emerald-500 text-white" : i === step ? "bg-foreground text-background shadow-sm" : "bg-muted text-muted-foreground"
+                    }`}>
+                      {i < step ? <Check className="h-3 w-3" /> : i + 1}
+                    </div>
+                    <span className={`text-xs hidden sm:inline transition-colors ${i === step ? "text-foreground font-semibold" : "text-muted-foreground"}`}>{label}</span>
+                  </div>
+                  {i < STEPS.length - 1 && <div className={`w-6 h-px hidden sm:block transition-colors ${i < step ? "bg-emerald-400" : "bg-border"}`} />}
                 </div>
-                <span className={`text-xs hidden sm:inline ${i === step ? "text-foreground font-medium" : "text-muted-foreground"}`}>{label}</span>
-                {i < STEPS.length - 1 && <div className="w-3 h-px bg-border hidden sm:block" />}
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="w-9" />
           </div>
-          <div className="w-9" />
         </div>
       </header>
 
       {/* ──────────── STEP 0: Import ──────────── */}
       {step === 0 && (
         <main className="flex-1 flex items-center justify-center px-5 pb-16">
-          <div className="max-w-md w-full text-center">
-            <div className="w-14 h-14 rounded-2xl bg-foreground flex items-center justify-center mx-auto mb-6">
-              <Zap className="h-7 w-7 text-background" />
+          <div className="max-w-md w-full text-center slide-up">
+            <div className="w-16 h-16 rounded-2xl bg-foreground flex items-center justify-center mx-auto mb-6 shadow-lg shadow-foreground/10">
+              <Zap className="h-8 w-8 text-background" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">ROI Express</h1>
-            <p className="text-sm text-muted-foreground mb-8">Pega el link del deal y genera el ROI en minutos</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-2">ROI Express</h1>
+            <p className="text-sm text-muted-foreground mb-10 max-w-[280px] mx-auto leading-relaxed">Pega el link del deal y genera el ROI en minutos</p>
 
             <div className="flex gap-2 mb-6">
               <Input
@@ -384,25 +394,25 @@ export default function Express() {
                 value={hubspotUrl}
                 onChange={e => setHubspotUrl(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && !fetching && handleFetch()}
-                className="flex-1 h-11"
+                className="flex-1 h-12 rounded-xl text-sm"
                 disabled={fetching}
                 autoFocus
               />
-              <Button onClick={handleFetch} disabled={fetching || !hubspotUrl.trim()} className="h-11 px-5 bg-foreground text-background hover:bg-foreground/90">
+              <Button onClick={handleFetch} disabled={fetching || !hubspotUrl.trim()} className="h-12 w-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0 active:scale-95 transition-all">
                 {fetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
 
             {msgs.length > 0 && (
-              <div className="text-left space-y-2.5 rounded-xl border border-border bg-card p-4">
+              <div className="text-left space-y-2 rounded-2xl border border-border bg-card p-5 shadow-sm">
                 {msgs.map((m, i) => (
-                  <div key={i} className="flex items-center gap-2.5 text-sm" style={{ animation: "fadeIn 0.3s ease-out both", animationDelay: `${i * 60}ms` }}>
+                  <div key={i} className="flex items-center gap-3 text-sm fade-in" style={{ animationDelay: `${i * 80}ms` }}>
                     {m.done ? (
-                      <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><Check className="h-2.5 w-2.5 text-white" /></div>
+                      <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0"><Check className="h-3 w-3 text-white" /></div>
                     ) : (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground shrink-0" />
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground shrink-0" />
                     )}
-                    <span className={m.done ? "text-foreground" : "text-muted-foreground"}>{m.text}</span>
+                    <span className={`${m.done ? "text-foreground font-medium" : "text-muted-foreground"}`}>{m.text}</span>
                   </div>
                 ))}
               </div>
@@ -616,12 +626,12 @@ export default function Express() {
               </div>
             </div>
           </main>
-          <footer className="sticky bottom-0 z-10 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-3">
+          <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {selectedBundle ? `${selectedBundle.bundle_name} + ${addonModules.length} add-ons` : `${selectedModules.length} módulos`}
               </span>
-              <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="bg-foreground text-background hover:bg-foreground/90">
+              <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
                 Continuar <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
@@ -633,17 +643,23 @@ export default function Express() {
       {step === 2 && (
         <>
           <main className="flex-1 overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-5 py-6 space-y-6">
+            <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
+              {/* Section title */}
+              <div>
+                <h2 className="text-lg font-bold text-foreground">Configuración</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">{selectedModules.length} módulos seleccionados</p>
+              </div>
+
               {/* Company + Country row */}
               <div className="flex gap-3 items-end">
                 <div className="flex-1 space-y-1.5">
                   <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Empresa</Label>
-                  <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={dealName || "Nombre de la empresa"} className="h-10 font-semibold text-base" />
+                  <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={dealName || "Nombre de la empresa"} className="h-11 font-semibold text-base rounded-xl" />
                 </div>
-                <div className="w-[170px] space-y-1.5">
+                <div className="w-[160px] space-y-1.5">
                   <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">País</Label>
                   <Select value={country} onValueChange={v => setCountry(v as "ES" | "FR")}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -654,27 +670,25 @@ export default function Express() {
                 </div>
               </div>
 
-              <p className="text-sm text-muted-foreground">{selectedModules.length} módulos seleccionados</p>
-
               {/* Stakeholders */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
                   const m = STAKE_META[key];
                   const Icon = m.icon;
                   return (
-                    <div key={key} className="rounded-xl p-4 space-y-3" style={{ backgroundColor: m.bg, border: `1.5px solid ${m.border}` }}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: m.color }}><Icon className="h-3.5 w-3.5 text-white" /></div>
-                        <span className="text-sm font-semibold text-foreground">{m.label}</span>
+                    <div key={key} className="rounded-2xl p-4 space-y-3 border" style={{ backgroundColor: m.bg, borderColor: m.border }}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: m.color }}><Icon className="h-4 w-4 text-white" /></div>
+                        <span className="text-sm font-bold text-foreground">{m.label}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Personas</label>
-                          <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums bg-white/80" value={roiConfig.headcounts[key]} onChange={e => setRoiConfig(p => ({ ...p, headcounts: { ...p.headcounts, [key]: Math.max(0, parseInt(e.target.value) || 0) } }))} />
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Personas</label>
+                          <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums bg-white/80 rounded-lg" value={roiConfig.headcounts[key]} onChange={e => setRoiConfig(p => ({ ...p, headcounts: { ...p.headcounts, [key]: Math.max(0, parseInt(e.target.value) || 0) } }))} />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">€/hora</label>
-                          <Input type="number" min={0} step={5} className="h-9 text-center font-bold tabular-nums bg-white/80" value={roiConfig.hourly_costs[key]} onChange={e => setRoiConfig(p => ({ ...p, hourly_costs: { ...p.hourly_costs, [key]: Math.max(0, parseFloat(e.target.value) || 0) } }))} />
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">€/hora</label>
+                          <Input type="number" min={0} step={5} className="h-10 text-center font-bold tabular-nums bg-white/80 rounded-lg" value={roiConfig.hourly_costs[key]} onChange={e => setRoiConfig(p => ({ ...p, hourly_costs: { ...p.hourly_costs, [key]: Math.max(0, parseFloat(e.target.value) || 0) } }))} />
                         </div>
                       </div>
                     </div>
@@ -683,42 +697,58 @@ export default function Express() {
               </div>
 
               {/* Extra inputs */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Altas/año</Label>
-                  <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
-                </div>
-                <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Coste Factorial €/año</Label>
-                  <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
-                </div>
-                {selectedModules.includes("expenses") && (
-                  <div className="rounded-lg border border-border px-4 py-3 space-y-1.5">
-                    <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Submitters gastos</Label>
-                    <Input type="number" min={0} className="h-9 text-center font-bold tabular-nums" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Parámetros adicionales</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-medium text-muted-foreground">Altas/año</Label>
+                    <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
                   </div>
-                )}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-medium text-muted-foreground">Coste Factorial €/año</Label>
+                    <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
+                  </div>
+                  {selectedModules.includes("expenses") && (
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-medium text-muted-foreground">Submitters gastos</Label>
+                      <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ROI preview */}
               {roi && roi.savings > 0 && (
-                <div className="rounded-xl border border-border bg-muted/30 p-4">
-                  <div className="grid grid-cols-4 gap-3 text-center">
-                    <div><p className="text-[11px] text-muted-foreground mb-0.5">Ahorro/año</p><p className="text-lg font-bold text-foreground tabular-nums">{fmtEur(roi.savings)} €</p></div>
-                    <div><p className="text-[11px] text-muted-foreground mb-0.5">Coste/año</p><p className="text-lg font-bold text-foreground tabular-nums">{fmtEur(roi.cost)} €</p></div>
-                    <div><p className="text-[11px] text-muted-foreground mb-0.5">ROI</p><p className="text-lg font-bold text-emerald-600 tabular-nums">{roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—"}</p></div>
-                    <div><p className="text-[11px] text-muted-foreground mb-0.5">Payback</p><p className="text-lg font-bold text-foreground tabular-nums">{roi.savings > 0 ? `${roi.payback.toFixed(0)} m` : "—"}</p></div>
+                <div className="rounded-2xl bg-foreground/[0.03] border border-foreground/10 p-5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Vista previa</p>
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                      <p className="text-2xl font-extrabold text-foreground tabular-nums">{fmtEur(roi.savings)} €</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Ahorro/año</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-foreground tabular-nums">{fmtEur(roi.cost)} €</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Coste/año</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-emerald-600 tabular-nums">{roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—"}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">ROI</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-extrabold text-foreground tabular-nums">{roi.savings > 0 ? `${roi.payback.toFixed(1)}m` : "—"}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Payback</p>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
           </main>
-          <footer className="sticky bottom-0 z-10 bg-card/95 backdrop-blur-sm border-t border-border px-4 py-3">
+          <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
             <div className="max-w-2xl mx-auto flex justify-between gap-3">
-              <Button variant="outline" onClick={() => setStep(1)}>
-                <ArrowLeft className="h-4 w-4 mr-1" /> Atrás
+              <Button variant="outline" onClick={() => setStep(1)} className="rounded-xl active:scale-95 transition-all">
+                <ArrowLeft className="h-4 w-4 mr-1.5" /> Atrás
               </Button>
-              <Button onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="bg-foreground text-background hover:bg-foreground/90">
+              <Button onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
                 Ver resultado <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
@@ -729,65 +759,78 @@ export default function Express() {
       {/* ──────────── STEP 3: Results ──────────── */}
       {step === 3 && roi && (
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-5 py-8 space-y-6">
+          <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Hero */}
-            <div className="text-center space-y-1">
-              <h2 className="text-2xl font-bold text-foreground">{companyName || dealName || "Empresa"}</h2>
-              <p className="text-sm text-muted-foreground">{selectedModules.length} módulos · {totalPeople} personas</p>
+            <div className="text-center slide-up">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Resultado ROI</p>
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground">{companyName || dealName || "Empresa"}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{selectedModules.length} módulos · {totalPeople} personas</p>
             </div>
 
-            {/* KPIs */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Primary KPI */}
+            {roi.cost > 0 && roi.pct > 0 && (
+              <div className="rounded-2xl bg-emerald-50 border border-emerald-200/60 p-6 text-center slide-up" style={{ animationDelay: "80ms" }}>
+                <p className="text-5xl font-black tabular-nums text-emerald-600 tracking-tight">{roi.pct.toFixed(0)}%</p>
+                <p className="text-sm font-semibold text-emerald-700/70 mt-1">Retorno de inversión</p>
+              </div>
+            )}
+
+            {/* Secondary KPIs */}
+            <div className="grid grid-cols-3 gap-3 slide-up" style={{ animationDelay: "160ms" }}>
               {[
-                { label: "Ahorro anual", val: `${fmtEur(roi.savings)} €`, accent: false },
-                { label: "Coste Factorial", val: `${fmtEur(roi.cost)} €`, accent: false },
-                { label: "ROI", val: roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—", accent: roi.pct > 0 },
-                { label: "Payback", val: roi.savings > 0 ? `${roi.payback.toFixed(1)} meses` : "—", accent: false },
+                { label: "Ahorro anual", val: `${fmtEur(roi.savings)} €` },
+                { label: "Coste Factorial", val: `${fmtEur(roi.cost)} €` },
+                { label: "Payback", val: roi.savings > 0 ? `${roi.payback.toFixed(1)} meses` : "—" },
               ].map(k => (
-                <div key={k.label} className={`rounded-xl p-4 text-center ${k.accent ? "bg-emerald-50 border border-emerald-200" : "bg-card border border-border"}`}>
-                  <p className="text-[11px] text-muted-foreground mb-1 uppercase tracking-wider font-medium">{k.label}</p>
-                  <p className={`text-xl font-bold tabular-nums ${k.accent ? "text-emerald-600" : "text-foreground"}`}>{k.val}</p>
+                <div key={k.label} className="rounded-2xl bg-card border border-border p-4 text-center">
+                  <p className="text-lg font-extrabold tabular-nums text-foreground">{k.val}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-semibold">{k.label}</p>
                 </div>
               ))}
             </div>
 
             {/* Hypotheses editor */}
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
               <button
                 onClick={() => setHypothesesOpen(o => !o)}
-                className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-muted/30 transition-colors"
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
               >
-                <div className="flex items-center gap-2.5">
-                  <Pencil className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold text-foreground">Hipótesis por módulo</span>
-                  <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{selectedModules.length}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center">
+                    <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <span className="text-sm font-semibold text-foreground">Hipótesis por módulo</span>
+                    <p className="text-[11px] text-muted-foreground">Horas ahorradas por stakeholder</p>
+                  </div>
                 </div>
-                {hypothesesOpen
-                  ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{selectedModules.length}</span>
+                  {hypothesesOpen
+                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                </div>
               </button>
 
               {hypothesesOpen && (
                 <div className="border-t border-border">
-                  {/* General config summary */}
-                  <div className="px-4 py-3 bg-muted/20 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                    <span>{roiConfig.headcounts.employee} empleados</span>
-                    <span>{roiConfig.headcounts.hr} FTEs HR</span>
-                    <span>{roiConfig.headcounts.manager} managers</span>
-                    <button onClick={() => setStep(2)} className="text-foreground font-medium hover:underline underline-offset-2">
-                      Editar config
+                  <div className="px-5 py-3 bg-muted/15 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>{roiConfig.headcounts.employee} empleados · {roiConfig.hourly_costs.employee} €/h</span>
+                    <span>{roiConfig.headcounts.hr} HR · {roiConfig.hourly_costs.hr} €/h</span>
+                    <span>{roiConfig.headcounts.manager} mgrs · {roiConfig.hourly_costs.manager} €/h</span>
+                    <button onClick={() => setStep(2)} className="text-foreground font-semibold hover:underline underline-offset-2 ml-auto">
+                      Editar
                     </button>
                   </div>
 
-                  {/* Module hours table */}
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-border bg-muted/10">
-                          <th className="text-left px-4 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Módulo</th>
-                          <th className="text-center px-2 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#3B82F6" }}>Emp h/m</th>
-                          <th className="text-center px-2 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#10B981" }}>HR h/m</th>
-                          <th className="text-center px-2 py-2 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#F59E0B" }}>Mgr h/m</th>
+                        <tr className="border-b border-border bg-muted/8">
+                          <th className="text-left px-5 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Módulo</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#3B82F6" }}>Emp h/m</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>HR h/m</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#F59E0B" }}>Mgr h/m</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -796,11 +839,11 @@ export default function Express() {
                           const defaults = getHoursForModule(modId);
                           const overrides = roiConfig.hours_overrides?.[modId];
                           return (
-                            <tr key={modId} className={idx > 0 ? "border-t border-border/60" : ""}>
-                              <td className="px-4 py-2">
+                            <tr key={modId} className={`hover:bg-muted/20 transition-colors ${idx > 0 ? "border-t border-border/50" : ""}`}>
+                              <td className="px-5 py-2.5">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
-                                  <span className="text-foreground text-sm">{cat?.label ?? moduleLabel(modId)}</span>
+                                  <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
+                                  <span className="text-foreground text-sm font-medium">{cat?.label ?? moduleLabel(modId)}</span>
                                 </div>
                               </td>
                               {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
@@ -808,16 +851,16 @@ export default function Express() {
                                 const val = overrides?.[sk] ?? def;
                                 const hasOverride = overrides?.[sk] !== undefined && overrides[sk] !== def;
                                 return (
-                                  <td key={sk} className="px-2 py-1.5 text-center">
+                                  <td key={sk} className="px-2 py-2 text-center">
                                     {def === 0 && !hasOverride ? (
-                                      <span className="text-muted-foreground/30 text-xs">—</span>
+                                      <span className="text-muted-foreground/25 text-xs">—</span>
                                     ) : (
                                       <input
                                         type="number"
                                         step="0.1"
                                         min="0"
-                                        className={`w-16 h-7 text-center text-sm tabular-nums rounded-md border bg-transparent focus:outline-none focus:ring-1 focus:ring-ring ${
-                                          hasOverride ? "border-amber-300 bg-amber-50/50 font-semibold" : "border-border"
+                                        className={`w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all ${
+                                          hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : "border-transparent hover:border-border"
                                         }`}
                                         value={val}
                                         onChange={e => {
@@ -846,40 +889,31 @@ export default function Express() {
             </div>
 
             {/* PDF downloads */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-4 text-left hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-foreground/5 border border-border flex items-center justify-center shrink-0">
-                    <FileText className="h-4 w-4 text-foreground" />
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { type: "summary" as const, title: "1 Slide", desc: "Resumen ejecutivo" },
+                { type: "detail" as const, title: "Detalle", desc: "Módulo por módulo" },
+              ]).map(pdf => (
+                <button key={pdf.type} onClick={() => downloadPdf(pdf.type)} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group active:scale-[0.98]">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
+                      <FileText className="h-5 w-5 text-background" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{pdf.title}</p>
+                      <p className="text-[11px] text-muted-foreground">{pdf.desc}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">1 Slide</p>
-                    <p className="text-xs text-muted-foreground">Resumen ejecutivo</p>
-                  </div>
-                  <span className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors">
-                    {dlPdf === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
+                    {dlPdf === pdf.type ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    Descargar PDF
                   </span>
-                </div>
-              </button>
-
-              <button onClick={() => downloadPdf("detail")} disabled={!!dlPdf} className="rounded-xl border border-border bg-card p-4 text-left hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-foreground/5 border border-border flex items-center justify-center shrink-0">
-                    <FileText className="h-4 w-4 text-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">Detalle</p>
-                    <p className="text-xs text-muted-foreground">Módulo por módulo</p>
-                  </div>
-                  <span className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors">
-                    {dlPdf === "detail" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                  </span>
-                </div>
-              </button>
+                </button>
+              ))}
             </div>
 
             {/* Save + actions */}
-            <div className="flex flex-col items-center gap-3 pt-2">
+            <div className="flex flex-col items-center gap-4 pt-4 pb-4">
               <Button
                 onClick={async () => {
                   setSaving(true);
@@ -889,14 +923,14 @@ export default function Express() {
                   navigate("/");
                 }}
                 disabled={saving || !!savedSessionId.current}
-                className="w-full max-w-xs h-11 bg-foreground text-background hover:bg-foreground/90 text-sm font-semibold"
+                className="w-full max-w-sm h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 text-sm font-bold active:scale-[0.98] transition-all shadow-lg shadow-foreground/10"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {savedSessionId.current ? "Guardado" : "Guardar y volver"}
               </Button>
               <button
-                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; setRoiConfig(p => ({ ...p, hours_overrides: undefined })); }}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); }}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Nuevo análisis
               </button>
