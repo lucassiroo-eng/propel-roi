@@ -352,5 +352,14 @@
   "hyp.onboardings_yr": "Embauches/an",
   "hyp.onboardings_help": "Core HR, Recrutement, IT Inventory",
   "hyp.expense_submitters": "Utilisateurs notes de frais",
-  "hyp.expense_help": "Gestion des dépenses"
+  "hyp.expense_help": "Gestion des dépenses",
+
+  "express.skip_analysis": "J'ai déjà les modules convenus avec le prospect",
+  "express.skip_analysis_done": "Modules convenus — sélectionnez manuellement",
+  "express.hyp_module": "Module",
+  "express.hyp_type": "Type",
+  "express.type_hours": "Heures",
+  "express.type_tool": "Outil",
+  "express.tool_name": "Nom de l'outil",
+  "express.year": "an"
 }

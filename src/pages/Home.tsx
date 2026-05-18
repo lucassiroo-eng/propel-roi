@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap } from "lucide-react";
+import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap, ShieldCheck } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -119,6 +119,14 @@ export default function Home() {
           <span className="font-bold text-foreground text-base">Propel ROI</span>
         </div>
         <div className="flex items-center gap-1">
+          {user?.email === "lucas.siroo@factorial.co" && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <ShieldCheck className="h-4 w-4" />
+            </button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">

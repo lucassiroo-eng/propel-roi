@@ -352,5 +352,14 @@
   "hyp.onboardings_yr": "Onboardings/yr",
   "hyp.onboardings_help": "Core HR, Recruitment, IT Inventory",
   "hyp.expense_submitters": "Expense submitters",
-  "hyp.expense_help": "Expense Management"
+  "hyp.expense_help": "Expense Management",
+
+  "express.skip_analysis": "I already have the modules agreed with the prospect",
+  "express.skip_analysis_done": "Modules agreed — select manually",
+  "express.hyp_module": "Module",
+  "express.hyp_type": "Type",
+  "express.type_hours": "Hours",
+  "express.type_tool": "Tool",
+  "express.tool_name": "Tool name",
+  "express.year": "year"
 }

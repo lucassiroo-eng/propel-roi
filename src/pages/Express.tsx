@@ -14,6 +14,7 @@ import {
   ArrowLeft, ArrowRight, Check, Download, Pencil, Save,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
+  Clock, Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,7 +35,7 @@ import {
   buildRoiSlideData, generateRoiSlidePdf, generateMultiSlidePdf,
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
-import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
+import type { ModuleSuggestion, RoiConfig, ToolOverride } from "@/hooks/useWizardSession";
 
 const STEPS = ["Importar", "Módulos", "Configurar", "Resultado"];
 const MODULE_REF = buildModulePromptBlock();
@@ -67,6 +68,7 @@ export default function Express() {
   const [dealName, setDealName] = useState("");
   const [dealContext, setDealContext] = useState("");
   const [country, setCountry] = useState<"ES" | "FR">("ES");
+  const [skipAnalysis, setSkipAnalysis] = useState(false);
 
   // Step 1
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -139,6 +141,7 @@ export default function Express() {
             headcounts: rc.headcounts ?? { employee: 50, hr: 2, manager: 5 },
             hourly_costs: rc.hourly_costs ?? { employee: 20, hr: 30, manager: 25 },
             hours_overrides: rc.hours_overrides,
+            tool_overrides: rc.tool_overrides,
             onboardings_per_year: rc.onboardings_per_year,
             expense_submitters: rc.expense_submitters,
           });
@@ -197,50 +200,54 @@ export default function Express() {
         }
       }
 
-      const content = deal.deal_context?.slice(0, 6000) ?? "";
-      if (content.trim()) {
-        setMsgs(prev => [...prev, { text: "Analizando contenido...", done: false }]);
-        setAnalyzing(true);
+      if (!skipAnalysis) {
+        const content = deal.deal_context?.slice(0, 6000) ?? "";
+        if (content.trim()) {
+          setMsgs(prev => [...prev, { text: "Analizando contenido...", done: false }]);
+          setAnalyzing(true);
 
-        const progressHints = [
-          "Leyendo emails y notas...",
-          "Detectando pain points...",
-          "Evaluando módulos relevantes...",
-          "Calculando encaje por stakeholder...",
-        ];
-        let hintIdx = 0;
-        const hintTimer = setInterval(() => {
-          if (hintIdx < progressHints.length) {
-            const hint = progressHints[hintIdx++];
-            setMsgs(prev => {
-              const u = [...prev];
-              u[u.length - 1] = { text: hint, done: false };
-              return u;
+          const progressHints = [
+            "Leyendo emails y notas...",
+            "Detectando pain points...",
+            "Evaluando módulos relevantes...",
+            "Calculando encaje por stakeholder...",
+          ];
+          let hintIdx = 0;
+          const hintTimer = setInterval(() => {
+            if (hintIdx < progressHints.length) {
+              const hint = progressHints[hintIdx++];
+              setMsgs(prev => {
+                const u = [...prev];
+                u[u.length - 1] = { text: hint, done: false };
+                return u;
+              });
+            }
+          }, 2200);
+
+          try {
+            const { data: res, error } = await supabase.functions.invoke("ai-unified-analysis", {
+              body: { content, country, modules_ref: MODULE_REF },
             });
+            clearInterval(hintTimer);
+            if (error) throw error;
+            const valid = new Set(MODULE_CATALOG.map(c => c.id));
+            const seen = new Set<string>();
+            const deduped: ModuleSuggestion[] = (res?.modules ?? [])
+              .filter((m: any) => valid.has(m.module_id))
+              .map((m: any) => ({ module_id: m.module_id, confidence: m.confidence as "strong" | "possible", quote: m.quote || "" }))
+              .filter((sg: ModuleSuggestion) => { if (seen.has(sg.module_id)) return false; seen.add(sg.module_id); return true; });
+
+            setModuleSuggestions(deduped);
+            setSelectedModules(deduped.map(x => x.module_id));
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `${deduped.length} módulos identificados`, done: true }; return u; });
+          } catch {
+            clearInterval(hintTimer);
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Análisis no disponible", done: true }; return u; });
           }
-        }, 2200);
-
-        try {
-          const { data: res, error } = await supabase.functions.invoke("ai-unified-analysis", {
-            body: { content, country, modules_ref: MODULE_REF },
-          });
-          clearInterval(hintTimer);
-          if (error) throw error;
-          const valid = new Set(MODULE_CATALOG.map(c => c.id));
-          const seen = new Set<string>();
-          const deduped: ModuleSuggestion[] = (res?.modules ?? [])
-            .filter((m: any) => valid.has(m.module_id))
-            .map((m: any) => ({ module_id: m.module_id, confidence: m.confidence as "strong" | "possible", quote: m.quote || "" }))
-            .filter((sg: ModuleSuggestion) => { if (seen.has(sg.module_id)) return false; seen.add(sg.module_id); return true; });
-
-          setModuleSuggestions(deduped);
-          setSelectedModules(deduped.map(x => x.module_id));
-          setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `${deduped.length} módulos identificados`, done: true }; return u; });
-        } catch {
-          clearInterval(hintTimer);
-          setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Análisis no disponible", done: true }; return u; });
+          setAnalyzing(false);
         }
-        setAnalyzing(false);
+      } else {
+        setMsgs(prev => [...prev, { text: t("express.skip_analysis_done", "Módulos acordados — selecciona manualmente"), done: true }]);
       }
 
       setTimeout(() => setStep(1), 1000);
@@ -305,7 +312,13 @@ export default function Express() {
     const { headcounts, hourly_costs } = roiConfig;
     const mul: RoiMultipliers = { headcounts, onboardings_per_year: roiConfig.onboardings_per_year, expense_submitters: roiConfig.expense_submitters };
     let mHrs = 0, mMon = 0;
+    let toolSavings = 0;
     for (const modId of selectedModules) {
+      const toolOvr = roiConfig.tool_overrides?.[modId];
+      if (toolOvr) {
+        toolSavings += toolOvr.annual_cost;
+        continue;
+      }
       const hrs = getEffectiveHours(modId, roiConfig.hours_overrides);
       for (const sk of ["employee", "hr", "manager"] as Stakeholder[]) {
         const e = MODULE_HOURS.find(x => x.module_id === modId && x.stakeholder === sk);
@@ -314,7 +327,7 @@ export default function Express() {
         mHrs += h; mMon += h * hourly_costs[sk];
       }
     }
-    const ann = mMon * 12;
+    const ann = mMon * 12 + toolSavings;
     const c = annualCost;
     return { savings: ann, cost: c, pct: c > 0 ? ((ann - c) / c * 100) : 0, payback: ann > 0 ? (c / ann * 12) : 0, hrs: mHrs };
   }, [selectedModules, roiConfig, annualCost]);
@@ -475,7 +488,7 @@ export default function Express() {
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-2">ROI Express</h1>
             <p className="text-sm text-muted-foreground mb-10 max-w-[280px] mx-auto leading-relaxed">Pega el link del deal y genera el ROI en minutos</p>
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-4">
               <Input
                 placeholder="https://app.hubspot.com/contacts/.../deal/..."
                 value={hubspotUrl}
@@ -489,6 +502,26 @@ export default function Express() {
                 {fetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setSkipAnalysis(s => !s)}
+              disabled={fetching}
+              className={`w-full flex items-center gap-3 rounded-xl border px-4 py-3 mb-6 text-left transition-all ${
+                skipAnalysis
+                  ? "border-foreground/30 bg-foreground/[0.04]"
+                  : "border-border bg-transparent hover:bg-muted/30"
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors shrink-0 ${
+                skipAnalysis ? "border-foreground bg-foreground" : "border-border"
+              }`}>
+                {skipAnalysis && <Check className="h-3 w-3 text-background" />}
+              </div>
+              <span className={`text-sm ${skipAnalysis ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                {t("express.skip_analysis", "Ya tengo los módulos acordados con el prospect")}
+              </span>
+            </button>
 
             {msgs.length > 0 && (
               <div className="text-left space-y-2 rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -914,7 +947,8 @@ export default function Express() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border bg-muted/8">
-                          <th className="text-left px-5 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Módulo</th>
+                          <th className="text-left px-5 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("express.hyp_module", "Módulo")}</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-[72px]">{t("express.hyp_type", "Tipo")}</th>
                           <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#3B82F6" }}>Emp h/m</th>
                           <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>HR h/m</th>
                           <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#F59E0B" }}>Mgr h/m</th>
@@ -925,6 +959,8 @@ export default function Express() {
                           const cat = MODULE_CATALOG.find(m => m.id === modId);
                           const defaults = getHoursForModule(modId);
                           const overrides = roiConfig.hours_overrides?.[modId];
+                          const toolOvr = roiConfig.tool_overrides?.[modId];
+                          const isTool = !!toolOvr;
                           return (
                             <tr key={modId} className={`hover:bg-muted/20 transition-colors ${idx > 0 ? "border-t border-border/50" : ""}`}>
                               <td className="px-5 py-2.5">
@@ -933,38 +969,123 @@ export default function Express() {
                                   <span className="text-foreground text-sm font-medium">{cat?.label ?? moduleLabel(modId)}</span>
                                 </div>
                               </td>
-                              {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
-                                const def = defaults[sk];
-                                const val = overrides?.[sk] ?? def;
-                                const hasOverride = overrides?.[sk] !== undefined && overrides[sk] !== def;
-                                return (
-                                  <td key={sk} className="px-2 py-2 text-center">
-                                    {def === 0 && !hasOverride ? (
-                                      <span className="text-muted-foreground/25 text-xs">—</span>
-                                    ) : (
+                              <td className="px-1 py-2 text-center">
+                                <div className="inline-flex rounded-lg border border-border overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (isTool) {
+                                        setRoiConfig(prev => {
+                                          const to = { ...(prev.tool_overrides ?? {}) };
+                                          delete to[modId];
+                                          return { ...prev, tool_overrides: Object.keys(to).length ? to : undefined };
+                                        });
+                                      }
+                                    }}
+                                    className={`px-2 py-1 text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                                      !isTool ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                    title={t("express.type_hours", "Horas")}
+                                  >
+                                    <Clock className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!isTool) {
+                                        setRoiConfig(prev => ({
+                                          ...prev,
+                                          tool_overrides: {
+                                            ...(prev.tool_overrides ?? {}),
+                                            [modId]: { tool_name: "", annual_cost: 0 },
+                                          },
+                                        }));
+                                      }
+                                    }}
+                                    className={`px-2 py-1 text-[10px] font-semibold transition-colors flex items-center gap-1 ${
+                                      isTool ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                                    title={t("express.type_tool", "Herramienta")}
+                                  >
+                                    <Wrench className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </td>
+                              {isTool ? (
+                                <td colSpan={3} className="px-2 py-2">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder={t("express.tool_name", "Nombre herramienta")}
+                                      className="flex-1 h-8 px-2 text-sm rounded-lg border border-violet-300 bg-violet-50/40 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/40"
+                                      value={toolOvr.tool_name}
+                                      onChange={e => {
+                                        const name = e.target.value;
+                                        setRoiConfig(prev => ({
+                                          ...prev,
+                                          tool_overrides: {
+                                            ...(prev.tool_overrides ?? {}),
+                                            [modId]: { ...prev.tool_overrides![modId], tool_name: name },
+                                          },
+                                        }));
+                                      }}
+                                    />
+                                    <div className="flex items-center gap-1">
                                       <input
                                         type="number"
-                                        step="0.1"
-                                        min="0"
-                                        className={`w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all ${
-                                          hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : "border-transparent hover:border-border"
-                                        }`}
-                                        value={val}
+                                        min={0}
+                                        placeholder="€/año"
+                                        className="w-[90px] h-8 px-2 text-sm text-center tabular-nums rounded-lg border border-violet-300 bg-violet-50/40 font-bold text-violet-700 focus:outline-none focus:ring-2 focus:ring-ring/40"
+                                        value={toolOvr.annual_cost || ""}
                                         onChange={e => {
-                                          const v = Math.max(0, parseFloat(e.target.value) || 0);
-                                          setRoiConfig(prev => {
-                                            const ho = { ...(prev.hours_overrides ?? {}) };
-                                            ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
-                                            if (v === def) delete ho[modId]![sk];
-                                            if (Object.keys(ho[modId]!).length === 0) delete ho[modId];
-                                            return { ...prev, hours_overrides: ho };
-                                          });
+                                          const cost = Math.max(0, parseFloat(e.target.value) || 0);
+                                          setRoiConfig(prev => ({
+                                            ...prev,
+                                            tool_overrides: {
+                                              ...(prev.tool_overrides ?? {}),
+                                              [modId]: { ...prev.tool_overrides![modId], annual_cost: cost },
+                                            },
+                                          }));
                                         }}
                                       />
-                                    )}
-                                  </td>
-                                );
-                              })}
+                                      <span className="text-[10px] text-muted-foreground">€/{t("express.year", "año")}</span>
+                                    </div>
+                                  </div>
+                                </td>
+                              ) : (
+                                (["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
+                                  const def = defaults[sk];
+                                  const val = overrides?.[sk] ?? def;
+                                  const hasOverride = overrides?.[sk] !== undefined && overrides[sk] !== def;
+                                  return (
+                                    <td key={sk} className="px-2 py-2 text-center">
+                                      {def === 0 && !hasOverride ? (
+                                        <span className="text-muted-foreground/25 text-xs">—</span>
+                                      ) : (
+                                        <input
+                                          type="number"
+                                          step="0.1"
+                                          min="0"
+                                          className={`w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all ${
+                                            hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : "border-transparent hover:border-border"
+                                          }`}
+                                          value={val}
+                                          onChange={e => {
+                                            const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                            setRoiConfig(prev => {
+                                              const ho = { ...(prev.hours_overrides ?? {}) };
+                                              ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
+                                              if (v === def) delete ho[modId]![sk];
+                                              if (Object.keys(ho[modId]!).length === 0) delete ho[modId];
+                                              return { ...prev, hours_overrides: ho };
+                                            });
+                                          }}
+                                        />
+                                      )}
+                                    </td>
+                                  );
+                                })
+                              )}
                             </tr>
                           );
                         })}
@@ -1016,7 +1137,7 @@ export default function Express() {
                 Guardar y volver
               </Button>
               <button
-                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Nuevo análisis

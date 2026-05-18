@@ -1,4 +1,4 @@
-import type { RoiConfig } from "@/hooks/useWizardSession";
+import type { RoiConfig, ToolOverride } from "@/hooks/useWizardSession";
 import { MODULE_CATALOG } from "@/lib/moduleCatalog";
 import { moduleLabel } from "@/lib/offeringEngine";
 import {
@@ -54,6 +54,7 @@ export interface RoiSlideModule {
   hours_per_month: number;
   annual_savings: number;
   in_bundle: boolean;
+  tool_override?: ToolOverride;
 }
 
 export interface RoiSlideHighlight {
@@ -107,18 +108,31 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   }
 
   for (const modId of configModules) {
-    const base = calcModule(modId);
-
     const catalog = MODULE_CATALOG.find(m => m.id === modId);
-    modules.push({
-      id: modId,
-      name: catalog?.label ?? moduleLabel(modId),
-      hours_per_month: Math.round(base.hours),
-      annual_savings: Math.round(base.money * 12),
-      in_bundle: bundleSet.has(modId),
-    });
-    totalHours += base.hours;
-    totalSavings += base.money * 12;
+    const toolOvr = roiConfig.tool_overrides?.[modId];
+
+    if (toolOvr) {
+      modules.push({
+        id: modId,
+        name: catalog?.label ?? moduleLabel(modId),
+        hours_per_month: 0,
+        annual_savings: Math.round(toolOvr.annual_cost),
+        in_bundle: bundleSet.has(modId),
+        tool_override: toolOvr,
+      });
+      totalSavings += toolOvr.annual_cost;
+    } else {
+      const base = calcModule(modId);
+      modules.push({
+        id: modId,
+        name: catalog?.label ?? moduleLabel(modId),
+        hours_per_month: Math.round(base.hours),
+        annual_savings: Math.round(base.money * 12),
+        in_bundle: bundleSet.has(modId),
+      });
+      totalHours += base.hours;
+      totalSavings += base.money * 12;
+    }
   }
 
   const roiPercent = annualCost > 0 ? Math.round(((totalSavings - annualCost) / annualCost) * 100) : 0;
@@ -246,11 +260,16 @@ function generateSummarySlideBody(data: RoiSlideData): string {
   const hasAddons = addonMods.length > 0;
   const groupHeaderFont = mc <= 5 ? 11 : 10;
 
+  const toolLabel: Record<string, string> = { es: "Sustituye", en: "Replaces", fr: "Remplace" };
+
   const renderModRow = (m: RoiSlideModule, i: number) => {
     const color = PILL_COLORS[i % PILL_COLORS.length];
+    const hoursCell = m.tool_override
+      ? `<span style="font-size:${Math.max(cellFont - 3, 11)}px;color:#7C3AED;font-weight:600;white-space:nowrap;">${toolLabel[lang] ?? toolLabel.es} ${escHtml(m.tool_override.tool_name || "—")}</span>`
+      : m.hours_per_month > 0 ? `${m.hours_per_month}h` : "—";
     return `          <tr>
             <td><span class="pill" style="background:${color};padding:${pillPadV}px ${pillPadH}px;font-size:${pillFont}px;"><span class="dot" style="width:${dotSize}px;height:${dotSize}px;"></span>${escHtml(m.name)}</span></td>
-            <td style="font-size:${cellFont}px;">${m.hours_per_month > 0 ? `${m.hours_per_month}h` : "—"}</td>
+            <td style="font-size:${cellFont}px;">${hoursCell}</td>
             <td style="font-size:${cellFont}px;">${m.annual_savings > 0 ? fmtEur(m.annual_savings) : "—"}</td>
           </tr>`;
   };
@@ -527,6 +546,7 @@ interface ModuleDetail {
   total_hours: number;
   total_monthly: number;
   total_annual: number;
+  tool_override?: ToolOverride;
 }
 
 function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDetail[] {
@@ -566,6 +586,23 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
     const slideModule = data.modules.find(m => m.id === modId);
     if (!slideModule) continue;
 
+    const colorIdx = data.modules.findIndex(m => m.id === modId);
+    const toolOvr = roiConfig.tool_overrides?.[modId];
+
+    if (toolOvr) {
+      details.push({
+        id: modId,
+        name: slideModule.name,
+        color: PILL_COLORS[colorIdx >= 0 ? colorIdx % PILL_COLORS.length : 0],
+        rows: [],
+        total_hours: 0,
+        total_monthly: Math.round(toolOvr.annual_cost / 12),
+        total_annual: Math.round(toolOvr.annual_cost),
+        tool_override: toolOvr,
+      });
+      continue;
+    }
+
     const { rows } = buildRows(modId);
 
     if (rows.length === 0) continue;
@@ -574,7 +611,6 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
     const recalcM = rows.reduce((s, r) => s + r.monthly_savings, 0);
     const recalcA = rows.reduce((s, r) => s + r.annual_savings, 0);
 
-    const colorIdx = data.modules.findIndex(m => m.id === modId);
     details.push({
       id: modId,
       name: slideModule.name,
@@ -602,14 +638,47 @@ const SCALES_WITH_LABELS: Record<string, Record<string, string>> = {
 
 function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang: string): string {
   const i18n: Record<string, Record<string, string>> = {
-    es: { detail_title: "Detalle del cálculo", stakeholder: "Stakeholder", h_person: "h/pers/mes", count: "Personas", total_h: "Horas totales/mes", eur_h: "€/hora", monthly: "Ahorro/mes", annual: "Ahorro/año", total: "Total módulo", pct_of_total: "del ahorro total", hours_month: "Horas/mes", benefits: "Beneficios" },
-    en: { detail_title: "Calculation detail", stakeholder: "Stakeholder", h_person: "h/pers/month", count: "People", total_h: "Total hours/month", eur_h: "€/hour", monthly: "Savings/month", annual: "Savings/year", total: "Module total", pct_of_total: "of total savings", hours_month: "Hours/month", benefits: "Benefits" },
-    fr: { detail_title: "Détail du calcul", stakeholder: "Partie prenante", h_person: "h/pers/mois", count: "Personnes", total_h: "Heures totales/mois", eur_h: "€/heure", monthly: "Économies/mois", annual: "Économies/an", total: "Total module", pct_of_total: "des économies totales", hours_month: "Heures/mois", benefits: "Bénéfices" },
+    es: { detail_title: "Detalle del cálculo", stakeholder: "Stakeholder", h_person: "h/pers/mes", count: "Personas", total_h: "Horas totales/mes", eur_h: "€/hora", monthly: "Ahorro/mes", annual: "Ahorro/año", total: "Total módulo", pct_of_total: "del ahorro total", hours_month: "Horas/mes", benefits: "Beneficios", replaces_tool: "Sustituye herramienta", tool_cost: "Coste anual de la herramienta", tool_saving: "Ahorro por sustitución" },
+    en: { detail_title: "Calculation detail", stakeholder: "Stakeholder", h_person: "h/pers/month", count: "People", total_h: "Total hours/month", eur_h: "€/hour", monthly: "Savings/month", annual: "Savings/year", total: "Module total", pct_of_total: "of total savings", hours_month: "Hours/month", benefits: "Benefits", replaces_tool: "Replaces tool", tool_cost: "Annual tool cost", tool_saving: "Savings from replacement" },
+    fr: { detail_title: "Détail du calcul", stakeholder: "Partie prenante", h_person: "h/pers/mois", count: "Personnes", total_h: "Heures totales/mois", eur_h: "€/heure", monthly: "Économies/mois", annual: "Économies/an", total: "Total module", pct_of_total: "des économies totales", hours_month: "Heures/mois", benefits: "Bénéfices", replaces_tool: "Remplace l'outil", tool_cost: "Coût annuel de l'outil", tool_saving: "Économies par remplacement" },
   };
   const t = i18n[lang] ?? i18n.es;
   const sLabels = STAKEHOLDER_LABELS[lang] ?? STAKEHOLDER_LABELS.es;
   const swLabels = SCALES_WITH_LABELS[lang] ?? SCALES_WITH_LABELS.es;
   const pctOfTotal = data.total_annual_savings > 0 ? Math.round((detail.total_annual / data.total_annual_savings) * 100) : 0;
+
+  if (detail.tool_override) {
+    const brandHtml2 = buildBrandHtml(data);
+    return `
+  <div class="slide detail-slide">
+    <div class="header">
+      <div class="header-left">
+        <div class="title"><span class="module-pill" style="background:${detail.color};">${escHtml(detail.name)}</span> <span class="detail-label">${t.detail_title}</span></div>
+      </div>
+      <div class="header-right">
+        <div class="header-date">${escHtml(data.date)}</div>
+        <div class="header-brand">${brandHtml2}</div>
+      </div>
+    </div>
+    <div class="detail-content" style="justify-content:center;align-items:center;text-align:center;">
+      <div class="kpi-strip" style="max-width:700px;">
+        <div class="detail-kpi" style="border-color:#7C3AED;">
+          <div class="detail-kpi-value" style="color:#7C3AED;">${escHtml(detail.tool_override.tool_name || "—")}</div>
+          <div class="detail-kpi-label">${t.replaces_tool}</div>
+        </div>
+        <div class="detail-kpi" style="border-color:#FF355E;">
+          <div class="detail-kpi-value" style="color:#FF355E;">${fmtEur(detail.total_annual)}</div>
+          <div class="detail-kpi-label">${t.tool_saving}</div>
+        </div>
+        <div class="detail-kpi" style="border-color:#374151;">
+          <div class="detail-kpi-value">${pctOfTotal}%</div>
+          <div class="detail-kpi-label">${t.pct_of_total}</div>
+        </div>
+      </div>
+      <p style="font-size:16px;color:#6B7280;margin-top:32px;max-width:600px;line-height:1.6;">${t.tool_cost}: <strong style="color:#1F2937;">${fmtEur(detail.total_annual)}</strong> — Factorial ${escHtml(detail.name)} ${t.replaces_tool.toLowerCase()} <strong style="color:#7C3AED;">${escHtml(detail.tool_override.tool_name || "—")}</strong></p>
+    </div>
+  </div>`;
+  }
 
   const brandHtml = data.company_logo_url
     ? `<span class="company-name">${escHtml(data.company_name)}</span>

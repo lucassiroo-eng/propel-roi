@@ -96,10 +96,16 @@ export interface ModuleSuggestion {
   quote: string;
 }
 
+export interface ToolOverride {
+  tool_name: string;
+  annual_cost: number;
+}
+
 export interface RoiConfig {
   headcounts: { employee: number; hr: number; manager: number };
   hourly_costs: { employee: number; hr: number; manager: number };
   hours_overrides?: Record<string, Partial<Record<string, number>>>;
+  tool_overrides?: Record<string, ToolOverride>;
   onboardings_per_year?: number;
   expense_submitters?: number;
 }
