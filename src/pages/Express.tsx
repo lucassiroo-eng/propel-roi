@@ -169,39 +169,90 @@ export default function Express() {
     setMsgs([{ text: "Buscando deal...", done: false }]);
 
     try {
+      let name = "";
+      let context = "";
+      let company = "";
+      let contentStats = "";
+
       const deal = await fetchDealByHubspotId(dealId);
-      if (!deal) {
-        setMsgs([{ text: "Deal no encontrado", done: true }]);
-        toast.error("Deal no encontrado");
-        return;
-      }
 
-      if (deal.deal_name) setDealName(deal.deal_name);
-      if (deal.deal_context) setDealContext(deal.deal_context);
+      if (deal) {
+        name = deal.deal_name ?? "";
+        context = deal.deal_context ?? "";
+        if (name) setDealName(name);
+        if (context) setDealContext(context);
 
-      const s = { notes: deal.numero_de_notas ?? 0, emails: deal.numero_de_emails ?? 0, calls: deal.numero_de_calls ?? 0 };
-      const parts: string[] = [];
-      if (s.emails > 0) parts.push(`${s.emails} emails`);
-      if (s.calls > 0) parts.push(`${s.calls} llamadas`);
-      if (s.notes > 0) parts.push(`${s.notes} notas`);
+        const s = { notes: deal.numero_de_notas ?? 0, emails: deal.numero_de_emails ?? 0, calls: deal.numero_de_calls ?? 0 };
+        const parts: string[] = [];
+        if (s.emails > 0) parts.push(`${s.emails} emails`);
+        if (s.calls > 0) parts.push(`${s.calls} llamadas`);
+        if (s.notes > 0) parts.push(`${s.notes} notas`);
 
-      const next: Msg[] = [{ text: `Deal: ${deal.deal_name ?? dealId}`, done: true }];
-      if (parts.length) next.push({ text: parts.join(" · ") + " procesados", done: true });
-      setMsgs(next);
+        const next: Msg[] = [{ text: `Deal: ${name || dealId}`, done: true }];
+        if (parts.length) { contentStats = parts.join(" · ") + " procesados"; next.push({ text: contentStats, done: true }); }
+        setMsgs(next);
 
-      if (deal.atlas_id) {
-        setMsgs(prev => [...prev, { text: "Buscando empresa...", done: false }]);
-        const co = await fetchAtlasCompany(deal.atlas_id);
-        if (co?.company_name) {
-          setCompanyName(co.company_name);
-          setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `Empresa: ${co.company_name}`, done: true }; return u; });
-        } else {
-          setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Empresa no encontrada", done: true }; return u; });
+        if (deal.atlas_id) {
+          setMsgs(prev => [...prev, { text: "Buscando empresa...", done: false }]);
+          const co = await fetchAtlasCompany(deal.atlas_id);
+          if (co?.company_name) {
+            company = co.company_name;
+            setCompanyName(company);
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `Empresa: ${company}`, done: true }; return u; });
+          } else {
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Empresa no encontrada", done: true }; return u; });
+          }
         }
+      } else {
+        // Fallback: fetch directly from HubSpot
+        setMsgs([{ text: "No encontrado en atlas — buscando en HubSpot...", done: false }]);
+        const { data: hs, error: hsErr } = await supabase.functions.invoke("hubspot-deal", {
+          body: { deal_url: url },
+        });
+        if (hsErr || !hs || hs.error) {
+          setMsgs([{ text: "Deal no encontrado", done: true }]);
+          toast.error("Deal no encontrado");
+          return;
+        }
+
+        name = hs.deal_name ?? "";
+        company = hs.company_name ?? "";
+        if (name) setDealName(name);
+        if (company) setCompanyName(company);
+
+        // Build deal_context from HubSpot notes
+        const notes: { body: string; created_at: string }[] = hs.notes ?? [];
+        if (notes.length) {
+          context = notes.map(n => n.body?.replace(/<[^>]+>/g, " ").trim()).filter(Boolean).join("\n\n");
+          setDealContext(context);
+        }
+
+        // Map country
+        const hsCountry = (hs.country ?? "").toLowerCase();
+        if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
+        else setCountry("ES");
+
+        // Set seats if available
+        const hsSeats = parseInt(hs.employees, 10);
+        if (hsSeats > 0) {
+          setRoiConfig(prev => ({
+            ...prev,
+            headcounts: {
+              employee: Math.round(hsSeats * 0.8),
+              hr: Math.max(1, Math.round(hsSeats * 0.05)),
+              manager: Math.round(hsSeats * 0.15),
+            },
+          }));
+        }
+
+        const next: Msg[] = [{ text: `Deal: ${name || dealId}`, done: true }];
+        if (company) next.push({ text: `Empresa: ${company}`, done: true });
+        if (notes.length) next.push({ text: `${notes.length} notas importadas`, done: true });
+        setMsgs(next);
       }
 
       if (!skipAnalysis) {
-        const content = deal.deal_context?.slice(0, 6000) ?? "";
+        const content = context.slice(0, 6000);
         if (content.trim()) {
           setMsgs(prev => [...prev, { text: "Analizando contenido...", done: false }]);
           setAnalyzing(true);
