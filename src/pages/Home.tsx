@@ -195,9 +195,12 @@ export default function Home() {
                 const hasHistory = c.sessions.length > 1;
 
                 return (
-                  <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden">
+                  <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
                     {/* Main card */}
-                    <div className="p-4">
+                    <button
+                      onClick={() => navigate(`/express?session=${latest.id}`)}
+                      className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
@@ -258,13 +261,14 @@ export default function Home() {
                         </div>
                       )}
 
-                      <div className="flex items-center mt-2.5">
+                      <div className="flex items-center justify-between mt-2.5">
                         <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
                         </div>
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
                       </div>
-                    </div>
+                    </button>
 
                     {/* History toggle */}
                     {hasHistory && (
@@ -284,9 +288,10 @@ export default function Home() {
                         {isExpanded && (
                           <div className="border-t border-border bg-muted/30">
                             {c.sessions.map((sess, i) => (
-                              <div
+                              <button
                                 key={sess.id}
-                                className={`flex items-center justify-between px-4 py-3 ${i > 0 ? "border-t border-border/60" : ""}`}
+                                onClick={() => navigate(`/express?session=${sess.id}`)}
+                                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${i > 0 ? "border-t border-border/60" : ""}`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">
                                   <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[sess.status] ?? "bg-gray-100 text-gray-500"}`}>
@@ -305,8 +310,9 @@ export default function Home() {
                                       {fmtEur(sess.roi_eur)} €
                                     </span>
                                   )}
+                                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                 </div>
-                              </div>
+                              </button>
                             ))}
                           </div>
                         )}

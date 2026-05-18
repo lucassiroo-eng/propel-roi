@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -49,12 +49,15 @@ interface Msg { text: string; done: boolean }
 
 export default function Express() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const savedSessionId = useRef<string | null>(null);
+  const loadedSessionProspect = useRef<string | null>(null);
 
   const [step, setStep] = useState(0);
+  const [loadingSession, setLoadingSession] = useState(false);
 
   // Step 0
   const [hubspotUrl, setHubspotUrl] = useState("");
@@ -102,6 +105,55 @@ export default function Express() {
       return mods.length >= 2;
     });
   }, [bundles]);
+
+  // ── Load existing session from URL ──────────────────────
+  useEffect(() => {
+    const sid = searchParams.get("session");
+    if (!sid || savedSessionId.current === sid) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingSession(true);
+      try {
+        const { data: sess, error } = await supabase
+          .from("roi_sessions")
+          .select("*, prospects(company_name, country, deal_name, seats)")
+          .eq("id", sid)
+          .single();
+        if (error || !sess || cancelled) return;
+
+        savedSessionId.current = sess.id;
+        loadedSessionProspect.current = sess.prospect_id;
+
+        const prospect = (sess as any).prospects;
+        if (prospect?.company_name) setCompanyName(prospect.company_name);
+        if (prospect?.deal_name) setDealName(prospect.deal_name);
+        if (prospect?.country) setCountry(prospect.country as "ES" | "FR");
+
+        const mods: string[] = (sess.selected_modules as any) ?? [];
+        setSelectedModules(mods);
+        setModuleSuggestions((sess.module_suggestions as any) ?? []);
+
+        const rc = sess.roi_config as any;
+        if (rc) {
+          setRoiConfig({
+            headcounts: rc.headcounts ?? { employee: 50, hr: 2, manager: 5 },
+            hourly_costs: rc.hourly_costs ?? { employee: 20, hr: 30, manager: 25 },
+            hours_overrides: rc.hours_overrides,
+            onboardings_per_year: rc.onboardings_per_year,
+            expense_submitters: rc.expense_submitters,
+          });
+        }
+        setAnnualCost(sess.factorial_annual_cost_eur ?? 0);
+
+        setStep(mods.length > 0 ? 3 : 0);
+      } catch {
+        toast.error("No se pudo cargar la sesión");
+      } finally {
+        if (!cancelled) setLoadingSession(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [searchParams]);
 
   // ── Fetch deal ──────────────────────────────────────────
   async function handleFetch() {
@@ -269,45 +321,72 @@ export default function Express() {
 
   // ── Save to history ─────────────────────────────────────
   const saveToHistory = useCallback(async (status: "generated" | "draft" = "generated") => {
-    if (!user || savedSessionId.current) return;
+    if (!user) return;
+    const savings = roi?.savings ?? 0;
+    const roiPct = roi?.pct ?? 0;
+    const payback = roi?.payback ?? 0;
+
+    const sessionPayload = {
+      status,
+      selected_pains: [] as any,
+      selected_modules: selectedModules as any,
+      module_suggestions: moduleSuggestions as any,
+      roi_config: roiConfig as any,
+      factorial_annual_cost_eur: annualCost,
+      roi_eur: Math.round(savings - annualCost),
+      roi_pct: Math.round(roiPct),
+      payback_months: Math.round(payback),
+      total_annual_benefit_eur: Math.round(savings),
+    };
+
     try {
-      const { data: prospect, error: pErr } = await supabase
-        .from("prospects")
-        .insert({
-          pae_id: user.id,
-          company_name: companyName || dealName || "Express ROI",
-          deal_name: dealName || null,
-          country,
-          seats: roiConfig.headcounts.employee,
-        })
-        .select("id")
-        .single();
-      if (pErr) throw pErr;
+      if (savedSessionId.current) {
+        // Update existing session + prospect
+        const { error: sErr } = await supabase
+          .from("roi_sessions")
+          .update(sessionPayload)
+          .eq("id", savedSessionId.current);
+        if (sErr) throw sErr;
 
-      const savings = roi?.savings ?? 0;
-      const roiPct = roi?.pct ?? 0;
-      const payback = roi?.payback ?? 0;
+        if (loadedSessionProspect.current) {
+          await supabase
+            .from("prospects")
+            .update({
+              company_name: companyName || dealName || "Express ROI",
+              deal_name: dealName || null,
+              country,
+              seats: roiConfig.headcounts.employee,
+            })
+            .eq("id", loadedSessionProspect.current);
+        }
+      } else {
+        // Insert new prospect + session
+        const { data: prospect, error: pErr } = await supabase
+          .from("prospects")
+          .insert({
+            pae_id: user.id,
+            company_name: companyName || dealName || "Express ROI",
+            deal_name: dealName || null,
+            country,
+            seats: roiConfig.headcounts.employee,
+          })
+          .select("id")
+          .single();
+        if (pErr) throw pErr;
 
-      const { data: session, error: sErr } = await supabase
-        .from("roi_sessions")
-        .insert({
-          pae_id: user.id,
-          prospect_id: prospect!.id,
-          status,
-          selected_pains: [],
-          selected_modules: selectedModules as any,
-          module_suggestions: moduleSuggestions as any,
-          roi_config: roiConfig as any,
-          factorial_annual_cost_eur: annualCost,
-          roi_eur: Math.round(savings - annualCost),
-          roi_pct: Math.round(roiPct),
-          payback_months: Math.round(payback),
-          total_annual_benefit_eur: Math.round(savings),
-        })
-        .select("id")
-        .single();
-      if (sErr) throw sErr;
-      savedSessionId.current = session!.id;
+        const { data: session, error: sErr } = await supabase
+          .from("roi_sessions")
+          .insert({
+            pae_id: user.id,
+            prospect_id: prospect!.id,
+            ...sessionPayload,
+          })
+          .select("id")
+          .single();
+        if (sErr) throw sErr;
+        savedSessionId.current = session!.id;
+        loadedSessionProspect.current = prospect!.id;
+      }
       queryClient.invalidateQueries({ queryKey: ["roi_sessions"] });
     } catch (err: any) {
       console.error("Express save failed:", err.message);
@@ -337,6 +416,14 @@ export default function Express() {
 
   const fmtEur = (n: number) => n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
   const totalPeople = roiConfig.headcounts.employee + roiConfig.headcounts.hr + roiConfig.headcounts.manager;
+
+  if (loadingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -919,17 +1006,17 @@ export default function Express() {
                   setSaving(true);
                   await saveToHistory();
                   setSaving(false);
-                  toast.success("ROI guardado");
+                  toast.success(savedSessionId.current ? "ROI actualizado" : "ROI guardado");
                   navigate("/");
                 }}
-                disabled={saving || !!savedSessionId.current}
+                disabled={saving}
                 className="w-full max-w-sm h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 text-sm font-bold active:scale-[0.98] transition-all shadow-lg shadow-foreground/10"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {savedSessionId.current ? "Guardado" : "Guardar y volver"}
+                Guardar y volver
               </Button>
               <button
-                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); }}
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Nuevo análisis
