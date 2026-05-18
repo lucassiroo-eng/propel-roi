@@ -993,20 +993,11 @@ function prepareCaptureHtml(html: string, bodyStyleFrom: string, bodyStyleTo: st
 
 async function waitForIframeFonts(iframe: HTMLIFrameElement): Promise<void> {
   const iframeDoc = iframe.contentDocument!;
-  const iframeWin = iframe.contentWindow!;
-  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 5000))]);
-  await new Promise<void>((resolve) => {
-    const check = () => {
-      if ((iframeWin as any).__fontsReady) { resolve(); return; }
-      setTimeout(check, 50);
-    };
-    check();
-    setTimeout(resolve, 5000);
-  });
+  await Promise.race([iframeDoc.fonts.ready, new Promise(r => setTimeout(r, 2000))]);
   try {
-    await Promise.race([iframeDoc.fonts.load("700 16px Inter"), new Promise(r => setTimeout(r, 2000))]);
+    await Promise.race([iframeDoc.fonts.load("700 16px Inter"), new Promise(r => setTimeout(r, 1000))]);
   } catch { /* best effort */ }
-  await new Promise(r => setTimeout(r, 500));
+  await new Promise(r => setTimeout(r, 100));
 }
 
 async function inlineExternalImages(root: HTMLElement): Promise<void> {
@@ -1089,58 +1080,51 @@ export async function generateMultiSlidePdf(data: RoiSlideData, input: RoiSlideI
 
   const html = generateMultiSlideHtml(data, input);
 
-  // Extract the <style> block from the multi-slide HTML
   const styleMatch = html.match(/<style>([\s\S]*?)<\/style>/);
   const baseCss = styleMatch ? styleMatch[1] : "";
 
-  // Render all slides in one iframe to get computed HTML
-  const layoutIframe = document.createElement("iframe");
-  layoutIframe.style.cssText = `position:fixed;left:-9999px;top:0;width:1440px;height:9999px;border:none;pointer-events:none;z-index:-1;`;
-  document.body.appendChild(layoutIframe);
+  // Single reusable iframe for all slides
+  const capIframe = document.createElement("iframe");
+  capIframe.style.cssText = "position:fixed;left:-9999px;top:0;width:1440px;height:810px;border:none;pointer-events:none;z-index:-1;";
+  document.body.appendChild(capIframe);
 
   try {
+    // Load layout iframe to extract slide HTML
     const layoutHtml = prepareCaptureHtml(
       html,
       "background: #f3f4f6; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 0;",
       "background: #fff; margin: 0; padding: 0;",
       fontCss,
     ).replace("</style>", `</style>\n<style>${fontCss}</style>`);
-    await new Promise<void>((resolve) => { layoutIframe.onload = () => resolve(); layoutIframe.srcdoc = layoutHtml; });
 
-    const slides = layoutIframe.contentDocument!.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
+    await new Promise<void>((resolve) => { capIframe.onload = () => resolve(); capIframe.srcdoc = layoutHtml; });
+    await waitForIframeFonts(capIframe);
+
+    const slides = capIframe.contentDocument!.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
     if (slides.length === 0) throw new Error("No slides found");
 
-    // Grab each slide's outerHTML
     const slideHtmls = Array.from(slides).map(s => s.outerHTML);
 
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1440, 810] });
 
-    // Capture each slide in its own isolated iframe
     for (let i = 0; i < slideHtmls.length; i++) {
       if (i > 0) pdf.addPage([1440, 810], "landscape");
 
-      const singleHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${baseCss}</style><style>${fontCss}</style><script>document.fonts.ready.then(function(){document.body.offsetHeight;window.__fontsReady=true;});<\/script></head><body style="margin:0;padding:0;background:#fff;">${slideHtmls[i]}</body></html>`;
+      // Swap body content in the same iframe (no new iframe, no font reload)
+      capIframe.contentDocument!.body.innerHTML = slideHtmls[i];
+      // Force reflow
+      capIframe.contentDocument!.body.offsetHeight;
+      await new Promise(r => setTimeout(r, 50));
 
-      const capIframe = document.createElement("iframe");
-      capIframe.style.cssText = "position:fixed;left:-9999px;top:0;width:1440px;height:810px;border:none;pointer-events:none;z-index:-1;";
-      document.body.appendChild(capIframe);
+      const slide = capIframe.contentDocument!.querySelector(".slide") as HTMLElement;
+      if (!slide) continue;
 
-      try {
-        await new Promise<void>((resolve) => { capIframe.onload = () => resolve(); capIframe.srcdoc = singleHtml; });
-        await waitForIframeFonts(capIframe);
-
-        const slide = capIframe.contentDocument!.querySelector(".slide") as HTMLElement;
-        if (!slide) continue;
-
-        const img = await captureSlide(slide, html2canvas, true, fontCss);
-        pdf.addImage(img, "JPEG", 0, 0, 1440, 810);
-      } finally {
-        document.body.removeChild(capIframe);
-      }
+      const img = await captureSlide(slide, html2canvas, true, fontCss);
+      pdf.addImage(img, "JPEG", 0, 0, 1440, 810);
     }
 
     pdf.save(`ROI-Report-${data.company_name || "report"}.pdf`);
   } finally {
-    document.body.removeChild(layoutIframe);
+    document.body.removeChild(capIframe);
   }
 }
