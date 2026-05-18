@@ -11,22 +11,22 @@ export interface HoursEntry {
 export const MODULE_HOURS: HoursEntry[] = [
   // Core
   { module_id: "core",              stakeholder: "employee", hours_per_month: 0.3,  scales_with: "employees" },
-  { module_id: "core",              stakeholder: "hr",       hours_per_month: 10.0, scales_with: "onboardings" },
+  { module_id: "core",              stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "onboardings" },
   { module_id: "core",              stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
   // Time-off
-  { module_id: "time_off",          stakeholder: "hr",       hours_per_month: 10.0, scales_with: "hr_ftes" },
+  { module_id: "time_off",          stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
   { module_id: "time_off",          stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
   // Time Tracking
   { module_id: "time_tracking",     stakeholder: "employee", hours_per_month: 0.2,  scales_with: "employees" },
-  { module_id: "time_tracking",     stakeholder: "hr",       hours_per_month: 10.0, scales_with: "hr_ftes" },
+  { module_id: "time_tracking",     stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
   { module_id: "time_tracking",     stakeholder: "manager",  hours_per_month: 0.5,  scales_with: "managers" },
 
   // Shift Management
   { module_id: "time_planning",     stakeholder: "employee", hours_per_month: 0.1,  scales_with: "employees" },
-  { module_id: "time_planning",     stakeholder: "hr",       hours_per_month: 4.0,  scales_with: "hr_ftes" },
-  { module_id: "time_planning",     stakeholder: "manager",  hours_per_month: 12.0, scales_with: "managers" },
+  { module_id: "time_planning",     stakeholder: "hr",       hours_per_month: 3.0,  scales_with: "hr_ftes" },
+  { module_id: "time_planning",     stakeholder: "manager",  hours_per_month: 6.0,  scales_with: "managers" },
 
   // Payroll Connect
   { module_id: "payroll",           stakeholder: "hr",       hours_per_month: 2.0,  scales_with: "hr_ftes" },
@@ -37,7 +37,7 @@ export const MODULE_HOURS: HoursEntry[] = [
   { module_id: "expenses",          stakeholder: "manager",  hours_per_month: 4.0,  scales_with: "managers" },
 
   // Compensation
-  { module_id: "compensations",     stakeholder: "hr",       hours_per_month: 8.0,  scales_with: "hr_ftes" },
+  { module_id: "compensations",     stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
   { module_id: "compensations",     stakeholder: "manager",  hours_per_month: 1.0,  scales_with: "managers" },
 
   // Salary Advance / Benefits
@@ -64,14 +64,14 @@ export const MODULE_HOURS: HoursEntry[] = [
   { module_id: "lms",               stakeholder: "hr",       hours_per_month: 3.3,  scales_with: "hr_ftes" },
 
   // Recruitment
-  { module_id: "recruitment",       stakeholder: "hr",       hours_per_month: 8.0,  scales_with: "onboardings" },
-  { module_id: "recruitment",       stakeholder: "manager",  hours_per_month: 3.0,  scales_with: "onboardings" },
+  { module_id: "recruitment",       stakeholder: "hr",       hours_per_month: 5.0,  scales_with: "onboardings" },
+  { module_id: "recruitment",       stakeholder: "manager",  hours_per_month: 2.0,  scales_with: "onboardings" },
 
   // Procurement
   { module_id: "procurement",       stakeholder: "hr",       hours_per_month: 1.0,  scales_with: "hr_ftes" },
 
   // Project Management
-  { module_id: "projects",          stakeholder: "hr",       hours_per_month: 8.0,  scales_with: "hr_ftes" },
+  { module_id: "projects",          stakeholder: "hr",       hours_per_month: 6.0,  scales_with: "hr_ftes" },
   { module_id: "projects",          stakeholder: "manager",  hours_per_month: 2.0,  scales_with: "managers" },
 
   // CRM
