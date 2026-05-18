@@ -923,9 +923,6 @@ export function generateMultiSlideHtml(data: RoiSlideData, input: RoiSlideInput)
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(0,0,0,0.1);
     flex-shrink: 0;
-    border: 1px solid #E5E7EB;
-    border-top: 4px solid #374151;
-    border-radius: 4px;
   }
 
   .header {
