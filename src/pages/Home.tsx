@@ -89,14 +89,18 @@ function TutorialOverlay({
     height: rects.express.height + pad * 2,
   };
 
+  const seMaxH = 180;
   const se = rects.sessions ? {
     top: rects.sessions.top - pad + scrollY,
     left: rects.sessions.left - pad,
     width: rects.sessions.width + pad * 2,
-    height: rects.sessions.height + pad * 2,
+    height: Math.min(rects.sessions.height + pad * 2, seMaxH),
   } : null;
 
   const pageH = document.documentElement.scrollHeight;
+
+  const exCenterX = ex.left + ex.width / 2;
+  const seCenterX = se ? se.left + se.width / 2 : 0;
 
   return (
     <div className="absolute inset-0 z-50" style={{ height: pageH, pointerEvents: "auto" }}>
@@ -119,18 +123,17 @@ function TutorialOverlay({
         style={{ top: ex.top, left: ex.left, width: ex.width, height: ex.height }}
       />
 
-      {/* Express tooltip (above the card, pointing down) */}
+      {/* Express tooltip (above the card) */}
       <div
-        className="absolute px-5"
-        style={{ top: ex.top - 90, left: 0, right: 0, pointerEvents: "none" }}
+        className="absolute"
+        style={{ top: ex.top - 16, left: Math.max(20, exCenterX - 160), width: Math.min(320, window.innerWidth - 40), transform: "translateY(-100%)", pointerEvents: "none" }}
       >
-        <div className="max-w-xs mx-auto relative" style={{ pointerEvents: "auto" }}>
+        <div style={{ pointerEvents: "auto" }}>
           <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
             <p className="text-sm font-semibold text-foreground">Create an ROI</p>
             <p className="text-xs text-muted-foreground mt-0.5">Click here to start an Express ROI analysis. Paste a HubSpot deal link and get the result in minutes.</p>
           </div>
-          {/* Arrow pointing down */}
-          <div className="flex justify-center">
+          <div className="mt-[-1px]" style={{ paddingLeft: Math.max(16, Math.min(exCenterX - Math.max(20, exCenterX - 160) - 8, Math.min(320, window.innerWidth - 40) - 24)) }}>
             <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white" />
           </div>
         </div>
@@ -144,15 +147,14 @@ function TutorialOverlay({
         />
       )}
 
-      {/* Sessions tooltip (below heading, pointing up) */}
+      {/* Sessions tooltip (below cutout, in dark zone) */}
       {se && (
         <div
-          className="absolute px-5"
-          style={{ top: se.top + 36, left: 0, right: 0, pointerEvents: "none" }}
+          className="absolute"
+          style={{ top: se.top + se.height + 14, left: Math.max(20, seCenterX - 160), width: Math.min(320, window.innerWidth - 40), pointerEvents: "none" }}
         >
-          <div className="max-w-xs mx-auto relative" style={{ pointerEvents: "auto" }}>
-            {/* Arrow pointing up */}
-            <div className="flex justify-center mb-[-1px]">
+          <div style={{ pointerEvents: "auto" }}>
+            <div className="mb-[-1px]" style={{ paddingLeft: Math.max(16, Math.min(seCenterX - Math.max(20, seCenterX - 160) - 8, Math.min(320, window.innerWidth - 40) - 24)) }}>
               <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white" />
             </div>
             <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">

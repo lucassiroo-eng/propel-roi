@@ -129,6 +129,16 @@ export function TutorialGuide({ onDismiss, onSubStep }: { onDismiss: () => void;
   const pos = currentStep.position ?? "below";
   const tooltipAbove = pos === "above";
 
+  const targetCenterX = rect.left + rect.width / 2;
+  const maxW = 384;
+  const vw = window.innerWidth;
+  const mx = 20;
+  const gap = 24;
+  const tooltipW = Math.min(maxW, vw - mx * 2);
+  const idealLeft = targetCenterX - tooltipW / 2;
+  const tooltipLeft = Math.max(mx, Math.min(idealLeft, vw - tooltipW - mx));
+  const arrowX = Math.max(24, Math.min(targetCenterX - tooltipLeft, tooltipW - 24));
+
   return (
     <div className="fixed inset-0 z-[60]" style={{ pointerEvents: "none" }}>
       {/* Dark overlay with cutout */}
@@ -160,63 +170,61 @@ export function TutorialGuide({ onDismiss, onSubStep }: { onDismiss: () => void;
         }}
       />
 
-      {/* Tooltip */}
+      {/* Tooltip — positioned to align arrow with target center */}
       <div
-        className="absolute left-0 right-0 px-5"
+        className="absolute"
         style={{
-          top: tooltipAbove ? rect.top - pad - 12 : rect.bottom + pad + 12,
+          top: tooltipAbove ? rect.top - pad - gap : rect.bottom + pad + gap,
+          left: tooltipLeft,
+          width: tooltipW,
           transform: tooltipAbove ? "translateY(-100%)" : "none",
           pointerEvents: "auto",
         }}
       >
-        <div className="max-w-sm mx-auto">
-          {/* Arrow */}
-          {!tooltipAbove && (
-            <div className="flex justify-center mb-[-1px]">
-              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-white" />
-            </div>
-          )}
+        {!tooltipAbove && (
+          <div className="mb-[-1px]" style={{ paddingLeft: arrowX - 8 }}>
+            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-white" />
+          </div>
+        )}
 
-          <div className="bg-white rounded-xl shadow-2xl border border-border overflow-hidden">
-            <div className="px-4 py-3">
-              <div className="flex items-start justify-between gap-2 mb-1">
-                <p className="text-sm font-bold text-slate-900">{currentStep.title}</p>
-                <button onClick={onDismiss} className="shrink-0 text-slate-400 hover:text-slate-700 transition-colors">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed">{currentStep.body}</p>
+        <div className="bg-white rounded-xl shadow-2xl border border-border overflow-hidden">
+          <div className="px-4 py-3">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <p className="text-sm font-bold text-slate-900">{currentStep.title}</p>
+              <button onClick={onDismiss} className="shrink-0 text-slate-400 hover:text-slate-700 transition-colors">
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400 font-medium">{sub + 1} / {STEPS.length}</span>
-              <div className="flex items-center gap-2">
-                <button onClick={onDismiss} className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors">
-                  Skip
+            <p className="text-xs text-slate-500 leading-relaxed">{currentStep.body}</p>
+          </div>
+          <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-slate-400 font-medium">{sub + 1} / {STEPS.length}</span>
+            <div className="flex items-center gap-2">
+              <button onClick={onDismiss} className="text-[11px] text-slate-400 hover:text-slate-600 transition-colors">
+                Skip
+              </button>
+              {currentStep.action === "click" ? (
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
+                  <MousePointerClick className="h-3 w-3" /> Click to continue
+                </span>
+              ) : (
+                <button
+                  onClick={advance}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  {currentStep.action === "done" ? "Finish" : "Next"}
+                  <ChevronRight className="h-3 w-3" />
                 </button>
-                {currentStep.action === "click" ? (
-                  <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
-                    <MousePointerClick className="h-3 w-3" /> Click to continue
-                  </span>
-                ) : (
-                  <button
-                    onClick={advance}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-semibold hover:bg-primary/90 transition-colors"
-                  >
-                    {currentStep.action === "done" ? "Finish" : "Next"}
-                    <ChevronRight className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
-
-          {/* Arrow below */}
-          {tooltipAbove && (
-            <div className="flex justify-center mt-[-1px]">
-              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-white" />
-            </div>
-          )}
         </div>
+
+        {tooltipAbove && (
+          <div className="mt-[-1px]" style={{ paddingLeft: arrowX - 8 }}>
+            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-white" />
+          </div>
+        )}
       </div>
 
       <style>{`
