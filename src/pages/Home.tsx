@@ -193,6 +193,7 @@ export default function Home() {
 
   const startTutorial = useCallback(() => {
     i18n.changeLanguage("en");
+    localStorage.setItem("propel_locale", "en");
     setShowTutorial(true);
   }, [i18n]);
   const closeTutorial = useCallback(() => {
@@ -213,6 +214,7 @@ export default function Home() {
   useEffect(() => {
     if (user && !localStorage.getItem(tutorialKey)) {
       i18n.changeLanguage("en");
+      localStorage.setItem("propel_locale", "en");
       const timer = setTimeout(() => setShowTutorial(true), 600);
       return () => clearTimeout(timer);
     }
