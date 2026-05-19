@@ -60,6 +60,8 @@ export default function Express() {
 
   const [step, setStep] = useState(0);
   const [loadingSession, setLoadingSession] = useState(false);
+  const [tutorialActive, setTutorialActive] = useState(() => localStorage.getItem("propel_tutorial_active") === "1");
+  const dismissTutorial = () => { setTutorialActive(false); localStorage.removeItem("propel_tutorial_active"); };
 
   // Step 0
   const [hubspotUrl, setHubspotUrl] = useState("");
@@ -531,6 +533,24 @@ export default function Express() {
           </div>
         </div>
       </header>
+
+      {/* Tutorial banner */}
+      {tutorialActive && (
+        <div className="bg-primary/5 border-b border-primary/10 px-4 py-3">
+          <div className="max-w-lg mx-auto flex items-start gap-3">
+            <div className="shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+              <span className="text-xs font-bold text-primary">{step + 1}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">{t(`tutorial.express_step${step}_title`)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t(`tutorial.express_step${step}_body`)}</p>
+            </div>
+            <button onClick={dismissTutorial} className="shrink-0 text-muted-foreground hover:text-foreground transition-colors mt-0.5">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ──────────── STEP 0: Import ──────────── */}
       {step === 0 && (

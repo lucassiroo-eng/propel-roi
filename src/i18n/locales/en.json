@@ -437,8 +437,18 @@
   "tutorial.help": "Tutorial",
   "tutorial.next": "Next",
   "tutorial.done": "Got it!",
+  "tutorial.skip": "Skip tutorial",
+  "tutorial.click_express": "Tap ROI Express to start a test ROI",
   "tutorial.step1_title": "Create an ROI",
   "tutorial.step1_body": "Tap here to start a new ROI Express analysis. Paste the HubSpot deal link and generate the ROI in minutes.",
   "tutorial.step2_title": "Your sessions",
-  "tutorial.step2_body": "Here you'll find all the ROI analyses you've created. Tap any to view, edit or share."
+  "tutorial.step2_body": "Here you'll find all the ROI analyses you've created. Tap any to view, edit or share.",
+  "tutorial.express_step0_title": "Step 1: Import the deal",
+  "tutorial.express_step0_body": "Paste a HubSpot deal URL, or just type the company name and skip to modules.",
+  "tutorial.express_step1_title": "Step 2: Select modules",
+  "tutorial.express_step1_body": "Pick the Factorial modules to include in the ROI. You can use a bundle or select individually.",
+  "tutorial.express_step2_title": "Step 3: Configure",
+  "tutorial.express_step2_body": "Set headcounts, hourly costs, and annual Factorial price. These drive the savings calculation.",
+  "tutorial.express_step3_title": "Step 4: Your ROI is ready!",
+  "tutorial.express_step3_body": "Review the result, download the PDF, or share the link with your prospect."
 }

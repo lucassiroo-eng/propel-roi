@@ -47,25 +47,29 @@ interface CompanyGroup {
   hasDocument: boolean;
 }
 
-/* ─── Tutorial overlay ─── */
-interface TutorialProps {
-  step: number;
+/* ─── Tutorial overlay (both highlights at once) ─── */
+function TutorialOverlay({
+  expressRef,
+  sessionsRef,
+  onClickExpress,
+  onClose,
+  t,
+}: {
   expressRef: React.RefObject<HTMLElement | null>;
   sessionsRef: React.RefObject<HTMLElement | null>;
-  onNext: () => void;
+  onClickExpress: () => void;
   onClose: () => void;
   t: (key: string) => string;
-}
-
-function TutorialOverlay({ step, expressRef, sessionsRef, onNext, onClose, t }: TutorialProps) {
-  const [rect, setRect] = useState<DOMRect | null>(null);
-
-  const targetRef = step === 0 ? expressRef : sessionsRef;
+}) {
+  const [rects, setRects] = useState<{ express: DOMRect | null; sessions: DOMRect | null }>({ express: null, sessions: null });
 
   useEffect(() => {
-    const el = targetRef.current;
-    if (!el) return;
-    const update = () => setRect(el.getBoundingClientRect());
+    const update = () => {
+      setRects({
+        express: expressRef.current?.getBoundingClientRect() ?? null,
+        sessions: sessionsRef.current?.getBoundingClientRect() ?? null,
+      });
+    };
     update();
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
@@ -73,75 +77,101 @@ function TutorialOverlay({ step, expressRef, sessionsRef, onNext, onClose, t }: 
       window.removeEventListener("resize", update);
       window.removeEventListener("scroll", update, true);
     };
-  }, [targetRef, step]);
+  }, [expressRef, sessionsRef]);
 
-  if (!rect) return null;
+  if (!rects.express) return null;
 
   const pad = 8;
-  const r = {
-    top: rect.top - pad + window.scrollY,
-    left: rect.left - pad,
-    width: rect.width + pad * 2,
-    height: rect.height + pad * 2,
+  const scrollY = window.scrollY;
+
+  const ex = {
+    top: rects.express.top - pad + scrollY,
+    left: rects.express.left - pad,
+    width: rects.express.width + pad * 2,
+    height: rects.express.height + pad * 2,
   };
 
-  const tooltipTop = r.top + r.height + 16;
-  const isLast = step === 1;
+  const se = rects.sessions ? {
+    top: rects.sessions.top - pad + scrollY,
+    left: rects.sessions.left - pad,
+    width: rects.sessions.width + pad * 2,
+    height: rects.sessions.height + pad * 2,
+  } : null;
+
+  const pageH = document.documentElement.scrollHeight;
 
   return (
-    <div className="fixed inset-0 z-50" style={{ pointerEvents: "auto" }}>
-      {/* Backdrop with cutout */}
-      <svg className="absolute inset-0 w-full h-full" style={{ height: document.documentElement.scrollHeight }}>
+    <div className="absolute inset-0 z-50" style={{ height: pageH, pointerEvents: "auto" }}>
+      {/* Backdrop with two cutouts */}
+      <svg className="absolute inset-0 w-full" style={{ height: pageH }}>
         <defs>
-          <mask id="tutorial-mask">
+          <mask id="tut-mask">
             <rect width="100%" height="100%" fill="white" />
-            <rect x={r.left} y={r.top} width={r.width} height={r.height} rx="16" fill="black" />
+            <rect x={ex.left} y={ex.top} width={ex.width} height={ex.height} rx="16" fill="black" />
+            {se && <rect x={se.left} y={se.top} width={se.width} height={se.height} rx="16" fill="black" />}
           </mask>
         </defs>
-        <rect width="100%" height="100%" fill="rgba(0,0,0,0.6)" mask="url(#tutorial-mask)" />
+        <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#tut-mask)" />
       </svg>
 
-      {/* Highlight ring */}
-      <div
-        className="absolute rounded-2xl ring-2 ring-primary ring-offset-2 ring-offset-transparent animate-pulse"
-        style={{ top: r.top, left: r.left, width: r.width, height: r.height, pointerEvents: "none" }}
+      {/* Express highlight ring — clickable */}
+      <button
+        onClick={onClickExpress}
+        className="absolute rounded-2xl ring-2 ring-primary animate-pulse cursor-pointer"
+        style={{ top: ex.top, left: ex.left, width: ex.width, height: ex.height }}
       />
 
-      {/* Arrow (SVG curved arrow from tooltip to target) */}
-      <svg
-        className="absolute"
-        style={{ top: r.top + r.height - 4, left: r.left + r.width / 2 - 16, width: 32, height: 24, pointerEvents: "none" }}
-      >
-        <path d="M16 24 L16 6 L10 12" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M16 6 L22 12" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-
-      {/* Tooltip card */}
+      {/* Express tooltip (above the card, pointing down) */}
       <div
         className="absolute px-5"
-        style={{ top: tooltipTop, left: 0, right: 0, pointerEvents: "auto" }}
+        style={{ top: ex.top - 90, left: 0, right: 0, pointerEvents: "none" }}
       >
-        <div className="max-w-sm mx-auto bg-white rounded-2xl shadow-2xl p-5 border border-border">
-          <div className="flex items-start justify-between gap-3 mb-2">
-            <p className="text-sm font-bold text-foreground">
-              {step === 0 ? t("tutorial.step1_title") : t("tutorial.step2_title")}
-            </p>
-            <button onClick={onClose} className="shrink-0 text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
-            </button>
+        <div className="max-w-xs mx-auto relative" style={{ pointerEvents: "auto" }}>
+          <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
+            <p className="text-sm font-semibold text-foreground">{t("tutorial.step1_title")}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("tutorial.step1_body")}</p>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            {step === 0 ? t("tutorial.step1_body") : t("tutorial.step2_body")}
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{step + 1} / 2</span>
-            <button
-              onClick={onNext}
-              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-            >
-              {isLast ? t("tutorial.done") : t("tutorial.next")}
-            </button>
+          {/* Arrow pointing down */}
+          <div className="flex justify-center">
+            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white" />
           </div>
+        </div>
+      </div>
+
+      {/* Sessions highlight ring */}
+      {se && (
+        <div
+          className="absolute rounded-2xl ring-2 ring-blue-400 animate-pulse"
+          style={{ top: se.top, left: se.left, width: se.width, height: se.height, pointerEvents: "none" }}
+        />
+      )}
+
+      {/* Sessions tooltip (below the section, pointing up) */}
+      {se && (
+        <div
+          className="absolute px-5"
+          style={{ top: se.top + se.height + 8, left: 0, right: 0, pointerEvents: "none" }}
+        >
+          <div className="max-w-xs mx-auto relative" style={{ pointerEvents: "auto" }}>
+            {/* Arrow pointing up */}
+            <div className="flex justify-center">
+              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white" />
+            </div>
+            <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
+              <p className="text-sm font-semibold text-foreground">{t("tutorial.step2_title")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("tutorial.step2_body")}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom bar: skip + CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/80 to-transparent" style={{ pointerEvents: "auto" }}>
+        <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
+          <p className="text-white text-sm font-medium text-center">{t("tutorial.click_express")}</p>
+          <button onClick={onClose} className="text-white/60 text-xs hover:text-white transition-colors">
+            {t("tutorial.skip")}
+          </button>
         </div>
       </div>
     </div>
@@ -154,30 +184,30 @@ export default function Home() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
-  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const expressRef = useRef<HTMLButtonElement | null>(null);
   const sessionsRef = useRef<HTMLDivElement | null>(null);
 
-  const startTutorial = useCallback(() => setTutorialStep(0), []);
+  const startTutorial = useCallback(() => setShowTutorial(true), []);
   const closeTutorial = useCallback(() => {
-    setTutorialStep(null);
+    setShowTutorial(false);
     localStorage.setItem("propel_tutorial_seen", "1");
+    localStorage.removeItem("propel_tutorial_active");
   }, []);
-  const nextTutorial = useCallback(() => {
-    setTutorialStep((s) => {
-      if (s === null) return null;
-      if (s >= 1) {
-        localStorage.setItem("propel_tutorial_seen", "1");
-        return null;
-      }
-      return s + 1;
-    });
-  }, []);
+
+  const handleExpressClick = useCallback(() => {
+    if (showTutorial) {
+      localStorage.setItem("propel_tutorial_active", "1");
+      localStorage.setItem("propel_tutorial_seen", "1");
+      setShowTutorial(false);
+    }
+    navigate("/express");
+  }, [showTutorial, navigate]);
 
   useEffect(() => {
     if (!localStorage.getItem("propel_tutorial_seen")) {
-      const timer = setTimeout(() => setTutorialStep(0), 800);
+      const timer = setTimeout(() => setShowTutorial(true), 600);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -240,12 +270,11 @@ export default function Home() {
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background">
       {/* Tutorial overlay */}
-      {tutorialStep !== null && (
+      {showTutorial && (
         <TutorialOverlay
-          step={tutorialStep}
           expressRef={expressRef}
           sessionsRef={sessionsRef}
-          onNext={nextTutorial}
+          onClickExpress={handleExpressClick}
           onClose={closeTutorial}
           t={t}
         />
@@ -313,7 +342,7 @@ export default function Home() {
         {/* Express CTA */}
         <button
           ref={expressRef}
-          onClick={() => navigate("/express")}
+          onClick={handleExpressClick}
           className="w-full rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <div className="flex items-start justify-between">
@@ -353,7 +382,6 @@ export default function Home() {
 
                 return (
                   <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
-                    {/* Main card */}
                     <button
                       onClick={() => navigate(`/express?session=${latest.id}`)}
                       className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
@@ -388,7 +416,6 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* ROI metrics row */}
                       {(latest.roi_eur != null || latest.roi_pct != null) && (
                         <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/60">
                           {latest.total_annual_benefit_eur != null && (
@@ -427,7 +454,6 @@ export default function Home() {
                       </div>
                     </button>
 
-                    {/* History toggle */}
                     {hasHistory && (
                       <>
                         <button

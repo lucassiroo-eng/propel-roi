@@ -437,8 +437,18 @@
   "tutorial.help": "Tutoriel",
   "tutorial.next": "Suivant",
   "tutorial.done": "Compris !",
+  "tutorial.skip": "Passer le tutoriel",
+  "tutorial.click_express": "Appuyez sur ROI Express pour commencer un ROI test",
   "tutorial.step1_title": "Creer un ROI",
   "tutorial.step1_body": "Appuyez ici pour lancer une analyse ROI Express. Collez le lien du deal HubSpot et generez le ROI en quelques minutes.",
   "tutorial.step2_title": "Vos sessions",
-  "tutorial.step2_body": "Retrouvez ici toutes les analyses ROI que vous avez creees. Appuyez sur l'une d'elles pour voir, modifier ou partager."
+  "tutorial.step2_body": "Retrouvez ici toutes les analyses ROI que vous avez creees. Appuyez sur l'une d'elles pour voir, modifier ou partager.",
+  "tutorial.express_step0_title": "Etape 1 : Importer le deal",
+  "tutorial.express_step0_body": "Collez l'URL du deal HubSpot, ou saisissez le nom de l'entreprise et passez aux modules.",
+  "tutorial.express_step1_title": "Etape 2 : Selectionner les modules",
+  "tutorial.express_step1_body": "Choisissez les modules Factorial a inclure dans le ROI. Utilisez un pack ou selectionnez individuellement.",
+  "tutorial.express_step2_title": "Etape 3 : Configurer",
+  "tutorial.express_step2_body": "Definissez les effectifs, couts horaires et prix annuel Factorial. Ces donnees calculent les economies.",
+  "tutorial.express_step3_title": "Etape 4 : Votre ROI est pret !",
+  "tutorial.express_step3_body": "Consultez le resultat, telechargez le PDF ou partagez le lien avec votre prospect."
 }
