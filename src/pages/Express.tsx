@@ -1198,7 +1198,7 @@ export default function Express() {
                     await saveToHistory();
                     setSaving(false);
                   }
-                  const url = `${window.location.origin}/express?session=${savedSessionId.current}`;
+                  const url = `${window.location.origin}${import.meta.env.BASE_URL}express?session=${savedSessionId.current}`;
                   await navigator.clipboard.writeText(url);
                   toast.success(t("express.link_copied"));
                 }}
