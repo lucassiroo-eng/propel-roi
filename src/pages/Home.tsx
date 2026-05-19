@@ -189,28 +189,34 @@ export default function Home() {
   const expressRef = useRef<HTMLButtonElement | null>(null);
   const sessionsRef = useRef<HTMLDivElement | null>(null);
 
-  const startTutorial = useCallback(() => setShowTutorial(true), []);
+  const tutorialKey = `propel_tutorial_seen_${user?.id ?? "anon"}`;
+
+  const startTutorial = useCallback(() => {
+    i18n.changeLanguage("en");
+    setShowTutorial(true);
+  }, [i18n]);
   const closeTutorial = useCallback(() => {
     setShowTutorial(false);
-    localStorage.setItem("propel_tutorial_seen", "1");
+    localStorage.setItem(tutorialKey, "1");
     localStorage.removeItem("propel_tutorial_active");
-  }, []);
+  }, [tutorialKey]);
 
   const handleExpressClick = useCallback(() => {
     if (showTutorial) {
       localStorage.setItem("propel_tutorial_active", "1");
-      localStorage.setItem("propel_tutorial_seen", "1");
+      localStorage.setItem(tutorialKey, "1");
       setShowTutorial(false);
     }
     navigate("/express");
-  }, [showTutorial, navigate]);
+  }, [showTutorial, navigate, tutorialKey]);
 
   useEffect(() => {
-    if (!localStorage.getItem("propel_tutorial_seen")) {
+    if (user && !localStorage.getItem(tutorialKey)) {
+      i18n.changeLanguage("en");
       const timer = setTimeout(() => setShowTutorial(true), 600);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [user, tutorialKey, i18n]);
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["roi_sessions"],

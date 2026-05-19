@@ -174,7 +174,9 @@ export function TutorialGuide({ onDismiss, onSubStep }: { onDismiss: () => void;
       <div
         className="absolute"
         style={{
-          top: tooltipAbove ? rect.top - pad - gap : rect.bottom + pad + gap,
+          top: tooltipAbove
+            ? Math.max(140, rect.top - pad - gap)
+            : Math.min(rect.bottom + pad + gap, window.innerHeight - 160),
           left: tooltipLeft,
           width: tooltipW,
           transform: tooltipAbove ? "translateY(-100%)" : "none",
