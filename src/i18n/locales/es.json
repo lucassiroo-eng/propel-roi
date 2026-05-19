@@ -13,8 +13,6 @@
   "login.password_min": "La contrasena debe tener al menos 6 caracteres",
   "login.sign_in": "Iniciar sesion",
   "login.sign_up": "Crear cuenta",
-  "login.google": "Continuar con Google",
-  "login.or": "o",
   "login.have_account": "Ya tienes cuenta?",
   "login.no_account": "No tienes cuenta?",
   "login.check_inbox": "Revisa tu bandeja de entrada de <strong>{{email}}</strong> para verificar tu cuenta.",

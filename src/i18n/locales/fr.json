@@ -13,8 +13,6 @@
   "login.password_min": "Le mot de passe doit contenir au moins 6 caracteres",
   "login.sign_in": "Se connecter",
   "login.sign_up": "Creer un compte",
-  "login.google": "Continuer avec Google",
-  "login.or": "ou",
   "login.have_account": "Vous avez deja un compte ?",
   "login.no_account": "Pas encore de compte ?",
   "login.check_inbox": "Verifiez votre boite de reception pour <strong>{{email}}</strong> pour verifier votre compte.",

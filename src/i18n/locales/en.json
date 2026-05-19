@@ -13,8 +13,6 @@
   "login.password_min": "Password must be at least 6 characters",
   "login.sign_in": "Sign in",
   "login.sign_up": "Create account",
-  "login.google": "Continue with Google",
-  "login.or": "or",
   "login.have_account": "Already have an account?",
   "login.no_account": "Don't have an account?",
   "login.check_inbox": "Check your inbox for <strong>{{email}}</strong> to verify your account.",
