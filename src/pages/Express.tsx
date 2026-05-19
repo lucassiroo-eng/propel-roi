@@ -37,14 +37,14 @@ import {
 } from "@/lib/generateRoiSlide";
 import type { ModuleSuggestion, RoiConfig, ToolOverride } from "@/hooks/useWizardSession";
 
-const STEPS = ["Importar", "Módulos", "Configurar", "Resultado"];
 const MODULE_REF = buildModulePromptBlock();
 
-const STAKE_META: Record<Stakeholder, { label: string; icon: typeof Users; color: string; bg: string; border: string }> = {
-  employee: { label: "Empleados",  icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.05)",  border: "rgba(59,130,246,0.15)" },
-  hr:       { label: "FTEs HR",    icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.05)",  border: "rgba(16,185,129,0.15)" },
-  manager:  { label: "Managers",   icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.05)",  border: "rgba(245,158,11,0.15)" },
+const STAKE_STYLE: Record<Stakeholder, { icon: typeof Users; color: string; bg: string; border: string }> = {
+  employee: { icon: Users,     color: "#3B82F6", bg: "rgba(59,130,246,0.05)",  border: "rgba(59,130,246,0.15)" },
+  hr:       { icon: Shield,    color: "#10B981", bg: "rgba(16,185,129,0.05)",  border: "rgba(16,185,129,0.15)" },
+  manager:  { icon: Briefcase, color: "#F59E0B", bg: "rgba(245,158,11,0.05)",  border: "rgba(245,158,11,0.15)" },
 };
+const STAKE_LABEL_KEY: Record<Stakeholder, string> = { employee: "express.employees", hr: "express.hr_ftes", manager: "express.managers" };
 
 interface Msg { text: string; done: boolean }
 
@@ -52,6 +52,7 @@ export default function Express() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
+  const STEPS = [t("express.step_import"), t("express.step_modules"), t("express.step_configure"), t("express.step_result")];
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const savedSessionId = useRef<string | null>(null);
@@ -150,7 +151,7 @@ export default function Express() {
 
         setStep(mods.length > 0 ? 3 : 0);
       } catch {
-        toast.error("No se pudo cargar la sesión");
+        toast.error(t("express.session_load_error"));
       } finally {
         if (!cancelled) setLoadingSession(false);
       }
@@ -163,10 +164,10 @@ export default function Express() {
     const url = hubspotUrl.trim();
     if (!url) return;
     const dealId = extractDealIdFromUrl(url);
-    if (!dealId) { toast.error("URL de HubSpot no válida"); return; }
+    if (!dealId) { toast.error(t("express.hubspot_invalid")); return; }
 
     setFetching(true);
-    setMsgs([{ text: "Buscando deal...", done: false }]);
+    setMsgs([{ text: t("express.fetching"), done: false }]);
 
     try {
       let name = "";
@@ -193,25 +194,25 @@ export default function Express() {
         setMsgs(next);
 
         if (deal.atlas_id) {
-          setMsgs(prev => [...prev, { text: "Buscando empresa...", done: false }]);
+          setMsgs(prev => [...prev, { text: t("express.searching_company"), done: false }]);
           const co = await fetchAtlasCompany(deal.atlas_id);
           if (co?.company_name) {
             company = co.company_name;
             setCompanyName(company);
             setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `Empresa: ${company}`, done: true }; return u; });
           } else {
-            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Empresa no encontrada", done: true }; return u; });
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: t("express.company_not_found"), done: true }; return u; });
           }
         }
       } else {
         // Fallback: fetch directly from HubSpot
-        setMsgs([{ text: "No encontrado en atlas — buscando en HubSpot...", done: false }]);
+        setMsgs([{ text: t("express.not_found_hubspot"), done: false }]);
         const { data: hs, error: hsErr } = await supabase.functions.invoke("hubspot-deal", {
           body: { deal_url: url },
         });
         if (hsErr || !hs || hs.error) {
-          setMsgs([{ text: "Deal no encontrado — selecciona módulos manualmente", done: true }]);
-          toast.error("Deal no encontrado");
+          setMsgs([{ text: t("express.not_found"), done: true }]);
+          toast.error(t("express.not_found_toast"));
           setTimeout(() => setStep(1), 1000);
           return;
         }
@@ -255,7 +256,7 @@ export default function Express() {
       if (!skipAnalysis) {
         const content = context.slice(0, 6000);
         if (content.trim()) {
-          setMsgs(prev => [...prev, { text: "Analizando contenido...", done: false }]);
+          setMsgs(prev => [...prev, { text: t("express.analyzing"), done: false }]);
           setAnalyzing(true);
 
           const progressHints = [
@@ -291,10 +292,10 @@ export default function Express() {
 
             setModuleSuggestions(deduped);
             setSelectedModules(deduped.map(x => x.module_id));
-            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `${deduped.length} módulos identificados`, done: true }; return u; });
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: t("express.modules_identified", { count: deduped.length }), done: true }; return u; });
           } catch {
             clearInterval(hintTimer);
-            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: "Análisis no disponible", done: true }; return u; });
+            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: t("express.analysis_unavailable"), done: true }; return u; });
           }
           setAnalyzing(false);
         }
@@ -305,7 +306,7 @@ export default function Express() {
       setTimeout(() => setStep(1), 1000);
     } catch (err: any) {
       toast.error(err.message ?? "Error");
-      setMsgs(prev => [...prev, { text: "Error — selecciona módulos manualmente", done: true }]);
+      setMsgs(prev => [...prev, { text: t("express.import_error"), done: true }]);
       setTimeout(() => setStep(1), 1200);
     } finally {
       setFetching(false);
@@ -475,7 +476,7 @@ export default function Express() {
       const data = buildRoiSlideData(input);
       if (type === "summary") await generateRoiSlidePdf(data);
       else await generateMultiSlidePdf(data, input);
-      toast.success("PDF descargado");
+      toast.success(t("express.pdf_downloaded"));
     } catch (err: any) { toast.error(err.message ?? "Error"); }
     finally { setDlPdf(null); }
   }
@@ -603,8 +604,8 @@ export default function Express() {
                 {/* Left: Catalog */}
                 <div className="flex flex-col min-h-0">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-semibold text-foreground">Catálogo</h2>
-                    <span className="text-[11px] text-muted-foreground">{MODULE_CATALOG.length} módulos</span>
+                    <h2 className="text-sm font-semibold text-foreground">{t("express.catalog")}</h2>
+                    <span className="text-[11px] text-muted-foreground">{t("express.n_modules", { count: MODULE_CATALOG.length })}</span>
                   </div>
 
                   {/* Bundle selector (collapsible) */}
@@ -617,11 +618,11 @@ export default function Express() {
                         <div className="flex items-center gap-2">
                           <Package className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm font-medium text-foreground">
-                            {selectedBundle ? selectedBundle.bundle_name : "Elegir bundle"}
+                            {selectedBundle ? selectedBundle.bundle_name : t("express.choose_bundle")}
                           </span>
                           {selectedBundle && bundlePepm > 0 && (
                             <span className="text-[11px] text-muted-foreground tabular-nums">
-                              {bundlePepm.toFixed(2)} €/pers/mes
+                              {bundlePepm.toFixed(2)} {t("express.pepm")}
                             </span>
                           )}
                         </div>
@@ -685,7 +686,7 @@ export default function Express() {
 
                   <div className="relative mb-3">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input placeholder="Buscar módulo..." value={catSearch} onChange={e => setCatSearch(e.target.value)} className="pl-9 h-9 text-sm" />
+                    <Input placeholder={t("express.search_modules")} value={catSearch} onChange={e => setCatSearch(e.target.value)} className="pl-9 h-9 text-sm" />
                   </div>
                   <ScrollArea className="flex-1">
                     <div className="space-y-4 pr-2 pb-4">
@@ -805,7 +806,7 @@ export default function Express() {
                 {selectedBundle ? `${selectedBundle.bundle_name} + ${addonModules.length} add-ons` : `${selectedModules.length} módulos`}
               </span>
               <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
-                Continuar <ArrowRight className="h-4 w-4 ml-1.5" />
+                {t("express.continue")} <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
           </footer>
@@ -819,25 +820,25 @@ export default function Express() {
             <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
               {/* Section title */}
               <div>
-                <h2 className="text-lg font-bold text-foreground">Configuración</h2>
-                <p className="text-sm text-muted-foreground mt-0.5">{selectedModules.length} módulos seleccionados</p>
+                <h2 className="text-lg font-bold text-foreground">{t("express.configuration")}</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">{t("express.modules_selected", { count: selectedModules.length })}</p>
               </div>
 
               {/* Company + Country row */}
               <div className="flex gap-3 items-end">
                 <div className="flex-1 space-y-1.5">
-                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Empresa</Label>
-                  <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={dealName || "Nombre de la empresa"} className="h-11 font-semibold text-base rounded-xl" />
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("express.company")}</Label>
+                  <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={dealName || t("express.company_placeholder")} className="h-11 font-semibold text-base rounded-xl" />
                 </div>
                 <div className="w-[160px] space-y-1.5">
-                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">País</Label>
+                  <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("express.country_label")}</Label>
                   <Select value={country} onValueChange={v => setCountry(v as "ES" | "FR")}>
                     <SelectTrigger className="h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ES">{"\u{1F1EA}\u{1F1F8}"} España</SelectItem>
-                      <SelectItem value="FR">{"\u{1F1EB}\u{1F1F7}"} France</SelectItem>
+                      <SelectItem value="ES">{"\u{1F1EA}\u{1F1F8}"} {t("express.country_es")}</SelectItem>
+                      <SelectItem value="FR">{"\u{1F1EB}\u{1F1F7}"} {t("express.country_fr")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -846,21 +847,21 @@ export default function Express() {
               {/* Stakeholders */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
-                  const m = STAKE_META[key];
+                  const m = STAKE_STYLE[key];
                   const Icon = m.icon;
                   return (
                     <div key={key} className="rounded-2xl p-4 space-y-3 border" style={{ backgroundColor: m.bg, borderColor: m.border }}>
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: m.color }}><Icon className="h-4 w-4 text-white" /></div>
-                        <span className="text-sm font-bold text-foreground">{m.label}</span>
+                        <span className="text-sm font-bold text-foreground">{t(STAKE_LABEL_KEY[key])}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Personas</label>
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("express.people")}</label>
                           <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums bg-white/80 rounded-lg" value={roiConfig.headcounts[key]} onChange={e => setRoiConfig(p => ({ ...p, headcounts: { ...p.headcounts, [key]: Math.max(0, parseInt(e.target.value) || 0) } }))} />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">€/hora</label>
+                          <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t("express.eur_hour")}</label>
                           <Input type="number" min={0} step={5} className="h-10 text-center font-bold tabular-nums bg-white/80 rounded-lg" value={roiConfig.hourly_costs[key]} onChange={e => setRoiConfig(p => ({ ...p, hourly_costs: { ...p.hourly_costs, [key]: Math.max(0, parseFloat(e.target.value) || 0) } }))} />
                         </div>
                       </div>
@@ -871,19 +872,19 @@ export default function Express() {
 
               {/* Extra inputs */}
               <div className="rounded-2xl border border-border bg-card p-5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">Parámetros adicionales</p>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("express.extra_params")}</p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] font-medium text-muted-foreground">Altas/año</Label>
+                    <Label className="text-[11px] font-medium text-muted-foreground">{t("express.onboardings_yr")}</Label>
                     <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] font-medium text-muted-foreground">Coste Factorial €/año</Label>
+                    <Label className="text-[11px] font-medium text-muted-foreground">{t("express.factorial_cost_yr")}</Label>
                     <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
                   </div>
                   {selectedModules.includes("expenses") && (
                     <div className="space-y-1.5">
-                      <Label className="text-[11px] font-medium text-muted-foreground">Submitters gastos</Label>
+                      <Label className="text-[11px] font-medium text-muted-foreground">{t("express.expense_submitters")}</Label>
                       <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
                     </div>
                   )}
@@ -893,15 +894,15 @@ export default function Express() {
               {/* ROI preview */}
               {roi && roi.savings > 0 && (
                 <div className="rounded-2xl bg-foreground/[0.03] border border-foreground/10 p-5">
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Vista previa</p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t("express.preview")}</p>
                   <div className="grid grid-cols-4 gap-4 text-center">
                     <div>
                       <p className="text-2xl font-extrabold text-foreground tabular-nums">{fmtEur(roi.savings)} €</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Ahorro/año</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{t("express.savings_yr")}</p>
                     </div>
                     <div>
                       <p className="text-2xl font-extrabold text-foreground tabular-nums">{fmtEur(roi.cost)} €</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">Coste/año</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{t("express.cost_yr")}</p>
                     </div>
                     <div>
                       <p className="text-2xl font-extrabold text-emerald-600 tabular-nums">{roi.cost > 0 ? `${roi.pct.toFixed(0)}%` : "—"}</p>
@@ -935,25 +936,25 @@ export default function Express() {
           <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Hero */}
             <div className="text-center slide-up">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Resultado ROI</p>
-              <h2 className="text-2xl font-extrabold tracking-tight text-foreground">{companyName || dealName || "Empresa"}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{selectedModules.length} módulos · {totalPeople} personas</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">{t("express.result_title")}</p>
+              <h2 className="text-2xl font-extrabold tracking-tight text-foreground">{companyName || dealName || t("express.company")}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{t("express.n_modules_n_people", { modules: selectedModules.length, people: totalPeople })}</p>
             </div>
 
             {/* Primary KPI */}
             {roi.cost > 0 && roi.pct > 0 && (
               <div className="rounded-2xl bg-emerald-50 border border-emerald-200/60 p-6 text-center slide-up" style={{ animationDelay: "80ms" }}>
                 <p className="text-5xl font-black tabular-nums text-emerald-600 tracking-tight">{roi.pct.toFixed(0)}%</p>
-                <p className="text-sm font-semibold text-emerald-700/70 mt-1">Retorno de inversión</p>
+                <p className="text-sm font-semibold text-emerald-700/70 mt-1">{t("express.roi_return")}</p>
               </div>
             )}
 
             {/* Secondary KPIs */}
             <div className="grid grid-cols-3 gap-3 slide-up" style={{ animationDelay: "160ms" }}>
               {[
-                { label: "Ahorro anual", val: `${fmtEur(roi.savings)} €` },
-                { label: "Coste Factorial", val: `${fmtEur(roi.cost)} €` },
-                { label: "Payback", val: roi.savings > 0 ? `${roi.payback.toFixed(1)} meses` : "—" },
+                { label: t("express.annual_savings"), val: `${fmtEur(roi.savings)} €` },
+                { label: t("express.factorial_cost"), val: `${fmtEur(roi.cost)} €` },
+                { label: "Payback", val: roi.savings > 0 ? t("express.payback_months", { months: roi.payback.toFixed(1) }) : "—" },
               ].map(k => (
                 <div key={k.label} className="rounded-2xl bg-card border border-border p-4 text-center">
                   <p className="text-lg font-extrabold tabular-nums text-foreground">{k.val}</p>
@@ -973,8 +974,8 @@ export default function Express() {
                     <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
                   </div>
                   <div>
-                    <span className="text-sm font-semibold text-foreground">Hipótesis por módulo</span>
-                    <p className="text-[11px] text-muted-foreground">Horas ahorradas por stakeholder</p>
+                    <span className="text-sm font-semibold text-foreground">{t("express.hypothesis_title")}</span>
+                    <p className="text-[11px] text-muted-foreground">{t("express.hypothesis_sub")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -992,7 +993,7 @@ export default function Express() {
                     <span>{roiConfig.headcounts.hr} HR · {roiConfig.hourly_costs.hr} €/h</span>
                     <span>{roiConfig.headcounts.manager} mgrs · {roiConfig.hourly_costs.manager} €/h</span>
                     <button onClick={() => setStep(2)} className="text-foreground font-semibold hover:underline underline-offset-2 ml-auto">
-                      Editar
+                      {t("express.edit")}
                     </button>
                   </div>
 
@@ -1002,9 +1003,9 @@ export default function Express() {
                         <tr className="border-b border-border bg-muted/8">
                           <th className="text-left px-5 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t("express.hyp_module", "Módulo")}</th>
                           <th className="text-center px-2 py-2.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider w-[72px]">{t("express.hyp_type", "Tipo")}</th>
-                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#3B82F6" }}>Emp h/m</th>
-                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>HR h/m</th>
-                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#F59E0B" }}>Mgr h/m</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#3B82F6" }}>{t("express.emp_hm")}</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>{t("express.hr_hm")}</th>
+                          <th className="text-center px-2 py-2.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: "#F59E0B" }}>{t("express.mgr_hm")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1087,7 +1088,7 @@ export default function Express() {
                                       <input
                                         type="number"
                                         min={0}
-                                        placeholder="€/año"
+                                        placeholder={t("express.eur_yr_placeholder")}
                                         className="w-[90px] h-8 px-2 text-sm text-center tabular-nums rounded-lg border border-violet-300 bg-violet-50/40 font-bold text-violet-700 focus:outline-none focus:ring-2 focus:ring-ring/40"
                                         value={toolOvr.annual_cost || ""}
                                         onChange={e => {
@@ -1152,8 +1153,8 @@ export default function Express() {
             {/* PDF downloads */}
             <div className="grid grid-cols-2 gap-3">
               {([
-                { type: "summary" as const, title: "1 Slide", desc: "Resumen ejecutivo" },
-                { type: "detail" as const, title: "Detalle", desc: "Módulo por módulo" },
+                { type: "summary" as const, title: t("express.pdf_summary"), desc: t("express.pdf_summary_desc") },
+                { type: "detail" as const, title: t("express.pdf_detail"), desc: t("express.pdf_detail_desc") },
               ]).map(pdf => (
                 <button key={pdf.type} onClick={() => downloadPdf(pdf.type)} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group active:scale-[0.98]">
                   <div className="flex items-center gap-3 mb-3">
@@ -1167,7 +1168,7 @@ export default function Express() {
                   </div>
                   <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
                     {dlPdf === pdf.type ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    Descargar PDF
+                    {t("express.download_pdf")}
                   </span>
                 </button>
               ))}
@@ -1180,20 +1181,20 @@ export default function Express() {
                   setSaving(true);
                   await saveToHistory();
                   setSaving(false);
-                  toast.success(savedSessionId.current ? "ROI actualizado" : "ROI guardado");
+                  toast.success(savedSessionId.current ? t("express.roi_updated") : t("express.roi_saved"));
                   navigate("/");
                 }}
                 disabled={saving}
                 className="w-full max-w-sm h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 text-sm font-bold active:scale-[0.98] transition-all shadow-lg shadow-foreground/10"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                Guardar y volver
+                {t("express.save_and_back")}
               </Button>
               <button
                 onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
-                Nuevo análisis
+                {t("express.new_analysis")}
               </button>
             </div>
           </div>

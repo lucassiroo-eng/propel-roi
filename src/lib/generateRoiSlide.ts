@@ -178,7 +178,9 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
   const i18n: Record<string, Record<string, string>> = {
     es: {
       title_prefix: "ROI esperado de",
+      title_no_cost: `Ahorro estimado equivalente a ${data.total_hours} horas`,
       subtitle_prefix: "Análisis de retorno de inversión para",
+      subtitle_no_cost: "Análisis de ahorro para",
       col_modules: "Módulos",
       col_hours: "Horas / mes",
       col_savings: "Ahorro / año",
@@ -194,7 +196,9 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
     },
     en: {
       title_prefix: "Expected ROI of",
+      title_no_cost: `Expected savings equivalent to ${data.total_hours} hours`,
       subtitle_prefix: "ROI analysis for",
+      subtitle_no_cost: "Savings analysis for",
       col_modules: "Modules",
       col_hours: "Hours / month",
       col_savings: "Savings / year",
@@ -210,7 +214,9 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
     },
     fr: {
       title_prefix: "ROI attendu de",
+      title_no_cost: `Économies estimées équivalentes à ${data.total_hours} heures`,
       subtitle_prefix: "Analyse du retour sur investissement pour",
+      subtitle_no_cost: "Analyse des économies pour",
       col_modules: "Modules",
       col_hours: "Heures / mois",
       col_savings: "Économies / an",
@@ -310,8 +316,8 @@ function generateSummarySlideBody(data: RoiSlideData): string {
 
   <div class="header">
     <div class="header-left">
-      <div class="title">${t.title_prefix} <span class="accent">${data.roi_percent}%</span></div>
-      <div class="subtitle">${t.subtitle_prefix} ${escHtml(data.company_name)}</div>
+      <div class="title">${data.annual_cost > 0 ? `${t.title_prefix} <span class="accent">${data.roi_percent}%</span>` : t.title_no_cost}</div>
+      <div class="subtitle">${data.annual_cost > 0 ? t.subtitle_prefix : t.subtitle_no_cost} ${escHtml(data.company_name)}</div>
     </div>
     <div class="header-right">
       <div class="header-date">${escHtml(data.date)}</div>
@@ -329,7 +335,7 @@ function generateSummarySlideBody(data: RoiSlideData): string {
       <div class="kpi-label">${t.kpi_savings}</div>
       <div class="kpi-value-box"><span class="kpi-value">${fmtEur(data.total_annual_savings)}</span></div>
     </div>
-    <div class="kpi-card">
+${data.annual_cost > 0 ? `    <div class="kpi-card">
       <div class="kpi-icon">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7"/></svg>
       </div>
@@ -342,7 +348,7 @@ function generateSummarySlideBody(data: RoiSlideData): string {
       </div>
       <div class="kpi-label">${t.kpi_roi}</div>
       <div class="kpi-value-box"><span class="kpi-value">${data.roi_percent}%</span><br><span class="kpi-sub">${t.payback} ${data.payback_months} ${t.months}</span></div>
-    </div>
+    </div>` : ""}
   </div>
 
   <div class="right-col">
