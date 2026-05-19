@@ -636,7 +636,7 @@ export default function Express() {
       {/* ──────────── STEP 1: Modules ──────────── */}
       {step === 1 && (
         <>
-          <main className="flex-1 overflow-hidden" data-tut="modules-section">
+          <main className="flex-1 overflow-hidden">
             <div className="max-w-5xl mx-auto w-full px-5 py-5 h-full flex flex-col overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 overflow-hidden min-h-0">
                 {/* Left: Catalog */}
@@ -854,10 +854,10 @@ export default function Express() {
       {/* ──────────── STEP 2: Config ──────────── */}
       {step === 2 && (
         <>
-          <main className="flex-1 overflow-y-auto" data-tut="config-section">
+          <main className="flex-1 overflow-y-auto">
             <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
               {/* Section title */}
-              <div>
+              <div data-tut="config-section">
                 <h2 className="text-lg font-bold text-foreground">{t("express.configuration")}</h2>
                 <p className="text-sm text-muted-foreground mt-0.5">{t("express.modules_selected", { count: selectedModules.length })}</p>
               </div>
@@ -970,10 +970,10 @@ export default function Express() {
 
       {/* ──────────── STEP 3: Results ──────────── */}
       {step === 3 && roi && (
-        <main className="flex-1 overflow-y-auto" data-tut="result-section">
+        <main className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Hero */}
-            <div className="text-center slide-up">
+            <div className="text-center slide-up" data-tut="result-section">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">{t("express.result_title")}</p>
               <h2 className="text-2xl font-extrabold tracking-tight text-foreground">{companyName || dealName || t("express.company")}</h2>
               <p className="text-sm text-muted-foreground mt-1">{t("express.n_modules_n_people", { modules: selectedModules.length, people: totalPeople })}</p>

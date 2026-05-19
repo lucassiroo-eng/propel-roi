@@ -25,16 +25,9 @@ const STEPS: TutStep[] = [
     position: "below",
   },
   {
-    target: "[data-tut='modules-section']",
-    title: "Module selection",
-    body: "We've pre-selected some modules for this demo. You can pick from the catalog or use a bundle. Click Next to continue.",
-    action: "next",
-    position: "below",
-  },
-  {
     target: "[data-tut='modules-continue']",
-    title: "Continue to configuration",
-    body: "Click Continue to move to the next step.",
+    title: "Modules pre-selected",
+    body: "We've picked 5 modules for the demo. You can browse the catalog or choose a bundle. Click Continue to configure the ROI.",
     action: "click",
     position: "above",
   },
