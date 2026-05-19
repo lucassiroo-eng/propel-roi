@@ -19,11 +19,11 @@ const FLAG: Record<string, string> = { ES: "\u{1F1EA}\u{1F1F8}", FR: "\u{1F1EB}\
 const LANG_FLAG: Record<string, string> = { en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}" };
 
 const STATUS_COLOR: Record<string, string> = {
-  draft: "bg-white/10 text-white/60",
-  sent: "bg-blue-400/20 text-blue-300",
-  accepted: "bg-emerald-400/20 text-emerald-300",
-  declined: "bg-red-400/20 text-red-300",
-  generated: "bg-violet-400/20 text-violet-300",
+  draft: "bg-gray-100 text-gray-600",
+  sent: "bg-blue-50 text-blue-600",
+  accepted: "bg-emerald-50 text-emerald-600",
+  declined: "bg-red-50 text-red-600",
+  generated: "bg-violet-50 text-violet-600",
 };
 
 interface SessionEntry {
@@ -109,27 +109,27 @@ export default function Home() {
   const fmtEur = (n: number) => n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)" }}>
+    <div className="min-h-screen relative overflow-x-hidden bg-background">
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/10">
-            <BarChart3 className="h-4 w-4 text-white" />
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-primary">
+            <BarChart3 className="h-4 w-4 text-primary-foreground" />
           </div>
-          <span className="font-bold text-white text-base">Propel ROI</span>
+          <span className="font-bold text-foreground text-base">Propel ROI</span>
         </div>
         <div className="flex items-center gap-1">
           {user?.email === "lucas.siroo@factorial.co" && (
             <button
               onClick={() => navigate("/admin")}
-              className="h-11 w-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <ShieldCheck className="h-4 w-4" />
             </button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="h-11 w-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+              <button className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                 {LANG_FLAG[i18n.language?.substring(0, 2)] ?? "\u{1F310}"}
               </button>
             </DropdownMenuTrigger>
@@ -143,7 +143,7 @@ export default function Home() {
           </DropdownMenu>
           <button
             onClick={signOut}
-            className="h-11 w-11 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <LogOut className="h-4 w-4" />
           </button>
@@ -153,47 +153,47 @@ export default function Home() {
       <main className="relative z-10 px-5 pt-8 pb-24 max-w-lg mx-auto space-y-6">
         {/* Hero */}
         <div className="text-center space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/40">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             ROI Simulator
           </p>
-          <h1 className="text-4xl font-extrabold leading-tight text-white">
+          <h1 className="text-4xl font-extrabold leading-tight text-primary">
             {t("home.greeting")}
           </h1>
-          <p className="text-sm text-white/50">{user?.email}</p>
+          <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
 
         {/* Express CTA */}
         <button
           onClick={() => navigate("/express")}
-          className="w-full rounded-2xl p-5 text-left bg-white/[0.07] border border-white/10 backdrop-blur-sm transition-all hover:bg-white/[0.12] hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="w-full rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <div className="flex items-start justify-between">
-            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-              <Zap className="h-6 w-6 text-white" />
+            <div className="w-11 h-11 rounded-xl bg-background/15 flex items-center justify-center mb-3">
+              <Zap className="h-6 w-6 text-background" />
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-white/40 bg-white/10 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-bold uppercase tracking-widest text-background/50 bg-background/10 px-2 py-0.5 rounded-full">
               Express
             </span>
           </div>
-          <p className="text-white font-bold text-lg leading-snug">ROI Express</p>
-          <p className="text-white/50 text-sm mt-1 mb-3">Pega el deal link y genera el ROI en minutos</p>
-          <div className="flex items-center gap-1 text-white font-semibold text-sm">
+          <p className="text-background font-bold text-lg leading-snug">ROI Express</p>
+          <p className="text-background/60 text-sm mt-1 mb-3">Pega el deal link y genera el ROI en minutos</p>
+          <div className="flex items-center gap-1 text-background font-semibold text-sm">
             {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
           </div>
         </button>
 
         {/* Companies list */}
         <div>
-          <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">{t("home.recent")}</h2>
+          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">{t("home.recent")}</h2>
 
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !companies.length ? (
-            <div className="rounded-2xl bg-white/[0.05] border border-white/10 py-12 text-center">
-              <TrendingUp className="mx-auto h-10 w-10 mb-3 text-white/20" />
-              <p className="text-white/40 text-sm">{t("home.empty")}</p>
+            <div className="rounded-2xl bg-card border border-border py-12 text-center">
+              <TrendingUp className="mx-auto h-10 w-10 mb-3 text-primary/30" />
+              <p className="text-muted-foreground text-sm">{t("home.empty")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -203,35 +203,35 @@ export default function Home() {
                 const hasHistory = c.sessions.length > 1;
 
                 return (
-                  <div key={c.prospectId} className="rounded-2xl bg-white/[0.05] border border-white/10 overflow-hidden hover:bg-white/[0.08] transition-colors">
+                  <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
                     {/* Main card */}
                     <button
                       onClick={() => navigate(`/express?session=${latest.id}`)}
-                      className="w-full p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                      className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-xl">{FLAG[c.country] ?? "\u{1F30D}"}</span>
-                            <span className="font-semibold text-white truncate text-sm">
+                            <span className="font-semibold text-foreground truncate text-sm">
                               {c.companyName}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             {c.seats && (
-                              <span className="text-[11px] text-white/40">{t("home.seats", { count: c.seats })}</span>
+                              <span className="text-[11px] text-muted-foreground">{t("home.seats", { count: c.seats })}</span>
                             )}
                             {c.sector && (
-                              <span className="text-[11px] text-white/40 truncate max-w-[140px]">{c.sector}</span>
+                              <span className="text-[11px] text-muted-foreground truncate max-w-[140px]">{c.sector}</span>
                             )}
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-1.5 shrink-0">
-                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[latest.status] ?? "bg-white/10 text-white/50"}`}>
+                          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[latest.status] ?? "bg-gray-100 text-gray-500"}`}>
                             {t(statusI18nKey(latest.status))}
                           </span>
                           {c.hasDocument && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-300 bg-violet-400/20 px-1.5 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
                               <FileText className="h-2.5 w-2.5" />
                               ROI
                             </span>
@@ -241,40 +241,40 @@ export default function Home() {
 
                       {/* ROI metrics row */}
                       {(latest.roi_eur != null || latest.roi_pct != null) && (
-                        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-white/10">
+                        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/60">
                           {latest.total_annual_benefit_eur != null && (
                             <div className="flex-1 min-w-0">
-                              <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">Ahorro</p>
-                              <p className="text-sm font-bold text-white tabular-nums">{fmtEur(latest.total_annual_benefit_eur)} €</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Ahorro</p>
+                              <p className="text-sm font-bold text-foreground tabular-nums">{fmtEur(latest.total_annual_benefit_eur)} €</p>
                             </div>
                           )}
                           {latest.roi_eur != null && (
                             <div className="flex-1 min-w-0">
-                              <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">ROI neto</p>
-                              <p className="text-sm font-bold text-white tabular-nums">{fmtEur(latest.roi_eur)} €</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">ROI neto</p>
+                              <p className="text-sm font-bold text-foreground tabular-nums">{fmtEur(latest.roi_eur)} €</p>
                             </div>
                           )}
                           {latest.roi_pct != null && latest.roi_pct > 0 && (
                             <div className="shrink-0">
-                              <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">ROI</p>
-                              <p className="text-sm font-bold text-emerald-400 tabular-nums">{latest.roi_pct}%</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">ROI</p>
+                              <p className="text-sm font-bold text-emerald-600 tabular-nums">{latest.roi_pct}%</p>
                             </div>
                           )}
                           {latest.payback_months != null && latest.payback_months > 0 && (
                             <div className="shrink-0">
-                              <p className="text-[10px] text-white/30 uppercase tracking-wider font-medium">Payback</p>
-                              <p className="text-sm font-bold text-white tabular-nums">{latest.payback_months}m</p>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Payback</p>
+                              <p className="text-sm font-bold text-foreground tabular-nums">{latest.payback_months}m</p>
                             </div>
                           )}
                         </div>
                       )}
 
                       <div className="flex items-center justify-between mt-2.5">
-                        <div className="flex items-center gap-1 text-[11px] text-white/30">
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 text-white/20" />
+                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
                       </div>
                     </button>
 
@@ -286,7 +286,7 @@ export default function Home() {
                             e.stopPropagation();
                             setExpandedCompany(isExpanded ? null : c.prospectId);
                           }}
-                          className="w-full flex items-center justify-center gap-1.5 py-3 border-t border-white/10 text-[11px] font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.05] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                          className="w-full flex items-center justify-center gap-1.5 py-3 border-t border-border text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                         >
                           <History className="h-3 w-3" />
                           {t("home.versions", { count: c.sessions.length })}
@@ -294,31 +294,31 @@ export default function Home() {
                         </button>
 
                         {isExpanded && (
-                          <div className="border-t border-white/10 bg-white/[0.03]">
+                          <div className="border-t border-border bg-muted/30">
                             {c.sessions.map((sess, i) => (
                               <button
                                 key={sess.id}
                                 onClick={() => navigate(`/express?session=${sess.id}`)}
-                                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-white/[0.05] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${i > 0 ? "border-t border-white/[0.06]" : ""}`}
+                                className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${i > 0 ? "border-t border-border/60" : ""}`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">
-                                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[sess.status] ?? "bg-white/10 text-white/50"}`}>
+                                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[sess.status] ?? "bg-gray-100 text-gray-500"}`}>
                                     {t(statusI18nKey(sess.status))}
                                   </span>
-                                  <span className="text-[11px] text-white/30">
+                                  <span className="text-[11px] text-muted-foreground">
                                     {formatDistanceToNow(new Date(sess.updated_at), { addSuffix: true, locale })}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-3 shrink-0">
                                   {sess.roi_pct != null && sess.roi_pct > 0 && (
-                                    <span className="text-xs font-bold text-emerald-400 tabular-nums">{sess.roi_pct}%</span>
+                                    <span className="text-xs font-bold text-emerald-600 tabular-nums">{sess.roi_pct}%</span>
                                   )}
                                   {sess.roi_eur != null && (
-                                    <span className="text-xs font-semibold text-white tabular-nums">
+                                    <span className="text-xs font-semibold text-foreground tabular-nums">
                                       {fmtEur(sess.roi_eur)} €
                                     </span>
                                   )}
-                                  <ChevronRight className="h-3 w-3 text-white/20" />
+                                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
                                 </div>
                               </button>
                             ))}
