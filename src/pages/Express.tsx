@@ -36,6 +36,7 @@ import {
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
 import type { ModuleSuggestion, RoiConfig, ToolOverride } from "@/hooks/useWizardSession";
+import { TutorialGuide } from "@/components/TutorialGuide";
 
 const MODULE_REF = buildModulePromptBlock();
 
@@ -61,7 +62,12 @@ export default function Express() {
   const [step, setStep] = useState(0);
   const [loadingSession, setLoadingSession] = useState(false);
   const [tutorialActive, setTutorialActive] = useState(() => localStorage.getItem("propel_tutorial_active") === "1");
-  const dismissTutorial = () => { setTutorialActive(false); localStorage.removeItem("propel_tutorial_active"); };
+  const dismissTutorial = useCallback(() => { setTutorialActive(false); localStorage.removeItem("propel_tutorial_active"); }, []);
+  const handleTutorialSubStep = useCallback((idx: number) => {
+    if (idx === 0) {
+      setHubspotUrl(u => u || "https://app.hubspot.com/contacts/123/deal/demo-456");
+    }
+  }, []);
 
   // Step 0
   const [hubspotUrl, setHubspotUrl] = useState("");
@@ -160,6 +166,33 @@ export default function Express() {
     })();
     return () => { cancelled = true; };
   }, [searchParams]);
+
+  // ── Tutorial mock fetch ─────────────────────────────────
+  async function handleTutorialFetch() {
+    setFetching(true);
+    setMsgs([{ text: "Searching deal...", done: false }]);
+    await new Promise(r => setTimeout(r, 600));
+    setMsgs(m => [{ ...m[0], done: true }, { text: "Loading company...", done: false }]);
+    await new Promise(r => setTimeout(r, 500));
+    setCompanyName("Acme Corp");
+    setDealName("Acme Corp - Enterprise Deal");
+    setCountry("ES");
+    setRoiConfig(c => ({
+      ...c,
+      headcounts: { employee: 200, hr: 8, manager: 25 },
+      hourly_costs: { employee: 22, hr: 32, manager: 28 },
+    }));
+    setMsgs(m => [...m.slice(0, 1), { ...m[1], done: true }, { text: "Analyzing content...", done: false }]);
+    await new Promise(r => setTimeout(r, 700));
+    setAnnualCost(18000);
+    const demoModules = ["core_hr", "time_off", "time_tracking", "payroll", "recruitment"];
+    setSelectedModules(demoModules);
+    setModuleSuggestions(demoModules.map(m => ({ module_id: m, confidence: "strong" as const })));
+    setMsgs(m => [...m.slice(0, 2), { ...m[2], done: true }, { text: `${demoModules.length} modules identified`, done: true }]);
+    setFetching(false);
+    toast.success(`${demoModules.length} modules identified`);
+    setTimeout(() => setStep(1), 800);
+  }
 
   // ── Fetch deal ──────────────────────────────────────────
   async function handleFetch() {
@@ -534,23 +567,8 @@ export default function Express() {
         </div>
       </header>
 
-      {/* Tutorial banner */}
-      {tutorialActive && (
-        <div className="bg-primary/5 border-b border-primary/10 px-4 py-3">
-          <div className="max-w-lg mx-auto flex items-start gap-3">
-            <div className="shrink-0 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-              <span className="text-xs font-bold text-primary">{step + 1}</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground">{t(`tutorial.express_step${step}_title`)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t(`tutorial.express_step${step}_body`)}</p>
-            </div>
-            <button onClick={dismissTutorial} className="shrink-0 text-muted-foreground hover:text-foreground transition-colors mt-0.5">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Tutorial guided overlay */}
+      {tutorialActive && <TutorialGuide onDismiss={dismissTutorial} onSubStep={handleTutorialSubStep} />}
 
       {/* ──────────── STEP 0: Import ──────────── */}
       {step === 0 && (
@@ -562,7 +580,7 @@ export default function Express() {
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-2">ROI Express</h1>
             <p className="text-sm text-muted-foreground mb-10 max-w-[280px] mx-auto leading-relaxed">Pega el link del deal y genera el ROI en minutos</p>
 
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4" data-tut="import-section">
               <Input
                 placeholder="https://app.hubspot.com/contacts/.../deal/..."
                 value={hubspotUrl}
@@ -572,7 +590,7 @@ export default function Express() {
                 disabled={fetching}
                 autoFocus
               />
-              <Button onClick={handleFetch} disabled={fetching || !hubspotUrl.trim()} className="h-12 w-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0 active:scale-95 transition-all">
+              <Button data-tut="fetch-btn" onClick={tutorialActive ? handleTutorialFetch : handleFetch} disabled={fetching || !hubspotUrl.trim()} className="h-12 w-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0 active:scale-95 transition-all">
                 {fetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
@@ -618,7 +636,7 @@ export default function Express() {
       {/* ──────────── STEP 1: Modules ──────────── */}
       {step === 1 && (
         <>
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-hidden" data-tut="modules-section">
             <div className="max-w-5xl mx-auto w-full px-5 py-5 h-full flex flex-col overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 overflow-hidden min-h-0">
                 {/* Left: Catalog */}
@@ -825,7 +843,7 @@ export default function Express() {
               <span className="text-xs font-medium text-muted-foreground">
                 {selectedBundle ? `${selectedBundle.bundle_name} + ${addonModules.length} add-ons` : `${selectedModules.length} módulos`}
               </span>
-              <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
+              <Button data-tut="modules-continue" onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
                 {t("express.continue")} <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
@@ -836,7 +854,7 @@ export default function Express() {
       {/* ──────────── STEP 2: Config ──────────── */}
       {step === 2 && (
         <>
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto" data-tut="config-section">
             <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
               {/* Section title */}
               <div>
@@ -942,7 +960,7 @@ export default function Express() {
               <Button variant="outline" onClick={() => setStep(1)} className="rounded-xl active:scale-95 transition-all">
                 <ArrowLeft className="h-4 w-4 mr-1.5" /> Atrás
               </Button>
-              <Button onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
+              <Button data-tut="config-continue" onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
                 Ver resultado <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
@@ -952,7 +970,7 @@ export default function Express() {
 
       {/* ──────────── STEP 3: Results ──────────── */}
       {step === 3 && roi && (
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto" data-tut="result-section">
           <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Hero */}
             <div className="text-center slide-up">
