@@ -51,7 +51,7 @@ interface Msg { text: string; done: boolean }
 export default function Express() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const savedSessionId = useRef<string | null>(null);
@@ -463,7 +463,7 @@ export default function Express() {
   async function downloadPdf(type: "summary" | "detail") {
     setDlPdf(type);
     try {
-      const lang = country === "FR" ? "fr" : "es";
+      const lang = (i18n.language ?? "es").slice(0, 2);
       const input: RoiSlideInput = {
         companyName: companyName || dealName || "Company",
         country, language: lang,
