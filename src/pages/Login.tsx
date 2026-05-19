@@ -3,8 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CheckCircle, LogIn, UserPlus } from "lucide-react";
+import { Loader2, CheckCircle, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import factorialLogo from "@/assets/factorial-logo-red.svg";
@@ -14,7 +13,6 @@ export default function Login() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signUpSuccess, setSignUpSuccess] = useState(false);
@@ -47,7 +45,8 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!email.trim().toLowerCase().endsWith("@factorial.co")) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail.endsWith("@factorial.co")) {
       setError(t("login.domain_error"));
       return;
     }
@@ -56,97 +55,100 @@ export default function Login() {
       return;
     }
     setLoading(true);
-    const { error } = isSignUp
-      ? await signUp(email, password)
-      : await signIn(email, password);
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else if (isSignUp) {
-      setSignUpSuccess(true);
+    const signInResult = await signIn(trimmedEmail, password);
+    if (signInResult.error) {
+      const msg = signInResult.error.message;
+      if (msg === "Invalid login credentials") {
+        const signUpResult = await signUp(trimmedEmail, password);
+        if (signUpResult.error) {
+          setError(signUpResult.error.message);
+        } else {
+          setSignUpSuccess(true);
+        }
+      } else {
+        setError(msg);
+      }
     }
+    setLoading(false);
   };
+
+  if (signUpSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-background">
+        <div className="w-full max-w-xs text-center space-y-4">
+          <CheckCircle className="mx-auto h-12 w-12 text-emerald-500" />
+          <p
+            className="text-sm text-muted-foreground leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: t("login.check_inbox", { email }) }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <Card className="w-full max-w-sm border border-border shadow-sm rounded-2xl">
-        <CardHeader className="text-center space-y-3">
-          <img src={factorialLogo} alt="Factorial" className="mx-auto h-8" />
-          <CardTitle className="text-xl font-bold text-primary">{t("login.title")}</CardTitle>
-          <CardDescription>{t("login.description")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {signUpSuccess ? (
-            <div className="text-center space-y-3">
-              <CheckCircle className="mx-auto h-10 w-10 text-success" />
-              <p
-                className="text-sm text-muted-foreground"
-                dangerouslySetInnerHTML={{ __html: t("login.check_inbox", { email }) }}
-              />
-            </div>
-          ) : (
-            <>
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <Input
-                  type="email"
-                  placeholder={t("login.placeholder")}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <Input
-                  type="password"
-                  placeholder={t("login.password_placeholder")}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                />
-                {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : isSignUp ? (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      {t("login.sign_up")}
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      {t("login.sign_in")}
-                    </>
-                  )}
-                </Button>
-              </form>
+      <div className="w-full max-w-xs space-y-8">
+        <div className="text-center space-y-1">
+          <img src={factorialLogo} alt="Factorial" className="mx-auto h-7 mb-4" />
+          <h1 className="text-lg font-semibold tracking-tight">{t("login.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("login.description")}</p>
+        </div>
 
-              {!isSignUp && (
-                <div className="text-center">
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground hover:text-primary underline underline-offset-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={handleForgotPassword}
-                    disabled={resetting}
-                  >
-                    {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
-                  </button>
-                </div>
-              )}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <Input
+            type="email"
+            placeholder={t("login.placeholder")}
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(null); }}
+            className="h-11"
+            autoComplete="email"
+            autoFocus
+          />
+          <Input
+            type="password"
+            placeholder={t("login.password_placeholder")}
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(null); }}
+            className="h-11"
+            autoComplete="current-password"
+          />
 
-              <p className="text-center text-sm text-muted-foreground">
-                {isSignUp ? t("login.have_account") : t("login.no_account")}{" "}
-                <button
-                  type="button"
-                  className="text-primary underline underline-offset-2 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={() => { setIsSignUp(!isSignUp); setError(null); }}
-                >
-                  {isSignUp ? t("login.sign_in") : t("login.sign_up")}
-                </button>
-              </p>
-            </>
+          {error && (
+            <p className="text-sm text-destructive text-center">{error}</p>
           )}
-        </CardContent>
-      </Card>
+
+          <Button
+            type="submit"
+            className="w-full h-11 font-semibold"
+            disabled={loading || !email || !password}
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                {t("login.sign_in")}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
+          </Button>
+        </form>
+
+        <div className="text-center">
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            onClick={handleForgotPassword}
+            disabled={resetting}
+          >
+            {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
+          </button>
+        </div>
+
+        <p className="text-center text-[11px] text-muted-foreground/60">
+          {t("login.auto_signup")}
+        </p>
+      </div>
     </div>
   );
 }

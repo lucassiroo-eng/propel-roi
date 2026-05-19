@@ -17,6 +17,7 @@
   "login.no_account": "Pas encore de compte ?",
   "login.check_inbox": "Verifiez votre boite de reception pour <strong>{{email}}</strong> pour verifier votre compte.",
   "login.domain_error": "Seuls les emails @factorial.co sont autorises",
+  "login.auto_signup": "Pas de compte ? Entrez votre email et mot de passe — on le cree pour vous.",
   "login.forgot_password": "Mot de passe oublie ?",
   "login.reset_sent": "Nous vous avons envoye un email pour reinitialiser votre mot de passe",
   "login.reset_error": "Erreur lors de l'envoi de l'email de recuperation",

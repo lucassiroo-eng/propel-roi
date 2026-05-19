@@ -17,6 +17,7 @@
   "login.no_account": "Don't have an account?",
   "login.check_inbox": "Check your inbox for <strong>{{email}}</strong> to verify your account.",
   "login.domain_error": "Only @factorial.co emails are allowed",
+  "login.auto_signup": "No account yet? Just enter your email and password — we'll create one for you.",
   "login.forgot_password": "Forgot password?",
   "login.reset_sent": "We sent you an email to reset your password",
   "login.reset_error": "Error sending recovery email",
