@@ -973,7 +973,7 @@ export default function Express() {
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Hero */}
-            <div className="text-center slide-up" data-tut="result-section">
+            <div className="text-center slide-up">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">{t("express.result_title")}</p>
               <h2 className="text-2xl font-extrabold tracking-tight text-foreground">{companyName || dealName || t("express.company")}</h2>
               <p className="text-sm text-muted-foreground mt-1">{t("express.n_modules_n_people", { modules: selectedModules.length, people: totalPeople })}</p>
@@ -1002,7 +1002,7 @@ export default function Express() {
             </div>
 
             {/* Hypotheses editor */}
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden" data-tut="hypothesis-section">
               <button
                 onClick={() => setHypothesesOpen(o => !o)}
                 className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
@@ -1189,7 +1189,7 @@ export default function Express() {
             </div>
 
             {/* PDF downloads */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" data-tut="download-section">
               {([
                 { type: "summary" as const, title: t("express.pdf_summary"), desc: t("express.pdf_summary_desc") },
                 { type: "detail" as const, title: t("express.pdf_detail"), desc: t("express.pdf_detail_desc") },

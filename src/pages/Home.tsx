@@ -53,13 +53,11 @@ function TutorialOverlay({
   sessionsRef,
   onClickExpress,
   onClose,
-  t,
 }: {
   expressRef: React.RefObject<HTMLElement | null>;
   sessionsRef: React.RefObject<HTMLElement | null>;
   onClickExpress: () => void;
   onClose: () => void;
-  t: (key: string) => string;
 }) {
   const [rects, setRects] = useState<{ express: DOMRect | null; sessions: DOMRect | null }>({ express: null, sessions: null });
 
@@ -128,8 +126,8 @@ function TutorialOverlay({
       >
         <div className="max-w-xs mx-auto relative" style={{ pointerEvents: "auto" }}>
           <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
-            <p className="text-sm font-semibold text-foreground">{t("tutorial.step1_title")}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("tutorial.step1_body")}</p>
+            <p className="text-sm font-semibold text-foreground">Create an ROI</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Click here to start an Express ROI analysis. Paste a HubSpot deal link and get the result in minutes.</p>
           </div>
           {/* Arrow pointing down */}
           <div className="flex justify-center">
@@ -158,8 +156,8 @@ function TutorialOverlay({
               <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white" />
             </div>
             <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
-              <p className="text-sm font-semibold text-foreground">{t("tutorial.step2_title")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("tutorial.step2_body")}</p>
+              <p className="text-sm font-semibold text-foreground">Your sessions</p>
+              <p className="text-xs text-muted-foreground mt-0.5">All your ROI analyses live here. Click any to view, edit, or share.</p>
             </div>
           </div>
         </div>
@@ -168,9 +166,9 @@ function TutorialOverlay({
       {/* Bottom bar: skip + CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/80 to-transparent" style={{ pointerEvents: "auto" }}>
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
-          <p className="text-white text-sm font-medium text-center">{t("tutorial.click_express")}</p>
+          <p className="text-white text-sm font-medium text-center">Click ROI Express to start the guided tour</p>
           <button onClick={onClose} className="text-white/60 text-xs hover:text-white transition-colors">
-            {t("tutorial.skip")}
+            Skip tutorial
           </button>
         </div>
       </div>
@@ -276,7 +274,6 @@ export default function Home() {
           sessionsRef={sessionsRef}
           onClickExpress={handleExpressClick}
           onClose={closeTutorial}
-          t={t}
         />
       )}
 
