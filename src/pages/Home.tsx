@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap, ShieldCheck } from "lucide-react";
+import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap, ShieldCheck, HelpCircle, X } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -47,11 +47,140 @@ interface CompanyGroup {
   hasDocument: boolean;
 }
 
+/* ─── Tutorial overlay ─── */
+interface TutorialProps {
+  step: number;
+  expressRef: React.RefObject<HTMLElement | null>;
+  sessionsRef: React.RefObject<HTMLElement | null>;
+  onNext: () => void;
+  onClose: () => void;
+  t: (key: string) => string;
+}
+
+function TutorialOverlay({ step, expressRef, sessionsRef, onNext, onClose, t }: TutorialProps) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  const targetRef = step === 0 ? expressRef : sessionsRef;
+
+  useEffect(() => {
+    const el = targetRef.current;
+    if (!el) return;
+    const update = () => setRect(el.getBoundingClientRect());
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [targetRef, step]);
+
+  if (!rect) return null;
+
+  const pad = 8;
+  const r = {
+    top: rect.top - pad + window.scrollY,
+    left: rect.left - pad,
+    width: rect.width + pad * 2,
+    height: rect.height + pad * 2,
+  };
+
+  const tooltipTop = r.top + r.height + 16;
+  const isLast = step === 1;
+
+  return (
+    <div className="fixed inset-0 z-50" style={{ pointerEvents: "auto" }}>
+      {/* Backdrop with cutout */}
+      <svg className="absolute inset-0 w-full h-full" style={{ height: document.documentElement.scrollHeight }}>
+        <defs>
+          <mask id="tutorial-mask">
+            <rect width="100%" height="100%" fill="white" />
+            <rect x={r.left} y={r.top} width={r.width} height={r.height} rx="16" fill="black" />
+          </mask>
+        </defs>
+        <rect width="100%" height="100%" fill="rgba(0,0,0,0.6)" mask="url(#tutorial-mask)" />
+      </svg>
+
+      {/* Highlight ring */}
+      <div
+        className="absolute rounded-2xl ring-2 ring-primary ring-offset-2 ring-offset-transparent animate-pulse"
+        style={{ top: r.top, left: r.left, width: r.width, height: r.height, pointerEvents: "none" }}
+      />
+
+      {/* Arrow (SVG curved arrow from tooltip to target) */}
+      <svg
+        className="absolute"
+        style={{ top: r.top + r.height - 4, left: r.left + r.width / 2 - 16, width: 32, height: 24, pointerEvents: "none" }}
+      >
+        <path d="M16 24 L16 6 L10 12" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M16 6 L22 12" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+
+      {/* Tooltip card */}
+      <div
+        className="absolute px-5"
+        style={{ top: tooltipTop, left: 0, right: 0, pointerEvents: "auto" }}
+      >
+        <div className="max-w-sm mx-auto bg-white rounded-2xl shadow-2xl p-5 border border-border">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <p className="text-sm font-bold text-foreground">
+              {step === 0 ? t("tutorial.step1_title") : t("tutorial.step2_title")}
+            </p>
+            <button onClick={onClose} className="shrink-0 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            {step === 0 ? t("tutorial.step1_body") : t("tutorial.step2_body")}
+          </p>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">{step + 1} / 2</span>
+            <button
+              onClick={onNext}
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+            >
+              {isLast ? t("tutorial.done") : t("tutorial.next")}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Home page ─── */
 export default function Home() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+
+  const expressRef = useRef<HTMLButtonElement | null>(null);
+  const sessionsRef = useRef<HTMLDivElement | null>(null);
+
+  const startTutorial = useCallback(() => setTutorialStep(0), []);
+  const closeTutorial = useCallback(() => {
+    setTutorialStep(null);
+    localStorage.setItem("propel_tutorial_seen", "1");
+  }, []);
+  const nextTutorial = useCallback(() => {
+    setTutorialStep((s) => {
+      if (s === null) return null;
+      if (s >= 1) {
+        localStorage.setItem("propel_tutorial_seen", "1");
+        return null;
+      }
+      return s + 1;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!localStorage.getItem("propel_tutorial_seen")) {
+      const timer = setTimeout(() => setTutorialStep(0), 800);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["roi_sessions"],
@@ -110,6 +239,18 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background">
+      {/* Tutorial overlay */}
+      {tutorialStep !== null && (
+        <TutorialOverlay
+          step={tutorialStep}
+          expressRef={expressRef}
+          sessionsRef={sessionsRef}
+          onNext={nextTutorial}
+          onClose={closeTutorial}
+          t={t}
+        />
+      )}
+
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
         <div className="flex items-center gap-2">
@@ -119,6 +260,13 @@ export default function Home() {
           <span className="font-bold text-foreground text-base">Propel ROI</span>
         </div>
         <div className="flex items-center gap-1">
+          <button
+            onClick={startTutorial}
+            className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            title={t("tutorial.help")}
+          >
+            <HelpCircle className="h-4 w-4" />
+          </button>
           {user?.email === "lucas.siroo@factorial.co" && (
             <button
               onClick={() => navigate("/admin")}
@@ -164,6 +312,7 @@ export default function Home() {
 
         {/* Express CTA */}
         <button
+          ref={expressRef}
           onClick={() => navigate("/express")}
           className="w-full rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
@@ -183,7 +332,7 @@ export default function Home() {
         </button>
 
         {/* Companies list */}
-        <div>
+        <div ref={sessionsRef}>
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">{t("home.recent")}</h2>
 
           {isLoading ? (

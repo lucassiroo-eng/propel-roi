@@ -432,5 +432,13 @@
   "express.share_link": "Compartir enlace",
   "express.link_copied": "Enlace copiado al portapapeles",
 
-  "home.start": "Empezar"
+  "home.start": "Empezar",
+
+  "tutorial.help": "Tutorial",
+  "tutorial.next": "Siguiente",
+  "tutorial.done": "Entendido",
+  "tutorial.step1_title": "Crear un ROI",
+  "tutorial.step1_body": "Pulsa aqui para iniciar un analisis ROI Express. Pega el enlace del deal de HubSpot y genera el ROI en minutos.",
+  "tutorial.step2_title": "Tus sesiones",
+  "tutorial.step2_body": "Aqui encontraras todos los analisis ROI que has creado. Pulsa cualquiera para ver, editar o compartir."
 }
