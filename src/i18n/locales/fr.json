@@ -430,6 +430,8 @@
   "express.modules_identified": "{{count}} modules identifiés",
   "express.import_error": "Erreur — sélectionnez les modules manuellement",
   "express.hubspot_invalid": "URL HubSpot invalide",
+  "express.share_link": "Partager le lien",
+  "express.link_copied": "Lien copié dans le presse-papiers",
 
   "home.start": "Commencer"
 }

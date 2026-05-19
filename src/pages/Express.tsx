@@ -14,7 +14,7 @@ import {
   ArrowLeft, ArrowRight, Check, Download, Pencil, Save,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
-  Clock, Wrench,
+  Clock, Wrench, Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -1189,6 +1189,24 @@ export default function Express() {
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {t("express.save_and_back")}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  if (!savedSessionId.current) {
+                    setSaving(true);
+                    await saveToHistory();
+                    setSaving(false);
+                  }
+                  const url = `${window.location.origin}/express?session=${savedSessionId.current}`;
+                  await navigator.clipboard.writeText(url);
+                  toast.success(t("express.link_copied"));
+                }}
+                disabled={saving}
+                className="w-full max-w-sm h-10 rounded-xl text-sm font-medium"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                {t("express.share_link")}
               </Button>
               <button
                 onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
