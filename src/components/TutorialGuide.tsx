@@ -108,16 +108,11 @@ export function TutorialGuide({ onDismiss, onSubStep }: { onDismiss: () => void;
     }
   }, [sub, onDismiss]);
 
-  useEffect(() => {
-    if (!currentStep || currentStep.action !== "click") return;
+  const handleSpotlightClick = useCallback(() => {
     const el = findTarget();
-    if (!el) return;
-    const handler = () => {
-      setTimeout(() => advance(), 100);
-    };
-    el.addEventListener("click", handler, { once: true });
-    return () => el.removeEventListener("click", handler);
-  }, [currentStep, findTarget, advance]);
+    if (el) el.click();
+    setTimeout(() => advance(), 150);
+  }, [findTarget, advance]);
 
   if (!currentStep || !rect) return null;
 
@@ -150,9 +145,10 @@ export function TutorialGuide({ onDismiss, onSubStep }: { onDismiss: () => void;
         <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#tut-guide-mask)" />
       </svg>
 
-      {/* Make the target area clickable through */}
+      {/* Spotlight ring — forwards click to the real element */}
       <div
         className="absolute rounded-2xl ring-2 ring-primary ring-offset-2 ring-offset-transparent"
+        onClick={currentStep.action === "click" ? handleSpotlightClick : undefined}
         style={{
           top: rect.top - pad,
           left: rect.left - pad,

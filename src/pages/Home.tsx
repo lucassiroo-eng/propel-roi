@@ -146,20 +146,20 @@ function TutorialOverlay({
         />
       )}
 
-      {/* Sessions tooltip (below the section, pointing up) */}
+      {/* Sessions tooltip (above the section, pointing down) */}
       {se && (
         <div
           className="absolute px-5"
-          style={{ top: se.top + se.height + 8, left: 0, right: 0, pointerEvents: "none" }}
+          style={{ top: se.top - 72, left: 0, right: 0, pointerEvents: "none" }}
         >
           <div className="max-w-xs mx-auto relative" style={{ pointerEvents: "auto" }}>
-            {/* Arrow pointing up */}
-            <div className="flex justify-center">
-              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white" />
-            </div>
             <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
               <p className="text-sm font-semibold text-foreground">{t("tutorial.step2_title")}</p>
               <p className="text-xs text-muted-foreground mt-0.5">{t("tutorial.step2_body")}</p>
+            </div>
+            {/* Arrow pointing down */}
+            <div className="flex justify-center">
+              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white" />
             </div>
           </div>
         </div>
