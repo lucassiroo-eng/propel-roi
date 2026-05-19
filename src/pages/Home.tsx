@@ -156,7 +156,7 @@ export default function Home() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             ROI Simulator
           </p>
-          <h1 className="text-4xl font-extrabold leading-tight text-primary">
+          <h1 className="text-4xl font-extrabold leading-tight text-slate-800">
             {t("home.greeting")}
           </h1>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
