@@ -185,7 +185,7 @@ export default function Express() {
     setMsgs(m => [...m.slice(0, 1), { ...m[1], done: true }, { text: "Analyzing content...", done: false }]);
     await new Promise(r => setTimeout(r, 700));
     setAnnualCost(18000);
-    const demoModules = ["core_hr", "time_off", "time_tracking", "payroll", "recruitment"];
+    const demoModules = ["core", "time_off", "time_tracking", "payroll", "recruitment"];
     setSelectedModules(demoModules);
     setModuleSuggestions(demoModules.map(m => ({ module_id: m, confidence: "strong" as const })));
     setMsgs(m => [...m.slice(0, 2), { ...m[2], done: true }, { text: `${demoModules.length} modules identified`, done: true }]);
@@ -855,9 +855,9 @@ export default function Express() {
       {step === 2 && (
         <>
           <main className="flex-1 overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
+            <div className="max-w-2xl mx-auto px-5 py-8 space-y-8" data-tut="config-section">
               {/* Section title */}
-              <div data-tut="config-section">
+              <div>
                 <h2 className="text-lg font-bold text-foreground">{t("express.configuration")}</h2>
                 <p className="text-sm text-muted-foreground mt-0.5">{t("express.modules_selected", { count: selectedModules.length })}</p>
               </div>

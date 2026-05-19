@@ -34,7 +34,7 @@ const STEPS: TutStep[] = [
   {
     target: "[data-tut='config-section']",
     title: "Set your inputs",
-    body: "Adjust employees, HR FTEs, managers, hourly costs, onboardings/year, and the annual Factorial price. Demo values are pre-filled.",
+    body: "Adjust employees, HR admins, managers, hourly costs, onboardings/year, and the annual Factorial price. Demo values are pre-filled.",
     action: "next",
     position: "below",
   },
