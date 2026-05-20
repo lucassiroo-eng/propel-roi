@@ -1230,28 +1230,68 @@ export default function Express() {
                                 (["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
                                   const def = defaults[sk];
                                   const val = overrides?.[sk] ?? def;
-                                  const hasOverride = overrides?.[sk] !== undefined && overrides[sk] !== def;
+                                  const isEmpty = val === 0;
                                   return (
                                     <td key={sk} className="px-2 py-2 text-center">
+                                      {isEmpty ? (
+                                        <input
+                                          type="text"
+                                          readOnly
+                                          value="—"
+                                          className="w-[60px] h-8 text-center text-sm text-muted-foreground/30 rounded-lg border border-transparent bg-transparent cursor-text focus:outline-none"
+                                          onFocus={e => {
+                                            const inp = e.target as HTMLInputElement;
+                                            inp.readOnly = false;
+                                            inp.type = "number";
+                                            inp.value = "";
+                                          }}
+                                          onChange={e => {
+                                            const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                            if (v === 0) return;
+                                            setRoiConfig(prev => {
+                                              const ho = { ...(prev.hours_overrides ?? {}) };
+                                              ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
+                                              return { ...prev, hours_overrides: ho };
+                                            });
+                                          }}
+                                        />
+                                      ) : (
                                         <input
                                           type="number"
                                           step="0.1"
                                           min="0"
-                                          className={`w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all ${
-                                            hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : "border-transparent hover:border-border"
-                                          }`}
+                                          className="w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border border-transparent hover:border-border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all"
                                           value={val}
                                           onChange={e => {
                                             const v = Math.max(0, parseFloat(e.target.value) || 0);
                                             setRoiConfig(prev => {
                                               const ho = { ...(prev.hours_overrides ?? {}) };
-                                              ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
-                                              if (v === def) delete ho[modId]![sk];
-                                              if (Object.keys(ho[modId]!).length === 0) delete ho[modId];
+                                              if (v === 0) {
+                                                ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
+                                                if (def === 0) {
+                                                  delete ho[modId]![sk];
+                                                  if (Object.keys(ho[modId]!).length === 0) delete ho[modId];
+                                                }
+                                              } else {
+                                                ho[modId] = { ...(ho[modId] ?? {}), [sk]: v };
+                                                if (v === def) delete ho[modId]![sk];
+                                                if (ho[modId] && Object.keys(ho[modId]!).length === 0) delete ho[modId];
+                                              }
                                               return { ...prev, hours_overrides: ho };
                                             });
                                           }}
+                                          onBlur={e => {
+                                            const v = parseFloat(e.target.value) || 0;
+                                            if (v === 0 && def === 0) {
+                                              setRoiConfig(prev => {
+                                                const ho = { ...(prev.hours_overrides ?? {}) };
+                                                if (ho[modId]) { delete ho[modId]![sk]; if (Object.keys(ho[modId]!).length === 0) delete ho[modId]; }
+                                                return { ...prev, hours_overrides: ho };
+                                              });
+                                            }
+                                          }}
                                         />
+                                      )}
                                     </td>
                                   );
                                 })
