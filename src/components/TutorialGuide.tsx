@@ -56,6 +56,13 @@ const STEPS: TutStep[] = [
     target: "[data-tut='download-section']",
     title: "Download & share",
     body: "Export a 1-page summary or a detailed PDF. Save the session or share a direct link with your team.",
+    action: "next",
+    position: "above",
+  },
+  {
+    target: "[data-tut='save-section']",
+    title: "Save & go back",
+    body: "Click here to save the ROI session and return to the dashboard. You can reopen it later.",
     action: "done",
     position: "above",
   },

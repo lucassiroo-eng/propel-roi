@@ -295,10 +295,10 @@ export default function Express() {
           setAnalyzing(true);
 
           const progressHints = [
-            "Leyendo emails y notas...",
-            "Detectando pain points...",
-            "Evaluando módulos relevantes...",
-            "Calculando encaje por stakeholder...",
+            t("express.hint_reading"),
+            t("express.hint_detecting"),
+            t("express.hint_evaluating"),
+            t("express.hint_calculating"),
           ];
           let hintIdx = 0;
           const hintTimer = setInterval(() => {
@@ -335,7 +335,7 @@ export default function Express() {
           setAnalyzing(false);
         }
       } else {
-        setMsgs(prev => [...prev, { text: t("express.skip_analysis_done", "Módulos acordados — selecciona manualmente"), done: true }]);
+        setMsgs(prev => [...prev, { text: t("express.skip_analysis_done"), done: true }]);
       }
 
       setTimeout(() => setStep(1), 1000);
@@ -611,7 +611,7 @@ export default function Express() {
                 {skipAnalysis && <Check className="h-3 w-3 text-background" />}
               </div>
               <span className={`text-sm ${skipAnalysis ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                {t("express.skip_analysis", "Ya tengo los módulos acordados con el prospect")}
+                {t("express.skip_analysis")}
               </span>
             </button>
 
@@ -683,7 +683,7 @@ export default function Express() {
                               className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted/50 transition-colors border-b border-border"
                             >
                               <X className="h-3.5 w-3.5" />
-                              Sin bundle
+                              {t("express.no_bundle")}
                             </button>
                           )}
                           {validBundles.map((b, i) => {
@@ -771,12 +771,12 @@ export default function Express() {
                 {/* Right: Selected */}
                 <div className="flex flex-col min-h-0">
                   <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-sm font-semibold text-foreground">Seleccionados</h2>
+                    <h2 className="text-sm font-semibold text-foreground">{t("express.selected_title")}</h2>
                     <span className="text-[11px] font-semibold text-foreground tabular-nums bg-foreground/10 px-2 py-0.5 rounded-full">{selectedModules.length}</span>
                   </div>
                   {selectedModules.length === 0 ? (
                     <div className="flex-1 border border-dashed border-border rounded-xl flex items-center justify-center">
-                      <p className="text-sm text-muted-foreground">Selecciona módulos del catálogo</p>
+                      <p className="text-sm text-muted-foreground">{t("express.select_from_catalog")}</p>
                     </div>
                   ) : (
                     <ScrollArea className="flex-1">
@@ -841,7 +841,7 @@ export default function Express() {
           <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">
-                {selectedBundle ? `${selectedBundle.bundle_name} + ${addonModules.length} add-ons` : `${selectedModules.length} módulos`}
+                {selectedBundle ? `${selectedBundle.bundle_name} + ${addonModules.length} add-ons` : t("express.n_modules", { count: selectedModules.length })}
               </span>
               <Button data-tut="modules-continue" onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
                 {t("express.continue")} <ArrowRight className="h-4 w-4 ml-1.5" />
@@ -1077,7 +1077,7 @@ export default function Express() {
                                     className={`px-2 py-1 text-[10px] font-semibold transition-colors flex items-center gap-1 ${
                                       !isTool ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
                                     }`}
-                                    title={t("express.type_hours", "Horas")}
+                                    title={t("express.type_hours")}
                                   >
                                     <Clock className="h-3 w-3" />
                                   </button>
@@ -1097,7 +1097,7 @@ export default function Express() {
                                     className={`px-2 py-1 text-[10px] font-semibold transition-colors flex items-center gap-1 ${
                                       isTool ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
                                     }`}
-                                    title={t("express.type_tool", "Herramienta")}
+                                    title={t("express.type_tool")}
                                   >
                                     <Wrench className="h-3 w-3" />
                                   </button>
@@ -1108,7 +1108,7 @@ export default function Express() {
                                   <div className="flex items-center gap-2">
                                     <input
                                       type="text"
-                                      placeholder={t("express.tool_name", "Nombre herramienta")}
+                                      placeholder={t("express.tool_name")}
                                       className="flex-1 h-8 px-2 text-sm rounded-lg border border-violet-300 bg-violet-50/40 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring/40"
                                       value={toolOvr.tool_name}
                                       onChange={e => {
@@ -1223,6 +1223,7 @@ export default function Express() {
                   navigate("/");
                 }}
                 disabled={saving}
+                data-tut="save-section"
                 className="w-full max-w-sm h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 text-sm font-bold active:scale-[0.98] transition-all shadow-lg shadow-foreground/10"
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
