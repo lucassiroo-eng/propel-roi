@@ -14,7 +14,7 @@ import {
   ArrowLeft, ArrowRight, Check, Download, Pencil, Save,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
-  Clock, Wrench, Share2,
+  Clock, Wrench, Share2, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,7 +32,7 @@ import {
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
 import {
-  buildRoiSlideData, generateRoiSlidePdf, generateMultiSlidePdf,
+  buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlidePdf,
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
 import type { ModuleSuggestion, RoiConfig, ToolOverride } from "@/hooks/useWizardSession";
@@ -48,6 +48,35 @@ const STAKE_STYLE: Record<Stakeholder, { icon: typeof Users; color: string; bg: 
 const STAKE_LABEL_KEY: Record<Stakeholder, string> = { employee: "express.employees", hr: "express.hr_ftes", manager: "express.managers" };
 
 interface Msg { text: string; done: boolean }
+
+function SlidePreview({ html }: { html: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(0.4);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setScale(el.clientWidth / 1440);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div className="border-t border-border p-4">
+      <div ref={containerRef} className="relative w-full rounded-xl overflow-hidden bg-slate-100 border border-border/60" style={{ height: Math.round(810 * scale) }}>
+        <iframe
+          srcDoc={html}
+          title="ROI Slide Preview"
+          sandbox="allow-same-origin"
+          className="absolute top-0 left-0 border-0"
+          style={{ width: 1440, height: 810, transform: `scale(${scale})`, transformOrigin: "top left" }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function Express() {
   const navigate = useNavigate();
@@ -97,6 +126,7 @@ export default function Express() {
   // Step 3
   const [dlPdf, setDlPdf] = useState<string | null>(null);
   const [hypothesesOpen, setHypothesesOpen] = useState(false);
+  const [slidePreviewOpen, setSlidePreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // ── Bundles ────────────────────────────────────────────
@@ -420,6 +450,20 @@ export default function Express() {
     const c = annualCost;
     return { savings: ann, cost: c, pct: c > 0 ? ((ann - c) / c * 100) : 0, payback: ann > 0 ? (c / ann * 12) : 0, hrs: mHrs };
   }, [selectedModules, roiConfig, annualCost]);
+
+  const slideHtml = useMemo(() => {
+    if (!roi || !selectedModules.length) return null;
+    const lang = (i18n.language ?? "en").slice(0, 2);
+    const input: RoiSlideInput = {
+      companyName: companyName || dealName || "Company",
+      country, language: lang,
+      configModules: selectedModules,
+      bundleName: selectedBundle?.bundle_name ?? "Factorial",
+      bundleModules: selectedBundle ? [...bundleModuleIds] : selectedModules,
+      roiConfig, annualCost,
+    };
+    return generateRoiSlideHtml(buildRoiSlideData(input));
+  }, [roi, selectedModules, roiConfig, annualCost, companyName, dealName, country, i18n.language, selectedBundle, bundleModuleIds]);
 
   // ── Save to history ─────────────────────────────────────
   const saveToHistory = useCallback(async (status: "generated" | "draft" = "generated") => {
@@ -1151,15 +1195,12 @@ export default function Express() {
                                   const hasOverride = overrides?.[sk] !== undefined && overrides[sk] !== def;
                                   return (
                                     <td key={sk} className="px-2 py-2 text-center">
-                                      {def === 0 && !hasOverride ? (
-                                        <span className="text-muted-foreground/25 text-xs">—</span>
-                                      ) : (
                                         <input
                                           type="number"
                                           step="0.1"
                                           min="0"
                                           className={`w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all ${
-                                            hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : "border-transparent hover:border-border"
+                                            hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : val === 0 ? "border-transparent text-muted-foreground/40" : "border-transparent hover:border-border"
                                           }`}
                                           value={val}
                                           onChange={e => {
@@ -1173,7 +1214,6 @@ export default function Express() {
                                             });
                                           }}
                                         />
-                                      )}
                                     </td>
                                   );
                                 })
@@ -1187,6 +1227,33 @@ export default function Express() {
                 </div>
               )}
             </div>
+
+            {/* Live slide preview */}
+            {slideHtml && (
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <button
+                  onClick={() => setSlidePreviewOpen(o => !o)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center">
+                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-semibold text-foreground">{t("express.slide_preview")}</span>
+                      <p className="text-[11px] text-muted-foreground">{t("express.slide_preview_sub")}</p>
+                    </div>
+                  </div>
+                  {slidePreviewOpen
+                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                </button>
+
+                {slidePreviewOpen && (
+                  <SlidePreview html={slideHtml} />
+                )}
+              </div>
+            )}
 
             {/* PDF downloads */}
             <div className="grid grid-cols-2 gap-3" data-tut="download-section">
@@ -1248,7 +1315,7 @@ export default function Express() {
                 {t("express.share_link")}
               </Button>
               <button
-                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); setSlidePreviewOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {t("express.new_analysis")}

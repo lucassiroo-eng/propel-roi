@@ -387,6 +387,8 @@
   "express.hint_detecting": "Detectando pain points...",
   "express.hint_evaluating": "Evaluando módulos relevantes...",
   "express.hint_calculating": "Calculando encaje por stakeholder...",
+  "express.slide_preview": "Vista previa de la slide",
+  "express.slide_preview_sub": "Vista en tiempo real de la slide resumen — se actualiza al editar",
   "express.configuration": "Configuración",
   "express.modules_selected": "{{count}} módulos seleccionados",
   "express.company": "Empresa",

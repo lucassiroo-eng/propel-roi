@@ -93,6 +93,14 @@ export const MODULE_HOURS: HoursEntry[] = [
   // Factorial One (AI)
   { module_id: "one",               stakeholder: "employee", hours_per_month: 1.0,  scales_with: "employees" },
   { module_id: "one",               stakeholder: "hr",       hours_per_month: 1.0,  scales_with: "hr_ftes" },
+
+  // Integrations
+  { module_id: "integration_business_central", stakeholder: "hr", hours_per_month: 1.0, scales_with: "hr_ftes" },
+  { module_id: "integration_netsuite",         stakeholder: "hr", hours_per_month: 1.0, scales_with: "hr_ftes" },
+  { module_id: "integration_sage_200",         stakeholder: "hr", hours_per_month: 1.0, scales_with: "hr_ftes" },
+  { module_id: "integration_milena",           stakeholder: "hr", hours_per_month: 1.0, scales_with: "hr_ftes" },
+  { module_id: "integration_suprema_xiptic",   stakeholder: "hr", hours_per_month: 0.5, scales_with: "hr_ftes" },
+  { module_id: "silae",                        stakeholder: "hr", hours_per_month: 1.0, scales_with: "hr_ftes" },
 ];
 
 export function getHoursForModule(moduleId: string): Record<Stakeholder, number> {
@@ -364,6 +372,24 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
         "Custom report builder with scheduled delivery",
       ],
     },
+    integration_business_central: {
+      hr: ["Automated bi-directional sync with Business Central eliminates manual data entry between HR and ERP"],
+    },
+    integration_netsuite: {
+      hr: ["Automated sync of employee and payroll data with Netsuite — single source of truth across HR and finance"],
+    },
+    integration_sage_200: {
+      hr: ["Direct integration with SAGE 200 for payroll and accounting data removes manual export/import"],
+    },
+    integration_milena: {
+      hr: ["Automated payroll data sync with Milena eliminates manual data transfer every pay cycle"],
+    },
+    integration_suprema_xiptic: {
+      hr: ["Automated clock-in data sync from Suprema Xiptic terminals connects access control to HR"],
+    },
+    silae: {
+      hr: ["Direct payroll data sync with SILAE removes manual data exchange with provider"],
+    },
   },
   es: {
     core: {
@@ -585,6 +611,24 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
         "Constructor de informes personalizados con envío programado",
       ],
     },
+    integration_business_central: {
+      hr: ["Sincronización bidireccional automática con Business Central elimina la entrada manual de datos entre RRHH y ERP"],
+    },
+    integration_netsuite: {
+      hr: ["Sincronización automática de datos de empleados y nómina con Netsuite — fuente única de verdad entre RRHH y finanzas"],
+    },
+    integration_sage_200: {
+      hr: ["Integración directa con SAGE 200 para datos de nómina y contabilidad elimina exportación/importación manual"],
+    },
+    integration_milena: {
+      hr: ["Sincronización automática de datos de nómina con Milena elimina transferencia manual cada ciclo de pago"],
+    },
+    integration_suprema_xiptic: {
+      hr: ["Sincronización automática de fichajes desde terminales Suprema Xiptic conecta control de acceso con RRHH"],
+    },
+    silae: {
+      hr: ["Sincronización directa con SILAE elimina el intercambio manual de datos con el proveedor"],
+    },
   },
   fr: {
     core: {
@@ -805,6 +849,24 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
         "Tableaux de bord pré-construits pour les effectifs, la rotation et la diversité",
         "Constructeur de rapports personnalisés avec envoi programmé",
       ],
+    },
+    integration_business_central: {
+      hr: ["Synchronisation bidirectionnelle automatique avec Business Central élimine la saisie manuelle entre RH et ERP"],
+    },
+    integration_netsuite: {
+      hr: ["Synchronisation automatique des données employés et paie avec Netsuite — source unique de vérité entre RH et finance"],
+    },
+    integration_sage_200: {
+      hr: ["Intégration directe avec SAGE 200 pour les données de paie et comptabilité élimine l'export/import manuel"],
+    },
+    integration_milena: {
+      hr: ["Synchronisation automatique des données de paie avec Milena élimine le transfert manuel à chaque cycle"],
+    },
+    integration_suprema_xiptic: {
+      hr: ["Synchronisation automatique des pointages depuis les terminaux Suprema Xiptic connecte le contrôle d'accès aux RH"],
+    },
+    silae: {
+      hr: ["Synchronisation directe avec SILAE élimine l'échange manuel de données avec le prestataire"],
     },
   },
 };

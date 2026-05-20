@@ -387,6 +387,8 @@
   "express.hint_detecting": "Detecting pain points...",
   "express.hint_evaluating": "Evaluating relevant modules...",
   "express.hint_calculating": "Calculating stakeholder fit...",
+  "express.slide_preview": "Slide preview",
+  "express.slide_preview_sub": "Live preview of the summary slide — updates as you edit",
   "express.configuration": "Configuration",
   "express.modules_selected": "{{count}} modules selected",
   "express.company": "Company",
