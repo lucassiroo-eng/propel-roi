@@ -14,7 +14,7 @@ import {
   ArrowLeft, ArrowRight, Check, Download, Pencil, Save,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
-  Clock, Wrench, Share2, Eye,
+  Clock, Wrench, Share2, Eye, Maximize2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +52,7 @@ interface Msg { text: string; done: boolean }
 function SlidePreview({ html }: { html: string }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
+  const [fullscreen, setFullscreen] = useState(false);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -63,18 +64,55 @@ function SlidePreview({ html }: { html: string }) {
     return () => ro.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFullscreen(false); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [fullscreen]);
+
+  const fsScale = typeof window !== "undefined"
+    ? Math.min(window.innerWidth / 1440, window.innerHeight / 810)
+    : 0.5;
+
   return (
-    <div className="border-t border-border p-4">
-      <div ref={containerRef} className="relative w-full rounded-xl overflow-hidden bg-slate-100 border border-border/60" style={{ height: Math.round(810 * scale) }}>
-        <iframe
-          srcDoc={html}
-          title="ROI Slide Preview"
-          sandbox="allow-same-origin"
-          className="absolute top-0 left-0 border-0"
-          style={{ width: 1440, height: 810, transform: `scale(${scale})`, transformOrigin: "top left" }}
-        />
+    <>
+      <div className="border-t border-border p-4">
+        <div ref={containerRef} className="relative w-full rounded-xl overflow-hidden bg-slate-100 border border-border/60 group cursor-pointer" style={{ height: Math.round(810 * scale) }} onClick={() => setFullscreen(true)}>
+          <iframe
+            srcDoc={html}
+            title="ROI Slide Preview"
+            sandbox="allow-same-origin"
+            className="absolute top-0 left-0 border-0 pointer-events-none"
+            style={{ width: 1440, height: 810, transform: `scale(${scale})`, transformOrigin: "top left" }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5">
+              <Maximize2 className="h-3.5 w-3.5" /> Fullscreen
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+
+      {fullscreen && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreen(false)}>
+          <button onClick={() => setFullscreen(false)} className="absolute top-5 right-5 z-10 text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2">
+            <X className="h-5 w-5" />
+          </button>
+          <div onClick={e => e.stopPropagation()} className="relative rounded-xl overflow-hidden shadow-2xl" style={{ width: Math.round(1440 * fsScale), height: Math.round(810 * fsScale) }}>
+            <iframe
+              srcDoc={html}
+              title="ROI Slide Fullscreen"
+              sandbox="allow-same-origin"
+              className="absolute top-0 left-0 border-0"
+              style={{ width: 1440, height: 810, transform: `scale(${fsScale})`, transformOrigin: "top left" }}
+            />
+          </div>
+          <p className="absolute bottom-5 text-white/40 text-xs font-medium">ESC to close</p>
+        </div>
+      )}
+    </>
   );
 }
 
