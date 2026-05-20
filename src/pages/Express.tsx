@@ -958,10 +958,10 @@ export default function Express() {
           <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
             <div className="max-w-2xl mx-auto flex justify-between gap-3">
               <Button variant="outline" onClick={() => setStep(1)} className="rounded-xl active:scale-95 transition-all">
-                <ArrowLeft className="h-4 w-4 mr-1.5" /> Atrás
+                <ArrowLeft className="h-4 w-4 mr-1.5" /> {t("express.back")}
               </Button>
               <Button data-tut="config-continue" onClick={() => setStep(3)} disabled={roiConfig.headcounts.employee === 0} className="rounded-xl bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-all">
-                Ver resultado <ArrowRight className="h-4 w-4 ml-1.5" />
+                {t("express.view_result")} <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
           </footer>
