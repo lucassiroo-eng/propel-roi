@@ -1238,7 +1238,7 @@ export default function Express() {
                                           step="0.1"
                                           min="0"
                                           className={`w-[60px] h-8 text-center text-sm tabular-nums rounded-lg border bg-transparent focus:outline-none focus:ring-2 focus:ring-ring/40 transition-all ${
-                                            hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : val === 0 ? "border-transparent text-muted-foreground/40" : "border-transparent hover:border-border"
+                                            hasOverride ? "border-amber-400 bg-amber-50/60 font-bold text-amber-700" : "border-transparent hover:border-border"
                                           }`}
                                           value={val}
                                           onChange={e => {
