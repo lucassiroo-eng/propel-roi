@@ -8,13 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
   ArrowLeft, ArrowRight, Check, Download, Pencil, Save,
   FileText, Loader2, Search, Send, Users, Shield,
   Briefcase, X, Zap, ChevronRight, ChevronDown, Package,
-  Clock, Wrench, Share2, Eye, Maximize2,
+  Clock, Wrench, Share2, Eye, Maximize2, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,6 +170,10 @@ export default function Express() {
   const [hypothesesOpen, setHypothesesOpen] = useState(false);
   const [slidePreviewOpen, setSlidePreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>> | null>(null);
+  const [enhanceDialogOpen, setEnhanceDialogOpen] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhanceTranscript, setEnhanceTranscript] = useState("");
 
   // ── Bundles ────────────────────────────────────────────
   const { data: bundles } = useQuery({
@@ -499,9 +507,33 @@ export default function Express() {
       bundleName: selectedBundle?.bundle_name ?? "Factorial",
       bundleModules: selectedBundle ? [...bundleModuleIds] : selectedModules,
       roiConfig, annualCost,
+      ...(enhancedDescriptions ? { customDescriptions: enhancedDescriptions } : {}),
     };
     return generateRoiSlideHtml(buildRoiSlideData(input));
-  }, [roi, selectedModules, roiConfig, annualCost, companyName, dealName, country, i18n.language, selectedBundle, bundleModuleIds]);
+  }, [roi, selectedModules, roiConfig, annualCost, companyName, dealName, country, i18n.language, selectedBundle, bundleModuleIds, enhancedDescriptions]);
+
+  // ── Enhance with AI ─────────────────────────────────────
+  async function handleEnhanceWithAI() {
+    const text = enhanceTranscript.trim();
+    if (!text) return;
+    setEnhancing(true);
+    try {
+      const lang = (i18n.language ?? "en").slice(0, 2);
+      const { data, error } = await supabase.functions.invoke("ai-enhance-roi-detail", {
+        body: { transcript: text, modules: selectedModules, language: lang },
+      });
+      if (error) throw error;
+      if (!data?.descriptions) throw new Error(data?.error ?? "No descriptions returned");
+      setEnhancedDescriptions(data.descriptions);
+      setEnhanceDialogOpen(false);
+      toast.success(t("express.enhance_success", { count: data.meta?.modules_enriched ?? Object.keys(data.descriptions).length }));
+    } catch (err: any) {
+      toast.error(t("express.enhance_error"));
+      console.error("Enhance error:", err);
+    } finally {
+      setEnhancing(false);
+    }
+  }
 
   // ── Save to history ─────────────────────────────────────
   const saveToHistory = useCallback(async (status: "generated" | "draft" = "generated") => {
@@ -589,6 +621,7 @@ export default function Express() {
         bundleName: selectedBundle?.bundle_name ?? "Factorial",
         bundleModules: selectedBundle ? [...bundleModuleIds] : selectedModules,
         roiConfig, annualCost,
+        ...(type === "detail" && enhancedDescriptions ? { customDescriptions: enhancedDescriptions } : {}),
       };
       const data = buildRoiSlideData(input);
       if (type === "summary") await generateRoiSlidePdf(data);
@@ -1335,27 +1368,106 @@ export default function Express() {
 
             {/* PDF downloads */}
             <div className="grid grid-cols-2 gap-3" data-tut="download-section">
-              {([
-                { type: "summary" as const, title: t("express.pdf_summary"), desc: t("express.pdf_summary_desc") },
-                { type: "detail" as const, title: t("express.pdf_detail"), desc: t("express.pdf_detail_desc") },
-              ]).map(pdf => (
-                <button key={pdf.type} onClick={() => downloadPdf(pdf.type)} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group active:scale-[0.98]">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
-                      <FileText className="h-5 w-5 text-background" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{pdf.title}</p>
-                      <p className="text-[11px] text-muted-foreground">{pdf.desc}</p>
-                    </div>
+              {/* Summary PDF */}
+              <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group active:scale-[0.98]">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
+                    <FileText className="h-5 w-5 text-background" />
                   </div>
-                  <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
-                    {dlPdf === pdf.type ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                    {t("express.download_pdf")}
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{t("express.pdf_summary")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("express.pdf_summary_desc")}</p>
+                  </div>
+                </div>
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
+                  {dlPdf === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {t("express.download_pdf")}
+                </span>
+              </button>
+              {/* Detail PDF */}
+              <button onClick={() => downloadPdf("detail")} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 group active:scale-[0.98] relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0">
+                    <FileText className="h-5 w-5 text-background" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{t("express.pdf_detail")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("express.pdf_detail_desc")}</p>
+                  </div>
+                </div>
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
+                  {dlPdf === "detail" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  {t("express.download_pdf")}
+                </span>
+                {enhancedDescriptions && (
+                  <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full">
+                    <Sparkles className="h-3 w-3" /> {t("express.enhance_badge")}
                   </span>
-                </button>
-              ))}
+                )}
+              </button>
             </div>
+
+            {/* Enhance with AI */}
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{t("express.enhance_title")}</p>
+                    <p className="text-[11px] text-muted-foreground">{t("express.enhance_sub")}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {enhancedDescriptions && (
+                    <button
+                      onClick={() => { setEnhancedDescriptions(null); toast.success(t("express.enhance_clear_done")); }}
+                      className="text-[11px] font-medium text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      {t("express.enhance_clear")}
+                    </button>
+                  )}
+                  <Button
+                    onClick={() => setEnhanceDialogOpen(true)}
+                    variant={enhancedDescriptions ? "outline" : "default"}
+                    className={`rounded-xl text-sm ${enhancedDescriptions ? "" : "bg-violet-600 hover:bg-violet-700 text-white"}`}
+                  >
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                    {enhancedDescriptions ? t("express.enhance_badge") : t("express.enhance_title")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhance Dialog */}
+            <Dialog open={enhanceDialogOpen} onOpenChange={setEnhanceDialogOpen}>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>{t("express.enhance_dialog_title")}</DialogTitle>
+                  <DialogDescription>{t("express.enhance_dialog_desc")}</DialogDescription>
+                </DialogHeader>
+                <Textarea
+                  placeholder={t("express.enhance_placeholder")}
+                  value={enhanceTranscript}
+                  onChange={e => setEnhanceTranscript(e.target.value)}
+                  disabled={enhancing}
+                  className="min-h-[200px] text-sm"
+                />
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="outline" onClick={() => setEnhanceDialogOpen(false)} disabled={enhancing}>
+                    {t("express.enhance_cancel")}
+                  </Button>
+                  <Button
+                    onClick={handleEnhanceWithAI}
+                    disabled={enhancing || !enhanceTranscript.trim()}
+                    className="bg-violet-600 hover:bg-violet-700 text-white"
+                  >
+                    {enhancing ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> {t("express.enhance_processing")}</> : <><Sparkles className="h-4 w-4 mr-1.5" /> {t("express.enhance_submit")}</>}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Save + actions */}
             <div className="flex flex-col items-center gap-4 pt-4 pb-4">
@@ -1393,7 +1505,7 @@ export default function Express() {
                 {t("express.share_link")}
               </Button>
               <button
-                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); setSlidePreviewOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); setSlidePreviewOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setEnhancedDescriptions(null); setEnhanceTranscript(""); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {t("express.new_analysis")}

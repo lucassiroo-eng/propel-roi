@@ -46,6 +46,7 @@ export interface RoiSlideInput {
   bundleModules?: string[];
   roiConfig: RoiConfig;
   annualCost: number;
+  customDescriptions?: Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>>;
 }
 
 export interface RoiSlideModule {
@@ -139,11 +140,12 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round((annualCost / totalSavings) * 12)) : 0;
 
   const langDescs = getSavingsDescriptions(input.language);
+  const customDescs = input.customDescriptions;
   const highlights: RoiSlideHighlight[] = [...modules]
     .sort((a, b) => b.annual_savings - a.annual_savings)
     .slice(0, 3)
     .map(m => {
-      const desc = langDescs[m.id];
+      const desc = customDescs?.[m.id] ?? langDescs[m.id];
       const bullets = desc?.hr ?? desc?.employee ?? desc?.manager ?? [];
       const benefit = bullets[0] ?? "";
       return { module_name: m.name, benefit };
@@ -559,7 +561,8 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
   const { roiConfig, configModules } = input;
   const { headcounts, hourly_costs } = roiConfig;
   const lang = input.language ?? "es";
-  const descs = getSavingsDescriptions(lang);
+  const genericDescs = getSavingsDescriptions(lang);
+  const customDescs = input.customDescriptions;
   const multipliers: RoiMultipliers = {
     headcounts,
     onboardings_per_year: roiConfig.onboardings_per_year,
@@ -579,7 +582,7 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
       const totalHours = hpm * count;
       const monthly = totalHours * hourly_costs[s];
       const annual = monthly * 12;
-      const bullets = descs[modId]?.[s] ?? [];
+      const bullets = customDescs?.[modId]?.[s] ?? genericDescs[modId]?.[s] ?? [];
       rows.push({ stakeholder: s, hours_per_person: hpm, count: Math.round(count * 100) / 100, total_hours: Math.round(totalHours * 100) / 100, hourly_cost: hourly_costs[s], monthly_savings: Math.round(monthly), annual_savings: Math.round(annual), scales_with: scalesWith, bullets });
       totalH += totalHours; totalM += monthly; totalA += annual;
     }
