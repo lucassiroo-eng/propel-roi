@@ -11,6 +11,7 @@ import Help from "@/pages/Help";
 import Admin from "@/pages/Admin";
 import Settings from "@/pages/Settings";
 import Express from "@/pages/Express";
+import CoCreation from "@/pages/CoCreation";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
             <Route path="/express" element={<RequireAuth><Express /></RequireAuth>} />
+            <Route path="/co-creation" element={<RequireAuth><CoCreation /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

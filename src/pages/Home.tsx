@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap, ShieldCheck, HelpCircle, X } from "lucide-react";
+import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap, ShieldCheck, HelpCircle, X, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -363,6 +363,26 @@ export default function Home() {
           <p className="text-background font-bold text-lg leading-snug">ROI Express</p>
           <p className="text-background/60 text-sm mt-1 mb-3">Pega el deal link y genera el ROI en minutos</p>
           <div className="flex items-center gap-1 text-background font-semibold text-sm">
+            {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
+          </div>
+        </button>
+
+        {/* Co-creation CTA */}
+        <button
+          onClick={() => navigate("/co-creation")}
+          className="w-full rounded-2xl p-5 text-left border-2 border-foreground/10 bg-card transition-transform hover:scale-[1.01] active:scale-[0.99] hover:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <div className="flex items-start justify-between">
+            <div className="w-11 h-11 rounded-xl bg-foreground/10 flex items-center justify-center mb-3">
+              <MessageSquare className="h-6 w-6 text-foreground" />
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+              Co-creation
+            </span>
+          </div>
+          <p className="text-foreground font-bold text-lg leading-snug">ROI Co-creation</p>
+          <p className="text-muted-foreground text-sm mt-1 mb-3">Build the ROI live during a discovery call</p>
+          <div className="flex items-center gap-1 text-foreground font-semibold text-sm">
             {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
           </div>
         </button>
