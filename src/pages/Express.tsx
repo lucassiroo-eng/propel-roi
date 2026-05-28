@@ -522,14 +522,20 @@ export default function Express() {
       const { data, error } = await supabase.functions.invoke("ai-enhance-roi-detail", {
         body: { transcript: text, modules: selectedModules, language: lang },
       });
-      if (error) throw error;
-      if (!data?.descriptions) throw new Error(data?.error ?? "No descriptions returned");
+      if (error) {
+        const body = await (error as any)?.context?.json?.() ?? null;
+        console.error("Enhance error body:", body);
+        throw new Error(body?.error ?? body?.debug ?? error.message);
+      }
+      if (!data?.descriptions) throw new Error(data?.error ?? data?.debug ?? "No descriptions returned");
       setEnhancedDescriptions(data.descriptions);
       setEnhanceDialogOpen(false);
       toast.success(t("express.enhance_success", { count: data.meta?.modules_enriched ?? Object.keys(data.descriptions).length }));
     } catch (err: any) {
-      toast.error(t("express.enhance_error"));
-      console.error("Enhance error:", err);
+      let detail = "";
+      try { detail = JSON.stringify(await err?.context?.json()); } catch {}
+      console.error("Enhance error:", err, detail);
+      toast.error(detail || err.message || t("express.enhance_error"));
     } finally {
       setEnhancing(false);
     }
