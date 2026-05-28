@@ -118,13 +118,16 @@ Stakeholder types:
 Modules to analyze: ${modules.join(", ")}
 
 Rules:
-1. Return EXACTLY 1 sentence per stakeholder per module — make it count
-2. Each sentence should be rich and specific: combine the concrete pain point with real quotes, names, numbers, or timeframes from the transcript
-3. Example: "HR maintains a manual 'Excel de presència' tracking where every employee is, whether on vacation, sick leave, or working — plus must notify the external payroll provider (gestoría), store justifications, and update SAGE separately"
-4. Only include stakeholders where the transcript has relevant content
-5. If a module was NOT discussed in the transcript, omit it entirely
-6. Respond in ${lang}
-7. Do not invent details not present in the transcript — only extract what was actually said`;
+1. Return EXACTLY 1 sentence per stakeholder per module
+2. Focus on the human story: frustrations, workarounds, wasted effort, emotional pain. Numbers are fine when the prospect mentioned them, but don't lead with metrics. Prioritize what people actually feel and do day to day.
+3. Write like a sharp consultant, not a chatbot. Vary sentence structure. Never start with "[Stakeholder] spend approximately..." or "Currently, [stakeholder]...". No em dashes. No filler words.
+4. Use the prospect's own language, names, and specific details (tools, people, processes they mentioned)
+5. Good: "Montse keeps a manual 'Excel de presència' tracking where every employee is, whether on vacation or sick, then separately notifies the gestoría and updates SAGE"
+6. Bad: "HR spends approximately 40 hours per month — managing absence tracking, calendar management, and leave administration"
+7. Only include stakeholders where the transcript has relevant content
+8. If a module was NOT discussed in the transcript, omit it entirely
+9. Respond in ${lang}
+10. Do not invent details not present in the transcript`;
 }
 
 Deno.serve(async (req) => {
