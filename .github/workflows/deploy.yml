@@ -50,7 +50,6 @@ jobs:
 
   deploy-functions:
     runs-on: ubuntu-latest
-    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
