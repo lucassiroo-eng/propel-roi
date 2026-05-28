@@ -118,11 +118,11 @@ Stakeholder types:
 Modules to analyze: ${modules.join(", ")}
 
 Rules:
-1. Use the prospect's own words and specific details (names, numbers, timeframes) when possible
-2. Each bullet should start with a concrete pain or quote, e.g.: "Your payroll team spends 3 days each month reconciling timesheets manually"
-3. Return 2-4 bullets per stakeholder per module — only include stakeholders where the transcript has relevant content
-4. If a module was NOT discussed in the transcript, omit it entirely from the response
-5. The FIRST bullet for each stakeholder should be the strongest/most impactful finding — it will be featured in the summary slide
+1. Return EXACTLY 1 sentence per stakeholder per module — make it count
+2. Each sentence should be rich and specific: combine the concrete pain point with real quotes, names, numbers, or timeframes from the transcript
+3. Example: "HR maintains a manual 'Excel de presència' tracking where every employee is, whether on vacation, sick leave, or working — plus must notify the external payroll provider (gestoría), store justifications, and update SAGE separately"
+4. Only include stakeholders where the transcript has relevant content
+5. If a module was NOT discussed in the transcript, omit it entirely
 6. Respond in ${lang}
 7. Do not invent details not present in the transcript — only extract what was actually said`;
 }
