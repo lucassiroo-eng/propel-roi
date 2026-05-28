@@ -7,7 +7,7 @@ const AZURE_URL = "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1
 async function azureFetch(body: Record<string, unknown>, timeoutMs = 60000): Promise<Response> {
   const k = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
   if (!k) throw new Error("AZURE_ANTHROPIC_API_KEY not set");
-  const h = { "api-key": k, "anthropic-version": "2023-06-01", "Content-Type": "application/json" };
+  const h = { "x-api-key": k, "anthropic-version": "2023-06-01", "Content-Type": "application/json" };
   const p = JSON.stringify(body);
   for (let a = 0; a <= 2; a++) {
     const c = new AbortController();
