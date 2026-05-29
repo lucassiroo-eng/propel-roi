@@ -24,6 +24,7 @@ const STATUS_COLOR: Record<string, string> = {
   accepted: "bg-emerald-50 text-emerald-600",
   declined: "bg-red-50 text-red-600",
   generated: "bg-violet-50 text-violet-600",
+  co_created: "bg-indigo-50 text-indigo-600",
 };
 
 interface SessionEntry {
@@ -410,7 +411,7 @@ export default function Home() {
                 return (
                   <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
                     <button
-                      onClick={() => navigate(`/express?session=${latest.id}`)}
+                      onClick={() => navigate(`/${latest.status === "co_created" ? "co-creation" : "express"}?session=${latest.id}`)}
                       className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -500,7 +501,7 @@ export default function Home() {
                             {c.sessions.map((sess, i) => (
                               <button
                                 key={sess.id}
-                                onClick={() => navigate(`/express?session=${sess.id}`)}
+                                onClick={() => navigate(`/${sess.status === "co_created" ? "co-creation" : "express"}?session=${sess.id}`)}
                                 className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${i > 0 ? "border-t border-border/60" : ""}`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">

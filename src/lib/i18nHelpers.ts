@@ -16,9 +16,11 @@ export function getLocalizedPainStatement(
 export function statusI18nKey(status: string): string {
   const map: Record<string, string> = {
     draft: "status.draft",
+    generated: "status.generated",
     sent: "status.sent",
     accepted: "status.accepted",
     declined: "status.declined",
+    co_created: "status.co_created",
   };
   return map[status] ?? status;
 }

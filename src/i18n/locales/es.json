@@ -251,6 +251,8 @@
   "status.sent": "Enviado",
   "status.accepted": "Aceptado",
   "status.declined": "Rechazado",
+  "status.generated": "Generado",
+  "status.co_created": "Co-creado",
 
   "toast.session_saved": "Sesion guardada!",
   "toast.save_session_first": "Guarda la sesion primero",

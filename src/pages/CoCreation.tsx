@@ -125,6 +125,51 @@ export default function CoCreation() {
   const loadedSessionProspect = useRef<string | null>(null);
 
   const [step, setStep] = useState(0);
+  const [loadingSession, setLoadingSession] = useState(false);
+
+  // ── Load existing session from URL ──────────────────────
+  useEffect(() => {
+    const sid = searchParams.get("session");
+    if (!sid || savedSessionId.current === sid) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingSession(true);
+      try {
+        const { data: sess, error } = await supabase
+          .from("roi_sessions")
+          .select("*, prospects(company_name, country, deal_name, seats)")
+          .eq("id", sid)
+          .single();
+        if (error || !sess || cancelled) return;
+        savedSessionId.current = sess.id;
+        loadedSessionProspect.current = sess.prospect_id;
+        const prospect = (sess as any).prospects;
+        if (prospect?.company_name) setCompanyName(prospect.company_name);
+        if (prospect?.deal_name) setDealName(prospect.deal_name);
+        if (prospect?.country) setCountry(prospect.country as "ES" | "FR");
+        const mods: string[] = (sess.selected_modules as any) ?? [];
+        setSelectedModules(mods);
+        const rc = sess.roi_config as any;
+        if (rc) {
+          setRoiConfig({
+            headcounts: rc.headcounts ?? { employee: 50, hr: 2, manager: 5 },
+            hourly_costs: rc.hourly_costs ?? { employee: 20, hr: 30, manager: 25 },
+            hours_overrides: rc.hours_overrides,
+            tool_overrides: rc.tool_overrides,
+            onboardings_per_year: rc.onboardings_per_year,
+            expense_submitters: rc.expense_submitters,
+          });
+        }
+        setAnnualCost(sess.factorial_annual_cost_eur ?? 0);
+        setStep(mods.length > 0 ? 4 : 0);
+      } catch {
+        toast.error(t("express.session_load_error"));
+      } finally {
+        if (!cancelled) setLoadingSession(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [searchParams]);
 
   // Step 0: Import
   const [hubspotUrl, setHubspotUrl] = useState("");
@@ -331,7 +376,7 @@ export default function CoCreation() {
     } finally { setPersonalizing(false); }
   }
 
-  const saveToHistory = useCallback(async (status: string = "generated") => {
+  const saveToHistory = useCallback(async (status: string = "co_created") => {
     if (!user) return;
     const savings = roi?.savings ?? 0;
     const sessionPayload = {
@@ -390,6 +435,14 @@ export default function CoCreation() {
   const currentModuleCat = MODULE_CATALOG.find(m => m.id === currentModule);
   const currentQuestions = currentModule ? DISCOVERY_QUESTIONS[currentModule] : undefined;
 
+  if (loadingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <style>{`
@@ -435,7 +488,20 @@ export default function CoCreation() {
               <MessageSquare className="h-8 w-8 text-background" />
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-2">{t("cocreation.title")}</h1>
-            <p className="text-sm text-muted-foreground mb-10 max-w-[300px] mx-auto leading-relaxed">{t("cocreation.subtitle")}</p>
+            <p className="text-sm text-muted-foreground mb-6 max-w-[300px] mx-auto leading-relaxed">{t("cocreation.subtitle")}</p>
+
+            {/* Language selector */}
+            <div className="flex items-center justify-center gap-2 mb-8">
+              {([["en", "\u{1F1EC}\u{1F1E7}", "English"], ["es", "\u{1F1EA}\u{1F1F8}", "Español"], ["fr", "\u{1F1EB}\u{1F1F7}", "Français"]] as const).map(([lng, flag, label]) => (
+                <button
+                  key={lng}
+                  onClick={() => { i18n.changeLanguage(lng); localStorage.setItem("propel_locale", lng); }}
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${i18n.language?.startsWith(lng) ? "bg-foreground text-background shadow-sm" : "bg-muted/50 text-muted-foreground hover:bg-muted"}`}
+                >
+                  {flag} {label}
+                </button>
+              ))}
+            </div>
 
             <div className="flex gap-2 mb-6">
               <Input
@@ -622,6 +688,23 @@ export default function CoCreation() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Extra params */}
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("express.extra_params")}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-medium text-muted-foreground">{t("express.onboardings_yr")}</Label>
+                    <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                  </div>
+                  {selectedModules.includes("expenses") && (
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-medium text-muted-foreground">{t("express.expense_submitters")}</Label>
+                      <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-lg" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </main>

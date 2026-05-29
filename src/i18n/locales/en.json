@@ -248,9 +248,11 @@
   "subgroup.other": "Other",
 
   "status.draft": "Draft",
+  "status.generated": "Generated",
   "status.sent": "Sent",
   "status.accepted": "Accepted",
   "status.declined": "Declined",
+  "status.co_created": "Co-created",
 
   "toast.session_saved": "Session saved!",
   "toast.save_session_first": "Save the session first",
