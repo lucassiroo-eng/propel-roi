@@ -42,27 +42,61 @@ Deno.serve(async (req) => {
 
       // 2. Collect unique account IDs from deals
       const accountIds = new Set<number>();
+      const dealIds = new Set(matchedDeals.map((d: any) => d.id));
       for (const deal of matchedDeals) {
         if (deal.accountId) accountIds.add(deal.accountId);
       }
 
-      // 3. If no accountId from deals, search accounts directly
+      // 3. If no accountId from deals, search accounts with ALL keywords
       if (accountIds.size === 0) {
-        const words = companyName.replace(/\s*-\s*from\s.*/i, "").trim();
-        const noise = new Set(["s.l.", "s.a.", "sl", "sa", "sas", "srl", "gmbh", "ltd", "inc"]);
-        const keyword = words.split(/[\s\-·,]+/)
-          .filter((w: string) => w.length >= 3 && !noise.has(w.toLowerCase()))
-          .sort((a: string, b: string) => b.length - a.length)[0];
-        if (keyword) {
-          const accounts = await v2Get(key, `/accounts?name=${encodeURIComponent(keyword)}&size=5`);
-          for (const acc of accounts.data ?? []) {
-            accountIds.add(acc.id);
+        const cleaned = companyName.replace(/\s*-\s*from\s.*/i, "").trim();
+        const noise = new Set(["s.l.", "s.a.", "sl", "sa", "sas", "srl", "gmbh", "ltd", "inc", "s.l", "s.a"]);
+        const keywords = cleaned.split(/[\s\-·,.']+/)
+          .filter((w: string) => w.length >= 3 && !noise.has(w.toLowerCase()));
+
+        // Search each keyword in parallel, collect all candidate accounts
+        const accountResults = await Promise.all(
+          keywords.map(kw =>
+            v2Get(key, `/accounts?name=${encodeURIComponent(kw)}&size=5`).catch(() => ({ data: [] }))
+          )
+        );
+        const candidateAccounts = new Map<number, { id: number; name: string; hits: number }>();
+        for (const res of accountResults) {
+          for (const acc of res.data ?? []) {
+            const existing = candidateAccounts.get(acc.id);
+            if (existing) {
+              existing.hits++;
+            } else {
+              candidateAccounts.set(acc.id, { id: acc.id, name: acc.name ?? "", hits: 1 });
+            }
+          }
+        }
+
+        if (candidateAccounts.size > 0) {
+          // If we matched specific deals, check which accounts have calls linked to those deals
+          if (dealIds.size > 0) {
+            for (const [accId] of candidateAccounts) {
+              const callsRes = await v2Get(key, `/calls?account_id=${accId}&expand=deal&size=10`);
+              const hasMatchingDeal = (callsRes.data ?? []).some(
+                (c: any) => c.deal && dealIds.has(c.deal.id)
+              );
+              if (hasMatchingDeal) {
+                accountIds.add(accId);
+              }
+            }
+          }
+
+          // If no deal-matched accounts found, add all candidates (sorted by hit count)
+          if (accountIds.size === 0) {
+            const sorted = [...candidateAccounts.values()].sort((a, b) => b.hits - a.hits);
+            for (const acc of sorted) {
+              accountIds.add(acc.id);
+            }
           }
         }
       }
 
       // 4. Fetch calls for each account
-      const dealIds = new Set(matchedDeals.map((d: any) => d.id));
       const callMap = new Map<number, any>();
 
       for (const accId of accountIds) {
