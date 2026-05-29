@@ -331,9 +331,7 @@ export default function CoCreation() {
   }
 
   function extractSearchTerm(name: string): string {
-    const noise = new Set(["s.l.", "s.a.", "sl", "sa", "sas", "srl", "gmbh", "ltd", "inc", "from", "pimec", "factorial", "the", "and", "de", "del", "la", "el", "les", "des", "-"]);
-    const words = name.split(/[\s\-·,]+/).filter(w => w.length >= 3 && !noise.has(w.toLowerCase()));
-    return words.sort((a, b) => b.length - a.length)[0] ?? name.slice(0, 20);
+    return name.replace(/\s*-\s*from\s.*/i, "").trim() || name.slice(0, 30);
   }
 
   useEffect(() => {
