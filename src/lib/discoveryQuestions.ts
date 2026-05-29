@@ -1,8 +1,15 @@
 export type Stakeholder = "employee" | "hr" | "manager";
 
 export interface DiscoveryQuestion {
-  question: string; // English - will be used as i18n key fallback
-  key: string; // i18n key like "discovery.time_off.employee.q1"
+  en: string;
+  es: string;
+  fr: string;
+}
+
+export function getQuestion(q: DiscoveryQuestion, lang: string): string {
+  if (lang.startsWith("es")) return q.es;
+  if (lang.startsWith("fr")) return q.fr;
+  return q.en;
 }
 
 export const DISCOVERY_QUESTIONS: Record<
@@ -13,33 +20,23 @@ export const DISCOVERY_QUESTIONS: Record<
   core: {
     employee: [
       {
-        question:
-          "How do you update personal info — address, bank details, emergency contacts?",
-        key: "discovery.core.employee.q1",
-      },
-      {
-        question:
-          "How do you access company policies or your employment documents?",
-        key: "discovery.core.employee.q2",
+        en: "How do you handle your day-to-day HR tasks today?",
+        es: "¿Cómo gestionáis las tareas de RRHH del día a día?",
+        fr: "Comment gérez-vous vos tâches RH au quotidien ?",
       },
     ],
     hr: [
       {
-        question:
-          "How do you manage employee master data today — what tools or spreadsheets are involved?",
-        key: "discovery.core.hr.q1",
-      },
-      {
-        question:
-          "How long does it take to generate a report on headcount or employee demographics?",
-        key: "discovery.core.hr.q2",
+        en: "What tools do you use to manage employee data?",
+        es: "¿Qué herramientas usáis para gestionar los datos de empleados?",
+        fr: "Quels outils utilisez-vous pour gérer les données employés ?",
       },
     ],
     manager: [
       {
-        question:
-          "When you need team info — contracts, org chart, reporting lines — how do you get it?",
-        key: "discovery.core.manager.q1",
+        en: "How do you access information about your team?",
+        es: "¿Cómo accedéis a la información de vuestro equipo?",
+        fr: "Comment accédez-vous aux informations de votre équipe ?",
       },
     ],
   },
@@ -48,32 +45,23 @@ export const DISCOVERY_QUESTIONS: Record<
   time_off: {
     employee: [
       {
-        question:
-          "Walk me through requesting a vacation day — what steps and tools are involved?",
-        key: "discovery.time_off.employee.q1",
-      },
-      {
-        question: "How do you check your remaining leave balance?",
-        key: "discovery.time_off.employee.q2",
+        en: "How do you request time off today?",
+        es: "¿Cómo solicitáis las ausencias actualmente?",
+        fr: "Comment demandez-vous vos congés aujourd'hui ?",
       },
     ],
     hr: [
       {
-        question:
-          "How do you track leave balances, carryover, and absence policies today?",
-        key: "discovery.time_off.hr.q1",
-      },
-      {
-        question:
-          "What happens when someone calls in sick — what's the admin process?",
-        key: "discovery.time_off.hr.q2",
+        en: "How do you manage absences and leave balances?",
+        es: "¿Cómo gestionáis las ausencias y los saldos de vacaciones?",
+        fr: "Comment gérez-vous les absences et les soldes de congés ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you approve time-off requests and ensure team coverage?",
-        key: "discovery.time_off.manager.q1",
+        en: "How do you handle leave approvals for your team?",
+        es: "¿Cómo gestionáis las aprobaciones de ausencias de vuestro equipo?",
+        fr: "Comment gérez-vous les approbations de congés de votre équipe ?",
       },
     ],
   },
@@ -82,27 +70,23 @@ export const DISCOVERY_QUESTIONS: Record<
   time_tracking: {
     employee: [
       {
-        question: "How do you log your working hours today?",
-        key: "discovery.time_tracking.employee.q1",
+        en: "How do you track your working hours?",
+        es: "¿Cómo registráis vuestras horas de trabajo?",
+        fr: "Comment suivez-vous vos heures de travail ?",
       },
     ],
     hr: [
       {
-        question:
-          "How are timesheets collected and validated before payroll?",
-        key: "discovery.time_tracking.hr.q1",
-      },
-      {
-        question:
-          "How do you handle overtime calculations and compliance?",
-        key: "discovery.time_tracking.hr.q2",
+        en: "How do you collect and validate timesheets?",
+        es: "¿Cómo recopiláis y validáis los registros horarios?",
+        fr: "Comment collectez-vous et validez-vous les feuilles de temps ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you monitor your team's hours and flag anomalies?",
-        key: "discovery.time_tracking.manager.q1",
+        en: "How do you monitor your team's hours?",
+        es: "¿Cómo controláis las horas de vuestro equipo?",
+        fr: "Comment suivez-vous les heures de votre équipe ?",
       },
     ],
   },
@@ -111,23 +95,23 @@ export const DISCOVERY_QUESTIONS: Record<
   time_planning: {
     employee: [
       {
-        question:
-          "How do you find out your work schedule? How far in advance do you know it?",
-        key: "discovery.time_planning.employee.q1",
+        en: "How do you find out your work schedule?",
+        es: "¿Cómo os enteráis de vuestro horario de trabajo?",
+        fr: "Comment connaissez-vous votre planning de travail ?",
       },
     ],
     hr: [
       {
-        question:
-          "How are shift rotations created and communicated to employees?",
-        key: "discovery.time_planning.hr.q1",
+        en: "How are shifts planned and communicated?",
+        es: "¿Cómo se planifican y comunican los turnos?",
+        fr: "Comment les plannings sont-ils créés et communiqués ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you plan shifts, handle swaps, and manage coverage gaps?",
-        key: "discovery.time_planning.manager.q1",
+        en: "How do you organize shifts and handle changes?",
+        es: "¿Cómo organizáis los turnos y gestionáis los cambios?",
+        fr: "Comment organisez-vous les rotations et gérez-vous les changements ?",
       },
     ],
   },
@@ -136,21 +120,16 @@ export const DISCOVERY_QUESTIONS: Record<
   payroll: {
     hr: [
       {
-        question:
-          "Walk me through your end-to-end payroll process — tools, steps, people involved.",
-        key: "discovery.payroll.hr.q1",
-      },
-      {
-        question:
-          "How long does payroll close take and what errors commonly occur?",
-        key: "discovery.payroll.hr.q2",
+        en: "What does your payroll process look like today?",
+        es: "¿Cómo es vuestro proceso de nóminas actualmente?",
+        fr: "À quoi ressemble votre processus de paie aujourd'hui ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you communicate variable pay or payroll changes for your team?",
-        key: "discovery.payroll.manager.q1",
+        en: "How do you communicate pay-related changes for your team?",
+        es: "¿Cómo comunicáis los cambios salariales de vuestro equipo?",
+        fr: "Comment communiquez-vous les changements de rémunération pour votre équipe ?",
       },
     ],
   },
@@ -159,21 +138,16 @@ export const DISCOVERY_QUESTIONS: Record<
   recruitment: {
     hr: [
       {
-        question:
-          "How do you manage job postings, applications, and your candidate pipeline?",
-        key: "discovery.recruitment.hr.q1",
-      },
-      {
-        question:
-          "What's your time-to-hire and what slows it down the most?",
-        key: "discovery.recruitment.hr.q2",
+        en: "How do you manage your hiring process?",
+        es: "¿Cómo gestionáis vuestro proceso de selección?",
+        fr: "Comment gérez-vous votre processus de recrutement ?",
       },
     ],
     manager: [
       {
-        question:
-          "How involved are you in hiring — screening, interviews, feedback? How is that coordinated?",
-        key: "discovery.recruitment.manager.q1",
+        en: "How are you involved in hiring for your team?",
+        es: "¿Cómo participáis en la contratación para vuestro equipo?",
+        fr: "Comment participez-vous au recrutement pour votre équipe ?",
       },
     ],
   },
@@ -182,28 +156,23 @@ export const DISCOVERY_QUESTIONS: Record<
   performance: {
     employee: [
       {
-        question:
-          "How are performance reviews conducted? How often and through what tool?",
-        key: "discovery.performance.employee.q1",
+        en: "How are performance reviews done today?",
+        es: "¿Cómo se hacen las evaluaciones de desempeño actualmente?",
+        fr: "Comment les évaluations de performance sont-elles réalisées aujourd'hui ?",
       },
     ],
     hr: [
       {
-        question:
-          "How do you manage the review cycle across the company?",
-        key: "discovery.performance.hr.q1",
-      },
-      {
-        question:
-          "What's the completion rate and how much chasing is involved?",
-        key: "discovery.performance.hr.q2",
+        en: "How do you manage the review cycle?",
+        es: "¿Cómo gestionáis el ciclo de evaluaciones?",
+        fr: "Comment gérez-vous le cycle d'évaluations ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you set goals, give feedback, and evaluate your team?",
-        key: "discovery.performance.manager.q1",
+        en: "How do you set goals and give feedback to your team?",
+        es: "¿Cómo fijáis objetivos y dais feedback a vuestro equipo?",
+        fr: "Comment fixez-vous les objectifs et donnez-vous du feedback à votre équipe ?",
       },
     ],
   },
@@ -212,22 +181,23 @@ export const DISCOVERY_QUESTIONS: Record<
   expenses: {
     employee: [
       {
-        question:
-          "How do you submit expense reports today? How long does reimbursement take?",
-        key: "discovery.expenses.employee.q1",
+        en: "How do you submit expenses today?",
+        es: "¿Cómo presentáis los gastos actualmente?",
+        fr: "Comment soumettez-vous vos notes de frais aujourd'hui ?",
       },
     ],
     hr: [
       {
-        question:
-          "How are expenses validated, approved, and reconciled with accounting?",
-        key: "discovery.expenses.hr.q1",
+        en: "How are expenses validated and processed?",
+        es: "¿Cómo se validan y procesan los gastos?",
+        fr: "Comment les notes de frais sont-elles validées et traitées ?",
       },
     ],
     manager: [
       {
-        question: "How do you review and approve team expenses?",
-        key: "discovery.expenses.manager.q1",
+        en: "How do you review and approve team expenses?",
+        es: "¿Cómo revisáis y aprobáis los gastos de vuestro equipo?",
+        fr: "Comment examinez-vous et approuvez-vous les dépenses de votre équipe ?",
       },
     ],
   },
@@ -236,23 +206,23 @@ export const DISCOVERY_QUESTIONS: Record<
   trainings: {
     employee: [
       {
-        question:
-          "How do you find and request training opportunities?",
-        key: "discovery.trainings.employee.q1",
+        en: "How do you access training opportunities?",
+        es: "¿Cómo accedéis a las oportunidades de formación?",
+        fr: "Comment accédez-vous aux opportunités de formation ?",
       },
     ],
     hr: [
       {
-        question:
-          "How do you manage the training plan, budget, and compliance tracking?",
-        key: "discovery.trainings.hr.q1",
+        en: "How do you manage the training plan?",
+        es: "¿Cómo gestionáis el plan de formación?",
+        fr: "Comment gérez-vous le plan de formation ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you identify skill gaps and request training for your team?",
-        key: "discovery.trainings.manager.q1",
+        en: "How do you identify training needs for your team?",
+        es: "¿Cómo identificáis las necesidades de formación de vuestro equipo?",
+        fr: "Comment identifiez-vous les besoins en formation de votre équipe ?",
       },
     ],
   },
@@ -261,21 +231,16 @@ export const DISCOVERY_QUESTIONS: Record<
   compensations: {
     hr: [
       {
-        question:
-          "How do you manage salary reviews and compensation benchmarking?",
-        key: "discovery.compensations.hr.q1",
-      },
-      {
-        question:
-          "How transparent is your compensation structure?",
-        key: "discovery.compensations.hr.q2",
+        en: "How do you manage salary reviews?",
+        es: "¿Cómo gestionáis las revisiones salariales?",
+        fr: "Comment gérez-vous les revues salariales ?",
       },
     ],
     manager: [
       {
-        question:
-          "How involved are you in salary decisions for your team?",
-        key: "discovery.compensations.manager.q1",
+        en: "How are you involved in compensation decisions?",
+        es: "¿Cómo participáis en las decisiones de compensación?",
+        fr: "Comment participez-vous aux décisions de rémunération ?",
       },
     ],
   },
@@ -284,16 +249,16 @@ export const DISCOVERY_QUESTIONS: Record<
   engagement: {
     hr: [
       {
-        question:
-          "How do you measure employee satisfaction today? How often?",
-        key: "discovery.engagement.hr.q1",
+        en: "How do you measure employee satisfaction?",
+        es: "¿Cómo medís la satisfacción de los empleados?",
+        fr: "Comment mesurez-vous la satisfaction des employés ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you get pulse feedback from your team?",
-        key: "discovery.engagement.manager.q1",
+        en: "How do you get feedback from your team?",
+        es: "¿Cómo obtenéis feedback de vuestro equipo?",
+        fr: "Comment recueillez-vous le feedback de votre équipe ?",
       },
     ],
   },
@@ -302,21 +267,16 @@ export const DISCOVERY_QUESTIONS: Record<
   documents: {
     employee: [
       {
-        question:
-          "How do you access payslips, contracts, or certificates?",
-        key: "discovery.documents.employee.q1",
+        en: "How do you access your HR documents?",
+        es: "¿Cómo accedéis a vuestros documentos de RRHH?",
+        fr: "Comment accédez-vous à vos documents RH ?",
       },
     ],
     hr: [
       {
-        question:
-          "How do you generate, distribute, and store HR documents?",
-        key: "discovery.documents.hr.q1",
-      },
-      {
-        question:
-          "How long does it take to produce a work certificate or contract amendment?",
-        key: "discovery.documents.hr.q2",
+        en: "How do you generate and distribute HR documents?",
+        es: "¿Cómo generáis y distribuís los documentos de RRHH?",
+        fr: "Comment générez-vous et distribuez-vous les documents RH ?",
       },
     ],
   },
@@ -325,16 +285,16 @@ export const DISCOVERY_QUESTIONS: Record<
   procurement: {
     hr: [
       {
-        question:
-          "How do purchase requests flow from request to approval to payment?",
-        key: "discovery.procurement.hr.q1",
+        en: "How do purchase requests work today?",
+        es: "¿Cómo funcionan las solicitudes de compra actualmente?",
+        fr: "Comment fonctionnent les demandes d'achat aujourd'hui ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you request and track team purchases?",
-        key: "discovery.procurement.manager.q1",
+        en: "How do you manage team purchases?",
+        es: "¿Cómo gestionáis las compras de vuestro equipo?",
+        fr: "Comment gérez-vous les achats de votre équipe ?",
       },
     ],
   },
@@ -343,15 +303,16 @@ export const DISCOVERY_QUESTIONS: Record<
   projects: {
     employee: [
       {
-        question: "How do you log time against projects?",
-        key: "discovery.projects.employee.q1",
+        en: "How do you log time against projects?",
+        es: "¿Cómo registráis el tiempo en los proyectos?",
+        fr: "Comment enregistrez-vous le temps passé sur les projets ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you track project progress and team allocation?",
-        key: "discovery.projects.manager.q1",
+        en: "How do you track project progress?",
+        es: "¿Cómo hacéis seguimiento del progreso de los proyectos?",
+        fr: "Comment suivez-vous l'avancement des projets ?",
       },
     ],
   },
@@ -360,16 +321,16 @@ export const DISCOVERY_QUESTIONS: Record<
   headcount_planning: {
     hr: [
       {
-        question:
-          "How do you plan headcount needs and track open positions?",
-        key: "discovery.headcount_planning.hr.q1",
+        en: "How do you plan headcount needs?",
+        es: "¿Cómo planificáis las necesidades de plantilla?",
+        fr: "Comment planifiez-vous les besoins en effectifs ?",
       },
     ],
     manager: [
       {
-        question:
-          "How do you forecast and request new hires?",
-        key: "discovery.headcount_planning.manager.q1",
+        en: "How do you forecast and request new hires?",
+        es: "¿Cómo preveéis y solicitáis nuevas contrataciones?",
+        fr: "Comment prévoyez-vous et demandez-vous de nouveaux recrutements ?",
       },
     ],
   },
@@ -378,9 +339,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_business_central: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and Business Central? How often?",
-        key: "discovery.integration_business_central.hr.q1",
+        en: "What data do you sync manually with Business Central?",
+        es: "¿Qué datos sincronizáis manualmente con Business Central?",
+        fr: "Quelles données synchronisez-vous manuellement avec Business Central ?",
       },
     ],
   },
@@ -389,9 +350,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_netsuite: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and NetSuite? How often?",
-        key: "discovery.integration_netsuite.hr.q1",
+        en: "What data do you sync manually with NetSuite?",
+        es: "¿Qué datos sincronizáis manualmente con NetSuite?",
+        fr: "Quelles données synchronisez-vous manuellement avec NetSuite ?",
       },
     ],
   },
@@ -400,9 +361,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_sage_200: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and Sage 200? How often?",
-        key: "discovery.integration_sage_200.hr.q1",
+        en: "What data do you sync manually with Sage 200?",
+        es: "¿Qué datos sincronizáis manualmente con Sage 200?",
+        fr: "Quelles données synchronisez-vous manuellement avec Sage 200 ?",
       },
     ],
   },
@@ -411,9 +372,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_sap: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and SAP? How often?",
-        key: "discovery.integration_sap.hr.q1",
+        en: "What data do you sync manually with SAP?",
+        es: "¿Qué datos sincronizáis manualmente con SAP?",
+        fr: "Quelles données synchronisez-vous manuellement avec SAP ?",
       },
     ],
   },
@@ -422,9 +383,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_datev: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and DATEV? How often?",
-        key: "discovery.integration_datev.hr.q1",
+        en: "What data do you sync manually with DATEV?",
+        es: "¿Qué datos sincronizáis manualmente con DATEV?",
+        fr: "Quelles données synchronisez-vous manuellement avec DATEV ?",
       },
     ],
   },
@@ -433,9 +394,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_a3: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and A3? How often?",
-        key: "discovery.integration_a3.hr.q1",
+        en: "What data do you sync manually with A3?",
+        es: "¿Qué datos sincronizáis manualmente con A3?",
+        fr: "Quelles données synchronisez-vous manuellement avec A3 ?",
       },
     ],
   },
@@ -444,9 +405,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_xero: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and Xero? How often?",
-        key: "discovery.integration_xero.hr.q1",
+        en: "What data do you sync manually with Xero?",
+        es: "¿Qué datos sincronizáis manualmente con Xero?",
+        fr: "Quelles données synchronisez-vous manuellement avec Xero ?",
       },
     ],
   },
@@ -455,9 +416,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_quickbooks: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and QuickBooks? How often?",
-        key: "discovery.integration_quickbooks.hr.q1",
+        en: "What data do you sync manually with QuickBooks?",
+        es: "¿Qué datos sincronizáis manualmente con QuickBooks?",
+        fr: "Quelles données synchronisez-vous manuellement avec QuickBooks ?",
       },
     ],
   },
@@ -466,9 +427,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_milena: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and Milena? How often?",
-        key: "discovery.integration_milena.hr.q1",
+        en: "What data do you sync manually with Milena?",
+        es: "¿Qué datos sincronizáis manualmente con Milena?",
+        fr: "Quelles données synchronisez-vous manuellement avec Milena ?",
       },
     ],
   },
@@ -477,9 +438,9 @@ export const DISCOVERY_QUESTIONS: Record<
   integration_suprema_xiptic: {
     hr: [
       {
-        question:
-          "What manual steps do you take to sync access control or biometric data with your HR system?",
-        key: "discovery.integration_suprema_xiptic.hr.q1",
+        en: "What data do you sync manually with your access control system?",
+        es: "¿Qué datos sincronizáis manualmente con vuestro sistema de control de acceso?",
+        fr: "Quelles données synchronisez-vous manuellement avec votre système de contrôle d'accès ?",
       },
     ],
   },
@@ -488,9 +449,9 @@ export const DISCOVERY_QUESTIONS: Record<
   silae: {
     hr: [
       {
-        question:
-          "What manual data entry do you do between your HR system and Silae? How often?",
-        key: "discovery.silae.hr.q1",
+        en: "What data do you sync manually with Silae?",
+        es: "¿Qué datos sincronizáis manualmente con Silae?",
+        fr: "Quelles données synchronisez-vous manuellement avec Silae ?",
       },
     ],
   },

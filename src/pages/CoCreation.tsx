@@ -37,7 +37,7 @@ import {
   buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlidePdf,
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
-import { DISCOVERY_QUESTIONS } from "@/lib/discoveryQuestions";
+import { DISCOVERY_QUESTIONS, getQuestion } from "@/lib/discoveryQuestions";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 
 const STAKE_STYLE: Record<Stakeholder, { icon: typeof Users; color: string; bg: string; border: string }> = {
@@ -790,7 +790,7 @@ export default function CoCreation() {
                           {questions.map((q, qi) => (
                             <div key={qi} className="flex items-start gap-2">
                               <HelpCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: style.color }} />
-                              <p className="text-sm text-foreground/80 leading-relaxed">{q.question}</p>
+                              <p className="text-sm text-foreground/80 leading-relaxed">{getQuestion(q, i18n.language)}</p>
                             </div>
                           ))}
                         </div>
