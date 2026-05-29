@@ -157,6 +157,7 @@ export default function CoCreation() {
   const [saving, setSaving] = useState(false);
 
   // Step 5: Personalize
+  const [modjoSearch, setModjoSearch] = useState("");
   const [modjoCalls, setModjoCalls] = useState<ModjoCall[]>([]);
   const [searchingCalls, setSearchingCalls] = useState(false);
   const [selectedCall, setSelectedCall] = useState<ModjoCall | null>(null);
@@ -285,12 +286,12 @@ export default function CoCreation() {
   }
 
   async function searchModjoCalls() {
-    const name = companyName || dealName;
-    if (!name || name.length < 3) { toast.error("Company name too short"); return; }
+    const query = modjoSearch.trim() || companyName || dealName;
+    if (!query || query.length < 3) { toast.error("Search term must be at least 3 characters"); return; }
     setSearchingCalls(true);
     try {
       const { data, error } = await supabase.functions.invoke("modjo-calls", {
-        body: { mode: "search", companyName: name },
+        body: { mode: "search", companyName: query },
       });
       if (error) throw error;
       setModjoCalls(data?.calls ?? []);
@@ -849,10 +850,20 @@ export default function CoCreation() {
             </div>
 
             {/* Search calls */}
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <Button onClick={searchModjoCalls} disabled={searchingCalls} className="w-full rounded-xl bg-violet-600 hover:bg-violet-700 text-white">
-                {searchingCalls ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> {t("cocreation.searching")}</> : <><Search className="h-4 w-4 mr-2" /> {t("cocreation.search_calls")}</>}
-              </Button>
+            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  placeholder={companyName || dealName || "Company name..."}
+                  value={modjoSearch}
+                  onChange={e => setModjoSearch(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && !searchingCalls && searchModjoCalls()}
+                  className="flex-1 h-11 rounded-xl text-sm"
+                  disabled={searchingCalls}
+                />
+                <Button onClick={searchModjoCalls} disabled={searchingCalls} className="h-11 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shrink-0">
+                  {searchingCalls ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Search className="h-4 w-4 mr-1.5" /> {t("cocreation.search_calls")}</>}
+                </Button>
+              </div>
 
               {modjoCalls.length > 0 && (
                 <div className="mt-4 space-y-2">
