@@ -370,6 +370,7 @@ export default function CoCreation() {
       if (!data?.descriptions) throw new Error(data?.error ?? "No descriptions");
       setEnhancedDescriptions(data.descriptions);
       toast.success(t("cocreation.personalized"));
+      setStep(4);
     } catch (err: any) {
       console.error("Personalize error:", err);
       toast.error(err.message ?? "Error");
@@ -907,8 +908,46 @@ export default function CoCreation() {
               </button>
             </div>
 
-            {/* Save + next */}
-            <div className="flex flex-col items-center gap-4 pt-4 pb-4">
+            {/* Personalize CTA */}
+            {enhancedDescriptions ? (
+              <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{t("cocreation.personalized")}</p>
+                      <p className="text-xs text-muted-foreground">{t("cocreation.personalized_sub")}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => setStep(5)} className="h-8 rounded-lg text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-100">
+                      {t("cocreation.re_personalize")}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setEnhancedDescriptions(null); toast.success(t("express.enhance_cleared")); }} className="h-8 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                      {t("cocreation.clear")}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setStep(5)} className="w-full rounded-2xl border border-dashed border-violet-300 bg-violet-50/30 p-5 text-left hover:border-violet-400 hover:bg-violet-50/60 transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0 group-hover:bg-violet-200 transition-colors">
+                    <Sparkles className="h-5 w-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{t("cocreation.personalize_title")}</p>
+                    <p className="text-xs text-muted-foreground">{t("cocreation.personalize_cta")}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </button>
+            )}
+
+            {/* Save */}
+            <div className="flex flex-col items-center gap-3 pt-2 pb-4">
               <Button
                 onClick={async () => { setSaving(true); await saveToHistory(); setSaving(false); toast.success(t("express.roi_saved")); }}
                 disabled={saving}
@@ -916,10 +955,6 @@ export default function CoCreation() {
               >
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {t("express.save_and_back")}
-              </Button>
-              <Button variant="outline" onClick={() => setStep(5)} className="w-full max-w-sm h-10 rounded-xl text-sm font-medium">
-                <Sparkles className="h-4 w-4 mr-2" />
-                {t("cocreation.personalize_title")}
               </Button>
             </div>
           </div>
@@ -1000,15 +1035,8 @@ export default function CoCreation() {
                 }
               </Button>
 
-              {enhancedDescriptions && (
-                <div className="flex items-center gap-2 text-sm font-semibold text-violet-600">
-                  <Sparkles className="h-4 w-4" />
-                  {t("cocreation.personalized")}
-                </div>
-              )}
-
               <button onClick={() => { setStep(4); }} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mt-2">
-                {enhancedDescriptions ? t("express.back") : t("cocreation.skip_personalize")}
+                {t("cocreation.skip_personalize")}
               </button>
             </div>
           </div>

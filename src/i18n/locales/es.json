@@ -507,6 +507,10 @@
   "cocreation.personalize_btn": "Personalizar presentación",
   "cocreation.personalizing": "Personalizando con transcript...",
   "cocreation.personalized": "Presentación personalizada",
+  "cocreation.personalized_sub": "El PDF detallado usa citas reales de la llamada",
+  "cocreation.personalize_cta": "Usa una llamada de Modjo para añadir citas reales al PDF detallado",
+  "cocreation.re_personalize": "Rehacer",
+  "cocreation.clear": "Limpiar",
   "cocreation.skip_personalize": "Omitir — usar descripciones por defecto",
   "cocreation.call_duration": "{{min}} min",
   "cocreation.mode_label": "Co-creado"

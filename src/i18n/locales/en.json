@@ -507,6 +507,10 @@
   "cocreation.personalize_btn": "Personalize presentation",
   "cocreation.personalizing": "Personalizing with transcript...",
   "cocreation.personalized": "Presentation personalized",
+  "cocreation.personalized_sub": "The detail PDF uses real quotes from the call",
+  "cocreation.personalize_cta": "Use a Modjo call to add real quotes to the detail PDF",
+  "cocreation.re_personalize": "Redo",
+  "cocreation.clear": "Clear",
   "cocreation.skip_personalize": "Skip — use default descriptions",
   "cocreation.call_duration": "{{min}} min",
   "cocreation.mode_label": "Co-created"
