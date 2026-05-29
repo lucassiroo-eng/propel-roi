@@ -782,16 +782,6 @@ export default function CoCreation() {
                 </div>
               )}
 
-              {/* Notes */}
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.discovery_notes")}</label>
-                <Textarea
-                  placeholder={t("cocreation.discovery_notes_placeholder")}
-                  value={discoveryNotes[currentModule] ?? ""}
-                  onChange={e => setDiscoveryNotes(prev => ({ ...prev, [currentModule]: e.target.value }))}
-                  className="mt-2 min-h-[80px] text-sm"
-                />
-              </div>
 
               {/* Hour inputs — all 3 stakeholders in a row */}
               <div className="rounded-2xl border border-border bg-card p-5 space-y-4">

@@ -108,443 +108,104 @@ export const DISCOVERY_QUESTIONS: Record<
   string,
   Partial<Record<Stakeholder, DiscoveryQuestion[]>>
 > = {
-  // ── Core (Employee Platform) ──────────────────────────────────────────
   core: {
-    employee: [
-      {
-        en: "How do you handle your day-to-day HR tasks today?",
-        es: "¿Cómo gestionáis las tareas de RRHH del día a día?",
-        fr: "Comment gérez-vous vos tâches RH au quotidien ?",
-      },
-    ],
-    hr: [
-      {
-        en: "What tools do you use to manage employee data?",
-        es: "¿Qué herramientas usáis para gestionar los datos de empleados?",
-        fr: "Quels outils utilisez-vous pour gérer les données employés ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you access information about your team?",
-        es: "¿Cómo accedéis a la información de vuestro equipo?",
-        fr: "Comment accédez-vous aux informations de votre équipe ?",
-      },
-    ],
+    employee: [{ en: "How many minutes per month do you spend on HR admin (updating personal data, requesting documents, checking policies)?", es: "¿Cuántos minutos al mes dedicáis a gestiones de RRHH (actualizar datos, pedir documentos, consultar políticas)?", fr: "Combien de minutes par mois passez-vous sur l'admin RH (mise à jour de données, demandes de documents, consultation des politiques) ?" }],
+    hr: [{ en: "How many hours per month does your team spend maintaining employee records and answering routine requests?", es: "¿Cuántas horas al mes dedica vuestro equipo a mantener fichas de empleados y responder consultas rutinarias?", fr: "Combien d'heures par mois votre équipe consacre-t-elle à la tenue des dossiers employés et aux demandes courantes ?" }],
+    manager: [{ en: "How much time per month do you lose looking for team info (contracts, org chart, headcount)?", es: "¿Cuánto tiempo al mes perdéis buscando info de vuestro equipo (contratos, organigrama, plantilla)?", fr: "Combien de temps par mois perdez-vous à chercher les infos de votre équipe (contrats, organigramme, effectifs) ?" }],
   },
-
-  // ── Time-off ──────────────────────────────────────────────────────────
   time_off: {
-    employee: [
-      {
-        en: "How do you request time off today?",
-        es: "¿Cómo solicitáis las ausencias actualmente?",
-        fr: "Comment demandez-vous vos congés aujourd'hui ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How do you manage absences and leave balances?",
-        es: "¿Cómo gestionáis las ausencias y los saldos de vacaciones?",
-        fr: "Comment gérez-vous les absences et les soldes de congés ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you handle leave approvals for your team?",
-        es: "¿Cómo gestionáis las aprobaciones de ausencias de vuestro equipo?",
-        fr: "Comment gérez-vous les approbations de congés de votre équipe ?",
-      },
-    ],
+    employee: [{ en: "How many minutes does it take you to request a day off and check your balance?", es: "¿Cuántos minutos tardáis en solicitar un día libre y consultar vuestro saldo?", fr: "Combien de minutes vous faut-il pour poser un congé et consulter votre solde ?" }],
+    hr: [{ en: "How many hours per month does leave management take (balances, carryover, policy exceptions)?", es: "¿Cuántas horas al mes os lleva la gestión de ausencias (saldos, arrastres, excepciones)?", fr: "Combien d'heures par mois prend la gestion des congés (soldes, reports, exceptions) ?" }],
+    manager: [{ en: "How much time per month do you spend reviewing and approving leave requests?", es: "¿Cuánto tiempo al mes dedicáis a revisar y aprobar solicitudes de ausencia?", fr: "Combien de temps par mois passez-vous à examiner et approuver les demandes de congés ?" }],
   },
-
-  // ── Time Tracking ─────────────────────────────────────────────────────
   time_tracking: {
-    employee: [
-      {
-        en: "How do you track your working hours?",
-        es: "¿Cómo registráis vuestras horas de trabajo?",
-        fr: "Comment suivez-vous vos heures de travail ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How do you collect and validate timesheets?",
-        es: "¿Cómo recopiláis y validáis los registros horarios?",
-        fr: "Comment collectez-vous et validez-vous les feuilles de temps ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you monitor your team's hours?",
-        es: "¿Cómo controláis las horas de vuestro equipo?",
-        fr: "Comment suivez-vous les heures de votre équipe ?",
-      },
-    ],
+    employee: [{ en: "How many minutes per day do you spend logging your hours?", es: "¿Cuántos minutos al día dedicáis a registrar vuestras horas?", fr: "Combien de minutes par jour passez-vous à enregistrer vos heures ?" }],
+    hr: [{ en: "How many hours per month does timesheet collection and payroll reconciliation take?", es: "¿Cuántas horas al mes os lleva recopilar fichajes y cuadrar con nóminas?", fr: "Combien d'heures par mois prennent la collecte des feuilles de temps et le rapprochement avec la paie ?" }],
+    manager: [{ en: "How much time per month do you spend reviewing timesheets and chasing missing entries?", es: "¿Cuánto tiempo al mes dedicáis a revisar fichajes y perseguir los que faltan?", fr: "Combien de temps par mois passez-vous à vérifier les feuilles de temps et relancer les retardataires ?" }],
   },
-
-  // ── Shift Management ──────────────────────────────────────────────────
   time_planning: {
-    employee: [
-      {
-        en: "How do you find out your work schedule?",
-        es: "¿Cómo os enteráis de vuestro horario de trabajo?",
-        fr: "Comment connaissez-vous votre planning de travail ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How are shifts planned and communicated?",
-        es: "¿Cómo se planifican y comunican los turnos?",
-        fr: "Comment les plannings sont-ils créés et communiqués ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you organize shifts and handle changes?",
-        es: "¿Cómo organizáis los turnos y gestionáis los cambios?",
-        fr: "Comment organisez-vous les rotations et gérez-vous les changements ?",
-      },
-    ],
+    employee: [{ en: "How many minutes per week do you spend checking your schedule or coordinating swaps?", es: "¿Cuántos minutos a la semana dedicáis a consultar vuestro turno o coordinar cambios?", fr: "Combien de minutes par semaine passez-vous à consulter votre planning ou coordonner des échanges ?" }],
+    hr: [{ en: "How many hours per month does shift planning and communication take?", es: "¿Cuántas horas al mes os lleva planificar y comunicar los turnos?", fr: "Combien d'heures par mois prennent la planification et la communication des plannings ?" }],
+    manager: [{ en: "How much time per month do you spend building schedules and managing coverage?", es: "¿Cuánto tiempo al mes dedicáis a crear horarios y gestionar coberturas?", fr: "Combien de temps par mois passez-vous à construire les plannings et gérer les remplacements ?" }],
   },
-
-  // ── Payroll Connect ───────────────────────────────────────────────────
   payroll: {
-    hr: [
-      {
-        en: "What does your payroll process look like today?",
-        es: "¿Cómo es vuestro proceso de nóminas actualmente?",
-        fr: "À quoi ressemble votre processus de paie aujourd'hui ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you communicate pay-related changes for your team?",
-        es: "¿Cómo comunicáis los cambios salariales de vuestro equipo?",
-        fr: "Comment communiquez-vous les changements de rémunération pour votre équipe ?",
-      },
-    ],
+    hr: [{ en: "How many hours does each payroll run take from data prep to close?", es: "¿Cuántas horas os lleva cada ciclo de nómina desde la preparación hasta el cierre?", fr: "Combien d'heures prend chaque cycle de paie, de la préparation à la clôture ?" }],
+    manager: [{ en: "How much time per month do you spend communicating variable pay or payroll changes?", es: "¿Cuánto tiempo al mes dedicáis a comunicar variables de nómina o cambios salariales?", fr: "Combien de temps par mois passez-vous à communiquer les variables de paie ou les changements ?" }],
   },
-
-  // ── Recruitment ───────────────────────────────────────────────────────
   recruitment: {
-    hr: [
-      {
-        en: "How do you manage your hiring process?",
-        es: "¿Cómo gestionáis vuestro proceso de selección?",
-        fr: "Comment gérez-vous votre processus de recrutement ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How are you involved in hiring for your team?",
-        es: "¿Cómo participáis en la contratación para vuestro equipo?",
-        fr: "Comment participez-vous au recrutement pour votre équipe ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month does managing job postings, screening, and pipeline take?", es: "¿Cuántas horas al mes os lleva gestionar ofertas, cribado y pipeline de candidatos?", fr: "Combien d'heures par mois prennent la gestion des offres, le tri et le suivi du pipeline ?" }],
+    manager: [{ en: "How much time per month do you spend on hiring tasks (interviews, feedback, coordination)?", es: "¿Cuánto tiempo al mes dedicáis a tareas de selección (entrevistas, feedback, coordinación)?", fr: "Combien de temps par mois passez-vous sur le recrutement (entretiens, retours, coordination) ?" }],
   },
-
-  // ── Performance ───────────────────────────────────────────────────────
   performance: {
-    employee: [
-      {
-        en: "How are performance reviews done today?",
-        es: "¿Cómo se hacen las evaluaciones de desempeño actualmente?",
-        fr: "Comment les évaluations de performance sont-elles réalisées aujourd'hui ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How do you manage the review cycle?",
-        es: "¿Cómo gestionáis el ciclo de evaluaciones?",
-        fr: "Comment gérez-vous le cycle d'évaluations ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you set goals and give feedback to your team?",
-        es: "¿Cómo fijáis objetivos y dais feedback a vuestro equipo?",
-        fr: "Comment fixez-vous les objectifs et donnez-vous du feedback à votre équipe ?",
-      },
-    ],
+    employee: [{ en: "How many hours per review cycle do you spend preparing self-evaluations?", es: "¿Cuántas horas por ciclo de evaluación dedicáis a preparar vuestra autoevaluación?", fr: "Combien d'heures par cycle d'évaluation passez-vous à préparer votre auto-évaluation ?" }],
+    hr: [{ en: "How many hours per cycle does managing the review process take (setup, reminders, reports)?", es: "¿Cuántas horas por ciclo os lleva gestionar el proceso de evaluación (configuración, recordatorios, informes)?", fr: "Combien d'heures par cycle prend la gestion du processus d'évaluation (configuration, relances, rapports) ?" }],
+    manager: [{ en: "How much time per cycle do you spend writing evaluations and giving feedback?", es: "¿Cuánto tiempo por ciclo dedicáis a redactar evaluaciones y dar feedback?", fr: "Combien de temps par cycle passez-vous à rédiger les évaluations et donner du feedback ?" }],
   },
-
-  // ── Expenses ──────────────────────────────────────────────────────────
   expenses: {
-    employee: [
-      {
-        en: "How do you submit expenses today?",
-        es: "¿Cómo presentáis los gastos actualmente?",
-        fr: "Comment soumettez-vous vos notes de frais aujourd'hui ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How are expenses validated and processed?",
-        es: "¿Cómo se validan y procesan los gastos?",
-        fr: "Comment les notes de frais sont-elles validées et traitées ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you review and approve team expenses?",
-        es: "¿Cómo revisáis y aprobáis los gastos de vuestro equipo?",
-        fr: "Comment examinez-vous et approuvez-vous les dépenses de votre équipe ?",
-      },
-    ],
+    employee: [{ en: "How many minutes does it take to submit an expense report?", es: "¿Cuántos minutos tardáis en presentar una nota de gastos?", fr: "Combien de minutes faut-il pour soumettre une note de frais ?" }],
+    hr: [{ en: "How many hours per month does expense validation and reconciliation take?", es: "¿Cuántas horas al mes os lleva validar y conciliar los gastos?", fr: "Combien d'heures par mois prennent la validation et le rapprochement des notes de frais ?" }],
+    manager: [{ en: "How much time per month do you spend reviewing and approving expense reports?", es: "¿Cuánto tiempo al mes dedicáis a revisar y aprobar notas de gastos?", fr: "Combien de temps par mois passez-vous à examiner et approuver les notes de frais ?" }],
   },
-
-  // ── Training ──────────────────────────────────────────────────────────
   trainings: {
-    employee: [
-      {
-        en: "How do you access training opportunities?",
-        es: "¿Cómo accedéis a las oportunidades de formación?",
-        fr: "Comment accédez-vous aux opportunités de formation ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How do you manage the training plan?",
-        es: "¿Cómo gestionáis el plan de formación?",
-        fr: "Comment gérez-vous le plan de formation ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you identify training needs for your team?",
-        es: "¿Cómo identificáis las necesidades de formación de vuestro equipo?",
-        fr: "Comment identifiez-vous les besoins en formation de votre équipe ?",
-      },
-    ],
+    employee: [{ en: "How many hours per month do you spend on training admin (finding courses, registering, tracking)?", es: "¿Cuántas horas al mes dedicáis a admin de formación (buscar cursos, inscribiros, seguimiento)?", fr: "Combien d'heures par mois passez-vous sur l'admin formation (recherche, inscription, suivi) ?" }],
+    hr: [{ en: "How many hours per month does managing the training plan and compliance tracking take?", es: "¿Cuántas horas al mes os lleva gestionar el plan de formación y el seguimiento de cumplimiento?", fr: "Combien d'heures par mois prennent la gestion du plan de formation et le suivi de conformité ?" }],
+    manager: [{ en: "How much time per month do you spend identifying and coordinating training for your team?", es: "¿Cuánto tiempo al mes dedicáis a identificar y coordinar formación para vuestro equipo?", fr: "Combien de temps par mois passez-vous à identifier et coordonner la formation de votre équipe ?" }],
   },
-
-  // ── Compensation ──────────────────────────────────────────────────────
   compensations: {
-    hr: [
-      {
-        en: "How do you manage salary reviews?",
-        es: "¿Cómo gestionáis las revisiones salariales?",
-        fr: "Comment gérez-vous les revues salariales ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How are you involved in compensation decisions?",
-        es: "¿Cómo participáis en las decisiones de compensación?",
-        fr: "Comment participez-vous aux décisions de rémunération ?",
-      },
-    ],
+    hr: [{ en: "How many hours does each salary review cycle take?", es: "¿Cuántas horas os lleva cada ciclo de revisión salarial?", fr: "Combien d'heures prend chaque cycle de revue salariale ?" }],
+    manager: [{ en: "How much time per review cycle do you spend on compensation decisions for your team?", es: "¿Cuánto tiempo por ciclo dedicáis a decisiones de compensación de vuestro equipo?", fr: "Combien de temps par cycle passez-vous sur les décisions de rémunération de votre équipe ?" }],
   },
-
-  // ── Engagement ────────────────────────────────────────────────────────
   engagement: {
-    hr: [
-      {
-        en: "How do you measure employee satisfaction?",
-        es: "¿Cómo medís la satisfacción de los empleados?",
-        fr: "Comment mesurez-vous la satisfaction des employés ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you get feedback from your team?",
-        es: "¿Cómo obtenéis feedback de vuestro equipo?",
-        fr: "Comment recueillez-vous le feedback de votre équipe ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month does running surveys and analyzing results take?", es: "¿Cuántas horas al mes os lleva lanzar encuestas y analizar resultados?", fr: "Combien d'heures par mois prennent le lancement des enquêtes et l'analyse des résultats ?" }],
+    manager: [{ en: "How much time per month do you spend gathering and acting on team feedback?", es: "¿Cuánto tiempo al mes dedicáis a recoger y actuar sobre el feedback de vuestro equipo?", fr: "Combien de temps par mois passez-vous à recueillir le feedback de votre équipe et à agir dessus ?" }],
   },
-
-  // ── Documents ─────────────────────────────────────────────────────────
   documents: {
-    employee: [
-      {
-        en: "How do you access your HR documents?",
-        es: "¿Cómo accedéis a vuestros documentos de RRHH?",
-        fr: "Comment accédez-vous à vos documents RH ?",
-      },
-    ],
-    hr: [
-      {
-        en: "How do you generate and distribute HR documents?",
-        es: "¿Cómo generáis y distribuís los documentos de RRHH?",
-        fr: "Comment générez-vous et distribuez-vous les documents RH ?",
-      },
-    ],
+    employee: [{ en: "How many minutes does it take to get a document from HR (certificate, payslip, contract)?", es: "¿Cuántos minutos tardáis en conseguir un documento de RRHH (certificado, nómina, contrato)?", fr: "Combien de minutes faut-il pour obtenir un document RH (attestation, bulletin, contrat) ?" }],
+    hr: [{ en: "How many hours per month does document generation, signing, and filing take?", es: "¿Cuántas horas al mes os lleva generar, firmar y archivar documentos?", fr: "Combien d'heures par mois prennent la génération, la signature et l'archivage des documents ?" }],
   },
-
-  // ── Procurement ───────────────────────────────────────────────────────
   procurement: {
-    hr: [
-      {
-        en: "How do purchase requests work today?",
-        es: "¿Cómo funcionan las solicitudes de compra actualmente?",
-        fr: "Comment fonctionnent les demandes d'achat aujourd'hui ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you manage team purchases?",
-        es: "¿Cómo gestionáis las compras de vuestro equipo?",
-        fr: "Comment gérez-vous les achats de votre équipe ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month does processing purchase requests take?", es: "¿Cuántas horas al mes os lleva procesar solicitudes de compra?", fr: "Combien d'heures par mois prend le traitement des demandes d'achat ?" }],
+    manager: [{ en: "How much time per month do you spend on purchase requests and tracking?", es: "¿Cuánto tiempo al mes dedicáis a solicitudes de compra y seguimiento?", fr: "Combien de temps par mois passez-vous sur les demandes d'achat et leur suivi ?" }],
   },
-
-  // ── Project Management ────────────────────────────────────────────────
   projects: {
-    employee: [
-      {
-        en: "How do you log time against projects?",
-        es: "¿Cómo registráis el tiempo en los proyectos?",
-        fr: "Comment enregistrez-vous le temps passé sur les projets ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you track project progress?",
-        es: "¿Cómo hacéis seguimiento del progreso de los proyectos?",
-        fr: "Comment suivez-vous l'avancement des projets ?",
-      },
-    ],
+    employee: [{ en: "How many minutes per day do you spend logging time to projects?", es: "¿Cuántos minutos al día dedicáis a imputar tiempo a proyectos?", fr: "Combien de minutes par jour passez-vous à saisir du temps sur les projets ?" }],
+    manager: [{ en: "How much time per month do you spend tracking project hours and team allocation?", es: "¿Cuánto tiempo al mes dedicáis a controlar horas de proyecto y asignación del equipo?", fr: "Combien de temps par mois passez-vous à suivre les heures projet et l'allocation de l'équipe ?" }],
   },
-
-  // ── Headcount Planning ────────────────────────────────────────────────
   headcount_planning: {
-    hr: [
-      {
-        en: "How do you plan headcount needs?",
-        es: "¿Cómo planificáis las necesidades de plantilla?",
-        fr: "Comment planifiez-vous les besoins en effectifs ?",
-      },
-    ],
-    manager: [
-      {
-        en: "How do you forecast and request new hires?",
-        es: "¿Cómo preveéis y solicitáis nuevas contrataciones?",
-        fr: "Comment prévoyez-vous et demandez-vous de nouveaux recrutements ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month does headcount planning and position tracking take?", es: "¿Cuántas horas al mes os lleva la planificación de plantilla y seguimiento de posiciones?", fr: "Combien d'heures par mois prennent la planification des effectifs et le suivi des postes ?" }],
+    manager: [{ en: "How much time per quarter do you spend forecasting hiring needs?", es: "¿Cuánto tiempo por trimestre dedicáis a prever necesidades de contratación?", fr: "Combien de temps par trimestre passez-vous à prévoir vos besoins en recrutement ?" }],
   },
-
-  // ── Integration: Business Central ─────────────────────────────────────
   integration_business_central: {
-    hr: [
-      {
-        en: "What data do you sync manually with Business Central?",
-        es: "¿Qué datos sincronizáis manualmente con Business Central?",
-        fr: "Quelles données synchronisez-vous manuellement avec Business Central ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Business Central?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Business Central?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Business Central ?" }],
   },
-
-  // ── Integration: NetSuite ─────────────────────────────────────────────
   integration_netsuite: {
-    hr: [
-      {
-        en: "What data do you sync manually with NetSuite?",
-        es: "¿Qué datos sincronizáis manualmente con NetSuite?",
-        fr: "Quelles données synchronisez-vous manuellement avec NetSuite ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and NetSuite?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y NetSuite?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et NetSuite ?" }],
   },
-
-  // ── Integration: Sage 200 ─────────────────────────────────────────────
   integration_sage_200: {
-    hr: [
-      {
-        en: "What data do you sync manually with Sage 200?",
-        es: "¿Qué datos sincronizáis manualmente con Sage 200?",
-        fr: "Quelles données synchronisez-vous manuellement avec Sage 200 ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Sage 200?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Sage 200?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Sage 200 ?" }],
   },
-
-  // ── Integration: SAP ──────────────────────────────────────────────────
   integration_sap: {
-    hr: [
-      {
-        en: "What data do you sync manually with SAP?",
-        es: "¿Qué datos sincronizáis manualmente con SAP?",
-        fr: "Quelles données synchronisez-vous manuellement avec SAP ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and SAP?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y SAP?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et SAP ?" }],
   },
-
-  // ── Integration: DATEV ────────────────────────────────────────────────
   integration_datev: {
-    hr: [
-      {
-        en: "What data do you sync manually with DATEV?",
-        es: "¿Qué datos sincronizáis manualmente con DATEV?",
-        fr: "Quelles données synchronisez-vous manuellement avec DATEV ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and DATEV?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y DATEV?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et DATEV ?" }],
   },
-
-  // ── Integration: A3 ──────────────────────────────────────────────────
   integration_a3: {
-    hr: [
-      {
-        en: "What data do you sync manually with A3?",
-        es: "¿Qué datos sincronizáis manualmente con A3?",
-        fr: "Quelles données synchronisez-vous manuellement avec A3 ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and A3?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y A3?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et A3 ?" }],
   },
-
-  // ── Integration: Xero ─────────────────────────────────────────────────
   integration_xero: {
-    hr: [
-      {
-        en: "What data do you sync manually with Xero?",
-        es: "¿Qué datos sincronizáis manualmente con Xero?",
-        fr: "Quelles données synchronisez-vous manuellement avec Xero ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Xero?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Xero?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Xero ?" }],
   },
-
-  // ── Integration: QuickBooks ───────────────────────────────────────────
   integration_quickbooks: {
-    hr: [
-      {
-        en: "What data do you sync manually with QuickBooks?",
-        es: "¿Qué datos sincronizáis manualmente con QuickBooks?",
-        fr: "Quelles données synchronisez-vous manuellement avec QuickBooks ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and QuickBooks?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y QuickBooks?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et QuickBooks ?" }],
   },
-
-  // ── Integration: Milena ─────────────────────────────────────────────
   integration_milena: {
-    hr: [
-      {
-        en: "What data do you sync manually with Milena?",
-        es: "¿Qué datos sincronizáis manualmente con Milena?",
-        fr: "Quelles données synchronisez-vous manuellement avec Milena ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Milena?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Milena?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Milena ?" }],
   },
-
-  // ── Integration: Suprema / Xiptic ──────────────────────────────────
   integration_suprema_xiptic: {
-    hr: [
-      {
-        en: "What data do you sync manually with your access control system?",
-        es: "¿Qué datos sincronizáis manualmente con vuestro sistema de control de acceso?",
-        fr: "Quelles données synchronisez-vous manuellement avec votre système de contrôle d'accès ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend syncing data with your access control system?", es: "¿Cuántas horas al mes dedicáis a sincronizar datos con vuestro sistema de control de acceso?", fr: "Combien d'heures par mois passez-vous à synchroniser les données avec votre système de contrôle d'accès ?" }],
   },
-
-  // ── Integration: Silae ──────────────────────────────────────────────
   silae: {
-    hr: [
-      {
-        en: "What data do you sync manually with Silae?",
-        es: "¿Qué datos sincronizáis manualmente con Silae?",
-        fr: "Quelles données synchronisez-vous manuellement avec Silae ?",
-      },
-    ],
+    hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Silae?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Silae?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Silae ?" }],
   },
 };
