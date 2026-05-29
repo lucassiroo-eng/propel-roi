@@ -330,10 +330,6 @@ export default function CoCreation() {
     } finally { setFetching(false); }
   }
 
-  function extractSearchTerm(name: string): string {
-    return name.replace(/\s*-\s*from\s.*/i, "").trim() || name.slice(0, 30);
-  }
-
   useEffect(() => {
     if (step === 5 && modjoCalls.length === 0 && !searchingCalls && (dealName || companyName)) {
       searchModjoCalls();
@@ -341,7 +337,7 @@ export default function CoCreation() {
   }, [step]);
 
   async function searchModjoCalls() {
-    const query = modjoSearch.trim() || extractSearchTerm(dealName || companyName);
+    const query = modjoSearch.trim() || dealName || companyName;
     if (!query || query.length < 3) { toast.error("Search term must be at least 3 characters"); return; }
     setSearchingCalls(true);
     try {
@@ -1010,7 +1006,7 @@ export default function CoCreation() {
             <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
               <div className="flex gap-2">
                 <Input
-                  placeholder={extractSearchTerm(dealName || companyName) || "Company name..."}
+                  placeholder={dealName || companyName || "Deal name..."}
                   value={modjoSearch}
                   onChange={e => setModjoSearch(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !searchingCalls && searchModjoCalls()}

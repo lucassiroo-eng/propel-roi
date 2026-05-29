@@ -3,77 +3,21 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const V1_URL = "https://api.modjo.ai/v1/calls/exports";
-const V2_URL = "https://api.modjo.ai/v2";
+const V2 = "https://api.modjo.ai/v2";
 
-function getKeys() {
-  const v1 = Deno.env.get("MODJO_API_KEY");
-  const v2 = Deno.env.get("MODJO_V2_API_KEY") ?? v1;
-  if (!v1) throw new Error("MODJO_API_KEY not set");
-  return { v1: v1!, v2: v2! };
+function getKey(): string {
+  const key = Deno.env.get("MODJO_V2_API_KEY") ?? Deno.env.get("MODJO_API_KEY");
+  if (!key) throw new Error("MODJO_V2_API_KEY not set");
+  return key;
 }
 
-async function v1Search(key: string, query: string, dateFrom?: string, dateTo?: string) {
-  const now = new Date();
-  const start = dateFrom ?? new Date(now.getTime() - 90 * 86400000).toISOString();
-  const end = dateTo ?? now.toISOString();
-
-  const res = await fetch(V1_URL, {
-    method: "POST",
-    headers: { "X-API-KEY": key, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      pagination: { page: 1, perPage: 20 },
-      filters: { callTitle: query, callStartDateRange: { start, end } },
-      relations: { deal: true, users: true, summary: true },
-    }),
+async function v2Get(key: string, path: string): Promise<any> {
+  const res = await fetch(`${V2}${path}`, {
+    headers: { Authorization: `Bearer ${key}` },
     signal: AbortSignal.timeout(30000),
   });
-  if (!res.ok) throw new Error(`Modjo v1 ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const data = await res.json();
-
-  return (data.values ?? []).map((c: any) => ({
-    callId: c.callId,
-    title: c.title ?? "",
-    date: c.callStartDate ?? c.date ?? "",
-    duration: c.duration ?? 0,
-    users: (c.relations?.users ?? []).map((u: any) => ({
-      name: `${u.firstname ?? ""} ${u.lastname ?? ""}`.trim(),
-      email: u.email,
-    })),
-    deal: c.relations?.deal
-      ? { name: c.relations.deal.name, crmId: c.relations.deal.dealCrmId }
-      : null,
-    summary: c.relations?.summary?.content ?? null,
-  }));
-}
-
-async function v2Transcript(key: string, callId: number) {
-  const [trRes, sumRes] = await Promise.all([
-    fetch(`${V2_URL}/calls/${callId}/transcript`, {
-      headers: { Authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(30000),
-    }),
-    fetch(`${V2_URL}/calls/${callId}/summaries`, {
-      headers: { Authorization: `Bearer ${key}` },
-      signal: AbortSignal.timeout(15000),
-    }),
-  ]);
-
-  if (!trRes.ok) throw new Error(`Modjo v2 transcript ${trRes.status}: ${(await trRes.text()).slice(0, 300)}`);
-  const trData = await trRes.json();
-  const segments = trData.data ?? [];
-  const transcript = segments
-    .map((s: any) => `${s.speaker?.name ?? "Unknown"}: ${s.content}`)
-    .join("\n");
-
-  let summary: string | null = null;
-  if (sumRes.ok) {
-    const sumData = await sumRes.json();
-    const first = (sumData.data ?? [])[0];
-    if (first?.answer) summary = first.answer;
-  }
-
-  return { transcript, summary };
+  if (!res.ok) throw new Error(`Modjo v2 ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  return res.json();
 }
 
 Deno.serve(async (req) => {
@@ -82,16 +26,70 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { mode, companyName, dateFrom, dateTo, callId } = await req.json();
-    const keys = getKeys();
+    const { mode, companyName, callId } = await req.json();
+    const key = getKey();
 
     if (mode === "search") {
-      if (!companyName || companyName.length < 3) {
-        return new Response(JSON.stringify({ error: "companyName must be at least 3 characters" }), {
+      if (!companyName || companyName.length < 2) {
+        return new Response(JSON.stringify({ error: "companyName required" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const calls = await v1Search(keys.v1, companyName, dateFrom, dateTo);
+
+      // 1. Search deals by name
+      const deals = await v2Get(key, `/deals?name=${encodeURIComponent(companyName)}&size=5`);
+      const matchedDeals = deals.data ?? [];
+
+      // 2. Collect unique account IDs from deals
+      const accountIds = new Set<number>();
+      for (const deal of matchedDeals) {
+        if (deal.accountId) accountIds.add(deal.accountId);
+      }
+
+      // 3. If no accountId from deals, search accounts directly
+      if (accountIds.size === 0) {
+        const words = companyName.replace(/\s*-\s*from\s.*/i, "").trim();
+        const noise = new Set(["s.l.", "s.a.", "sl", "sa", "sas", "srl", "gmbh", "ltd", "inc"]);
+        const keyword = words.split(/[\s\-·,]+/)
+          .filter((w: string) => w.length >= 3 && !noise.has(w.toLowerCase()))
+          .sort((a: string, b: string) => b.length - a.length)[0];
+        if (keyword) {
+          const accounts = await v2Get(key, `/accounts?name=${encodeURIComponent(keyword)}&size=5`);
+          for (const acc of accounts.data ?? []) {
+            accountIds.add(acc.id);
+          }
+        }
+      }
+
+      // 4. Fetch calls for each account
+      const dealIds = new Set(matchedDeals.map((d: any) => d.id));
+      const callMap = new Map<number, any>();
+
+      for (const accId of accountIds) {
+        const callsRes = await v2Get(key, `/calls?account_id=${accId}&expand=deal,users&size=50`);
+        for (const c of callsRes.data ?? []) {
+          if (callMap.has(c.id)) continue;
+          // If we matched specific deals, filter calls to those deals
+          if (dealIds.size > 0 && c.deal && !dealIds.has(c.deal.id)) continue;
+          callMap.set(c.id, {
+            callId: c.id,
+            title: c.name ?? "",
+            date: c.date ?? "",
+            duration: c.duration ?? 0,
+            users: (c.users ?? []).map((u: any) => ({
+              name: `${u.firstName ?? ""} ${u.lastName ?? ""}`.trim(),
+              email: u.email,
+            })),
+            deal: c.deal ? { name: c.deal.name, crmId: c.deal.crmId } : null,
+            summary: null,
+          });
+        }
+      }
+
+      const calls = [...callMap.values()].sort((a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
       return new Response(JSON.stringify({ calls }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -103,18 +101,32 @@ Deno.serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const result = await v2Transcript(keys.v2, callId);
-      if (!result.transcript) {
+
+      const [trRes, sumRes] = await Promise.all([
+        v2Get(key, `/calls/${callId}/transcript`),
+        v2Get(key, `/calls/${callId}/summaries`).catch(() => ({ data: [] })),
+      ]);
+
+      const segments = trRes.data ?? [];
+      const transcript = segments
+        .map((s: any) => `${s.speaker?.name ?? "Unknown"}: ${s.content}`)
+        .join("\n");
+
+      const firstSummary = (sumRes.data ?? [])[0];
+      const summary = firstSummary?.answer ?? null;
+
+      if (!transcript) {
         return new Response(JSON.stringify({ error: "No transcript found" }), {
           status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify(result), {
+
+      return new Response(JSON.stringify({ transcript, summary }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify({ error: "Invalid mode. Use 'search' or 'transcript'" }), {
+    return new Response(JSON.stringify({ error: "Invalid mode" }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
