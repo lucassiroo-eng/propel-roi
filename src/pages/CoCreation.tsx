@@ -37,7 +37,7 @@ import {
   buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlidePdf,
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
-import { DISCOVERY_QUESTIONS, getQuestion } from "@/lib/discoveryQuestions";
+import { DISCOVERY_QUESTIONS, MODULE_INFO, getLocalized, getQuestion } from "@/lib/discoveryQuestions";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 
 const STAKE_STYLE: Record<Stakeholder, { icon: typeof Users; color: string; bg: string; border: string }> = {
@@ -724,25 +724,20 @@ export default function CoCreation() {
         </>
       )}
 
-      {/* ──────────── STEP 3: Discovery (module by module) ──────────── */}
-      {step === 3 && currentModule && (
+      {/* ──────────── STEP 3: Discovery (module by module slides) ──────────── */}
+      {step === 3 && currentModule && (() => {
+        const modInfo = MODULE_INFO[currentModule];
+        const modColor = currentModuleCat?.color ?? "#94A3B8";
+        const lang = i18n.language;
+        const defaults = getHoursForModule(currentModule);
+        const allQuestions = (["employee", "hr", "manager"] as Stakeholder[]).flatMap(sk =>
+          (currentQuestions?.[sk] ?? []).map(q => ({ stakeholder: sk, question: q }))
+        );
+
+        return (
         <>
           <main className="flex-1 overflow-y-auto">
-            <div className="max-w-3xl mx-auto px-5 py-8 space-y-6">
-              {/* Module header */}
-              <div className="text-center slide-up">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
-                  {t("cocreation.module_n_of_total", { n: discoveryIdx + 1, total: selectedModules.length })}
-                </p>
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: currentModuleCat?.color ?? "#94A3B8" }} />
-                  <h2 className="text-2xl font-extrabold tracking-tight text-foreground">
-                    {currentModuleCat?.label ?? moduleLabel(currentModule)}
-                  </h2>
-                </div>
-                <p className="text-sm text-muted-foreground">{t("cocreation.discovery_sub")}</p>
-              </div>
-
+            <div className="max-w-2xl mx-auto px-5 py-8 space-y-6">
               {/* Progress dots */}
               <div className="flex items-center justify-center gap-1.5">
                 {selectedModules.map((_, i) => (
@@ -750,30 +745,74 @@ export default function CoCreation() {
                 ))}
               </div>
 
-              {/* Questions + hour inputs per stakeholder */}
-              <div className="space-y-4">
-                {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
-                  const style = STAKE_STYLE[sk];
-                  const Icon = style.icon;
-                  const questions = currentQuestions?.[sk];
-                  const defaults = getHoursForModule(currentModule);
-                  const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
+              {/* Module header card */}
+              <div className="rounded-2xl border border-border bg-card p-6 slide-up">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
+                  {t("cocreation.module_n_of_total", { n: discoveryIdx + 1, total: selectedModules.length })}
+                </p>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: modColor }} />
+                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+                    {modInfo ? getLocalized(modInfo.label, lang) : (currentModuleCat?.label ?? moduleLabel(currentModule))}
+                  </h2>
+                </div>
+                {modInfo && (
+                  <p className="text-sm text-muted-foreground ml-7">{getLocalized(modInfo.description, lang)}</p>
+                )}
+              </div>
 
-                  return (
-                    <div key={sk} className="rounded-2xl border p-5 space-y-4" style={{ borderColor: style.border, backgroundColor: style.bg }}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: style.color }}>
-                            <Icon className="h-4 w-4 text-white" />
-                          </div>
-                          <span className="text-sm font-bold text-foreground">{t(STAKE_LABEL_KEY[sk])}</span>
+              {/* Discovery questions — all stakeholders together */}
+              {allQuestions.length > 0 && (
+                <div className="rounded-2xl border border-border bg-card p-6 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t("cocreation.discovery_questions")}</p>
+                  {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
+                    const style = STAKE_STYLE[sk];
+                    return (
+                      <div key={qi} className="flex items-start gap-3 py-1.5">
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: style.color + "18" }}>
+                          <HelpCircle className="h-3.5 w-3.5" style={{ color: style.color }} />
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground/85 leading-relaxed">{getQuestion(q, lang)}</p>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Notes */}
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.discovery_notes")}</label>
+                <Textarea
+                  placeholder={t("cocreation.discovery_notes_placeholder")}
+                  value={discoveryNotes[currentModule] ?? ""}
+                  onChange={e => setDiscoveryNotes(prev => ({ ...prev, [currentModule]: e.target.value }))}
+                  className="mt-2 min-h-[80px] text-sm"
+                />
+              </div>
+
+              {/* Hour inputs — all 3 stakeholders in a row */}
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.time_per_stakeholder")}</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
+                    const style = STAKE_STYLE[sk];
+                    const Icon = style.icon;
+                    const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
+                    return (
+                      <div key={sk} className="flex flex-col items-center gap-2 rounded-xl p-3" style={{ backgroundColor: style.bg }}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: style.color }}>
+                          <Icon className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-[11px] font-bold text-foreground text-center leading-tight">{t(STAKE_LABEL_KEY[sk])}</span>
+                        <div className="flex items-center gap-1.5">
                           <input
                             type="number"
                             step="0.1"
                             min="0"
-                            className="w-[72px] h-9 text-center text-sm font-bold tabular-nums rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-ring/40"
+                            className="w-[64px] h-9 text-center text-sm font-bold tabular-nums rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-ring/40"
                             style={{ borderColor: style.border }}
                             value={val}
                             onChange={e => {
@@ -786,40 +825,32 @@ export default function CoCreation() {
                               });
                             }}
                           />
-                          <span className="text-[11px] text-muted-foreground font-medium">{t("cocreation.hrs_month")}</span>
+                          <span className="text-[10px] text-muted-foreground">{t("cocreation.hrs_month")}</span>
                         </div>
                       </div>
+                    );
+                  })}
+                </div>
 
-                      {questions && questions.length > 0 && (
-                        <div className="space-y-2.5 pl-[42px]">
-                          {questions.map((q, qi) => (
-                            <div key={qi} className="flex items-start gap-2">
-                              <HelpCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: style.color }} />
-                              <p className="text-sm text-foreground/80 leading-relaxed">{getQuestion(q, i18n.language)}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Notes */}
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.discovery_notes")}</label>
-                <Textarea
-                  placeholder={t("cocreation.discovery_notes_placeholder")}
-                  value={discoveryNotes[currentModule] ?? ""}
-                  onChange={e => setDiscoveryNotes(prev => ({ ...prev, [currentModule]: e.target.value }))}
-                  className="mt-2 min-h-[80px] text-sm"
-                />
+                {/* Module-specific inputs */}
+                {currentModule === "core" && (
+                  <div className="pt-2 border-t border-border/60">
+                    <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.onboardings_label")}</Label>
+                    <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-lg max-w-[160px]" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                  </div>
+                )}
+                {currentModule === "expenses" && (
+                  <div className="pt-2 border-t border-border/60">
+                    <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.expense_submitters_label")}</Label>
+                    <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-lg max-w-[160px]" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                  </div>
+                )}
               </div>
             </div>
           </main>
 
           <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
-            <div className="max-w-3xl mx-auto flex justify-between gap-3">
+            <div className="max-w-2xl mx-auto flex justify-between gap-3">
               <Button variant="outline" onClick={() => discoveryIdx > 0 ? setDiscoveryIdx(i => i - 1) : setStep(2)} className="rounded-xl">
                 <ArrowLeft className="h-4 w-4 mr-1.5" /> {discoveryIdx > 0 ? t("cocreation.prev_module") : t("express.back")}
               </Button>
@@ -835,7 +866,8 @@ export default function CoCreation() {
             </div>
           </footer>
         </>
-      )}
+        );
+      })()}
 
       {/* ──────────── STEP 4: Result ──────────── */}
       {step === 4 && roi && (

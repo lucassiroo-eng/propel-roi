@@ -1,16 +1,108 @@
 export type Stakeholder = "employee" | "hr" | "manager";
 
-export interface DiscoveryQuestion {
+export interface LocalizedText {
   en: string;
   es: string;
   fr: string;
 }
 
-export function getQuestion(q: DiscoveryQuestion, lang: string): string {
-  if (lang.startsWith("es")) return q.es;
-  if (lang.startsWith("fr")) return q.fr;
-  return q.en;
+export type DiscoveryQuestion = LocalizedText;
+
+export function getLocalized(t: LocalizedText, lang: string): string {
+  if (lang.startsWith("es")) return t.es;
+  if (lang.startsWith("fr")) return t.fr;
+  return t.en;
 }
+
+export const getQuestion = getLocalized;
+
+export interface ModuleInfo {
+  label: LocalizedText;
+  description: LocalizedText;
+}
+
+export const MODULE_INFO: Record<string, ModuleInfo> = {
+  core: {
+    label: { en: "Employee Platform / Core", es: "Plataforma del Empleado / Core", fr: "Plateforme Employé / Core" },
+    description: { en: "Central hub for employee data, documents, and self-service", es: "Hub central de datos de empleados, documentos y autoservicio", fr: "Hub central des données employés, documents et libre-service" },
+  },
+  time_off: {
+    label: { en: "Time Off", es: "Ausencias", fr: "Congés" },
+    description: { en: "Leave requests, balances, and approval workflows", es: "Solicitudes de ausencia, saldos y flujos de aprobación", fr: "Demandes de congés, soldes et workflows d'approbation" },
+  },
+  time_tracking: {
+    label: { en: "Time Tracking", es: "Control Horario", fr: "Suivi du Temps" },
+    description: { en: "Clock-in/out, timesheets, and overtime management", es: "Fichaje, hojas de horas y gestión de horas extra", fr: "Pointage, feuilles de temps et gestion des heures sup" },
+  },
+  time_planning: {
+    label: { en: "Shift Management", es: "Gestión de Turnos", fr: "Gestion des Plannings" },
+    description: { en: "Shift planning, rotations, and team scheduling", es: "Planificación de turnos, rotaciones y horarios de equipo", fr: "Planification des rotations, des équipes et des plannings" },
+  },
+  payroll: {
+    label: { en: "Payroll Connect", es: "Nóminas", fr: "Paie" },
+    description: { en: "Payroll data sync and variable pay management", es: "Sincronización de datos de nómina y gestión de variables", fr: "Synchronisation des données de paie et gestion des variables" },
+  },
+  recruitment: {
+    label: { en: "Recruitment", es: "Selección", fr: "Recrutement" },
+    description: { en: "Job postings, candidate pipeline, and hiring workflows", es: "Ofertas, pipeline de candidatos y flujos de contratación", fr: "Offres d'emploi, pipeline de candidats et workflows d'embauche" },
+  },
+  performance: {
+    label: { en: "Performance", es: "Desempeño", fr: "Performance" },
+    description: { en: "Reviews, goals, and continuous feedback", es: "Evaluaciones, objetivos y feedback continuo", fr: "Évaluations, objectifs et feedback continu" },
+  },
+  expenses: {
+    label: { en: "Expenses", es: "Gastos", fr: "Notes de Frais" },
+    description: { en: "Expense submission, approval, and reimbursement", es: "Presentación, aprobación y reembolso de gastos", fr: "Soumission, approbation et remboursement des frais" },
+  },
+  trainings: {
+    label: { en: "Training", es: "Formación", fr: "Formation" },
+    description: { en: "Training plans, compliance tracking, and certifications", es: "Planes de formación, seguimiento de cumplimiento y certificaciones", fr: "Plans de formation, suivi de conformité et certifications" },
+  },
+  compensations: {
+    label: { en: "Compensation", es: "Compensación", fr: "Rémunération" },
+    description: { en: "Salary reviews, benchmarking, and budget control", es: "Revisiones salariales, benchmarking y control presupuestario", fr: "Revues salariales, benchmarking et contrôle budgétaire" },
+  },
+  engagement: {
+    label: { en: "Engagement", es: "Engagement", fr: "Engagement" },
+    description: { en: "Pulse surveys, eNPS, and team satisfaction", es: "Encuestas pulse, eNPS y satisfacción del equipo", fr: "Enquêtes pulse, eNPS et satisfaction des équipes" },
+  },
+  documents: {
+    label: { en: "Documents", es: "Documentos", fr: "Documents" },
+    description: { en: "Document generation, e-signature, and digital vault", es: "Generación de documentos, firma electrónica y archivo digital", fr: "Génération de documents, signature électronique et coffre-fort numérique" },
+  },
+  procurement: {
+    label: { en: "Procurement", es: "Compras", fr: "Achats" },
+    description: { en: "Purchase requests, approvals, and vendor management", es: "Solicitudes de compra, aprobaciones y gestión de proveedores", fr: "Demandes d'achat, approbations et gestion des fournisseurs" },
+  },
+  projects: {
+    label: { en: "Projects", es: "Proyectos", fr: "Projets" },
+    description: { en: "Project time tracking and team allocation", es: "Control de tiempo por proyecto y asignación de equipo", fr: "Suivi du temps par projet et allocation d'équipe" },
+  },
+  headcount_planning: {
+    label: { en: "Headcount Planning", es: "Planificación de Plantilla", fr: "Planification des Effectifs" },
+    description: { en: "Workforce planning and position management", es: "Planificación de plantilla y gestión de posiciones", fr: "Planification des effectifs et gestion des postes" },
+  },
+  lms: {
+    label: { en: "LMS", es: "LMS", fr: "LMS" },
+    description: { en: "Learning management system with courses and quizzes", es: "Sistema de gestión del aprendizaje con cursos y tests", fr: "Système de gestion de l'apprentissage avec cours et quiz" },
+  },
+  complaints: {
+    label: { en: "Trust Channel", es: "Canal de Denuncias", fr: "Canal de Confiance" },
+    description: { en: "Anonymous reporting and whistleblower compliance", es: "Canal de denuncias anónimas y cumplimiento normativo", fr: "Signalement anonyme et conformité lanceur d'alerte" },
+  },
+  benefits_standard: {
+    label: { en: "Benefits", es: "Beneficios", fr: "Avantages" },
+    description: { en: "Flexible benefits enrollment and management", es: "Inscripción y gestión de beneficios flexibles", fr: "Inscription et gestion des avantages sociaux" },
+  },
+  benefits: {
+    label: { en: "Salary Advance", es: "Anticipo de Nómina", fr: "Avance sur Salaire" },
+    description: { en: "On-demand salary advance for employees", es: "Anticipo de nómina a demanda para empleados", fr: "Avance sur salaire à la demande pour les employés" },
+  },
+  wellhub: {
+    label: { en: "Wellhub", es: "Wellhub", fr: "Wellhub" },
+    description: { en: "Integrated wellness programs for employees", es: "Programas de bienestar integrados para empleados", fr: "Programmes de bien-être intégrés pour les employés" },
+  },
+};
 
 export const DISCOVERY_QUESTIONS: Record<
   string,
