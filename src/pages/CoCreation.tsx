@@ -865,9 +865,16 @@ export default function CoCreation() {
           <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Pricing input */}
             <div className="rounded-2xl border border-border bg-card p-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t("cocreation.pricing_title")}</p>
-              <p className="text-[11px] text-muted-foreground mb-3">{t("cocreation.pricing_sub")}</p>
-              <Input type="number" min={0} className="h-11 text-center font-bold text-lg tabular-nums rounded-xl max-w-[200px]" placeholder="0 €" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.pricing_title")}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{t("cocreation.pricing_sub")}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Input type="number" min={0} className="h-11 w-[140px] text-center font-bold text-lg tabular-nums rounded-xl" placeholder="0" value={annualCost || ""} onChange={e => setAnnualCost(Math.max(0, parseFloat(e.target.value) || 0))} />
+                  <span className="text-sm font-semibold text-muted-foreground">€/{t("cocreation.per_year")}</span>
+                </div>
+              </div>
             </div>
 
             {/* Hero */}
