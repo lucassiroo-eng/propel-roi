@@ -195,6 +195,7 @@ export default function CoCreation() {
   // Step 3: Discovery
   const [discoveryIdx, setDiscoveryIdx] = useState(0);
   const [discoveryNotes, setDiscoveryNotes] = useState<Record<string, string>>({});
+  const [imgBrokenSet, setImgBrokenSet] = useState<Set<string>>(new Set());
 
   // Step 4: Result
   const [annualCost, setAnnualCost] = useState(0);
@@ -749,7 +750,7 @@ export default function CoCreation() {
           (currentQuestions?.[sk] ?? []).map(q => ({ stakeholder: sk, question: q }))
         );
         const valueProps = modInfo?.valueProps ?? [];
-        const modImage = isES ? modInfo?.image : undefined;
+        const modImage = isES && modInfo?.image && !imgBrokenSet.has(currentModule) ? modInfo.image : undefined;
         const modLabel = modInfo ? getLocalized(modInfo.label, lang) : (currentModuleCat?.label ?? moduleLabel(currentModule));
         const lightBg = modColor + "08";
 
@@ -808,7 +809,7 @@ export default function CoCreation() {
                         src={modImage}
                         alt=""
                         className="w-full h-full object-contain object-center p-2"
-                        onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
                       />
                     </div>
                   )}
