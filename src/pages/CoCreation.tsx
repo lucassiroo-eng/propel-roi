@@ -775,28 +775,23 @@ export default function CoCreation() {
                 </span>
               </div>
 
-              {/* 2-col layout */}
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-6 min-h-0">
+              {/* 2×2 grid layout */}
+              <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-4 min-h-0">
 
-                {/* LEFT — Badge + Title + ValueProps + Questions */}
-                <div className="flex flex-col gap-4 min-h-0 overflow-y-auto">
-                  {/* Badge */}
+                {/* TOP-LEFT — Badge + Title + ValueProps */}
+                <div className="flex flex-col justify-center gap-3 min-h-0 overflow-hidden">
                   <div className="shrink-0">
                     <span className="inline-flex items-center text-[13px] font-bold text-white px-4 py-1.5 rounded-lg shadow-sm" style={{ backgroundColor: modColor }}>
                       {modLabel}
                     </span>
                   </div>
-
-                  {/* Headline */}
-                  <h2 className="text-[1.5rem] lg:text-[1.75rem] font-extrabold leading-[1.2] tracking-tight text-foreground shrink-0">
+                  <h2 className="text-[1.4rem] lg:text-[1.6rem] font-extrabold leading-[1.2] tracking-tight text-foreground shrink-0">
                     {modInfo ? getLocalized(modInfo.description, lang) : ""}
                   </h2>
-
-                  {/* Value props */}
                   {valueProps.length > 0 && (
-                    <div className="space-y-2.5 shrink-0">
+                    <div className="space-y-2 shrink-0">
                       {valueProps.map((vp, vi) => (
-                        <div key={vi} className="flex items-start gap-3">
+                        <div key={vi} className="flex items-start gap-2.5">
                           <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: modColor + "15" }}>
                             <Check className="h-3 w-3" style={{ color: modColor }} />
                           </div>
@@ -805,50 +800,51 @@ export default function CoCreation() {
                       ))}
                     </div>
                   )}
+                </div>
 
-                  {/* Questions card — LEFT col, below valueProps */}
-                  {allQuestions.length > 0 && (
-                    <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden shrink-0">
-                      <div className="px-4 py-2.5 border-b border-border/40" style={{ backgroundColor: lightBg }}>
-                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
-                      </div>
-                      <div className="px-4 py-3 space-y-3">
-                        {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
-                          const style = STAKE_STYLE[sk];
-                          return (
-                            <div key={qi} className="flex items-start gap-2.5">
-                              <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: style.color + "12" }}>
-                                <HelpCircle className="h-3.5 w-3.5" style={{ color: style.color }} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[13px] text-foreground leading-snug">{getQuestion(q, lang)}</p>
-                                <span className="text-[10px] font-bold uppercase tracking-widest mt-0.5 inline-block" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                {/* TOP-RIGHT — Image */}
+                <div className="rounded-2xl overflow-hidden border border-border/30 shadow-sm bg-white min-h-0">
+                  {modImage ? (
+                    <img
+                      src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
+                      alt=""
+                      className="w-full h-full object-contain object-center"
+                      onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: modColor + "08" }}>
+                      <span className="text-[13px] font-semibold" style={{ color: modColor + "60" }}>{modLabel}</span>
                     </div>
                   )}
                 </div>
 
-                {/* RIGHT — Image + Inputs */}
-                <div className="flex flex-col gap-4 min-h-0">
+                {/* BOTTOM-LEFT — Questions */}
+                <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden min-h-0 flex flex-col">
+                  <div className="px-4 py-2.5 border-b border-border/40 shrink-0" style={{ backgroundColor: lightBg }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
+                  </div>
+                  <div className="px-4 py-3 space-y-3 overflow-y-auto flex-1">
+                    {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
+                      const style = STAKE_STYLE[sk];
+                      return (
+                        <div key={qi} className="flex items-start gap-2.5">
+                          <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: style.color + "12" }}>
+                            <HelpCircle className="h-3.5 w-3.5" style={{ color: style.color }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[13px] text-foreground leading-snug">{getQuestion(q, lang)}</p>
+                            <span className="text-[10px] font-bold uppercase tracking-widest mt-0.5 inline-block" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                  {/* Module screenshot — top right */}
-                  {modImage && (
-                    <div className="rounded-2xl overflow-hidden border border-border/30 shadow-sm bg-white shrink-0" style={{ height: '220px' }}>
-                      <img
-                        src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
-                        alt=""
-                        className="w-full h-full object-contain object-center"
-                        onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
-                      />
-                    </div>
-                  )}
-
+                {/* BOTTOM-RIGHT — Hour inputs */}
+                <div className="min-h-0 flex flex-col">
                   {/* Hour inputs card */}
-                  <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden shrink-0">
+                  <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden flex flex-col h-full">
                     <div className="px-5 py-3 border-b border-border/40" style={{ backgroundColor: lightBg }}>
                       <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                     </div>
