@@ -841,7 +841,7 @@ export default function CoCreation() {
                       <img
                         src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
                         alt=""
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-contain object-center"
                         onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
                       />
                     </div>
