@@ -822,22 +822,18 @@ export default function CoCreation() {
                 <div className="grid grid-cols-2 gap-6 shrink-0">
 
                   {/* BOTTOM-LEFT — Questions */}
-                  <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden">
-                    <div className="px-4 py-2.5 border-b border-border/40" style={{ backgroundColor: lightBg }}>
-                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
+                  {/* Questions card — compact */}
+                  <div className="rounded-xl bg-white border border-border/40 shadow-sm overflow-hidden">
+                    <div className="px-3 py-2 border-b border-border/30" style={{ backgroundColor: lightBg }}>
+                      <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
                     </div>
-                    <div className="px-4 py-3 space-y-3">
+                    <div className="px-3 py-2 space-y-2">
                       {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
                         const style = STAKE_STYLE[sk];
                         return (
-                          <div key={qi} className="flex items-start gap-2.5">
-                            <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: style.color + "12" }}>
-                              <HelpCircle className="h-3.5 w-3.5" style={{ color: style.color }} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[13px] text-foreground leading-snug">{getQuestion(q, lang)}</p>
-                              <span className="text-[10px] font-bold uppercase tracking-widest mt-0.5 inline-block" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
-                            </div>
+                          <div key={qi} className="flex items-start gap-2">
+                            <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 shrink-0 pt-[2px]" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk]).slice(0,2)}</span>
+                            <p className="text-[12px] text-foreground/80 leading-snug">{getQuestion(q, lang)}</p>
                           </div>
                         );
                       })}
@@ -846,30 +842,29 @@ export default function CoCreation() {
 
                 {/* BOTTOM-RIGHT — Hour inputs */}
                 <div>
-                  {/* Hour inputs card */}
-                  <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden">
-                    <div className="px-5 py-3 border-b border-border/40" style={{ backgroundColor: lightBg }}>
-                      <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
+                  <div className="rounded-xl bg-white border border-border/40 shadow-sm overflow-hidden">
+                    <div className="px-3 py-2 border-b border-border/30" style={{ backgroundColor: lightBg }}>
+                      <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                     </div>
-                    <div className="p-5">
-                      <div className="grid grid-cols-3 gap-4">
+                    <div className="px-3 py-2">
+                      <div className="grid grid-cols-3 gap-2">
                         {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
                           const style = STAKE_STYLE[sk];
                           const Icon = style.icon;
                           const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
                           return (
-                            <div key={sk} className="flex flex-col items-center gap-2.5 py-3">
-                              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: style.color }}>
-                                <Icon className="h-5 w-5 text-white" />
+                            <div key={sk} className="flex flex-col items-center gap-1.5 py-1">
+                              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: style.color }}>
+                                <Icon className="h-4 w-4 text-white" />
                               </div>
-                              <span className="text-[11px] font-bold text-foreground/70 text-center">{t(STAKE_LABEL_KEY[sk])}</span>
-                              <div className="flex items-baseline gap-1.5">
+                              <span className="text-[10px] font-semibold text-foreground/60 text-center leading-tight">{t(STAKE_LABEL_KEY[sk])}</span>
+                              <div className="flex items-baseline gap-1">
                                 <input
                                   type="number"
                                   step="0.1"
                                   min="0"
-                                  className="w-[68px] h-11 text-center text-lg font-extrabold tabular-nums rounded-xl border-2 bg-white focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors"
-                                  style={{ borderColor: modColor + "35" }}
+                                  className="w-[52px] h-8 text-center text-base font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none focus:ring-1 focus:ring-offset-1 transition-colors"
+                                  style={{ borderColor: modColor + "40" }}
                                   value={val}
                                   onChange={e => {
                                     const v = Math.max(0, parseFloat(e.target.value) || 0);
@@ -881,23 +876,22 @@ export default function CoCreation() {
                                     });
                                   }}
                                 />
-                                <span className="text-[10px] text-muted-foreground">{t("cocreation.hrs_month")}</span>
+                                <span className="text-[9px] text-muted-foreground">h</span>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-
                       {currentModule === "core" && (
-                        <div className="pt-4 mt-4 border-t border-border/40 flex items-center gap-3">
-                          <Label className="text-[12px] font-semibold text-foreground/60 whitespace-nowrap">{t("cocreation.onboardings_label")}</Label>
-                          <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-xl max-w-[120px] border-2" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                        <div className="pt-2 mt-2 border-t border-border/30 flex items-center gap-2">
+                          <Label className="text-[11px] font-semibold text-foreground/60 whitespace-nowrap">{t("cocreation.onboardings_label")}</Label>
+                          <Input type="number" min={0} className="h-8 text-center font-bold tabular-nums rounded-lg max-w-[80px] border-2 text-sm" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
                         </div>
                       )}
                       {currentModule === "expenses" && (
-                        <div className="pt-4 mt-4 border-t border-border/40 flex items-center gap-3">
-                          <Label className="text-[12px] font-semibold text-foreground/60 whitespace-nowrap">{t("cocreation.expense_submitters_label")}</Label>
-                          <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-xl max-w-[120px] border-2" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                        <div className="pt-2 mt-2 border-t border-border/30 flex items-center gap-2">
+                          <Label className="text-[11px] font-semibold text-foreground/60 whitespace-nowrap">{t("cocreation.expense_submitters_label")}</Label>
+                          <Input type="number" min={0} className="h-8 text-center font-bold tabular-nums rounded-lg max-w-[80px] border-2 text-sm" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
                         </div>
                       )}
                     </div>
