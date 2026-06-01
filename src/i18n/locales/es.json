@@ -253,9 +253,9 @@
   "status.declined": "Rechazado",
   "status.generated": "Generado",
   "status.co_created": "Co-creado",
-  "status.pre_call": "Pre-call",
-  "status.during_call": "During call",
-  "status.post_call": "Post-call",
+  "status.pre_call": "Pre-ROI call",
+  "status.during_call": "Validación de asunciones",
+  "status.post_call": "Mejora del ROI",
   "cocreation.save_progress": "Guardar progreso",
   "cocreation.saved": "Progreso guardado",
 

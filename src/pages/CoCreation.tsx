@@ -443,6 +443,12 @@ export default function CoCreation() {
 
   const fmtEur = (n: number) => n.toLocaleString("es-ES", { maximumFractionDigits: 0 });
   const totalPeople = roiConfig.headcounts.employee + roiConfig.headcounts.hr + roiConfig.headcounts.manager;
+  const lang = i18n.language;
+  const localModLabel = useCallback((id: string, fallback?: string) => {
+    const info = MODULE_INFO[id];
+    if (info) return getLocalized(info.label, lang);
+    return fallback ?? moduleLabel(id);
+  }, [lang]);
   const currentModule = selectedModules[discoveryIdx];
   const currentModuleCat = MODULE_CATALOG.find(m => m.id === currentModule);
   const currentQuestions = currentModule ? DISCOVERY_QUESTIONS[currentModule] : undefined;
@@ -599,7 +605,7 @@ export default function CoCreation() {
                             const inBundle = bundleModuleIds.has(m.id);
                             return (
                               <button key={m.id} onClick={() => !inBundle && toggle(m.id)} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center justify-between ${inBundle ? "bg-foreground/5 text-muted-foreground cursor-default" : sel ? "bg-foreground/5 text-foreground font-medium" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}>
-                                <span className="flex items-center gap-2">{m.label}{inBundle && <span className="text-[10px] text-muted-foreground/60">bundle</span>}</span>
+                                <span className="flex items-center gap-2">{localModLabel(m.id, m.label)}{inBundle && <span className="text-[10px] text-muted-foreground/60">bundle</span>}</span>
                                 {sel || inBundle ? <Check className={`h-3.5 w-3.5 shrink-0 ${inBundle ? "text-muted-foreground/40" : "text-emerald-500"}`} /> : null}
                               </button>
                             );
@@ -628,7 +634,7 @@ export default function CoCreation() {
                           return (
                             <div key={id} className="rounded-lg border border-border bg-card p-3 flex items-center gap-3 group" style={{ animation: "fadeIn 0.25s ease-out" }}>
                               <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: cat?.color ?? "#94A3B8" }} />
-                              <span className="text-sm font-medium text-foreground flex-1">{cat?.label ?? moduleLabel(id)}</span>
+                              <span className="text-sm font-medium text-foreground flex-1">{localModLabel(id, cat?.label)}</span>
                               {inBundle && <span className="text-[10px] text-muted-foreground/60">bundle</span>}
                               {!inBundle && <button onClick={() => toggle(id)} className="shrink-0 h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"><X className="h-3.5 w-3.5" /></button>}
                             </div>
@@ -743,7 +749,6 @@ export default function CoCreation() {
       {step === 3 && currentModule && (() => {
         const modInfo = MODULE_INFO[currentModule];
         const modColor = modInfo?.color ?? currentModuleCat?.color ?? "#94A3B8";
-        const lang = i18n.language;
         const isES = lang.startsWith("es");
         const defaults = getHoursForModule(currentModule);
         const allQuestions = (["employee", "hr", "manager"] as Stakeholder[]).flatMap(sk =>
