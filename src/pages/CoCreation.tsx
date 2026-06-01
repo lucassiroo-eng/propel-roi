@@ -775,12 +775,10 @@ export default function CoCreation() {
                 </span>
               </div>
 
-              <div className="flex-1 flex flex-col gap-4 min-h-0">
-
-                {/* TOP ROW — content left, screenshot right */}
-                <div className="grid gap-5 min-h-0" style={{ height: '250px', gridTemplateColumns: modImage ? '1fr 1.05fr' : '1fr' }}>
-
-                  {/* LEFT: Badge + Title + Value props */}
+              {(() => {
+                const noImage = !modImage;
+                const noQuestions = allQuestions.length === 0;
+                const moduleInfo = (
                   <div className="flex flex-col justify-center gap-3">
                     <span className="inline-flex self-start items-center text-[11.5px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
                       {modLabel}
@@ -801,44 +799,9 @@ export default function CoCreation() {
                       </ul>
                     )}
                   </div>
+                );
 
-                  {/* RIGHT: Product screenshot */}
-                  {modImage && (
-                    <div className="rounded-2xl overflow-hidden bg-white" style={{ boxShadow: '0 2px 20px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.05)' }}>
-                      <img
-                        src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
-                        alt=""
-                        className="w-full h-full object-contain"
-                        onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* BOTTOM ROW — questions left, inputs right */}
-                <div className="grid grid-cols-2 gap-5 shrink-0">
-
-                  {/* Questions */}
-                  <div className="rounded-xl overflow-hidden" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}20` }}>
-                    <div className="px-4 py-2 border-b" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
-                      <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
-                    </div>
-                    <div className="px-4 py-2.5 space-y-2.5">
-                      {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
-                        const style = STAKE_STYLE[sk];
-                        return (
-                          <div key={qi} className="flex items-baseline gap-2">
-                            <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
-                              {t(STAKE_LABEL_KEY[sk])}
-                            </span>
-                            <p className="text-[12px] leading-snug" style={{ color: 'oklch(32% 0.01 250)' }}>{getQuestion(q, lang)}</p>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Hour inputs — horizontal rows */}
+                const inputsCard = (
                   <div className="rounded-xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
                     <div className="px-4 py-2 border-b border-black/[0.06]" style={{ backgroundColor: lightBg }}>
                       <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
@@ -889,9 +852,62 @@ export default function CoCreation() {
                       )}
                     </div>
                   </div>
+                );
 
-                </div>
-              </div>
+                if (noImage && noQuestions) {
+                  // Compact layout: module info left, inputs right — no top/bottom split
+                  return (
+                    <div className="flex-1 flex items-center min-h-0">
+                      <div className="grid grid-cols-2 gap-8 w-full">
+                        {moduleInfo}
+                        {inputsCard}
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="flex-1 flex flex-col gap-4 min-h-0">
+                    {/* TOP ROW — content left, screenshot right */}
+                    <div className="grid gap-5 min-h-0" style={{ height: '250px', gridTemplateColumns: modImage ? '1fr 1.05fr' : '1fr' }}>
+                      {moduleInfo}
+                      {modImage && (
+                        <div className="rounded-2xl overflow-hidden bg-white" style={{ boxShadow: '0 2px 20px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+                          <img
+                            src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
+                            alt=""
+                            className="w-full h-full object-contain"
+                            onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
+                          />
+                        </div>
+                      )}
+                    </div>
+                    {/* BOTTOM ROW — questions left, inputs right */}
+                    <div className="grid grid-cols-2 gap-5 shrink-0">
+                      {/* Questions */}
+                      <div className="rounded-xl overflow-hidden" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}20` }}>
+                        <div className="px-4 py-2 border-b" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
+                          <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
+                        </div>
+                        <div className="px-4 py-2.5 space-y-2.5">
+                          {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
+                            const style = STAKE_STYLE[sk];
+                            return (
+                              <div key={qi} className="flex items-baseline gap-2">
+                                <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
+                                  {t(STAKE_LABEL_KEY[sk])}
+                                </span>
+                                <p className="text-[12px] leading-snug" style={{ color: 'oklch(32% 0.01 250)' }}>{getQuestion(q, lang)}</p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {inputsCard}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </main>
 
