@@ -749,13 +749,12 @@ export default function CoCreation() {
       {step === 3 && currentModule && (() => {
         const modInfo = MODULE_INFO[currentModule];
         const modColor = modInfo?.color ?? currentModuleCat?.color ?? "#94A3B8";
-        const isES = lang.startsWith("es");
         const defaults = getHoursForModule(currentModule);
         const allQuestions = (["employee", "hr", "manager"] as Stakeholder[]).flatMap(sk =>
           (currentQuestions?.[sk] ?? []).map(q => ({ stakeholder: sk, question: q }))
         );
         const valueProps = modInfo?.valueProps ?? [];
-        const modImage = isES && modInfo?.image && !imgBrokenSet.has(currentModule) ? modInfo.image : undefined;
+        const modImage = modInfo?.image && !imgBrokenSet.has(currentModule) ? modInfo.image : undefined;
         const modLabel = modInfo ? getLocalized(modInfo.label, lang) : (currentModuleCat?.label ?? moduleLabel(currentModule));
         const lightBg = modColor + "08";
 
@@ -807,13 +806,13 @@ export default function CoCreation() {
                     </div>
                   )}
 
-                  {/* Module screenshot (ES only, graceful fallback) */}
+                  {/* Module screenshot */}
                   {modImage && (
-                    <div className="flex-1 min-h-0 max-h-[280px] rounded-2xl overflow-hidden bg-gradient-to-br from-muted/40 to-muted/20 shadow-sm">
+                    <div className="flex-1 min-h-0 max-h-[320px] rounded-2xl overflow-hidden border border-border/30 shadow-sm bg-white">
                       <img
                         src={modImage}
                         alt=""
-                        className="w-full h-full object-contain object-center p-2"
+                        className="w-full h-full object-contain object-center"
                         onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
                       />
                     </div>
