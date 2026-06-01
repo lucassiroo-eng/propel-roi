@@ -142,10 +142,10 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     label: { en: "Documents", es: "Documentos", fr: "Documents" },
     description: { en: "Generate, sign, and store documents digitally — no more paper", es: "Genera, firma y almacena documentos digitalmente — sin más papel", fr: "Générez, signez et stockez les documents numériquement — plus de papier" },
     color: "#6B7280",
-    image: "/modules/documents.png",
     valueProps: [
       { en: "Auto-generate contracts and certificates from templates", es: "Genera automáticamente contratos y certificados desde plantillas", fr: "Générez automatiquement contrats et attestations depuis des modèles" },
       { en: "Legally-binding e-signature built in", es: "Firma electrónica con validez legal integrada", fr: "Signature électronique à valeur légale intégrée" },
+      { en: "Centralize all employee documents with controlled access", es: "Centraliza todos los documentos de empleados con acceso controlado", fr: "Centralisez tous les documents employés avec accès contrôlé" },
     ],
   },
   procurement: {
@@ -153,24 +153,42 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     description: { en: "Streamline purchase requests with approvals and budget tracking", es: "Optimiza las solicitudes de compra con aprobaciones y control presupuestario", fr: "Rationalisez les demandes d'achat avec approbations et suivi budgétaire" },
     color: "#14B8A6",
     image: "/modules/procurement.png",
+    valueProps: [
+      { en: "Streamline purchase approvals with multi-level workflows", es: "Agiliza las aprobaciones de compra con flujos multinivel", fr: "Simplifiez les approbations d'achat avec des workflows multi-niveaux" },
+      { en: "Control budgets in real time and avoid unauthorized spending", es: "Controla los presupuestos en tiempo real y evita gastos no autorizados", fr: "Contrôlez les budgets en temps réel et évitez les dépenses non autorisées" },
+      { en: "Centralize all purchase requests and track their status in one place", es: "Centraliza todas las solicitudes de compra y controla su estado desde un único lugar", fr: "Centralisez toutes les demandes d'achat et suivez leur statut en un seul endroit" },
+    ],
   },
   projects: {
     label: { en: "Projects", es: "Proyectos", fr: "Projets" },
     description: { en: "Track time by project and optimize team allocation", es: "Controla el tiempo por proyecto y optimiza la asignación del equipo", fr: "Suivez le temps par projet et optimisez l'allocation de l'équipe" },
     color: "#14B8A6",
     image: "/modules/projects.png",
+    valueProps: [
+      { en: "Track time and costs per project with full precision", es: "Controla el tiempo y los costes por proyecto con total precisión", fr: "Suivez le temps et les coûts par projet avec une précision totale" },
+      { en: "Analyze labor costs, fixed costs and expenses in real time", es: "Analiza costes laborales, costes fijos y gastos en tiempo real", fr: "Analysez les coûts de main-d'œuvre, les coûts fixes et les dépenses en temps réel" },
+      { en: "Optimize team allocation and detect budget overruns early", es: "Optimiza la asignación del equipo y detecta desviaciones de presupuesto a tiempo", fr: "Optimisez l'allocation des équipes et détectez les dépassements budgétaires à temps" },
+    ],
   },
   headcount_planning: {
     label: { en: "Headcount Planning", es: "Planificación de Plantilla", fr: "Planification des Effectifs" },
     description: { en: "Plan your workforce strategically with position management", es: "Planifica tu plantilla de forma estratégica con gestión de posiciones", fr: "Planifiez vos effectifs stratégiquement avec la gestion des postes" },
     color: "#8B5CF6",
-    image: "/modules/headcount_planning.png",
+    valueProps: [
+      { en: "Plan your org structure with open positions and hiring forecasts", es: "Planifica tu estructura organizativa con posiciones abiertas y previsiones de contratación", fr: "Planifiez votre structure organisationnelle avec postes ouverts et prévisions de recrutement" },
+      { en: "Align headcount with budget and business goals", es: "Alinea la plantilla con el presupuesto y los objetivos del negocio", fr: "Alignez les effectifs avec le budget et les objectifs de l'entreprise" },
+      { en: "Get a clear view of current and future workforce composition", es: "Obtén una visión clara de la composición actual y futura de tu plantilla", fr: "Obtenez une vision claire de la composition actuelle et future de vos effectifs" },
+    ],
   },
   lms: {
     label: { en: "LMS", es: "LMS", fr: "LMS" },
     description: { en: "Create and deliver training content with built-in tracking", es: "Crea y distribuye contenido formativo con seguimiento integrado", fr: "Créez et distribuez du contenu de formation avec suivi intégré" },
     color: "#E05C75",
-    image: "/modules/lms.png",
+    valueProps: [
+      { en: "Create, assign and track training content from one platform", es: "Crea, asigna y controla contenido formativo desde una sola plataforma", fr: "Créez, assignez et suivez le contenu de formation depuis une seule plateforme" },
+      { en: "Automate course enrollment based on role, team or onboarding", es: "Automatiza la inscripción a cursos por rol, equipo o proceso de onboarding", fr: "Automatisez les inscriptions aux formations par rôle, équipe ou onboarding" },
+      { en: "Monitor completion rates and track employee skill development", es: "Controla las tasas de finalización y el desarrollo de competencias de tu equipo", fr: "Suivez les taux de complétion et le développement des compétences de vos équipes" },
+    ],
   },
   complaints: {
     label: { en: "Trust Channel", es: "Canal de Denuncias", fr: "Canal de Confiance" },
@@ -196,11 +214,23 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
   },
   benefits: {
     label: { en: "Salary Advance", es: "Anticipo de Nómina", fr: "Avance sur Salaire" },
-    description: { en: "On-demand salary advance for employees", es: "Anticipo de nómina a demanda para empleados", fr: "Avance sur salaire à la demande pour les employés" },
+    description: { en: "Give employees on-demand access to their earned salary", es: "Da a tus empleados acceso inmediato a su salario ya devengado", fr: "Donnez à vos employés un accès instantané à leur salaire déjà gagné" },
+    color: "#F59E0B",
+    valueProps: [
+      { en: "Reduce financial stress without any impact on company cash flow", es: "Reduce el estrés financiero de tus empleados sin impactar la tesorería de la empresa", fr: "Réduisez le stress financier sans impact sur la trésorerie de l'entreprise" },
+      { en: "100% digital, instant and fully integrated with payroll", es: "100% digital, inmediato y totalmente integrado con nómina", fr: "100% digital, instantané et entièrement intégré à la paie" },
+      { en: "Improve employee retention and satisfaction as a key benefit", es: "Mejora la retención y satisfacción del empleado como beneficio diferencial", fr: "Améliorez la rétention et la satisfaction des employés comme avantage clé" },
+    ],
   },
   wellhub: {
     label: { en: "Wellhub", es: "Wellhub", fr: "Wellhub" },
-    description: { en: "Integrated wellness programs for employees", es: "Programas de bienestar integrados para empleados", fr: "Programmes de bien-être intégrés pour les employés" },
+    description: { en: "Give your team access to gyms, studios and wellness apps", es: "Da a tu equipo acceso a gimnasios, estudios y apps de bienestar", fr: "Donnez à votre équipe l'accès à des salles de sport, studios et applications bien-être" },
+    color: "#10B981",
+    valueProps: [
+      { en: "Access to 50,000+ gyms, studios and wellness apps worldwide", es: "Acceso a más de 50.000 gimnasios, estudios y apps de bienestar en todo el mundo", fr: "Accès à plus de 50 000 salles de sport, studios et applications bien-être dans le monde" },
+      { en: "Improve team wellbeing and reduce absenteeism", es: "Mejora el bienestar del equipo y reduce el absentismo", fr: "Améliorez le bien-être de l'équipe et réduisez l'absentéisme" },
+      { en: "Flexible plans that adapt to each employee's lifestyle", es: "Planes flexibles que se adaptan al estilo de vida de cada empleado", fr: "Plans flexibles adaptés au mode de vie de chaque employé" },
+    ],
   },
 };
 
