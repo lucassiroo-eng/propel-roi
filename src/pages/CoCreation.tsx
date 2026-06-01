@@ -751,148 +751,172 @@ export default function CoCreation() {
         const valueProps = modInfo?.valueProps ?? [];
         const modImage = isES ? modInfo?.image : undefined;
         const modLabel = modInfo ? getLocalized(modInfo.label, lang) : (currentModuleCat?.label ?? moduleLabel(currentModule));
+        const lightBg = modColor + "08";
 
         return (
         <>
-          <main className="flex-1 overflow-hidden flex flex-col">
-            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-5 py-5 gap-5 min-h-0">
+          <main className="flex-1 overflow-hidden flex flex-col" style={{ background: `linear-gradient(135deg, ${modColor}06 0%, transparent 60%)` }}>
+            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 py-6 gap-5 min-h-0">
 
-              {/* Progress bar */}
-              <div className="flex items-center gap-2 shrink-0">
-                {selectedModules.map((mod, i) => (
-                  <button key={i} onClick={() => setDiscoveryIdx(i)} className="flex-1 h-1.5 rounded-full transition-all" style={{ backgroundColor: i === discoveryIdx ? modColor : i < discoveryIdx ? modColor + "60" : "rgba(0,0,0,0.08)" }} />
-                ))}
+              {/* Top bar: progress + counter */}
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="flex items-center gap-1.5 flex-1">
+                  {selectedModules.map((_, i) => (
+                    <button key={i} onClick={() => setDiscoveryIdx(i)} className="flex-1 h-2 rounded-full transition-all duration-300" style={{ backgroundColor: i === discoveryIdx ? modColor : i < discoveryIdx ? modColor + "50" : "rgba(0,0,0,0.06)" }} />
+                  ))}
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground tabular-nums shrink-0">
+                  {discoveryIdx + 1}/{selectedModules.length}
+                </span>
               </div>
 
-              {/* Main content — 2-column layout */}
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-5 min-h-0">
+              {/* 2-col layout */}
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-8 min-h-0">
 
-                {/* LEFT: Module info + visual */}
-                <div className="flex flex-col gap-4 min-h-0">
-                  {/* Module badge + title */}
+                {/* LEFT — Module showcase */}
+                <div className="flex flex-col justify-center gap-5 min-h-0">
+                  {/* Badge */}
                   <div className="shrink-0">
-                    <span className="inline-block text-xs font-bold text-white px-3 py-1 rounded-full mb-3" style={{ backgroundColor: modColor }}>
+                    <span className="inline-flex items-center text-[13px] font-bold text-white px-4 py-1.5 rounded-lg shadow-sm" style={{ backgroundColor: modColor }}>
                       {modLabel}
                     </span>
-                    <h2 className="text-2xl lg:text-3xl font-extrabold leading-tight text-foreground">
-                      {modInfo ? getLocalized(modInfo.description, lang) : ""}
-                    </h2>
                   </div>
+
+                  {/* Headline — uses description as a tagline */}
+                  <h2 className="text-[1.75rem] lg:text-[2rem] font-extrabold leading-[1.2] tracking-tight text-foreground shrink-0">
+                    {modInfo ? getLocalized(modInfo.description, lang) : ""}
+                  </h2>
 
                   {/* Value props */}
                   {valueProps.length > 0 && (
-                    <div className="space-y-2.5 shrink-0">
+                    <div className="space-y-3 shrink-0">
                       {valueProps.map((vp, vi) => (
-                        <div key={vi} className="flex items-start gap-2.5">
-                          <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" style={{ color: modColor }} />
-                          <p className="text-sm text-foreground/80 leading-relaxed">{getLocalized(vp, lang)}</p>
+                        <div key={vi} className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: modColor + "15" }}>
+                            <Check className="h-3.5 w-3.5" style={{ color: modColor }} />
+                          </div>
+                          <p className="text-[15px] text-foreground/75 leading-relaxed">{getLocalized(vp, lang)}</p>
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {/* Module screenshot (ES only) */}
+                  {/* Module screenshot (ES only, graceful fallback) */}
                   {modImage && (
-                    <div className="flex-1 min-h-0 rounded-2xl overflow-hidden border border-border/40 bg-muted/30">
-                      <img src={modImage} alt={modLabel} className="w-full h-full object-contain object-top" />
+                    <div className="flex-1 min-h-0 max-h-[280px] rounded-2xl overflow-hidden bg-gradient-to-br from-muted/40 to-muted/20 shadow-sm">
+                      <img
+                        src={modImage}
+                        alt=""
+                        className="w-full h-full object-contain object-center p-2"
+                        onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
                     </div>
                   )}
                 </div>
 
-                {/* RIGHT: Questions + hour inputs */}
-                <div className="flex flex-col gap-4 min-h-0">
-                  {/* Questions */}
+                {/* RIGHT — Questions + Inputs */}
+                <div className="flex flex-col gap-5 min-h-0 justify-center">
+
+                  {/* Questions card */}
                   {allQuestions.length > 0 && (
-                    <div className="rounded-2xl p-5 space-y-3 shrink-0" style={{ backgroundColor: modColor + "08", borderLeft: `4px solid ${modColor}` }}>
-                      {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
-                        const style = STAKE_STYLE[sk];
-                        return (
-                          <div key={qi} className="flex items-start gap-3">
-                            <HelpCircle className="h-4 w-4 shrink-0 mt-1" style={{ color: modColor }} />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-foreground/90 leading-relaxed font-medium">{getQuestion(q, lang)}</p>
-                              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                    <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden shrink-0">
+                      <div className="px-5 py-3 border-b border-border/40" style={{ backgroundColor: lightBg }}>
+                        <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
+                      </div>
+                      <div className="px-5 py-4 space-y-4">
+                        {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
+                          const style = STAKE_STYLE[sk];
+                          return (
+                            <div key={qi} className="flex items-start gap-3">
+                              <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: style.color + "12" }}>
+                                <HelpCircle className="h-4 w-4" style={{ color: style.color }} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[14px] text-foreground leading-snug">{getQuestion(q, lang)}</p>
+                                <span className="text-[10px] font-bold uppercase tracking-widest mt-1 inline-block" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
 
-                  {/* Hour inputs */}
-                  <div className="rounded-2xl border-2 p-5 space-y-4 shrink-0" style={{ borderColor: modColor + "30" }}>
-                    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
-                        const style = STAKE_STYLE[sk];
-                        const Icon = style.icon;
-                        const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
-                        return (
-                          <div key={sk} className="flex flex-col items-center gap-2 rounded-xl p-3 bg-white border border-border/60">
-                            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: style.color }}>
-                              <Icon className="h-4.5 w-4.5 text-white" />
-                            </div>
-                            <span className="text-[11px] font-bold text-foreground text-center leading-tight">{t(STAKE_LABEL_KEY[sk])}</span>
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                step="0.1"
-                                min="0"
-                                className="w-[72px] h-10 text-center text-base font-extrabold tabular-nums rounded-xl border-2 bg-white focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
-                                style={{ borderColor: modColor + "40", ["--tw-ring-color" as any]: modColor + "40" }}
-                                value={val}
-                                onChange={e => {
-                                  const v = Math.max(0, parseFloat(e.target.value) || 0);
-                                  setRoiConfig(prev => {
-                                    const ho = { ...(prev.hours_overrides ?? {}) };
-                                    ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
-                                    if (v === defaults[sk]) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
-                                    return { ...prev, hours_overrides: ho };
-                                  });
-                                }}
-                              />
-                              <span className="text-[10px] text-muted-foreground font-medium">{t("cocreation.hrs_month")}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
+                  {/* Hour inputs card */}
+                  <div className="rounded-2xl bg-white border border-border/50 shadow-sm overflow-hidden shrink-0">
+                    <div className="px-5 py-3 border-b border-border/40" style={{ backgroundColor: lightBg }}>
+                      <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                     </div>
+                    <div className="p-5">
+                      <div className="grid grid-cols-3 gap-4">
+                        {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
+                          const style = STAKE_STYLE[sk];
+                          const Icon = style.icon;
+                          const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
+                          return (
+                            <div key={sk} className="flex flex-col items-center gap-2.5 py-3">
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: style.color }}>
+                                <Icon className="h-5 w-5 text-white" />
+                              </div>
+                              <span className="text-[11px] font-bold text-foreground/70 text-center">{t(STAKE_LABEL_KEY[sk])}</span>
+                              <div className="flex items-baseline gap-1.5">
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  className="w-[68px] h-11 text-center text-lg font-extrabold tabular-nums rounded-xl border-2 bg-white focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors"
+                                  style={{ borderColor: modColor + "35" }}
+                                  value={val}
+                                  onChange={e => {
+                                    const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                    setRoiConfig(prev => {
+                                      const ho = { ...(prev.hours_overrides ?? {}) };
+                                      ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
+                                      if (v === defaults[sk]) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
+                                      return { ...prev, hours_overrides: ho };
+                                    });
+                                  }}
+                                />
+                                <span className="text-[10px] text-muted-foreground">{t("cocreation.hrs_month")}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                    {currentModule === "core" && (
-                      <div className="pt-3 border-t border-border/40">
-                        <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.onboardings_label")}</Label>
-                        <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-xl max-w-[160px] border-2" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
-                      </div>
-                    )}
-                    {currentModule === "expenses" && (
-                      <div className="pt-3 border-t border-border/40">
-                        <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.expense_submitters_label")}</Label>
-                        <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-xl max-w-[160px] border-2" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
-                      </div>
-                    )}
+                      {currentModule === "core" && (
+                        <div className="pt-4 mt-4 border-t border-border/40 flex items-center gap-3">
+                          <Label className="text-[12px] font-semibold text-foreground/60 whitespace-nowrap">{t("cocreation.onboardings_label")}</Label>
+                          <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-xl max-w-[120px] border-2" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                        </div>
+                      )}
+                      {currentModule === "expenses" && (
+                        <div className="pt-4 mt-4 border-t border-border/40 flex items-center gap-3">
+                          <Label className="text-[12px] font-semibold text-foreground/60 whitespace-nowrap">{t("cocreation.expense_submitters_label")}</Label>
+                          <Input type="number" min={0} className="h-10 text-center font-bold tabular-nums rounded-xl max-w-[120px] border-2" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                        </div>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Module counter */}
-                  <p className="text-center text-xs text-muted-foreground font-medium shrink-0">
-                    {t("cocreation.module_n_of_total", { n: discoveryIdx + 1, total: selectedModules.length })}
-                  </p>
                 </div>
+
               </div>
             </div>
           </main>
 
-          <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
-            <div className="max-w-6xl mx-auto flex justify-between gap-3">
-              <Button variant="outline" onClick={() => discoveryIdx > 0 ? setDiscoveryIdx(i => i - 1) : setStep(2)} className="rounded-xl h-11">
+          <footer className="sticky bottom-0 z-10 bg-white/80 backdrop-blur-xl border-t border-border/50 px-5 py-3">
+            <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+              <Button variant="ghost" onClick={() => discoveryIdx > 0 ? setDiscoveryIdx(i => i - 1) : setStep(2)} className="rounded-xl h-11 text-foreground/60 hover:text-foreground">
                 <ArrowLeft className="h-4 w-4 mr-1.5" /> {discoveryIdx > 0 ? t("cocreation.prev_module") : t("express.back")}
               </Button>
+              <span className="text-xs text-muted-foreground hidden sm:block">{modLabel}</span>
               {discoveryIdx < selectedModules.length - 1 ? (
-                <Button onClick={() => setDiscoveryIdx(i => i + 1)} className="rounded-xl h-11 px-6 text-white font-bold" style={{ backgroundColor: modColor }}>
-                  {t("cocreation.next_module")} <ArrowRight className="h-4 w-4 ml-1.5" />
+                <Button onClick={() => setDiscoveryIdx(i => i + 1)} className="rounded-xl h-11 px-8 text-white font-bold shadow-md transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: modColor }}>
+                  {t("cocreation.next_module")} <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (
-                <Button onClick={() => setStep(4)} className="rounded-xl h-11 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                  {t("cocreation.finish_discovery")} <Check className="h-4 w-4 ml-1.5" />
+                <Button onClick={() => setStep(4)} className="rounded-xl h-11 px-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  {t("cocreation.finish_discovery")} <Check className="h-4 w-4 ml-2" />
                 </Button>
               )}
             </div>
