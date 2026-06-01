@@ -810,7 +810,7 @@ export default function CoCreation() {
                   {modImage && (
                     <div className="flex-1 min-h-0 max-h-[320px] rounded-2xl overflow-hidden border border-border/30 shadow-sm bg-white">
                       <img
-                        src={modImage}
+                        src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
                         alt=""
                         className="w-full h-full object-contain object-center"
                         onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
