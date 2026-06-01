@@ -761,7 +761,7 @@ export default function CoCreation() {
         return (
         <>
           <main className="flex-1 overflow-hidden flex flex-col" style={{ background: `linear-gradient(150deg, ${modColor}09 0%, transparent 55%)` }}>
-            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 py-4 gap-4 min-h-0">
+            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 py-5 gap-5 min-h-0">
 
               {/* Progress bar */}
               <div className="flex items-center gap-3 shrink-0">
@@ -778,50 +778,29 @@ export default function CoCreation() {
               {(() => {
                 const noImage = !modImage;
                 const noQuestions = allQuestions.length === 0;
-                const moduleInfo = (
-                  <div className="flex flex-col justify-center gap-3">
-                    <span className="inline-flex self-start items-center text-[11.5px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
-                      {modLabel}
-                    </span>
-                    <h2 className="text-[1.42rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
-                      {modInfo ? getLocalized(modInfo.description, lang) : ""}
-                    </h2>
-                    {valueProps.length > 0 && (
-                      <ul className="space-y-1.5">
-                        {valueProps.map((vp, vi) => (
-                          <li key={vi} className="flex items-start gap-2.5">
-                            <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-[3px]" style={{ backgroundColor: modColor + "1A" }}>
-                              <Check className="h-2.5 w-2.5" style={{ color: modColor }} />
-                            </div>
-                            <p className="text-[12.5px] leading-snug" style={{ color: 'oklch(42% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                );
 
-                const inputsCard = (
-                  <div className="rounded-xl overflow-hidden bg-white" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
-                    <div className="px-4 py-2 border-b border-black/[0.06]" style={{ backgroundColor: lightBg }}>
+                // Reusable inputs card — flex-col so it can fill height
+                const inputsCardInner = (
+                  <>
+                    <div className="px-5 py-3 border-b border-black/[0.06] shrink-0" style={{ backgroundColor: lightBg }}>
                       <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                     </div>
-                    <div className="px-4 py-2.5 space-y-2">
+                    <div className="flex-1 flex flex-col justify-center px-5 py-4 gap-3">
                       {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
                         const style = STAKE_STYLE[sk];
                         const Icon = style.icon;
                         const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
                         return (
                           <div key={sk} className="flex items-center gap-3">
-                            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '18' }}>
-                              <Icon className="h-3.5 w-3.5" style={{ color: style.color }} />
+                            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '18' }}>
+                              <Icon className="h-4 w-4" style={{ color: style.color }} />
                             </div>
-                            <span className="text-[11.5px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                            <span className="text-[13px] font-medium flex-1" style={{ color: 'oklch(35% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
                             <div className="flex items-baseline gap-1.5">
                               <input
                                 type="number" step="0.1" min="0"
-                                className="w-[54px] h-7 text-center text-[13px] font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none transition-colors"
-                                style={{ borderColor: modColor + '38' }}
+                                className="w-[58px] h-8 text-center text-[14px] font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none transition-colors"
+                                style={{ borderColor: modColor + '40' }}
                                 value={val}
                                 onChange={e => {
                                   const v = Math.max(0, parseFloat(e.target.value) || 0);
@@ -833,46 +812,88 @@ export default function CoCreation() {
                                   });
                                 }}
                               />
-                              <span className="text-[9.5px]" style={{ color: 'oklch(60% 0.005 250)' }}>h/mes</span>
+                              <span className="text-[10px] font-medium" style={{ color: 'oklch(60% 0.005 250)' }}>h/mes</span>
                             </div>
                           </div>
                         );
                       })}
                       {currentModule === "core" && (
-                        <div className="pt-2 mt-1 border-t border-black/[0.06] flex items-center gap-2">
-                          <Label className="text-[11px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t("cocreation.onboardings_label")}</Label>
-                          <Input type="number" min={0} className="h-7 w-[70px] text-center font-bold tabular-nums rounded-lg border-2 text-[13px]" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                        <div className="pt-3 mt-1 border-t border-black/[0.06] flex items-center gap-2">
+                          <Label className="text-[12px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t("cocreation.onboardings_label")}</Label>
+                          <Input type="number" min={0} className="h-8 w-[70px] text-center font-bold tabular-nums rounded-lg border-2 text-[14px]" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
                         </div>
                       )}
                       {currentModule === "expenses" && (
-                        <div className="pt-2 mt-1 border-t border-black/[0.06] flex items-center gap-2">
-                          <Label className="text-[11px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t("cocreation.expense_submitters_label")}</Label>
-                          <Input type="number" min={0} className="h-7 w-[70px] text-center font-bold tabular-nums rounded-lg border-2 text-[13px]" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                        <div className="pt-3 mt-1 border-t border-black/[0.06] flex items-center gap-2">
+                          <Label className="text-[12px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t("cocreation.expense_submitters_label")}</Label>
+                          <Input type="number" min={0} className="h-8 w-[70px] text-center font-bold tabular-nums rounded-lg border-2 text-[14px]" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
                         </div>
                       )}
                     </div>
-                  </div>
+                  </>
                 );
 
                 if (noImage && noQuestions) {
-                  // Compact layout: module info left, inputs right — no top/bottom split
+                  // Full-height 2-col: module info card left, inputs card right
                   return (
-                    <div className="flex-1 flex items-center min-h-0">
-                      <div className="grid grid-cols-2 gap-8 w-full">
-                        {moduleInfo}
-                        {inputsCard}
+                    <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
+                      {/* Info card */}
+                      <div className="rounded-2xl flex flex-col justify-center px-8 py-8 gap-5" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
+                        <span className="inline-flex self-start items-center text-[12px] font-bold text-white px-3.5 py-1.5 rounded-lg tracking-wide" style={{ backgroundColor: modColor }}>
+                          {modLabel}
+                        </span>
+                        <h2 className="text-[1.75rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
+                          {modInfo ? getLocalized(modInfo.description, lang) : ""}
+                        </h2>
+                        {valueProps.length > 0 && (
+                          <ul className="space-y-3">
+                            {valueProps.map((vp, vi) => (
+                              <li key={vi} className="flex items-start gap-3">
+                                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-[2px]" style={{ backgroundColor: modColor + "22" }}>
+                                  <Check className="h-3 w-3" style={{ color: modColor }} />
+                                </div>
+                                <p className="text-[14px] leading-snug" style={{ color: 'oklch(40% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      {/* Inputs card */}
+                      <div className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                        {inputsCardInner}
                       </div>
                     </div>
                   );
                 }
 
                 return (
-                  <div className="flex-1 flex flex-col gap-4 min-h-0">
-                    {/* TOP ROW — content left, screenshot right */}
-                    <div className="grid gap-5 min-h-0" style={{ height: '250px', gridTemplateColumns: modImage ? '1fr 1.05fr' : '1fr' }}>
-                      {moduleInfo}
+                  <div className="flex-1 flex flex-col gap-5 min-h-0">
+                    {/* TOP ROW — module info left, screenshot right */}
+                    <div className="shrink-0 grid gap-5" style={{ minHeight: '220px', gridTemplateColumns: modImage ? '1fr 1.1fr' : '1fr' }}>
+                      {/* Module info */}
+                      <div className="flex flex-col justify-center gap-3.5 pr-2">
+                        <span className="inline-flex self-start items-center text-[12px] font-bold text-white px-3.5 py-1.5 rounded-lg tracking-wide" style={{ backgroundColor: modColor }}>
+                          {modLabel}
+                        </span>
+                        <h2 className="text-[1.6rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
+                          {modInfo ? getLocalized(modInfo.description, lang) : ""}
+                        </h2>
+                        {valueProps.length > 0 && (
+                          <ul className="space-y-2">
+                            {valueProps.map((vp, vi) => (
+                              <li key={vi} className="flex items-start gap-2.5">
+                                <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-[3px]" style={{ backgroundColor: modColor + "1A" }}>
+                                  <Check className="h-2.5 w-2.5" style={{ color: modColor }} />
+                                </div>
+                                <p className="text-[13px] leading-snug" style={{ color: 'oklch(42% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      {/* Screenshot */}
                       {modImage && (
-                        <div className="rounded-2xl overflow-hidden bg-white" style={{ boxShadow: '0 2px 20px rgba(0,0,0,0.09), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+                        <div className="rounded-2xl overflow-hidden bg-white" style={{ boxShadow: '0 2px 24px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)' }}>
                           <img
                             src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
                             alt=""
@@ -882,28 +903,32 @@ export default function CoCreation() {
                         </div>
                       )}
                     </div>
-                    {/* BOTTOM ROW — questions left, inputs right */}
-                    <div className="grid grid-cols-2 gap-5 shrink-0">
-                      {/* Questions */}
-                      <div className="rounded-xl overflow-hidden" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}20` }}>
-                        <div className="px-4 py-2 border-b" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
+
+                    {/* BOTTOM ROW — questions left, inputs right — grows to fill remaining space */}
+                    <div className="flex-1 grid grid-cols-2 gap-5 min-h-0">
+                      {/* Questions card */}
+                      <div className="rounded-2xl overflow-hidden flex flex-col" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}20` }}>
+                        <div className="px-5 py-3 border-b shrink-0" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
                           <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
                         </div>
-                        <div className="px-4 py-2.5 space-y-2.5">
+                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3.5">
                           {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
                             const style = STAKE_STYLE[sk];
                             return (
-                              <div key={qi} className="flex items-baseline gap-2">
-                                <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
+                              <div key={qi} className="flex items-baseline gap-2.5">
+                                <span className="inline-flex shrink-0 items-center px-2 py-0.5 rounded text-[8.5px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
                                   {t(STAKE_LABEL_KEY[sk])}
                                 </span>
-                                <p className="text-[12px] leading-snug" style={{ color: 'oklch(32% 0.01 250)' }}>{getQuestion(q, lang)}</p>
+                                <p className="text-[13px] leading-snug" style={{ color: 'oklch(30% 0.01 250)' }}>{getQuestion(q, lang)}</p>
                               </div>
                             );
                           })}
                         </div>
                       </div>
-                      {inputsCard}
+                      {/* Inputs card */}
+                      <div className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                        {inputsCardInner}
+                      </div>
                     </div>
                   </div>
                 );
