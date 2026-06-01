@@ -778,8 +778,8 @@ export default function CoCreation() {
               {/* 2-col layout: top row (content+image) flex-1, bottom row (questions+inputs) shrink-0 */}
               <div className="flex-1 flex flex-col gap-4 min-h-0">
 
-                {/* TOP ROW — title+valueprops left, image right, both vertically centered */}
-                <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
+                {/* TOP ROW — title+valueprops left, image right */}
+                <div className="grid grid-cols-2 gap-6" style={{ height: '240px' }}>
 
                   {/* TOP-LEFT — Badge + Title + ValueProps, centered */}
                   <div className="flex flex-col justify-center gap-3 min-h-0">
@@ -805,21 +805,17 @@ export default function CoCreation() {
                     )}
                   </div>
 
-                  {/* TOP-RIGHT — Image, fully visible, centered */}
-                  <div className="rounded-2xl overflow-hidden border border-border/30 shadow-sm bg-white min-h-0 flex items-center justify-center">
-                    {modImage ? (
+                  {/* TOP-RIGHT — Image, fully visible */}
+                  {modImage && (
+                    <div className="rounded-2xl overflow-hidden border border-border/30 shadow-sm bg-white">
                       <img
                         src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
                         alt=""
                         className="w-full h-full object-contain"
                         onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
                       />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: modColor + "08" }}>
-                        <span className="text-[13px] font-semibold" style={{ color: modColor + "60" }}>{modLabel}</span>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* BOTTOM ROW — questions left, inputs right, same height */}

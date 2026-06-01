@@ -354,4 +354,8 @@ export const DISCOVERY_QUESTIONS: Record<
     hr: [{ en: "How many hours per month does your HR team spend administrating employee benefits (enrollment, changes, queries)?", es: "¿Cuántas horas al mes dedica vuestro equipo de RRHH a administrar los beneficios de empleados (altas, cambios, consultas)?", fr: "Combien d'heures par mois votre équipe RH consacre-t-elle à administrer les avantages sociaux (inscriptions, modifications, demandes) ?" }],
     employee: [{ en: "How much time per month do your employees spend understanding and managing their benefits?", es: "¿Cuánto tiempo al mes dedican vuestros empleados a entender y gestionar sus beneficios?", fr: "Combien de temps par mois vos employés passent-ils à comprendre et gérer leurs avantages ?" }],
   },
+  benefits: {
+    hr: [{ en: "How many hours per month does your HR team spend managing salary advance requests and reconciliation?", es: "¿Cuántas horas al mes dedica vuestro equipo de RRHH a gestionar solicitudes de anticipo y su conciliación?", fr: "Combien d'heures par mois votre équipe RH consacre-t-elle à gérer les demandes d'avance sur salaire et leur réconciliation ?" }],
+    employee: [{ en: "Have your employees ever faced financial stress between paydays that impacted their focus at work?", es: "¿Alguna vez vuestros empleados han tenido estrés financiero entre nóminas que ha afectado a su concentración en el trabajo?", fr: "Vos employés ont-ils déjà subi un stress financier entre deux salaires qui a affecté leur concentration au travail ?" }],
+  },
 };
