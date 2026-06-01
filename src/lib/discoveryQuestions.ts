@@ -185,7 +185,14 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
   },
   benefits_standard: {
     label: { en: "Benefits", es: "Beneficios", fr: "Avantages" },
-    description: { en: "Flexible benefits enrollment and management", es: "Inscripción y gestión de beneficios flexibles", fr: "Inscription et gestion des avantages sociaux" },
+    description: { en: "Improve your team's experience with flexible benefits", es: "Mejora la experiencia de tu equipo con la retribución flexible", fr: "Améliorez l'expérience de votre équipe avec les avantages flexibles" },
+    color: "#F59E0B",
+    image: "/modules/benefits_standard.png",
+    valueProps: [
+      { en: "Offer a modern benefits package to attract and retain talent without increasing salary costs", es: "Ofrece un paquete de beneficios moderno y competitivo para atraer y retener talento sin aumentar costes salariales", fr: "Offrez un package d'avantages modernes pour attirer et retenir les talents sans augmenter les coûts salariaux" },
+      { en: "Increase team satisfaction by letting employees spend on what they truly value", es: "Aumenta la satisfacción del equipo permitiendo a los empleados gastar en lo que realmente valoran", fr: "Augmentez la satisfaction de l'équipe en laissant les employés dépenser sur ce qui compte pour eux" },
+      { en: "Ensure tax compliance and manage enrollments, cancellations and limits from one place", es: "Garantiza el cumplimiento fiscal y gestiona altas, bajas y límites de consumo sin fricciones desde un único lugar", fr: "Garantissez la conformité fiscale et gérez les inscriptions, résiliations et limites depuis un seul endroit" },
+    ],
   },
   benefits: {
     label: { en: "Salary Advance", es: "Anticipo de Nómina", fr: "Avance sur Salaire" },
