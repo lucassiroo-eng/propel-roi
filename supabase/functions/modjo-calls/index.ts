@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { mode, companyName, callId } = await req.json();
+    const { mode, companyName, callId, hubspotDealId } = await req.json();
     const key = getKey();
 
     if (mode === "search") {
@@ -38,7 +38,13 @@ Deno.serve(async (req) => {
 
       // 1. Search deals by name
       const deals = await v2Get(key, `/deals?name=${encodeURIComponent(companyName)}&size=5`);
-      const matchedDeals = deals.data ?? [];
+      let matchedDeals = deals.data ?? [];
+
+      // If we have the HubSpot deal ID, filter to exact crmId match
+      if (hubspotDealId && matchedDeals.length > 0) {
+        const exact = matchedDeals.filter((d: any) => d.crmId === String(hubspotDealId));
+        if (exact.length > 0) matchedDeals = exact;
+      }
 
       // 2. Collect unique account IDs from deals
       const accountIds = new Set<number>();

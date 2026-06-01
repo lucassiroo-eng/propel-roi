@@ -177,6 +177,7 @@ export default function CoCreation() {
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [companyName, setCompanyName] = useState("");
   const [dealName, setDealName] = useState("");
+  const [hubspotDealId, setHubspotDealId] = useState<string | null>(null);
   const [country, setCountry] = useState<"ES" | "FR">("ES");
 
   // Step 1: Modules
@@ -291,6 +292,7 @@ export default function CoCreation() {
     if (!url) return;
     const dealId = extractDealIdFromUrl(url);
     if (!dealId) { toast.error(t("express.hubspot_invalid")); return; }
+    setHubspotDealId(dealId);
     setFetching(true);
     setMsgs([{ text: t("express.fetching"), done: false }]);
     try {
@@ -342,7 +344,7 @@ export default function CoCreation() {
     setSearchingCalls(true);
     try {
       const { data, error } = await supabase.functions.invoke("modjo-calls", {
-        body: { mode: "search", companyName: query },
+        body: { mode: "search", companyName: query, hubspotDealId },
       });
       if (error) throw error;
       setModjoCalls(data?.calls ?? []);
