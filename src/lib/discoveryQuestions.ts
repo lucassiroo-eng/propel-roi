@@ -19,76 +19,169 @@ export const getQuestion = getLocalized;
 export interface ModuleInfo {
   label: LocalizedText;
   description: LocalizedText;
+  image?: string;
+  color?: string;
+  valueProps?: LocalizedText[];
 }
 
 export const MODULE_INFO: Record<string, ModuleInfo> = {
   core: {
     label: { en: "Employee Platform / Core", es: "Plataforma del Empleado / Core", fr: "Plateforme Employé / Core" },
-    description: { en: "Central hub for employee data, documents, and self-service", es: "Hub central de datos de empleados, documentos y autoservicio", fr: "Hub central des données employés, documents et libre-service" },
+    description: { en: "Centralize all employee data and empower your team with self-service", es: "Centraliza todos los datos de empleados y empodera a tu equipo con autoservicio", fr: "Centralisez toutes les données employés et donnez l'autonomie à votre équipe" },
+    color: "#6B7280",
+    image: "/modules/core.png",
+    valueProps: [
+      { en: "Single source of truth for all employee data", es: "Fuente única de verdad para todos los datos de empleados", fr: "Source unique de vérité pour toutes les données employés" },
+      { en: "Reduce HR admin with employee self-service", es: "Reduce el trabajo administrativo de RRHH con autoservicio", fr: "Réduisez l'admin RH grâce au libre-service employé" },
+      { en: "Automatic notifications and approval workflows", es: "Notificaciones automáticas y flujos de aprobación", fr: "Notifications automatiques et workflows d'approbation" },
+    ],
   },
   time_off: {
     label: { en: "Time Off", es: "Ausencias", fr: "Congés" },
-    description: { en: "Leave requests, balances, and approval workflows", es: "Solicitudes de ausencia, saldos y flujos de aprobación", fr: "Demandes de congés, soldes et workflows d'approbation" },
+    description: { en: "Automate leave management so your team can focus on what matters", es: "Automatiza la gestión de ausencias para que tu equipo se centre en lo importante", fr: "Automatisez la gestion des congés pour que votre équipe se concentre sur l'essentiel" },
+    color: "#6B7280",
+    image: "/modules/time_off.png",
+    valueProps: [
+      { en: "Employees request and track leave from their phone", es: "Los empleados solicitan y consultan ausencias desde el móvil", fr: "Les employés demandent et suivent leurs congés depuis leur téléphone" },
+      { en: "Automatic balance calculations and carryover rules", es: "Cálculo automático de saldos y reglas de arrastre", fr: "Calcul automatique des soldes et règles de report" },
+      { en: "Managers approve with one tap, no email chains", es: "Los managers aprueban con un clic, sin cadenas de email", fr: "Les managers approuvent en un clic, sans chaînes d'emails" },
+    ],
   },
   time_tracking: {
     label: { en: "Time Tracking", es: "Control Horario", fr: "Suivi du Temps" },
-    description: { en: "Clock-in/out, timesheets, and overtime management", es: "Fichaje, hojas de horas y gestión de horas extra", fr: "Pointage, feuilles de temps et gestion des heures sup" },
+    description: { en: "Ensure labor law compliance with effortless clock-in and timesheets", es: "Cumple con la normativa laboral con fichaje y hojas de horas sin esfuerzo", fr: "Assurez la conformité légale avec un pointage et des feuilles de temps sans effort" },
+    color: "#6B7280",
+    image: "/modules/time_tracking.png",
+    valueProps: [
+      { en: "One-click clock in from any device", es: "Fichaje con un clic desde cualquier dispositivo", fr: "Pointage en un clic depuis n'importe quel appareil" },
+      { en: "Automatic overtime calculation and alerts", es: "Cálculo automático de horas extra y alertas", fr: "Calcul automatique des heures sup et alertes" },
+      { en: "Direct sync with payroll for zero errors", es: "Sincronización directa con nóminas sin errores", fr: "Synchronisation directe avec la paie sans erreurs" },
+    ],
   },
   time_planning: {
     label: { en: "Shift Management", es: "Gestión de Turnos", fr: "Gestion des Plannings" },
-    description: { en: "Shift planning, rotations, and team scheduling", es: "Planificación de turnos, rotaciones y horarios de equipo", fr: "Planification des rotations, des équipes et des plannings" },
+    description: { en: "Plan shifts and rotations visually, keeping your team aligned", es: "Planifica turnos y rotaciones de forma visual, manteniendo a tu equipo alineado", fr: "Planifiez les rotations visuellement, en gardant votre équipe alignée" },
+    color: "#2563EB",
+    image: "/modules/time_planning.png",
+    valueProps: [
+      { en: "Drag-and-drop shift planning", es: "Planificación de turnos con arrastrar y soltar", fr: "Planification des plannings par glisser-déposer" },
+      { en: "Automatic conflict detection and coverage alerts", es: "Detección automática de conflictos y alertas de cobertura", fr: "Détection automatique des conflits et alertes de couverture" },
+    ],
   },
   payroll: {
     label: { en: "Payroll Connect", es: "Nóminas", fr: "Paie" },
-    description: { en: "Payroll data sync and variable pay management", es: "Sincronización de datos de nómina y gestión de variables", fr: "Synchronisation des données de paie et gestion des variables" },
+    description: { en: "Sync HR data to payroll automatically — no more manual re-entry", es: "Sincroniza los datos de RRHH con nóminas automáticamente — sin re-introducción manual", fr: "Synchronisez les données RH avec la paie automatiquement — plus de saisie manuelle" },
+    color: "#FB923C",
+    image: "/modules/payroll.png",
+    valueProps: [
+      { en: "One-click payroll data sync", es: "Sincronización de datos de nómina con un clic", fr: "Synchronisation des données de paie en un clic" },
+      { en: "Track and manage variable pay components", es: "Controla y gestiona los componentes variables de nómina", fr: "Suivez et gérez les composantes variables de la paie" },
+    ],
   },
   recruitment: {
     label: { en: "Recruitment", es: "Selección", fr: "Recrutement" },
-    description: { en: "Job postings, candidate pipeline, and hiring workflows", es: "Ofertas, pipeline de candidatos y flujos de contratación", fr: "Offres d'emploi, pipeline de candidats et workflows d'embauche" },
+    description: { en: "Attract and hire top talent with a streamlined pipeline", es: "Atrae y contrata al mejor talento con un pipeline optimizado", fr: "Attirez et recrutez les meilleurs talents avec un pipeline optimisé" },
+    color: "#E05C75",
+    image: "/modules/recruitment.png",
+    valueProps: [
+      { en: "Post to multiple job boards in one click", es: "Publica en múltiples portales de empleo con un clic", fr: "Publiez sur plusieurs job boards en un clic" },
+      { en: "Collaborative hiring with structured scorecards", es: "Contratación colaborativa con scorecards estructurados", fr: "Recrutement collaboratif avec des grilles d'évaluation" },
+    ],
   },
   performance: {
     label: { en: "Performance", es: "Desempeño", fr: "Performance" },
-    description: { en: "Reviews, goals, and continuous feedback", es: "Evaluaciones, objetivos y feedback continuo", fr: "Évaluations, objectifs et feedback continu" },
+    description: { en: "Drive growth with structured reviews, goals, and continuous feedback", es: "Impulsa el crecimiento con evaluaciones, objetivos y feedback continuo", fr: "Favorisez la croissance avec des évaluations, des objectifs et du feedback continu" },
+    color: "#E05C75",
+    image: "/modules/performance.png",
+    valueProps: [
+      { en: "Customizable review cycles and templates", es: "Ciclos de evaluación y plantillas personalizables", fr: "Cycles d'évaluation et modèles personnalisables" },
+      { en: "Goal tracking with OKR alignment", es: "Seguimiento de objetivos con alineación OKR", fr: "Suivi des objectifs avec alignement OKR" },
+    ],
   },
   expenses: {
     label: { en: "Expenses", es: "Gastos", fr: "Notes de Frais" },
-    description: { en: "Expense submission, approval, and reimbursement", es: "Presentación, aprobación y reembolso de gastos", fr: "Soumission, approbation et remboursement des frais" },
+    description: { en: "Simplify expense management from submission to reimbursement", es: "Simplifica la gestión de gastos desde la presentación hasta el reembolso", fr: "Simplifiez la gestion des frais de la soumission au remboursement" },
+    color: "#14B8A6",
+    image: "/modules/expenses.png",
+    valueProps: [
+      { en: "Snap a receipt and submit in seconds", es: "Foto del ticket y envío en segundos", fr: "Photographiez le reçu et soumettez en quelques secondes" },
+      { en: "Automatic policy validation and approval flows", es: "Validación automática de política y flujos de aprobación", fr: "Validation automatique de la politique et workflows d'approbation" },
+    ],
   },
   trainings: {
     label: { en: "Training", es: "Formación", fr: "Formation" },
-    description: { en: "Training plans, compliance tracking, and certifications", es: "Planes de formación, seguimiento de cumplimiento y certificaciones", fr: "Plans de formation, suivi de conformité et certifications" },
+    description: { en: "Keep your team skilled and compliant with structured training plans", es: "Mantén a tu equipo formado y en cumplimiento con planes de formación estructurados", fr: "Gardez votre équipe formée et conforme avec des plans de formation structurés" },
+    color: "#E05C75",
+    image: "/modules/trainings.png",
+    valueProps: [
+      { en: "Track mandatory training completion automatically", es: "Seguimiento automático de formación obligatoria", fr: "Suivi automatique des formations obligatoires" },
+      { en: "Centralized training catalog with enrollment", es: "Catálogo de formación centralizado con inscripción", fr: "Catalogue de formation centralisé avec inscription" },
+    ],
   },
   compensations: {
     label: { en: "Compensation", es: "Compensación", fr: "Rémunération" },
-    description: { en: "Salary reviews, benchmarking, and budget control", es: "Revisiones salariales, benchmarking y control presupuestario", fr: "Revues salariales, benchmarking et contrôle budgétaire" },
+    description: { en: "Run salary reviews with data, fairness, and budget control", es: "Gestiona revisiones salariales con datos, equidad y control presupuestario", fr: "Menez les revues salariales avec données, équité et contrôle budgétaire" },
+    color: "#FB923C",
+    image: "/modules/compensations.png",
+    valueProps: [
+      { en: "Salary benchmarking against market data", es: "Benchmarking salarial con datos de mercado", fr: "Benchmarking salarial avec des données de marché" },
+      { en: "Budget control with real-time impact simulation", es: "Control presupuestario con simulación de impacto en tiempo real", fr: "Contrôle budgétaire avec simulation d'impact en temps réel" },
+    ],
   },
   engagement: {
     label: { en: "Engagement", es: "Engagement", fr: "Engagement" },
-    description: { en: "Pulse surveys, eNPS, and team satisfaction", es: "Encuestas pulse, eNPS y satisfacción del equipo", fr: "Enquêtes pulse, eNPS et satisfaction des équipes" },
+    description: { en: "Measure and improve team satisfaction with pulse surveys and eNPS", es: "Mide y mejora la satisfacción de tu equipo con encuestas pulse y eNPS", fr: "Mesurez et améliorez la satisfaction de votre équipe avec des enquêtes pulse et eNPS" },
+    color: "#E05C75",
+    image: "/modules/engagement.png",
+    valueProps: [
+      { en: "Automated pulse surveys with trend analysis", es: "Encuestas pulse automáticas con análisis de tendencias", fr: "Enquêtes pulse automatisées avec analyse des tendances" },
+      { en: "Anonymous feedback that drives real action", es: "Feedback anónimo que impulsa acciones reales", fr: "Feedback anonyme qui génère de vraies actions" },
+    ],
   },
   documents: {
     label: { en: "Documents", es: "Documentos", fr: "Documents" },
-    description: { en: "Document generation, e-signature, and digital vault", es: "Generación de documentos, firma electrónica y archivo digital", fr: "Génération de documents, signature électronique et coffre-fort numérique" },
+    description: { en: "Generate, sign, and store documents digitally — no more paper", es: "Genera, firma y almacena documentos digitalmente — sin más papel", fr: "Générez, signez et stockez les documents numériquement — plus de papier" },
+    color: "#6B7280",
+    image: "/modules/documents.png",
+    valueProps: [
+      { en: "Auto-generate contracts and certificates from templates", es: "Genera automáticamente contratos y certificados desde plantillas", fr: "Générez automatiquement contrats et attestations depuis des modèles" },
+      { en: "Legally-binding e-signature built in", es: "Firma electrónica con validez legal integrada", fr: "Signature électronique à valeur légale intégrée" },
+    ],
   },
   procurement: {
     label: { en: "Procurement", es: "Compras", fr: "Achats" },
-    description: { en: "Purchase requests, approvals, and vendor management", es: "Solicitudes de compra, aprobaciones y gestión de proveedores", fr: "Demandes d'achat, approbations et gestion des fournisseurs" },
+    description: { en: "Streamline purchase requests with approvals and budget tracking", es: "Optimiza las solicitudes de compra con aprobaciones y control presupuestario", fr: "Rationalisez les demandes d'achat avec approbations et suivi budgétaire" },
+    color: "#14B8A6",
+    image: "/modules/procurement.png",
   },
   projects: {
     label: { en: "Projects", es: "Proyectos", fr: "Projets" },
-    description: { en: "Project time tracking and team allocation", es: "Control de tiempo por proyecto y asignación de equipo", fr: "Suivi du temps par projet et allocation d'équipe" },
+    description: { en: "Track time by project and optimize team allocation", es: "Controla el tiempo por proyecto y optimiza la asignación del equipo", fr: "Suivez le temps par projet et optimisez l'allocation de l'équipe" },
+    color: "#14B8A6",
+    image: "/modules/projects.png",
   },
   headcount_planning: {
     label: { en: "Headcount Planning", es: "Planificación de Plantilla", fr: "Planification des Effectifs" },
-    description: { en: "Workforce planning and position management", es: "Planificación de plantilla y gestión de posiciones", fr: "Planification des effectifs et gestion des postes" },
+    description: { en: "Plan your workforce strategically with position management", es: "Planifica tu plantilla de forma estratégica con gestión de posiciones", fr: "Planifiez vos effectifs stratégiquement avec la gestion des postes" },
+    color: "#8B5CF6",
+    image: "/modules/headcount_planning.png",
   },
   lms: {
     label: { en: "LMS", es: "LMS", fr: "LMS" },
-    description: { en: "Learning management system with courses and quizzes", es: "Sistema de gestión del aprendizaje con cursos y tests", fr: "Système de gestion de l'apprentissage avec cours et quiz" },
+    description: { en: "Create and deliver training content with built-in tracking", es: "Crea y distribuye contenido formativo con seguimiento integrado", fr: "Créez et distribuez du contenu de formation avec suivi intégré" },
+    color: "#E05C75",
+    image: "/modules/lms.png",
   },
   complaints: {
     label: { en: "Trust Channel", es: "Canal de Denuncias", fr: "Canal de Confiance" },
-    description: { en: "Anonymous reporting and whistleblower compliance", es: "Canal de denuncias anónimas y cumplimiento normativo", fr: "Signalement anonyme et conformité lanceur d'alerte" },
+    description: { en: "Comply with regulations and offer an internal space to report irregularities", es: "Cumple con la normativa y ofrece un espacio interno para reportar irregularidades", fr: "Conformez-vous à la réglementation et offrez un espace interne pour signaler les irrégularités" },
+    image: "/modules/complaints.png",
+    color: "#EF4444",
+    valueProps: [
+      { en: "Avoid sanctions and protect your company's reputation", es: "Evita sanciones y mantén la reputación e imagen de tu empresa", fr: "Évitez les sanctions et protégez la réputation de votre entreprise" },
+      { en: "Integrate an anonymous and secure channel that complies with GDPR", es: "Integra un canal de denuncias anónimo y seguro que cumple con la GDPR", fr: "Intégrez un canal de signalement anonyme et sécurisé conforme au RGPD" },
+      { en: "Provide a good experience for your team and avoid workplace climate issues", es: "Proporciona una buena experiencia a tu equipo y evita problemas de clima laboral", fr: "Offrez une bonne expérience à votre équipe et évitez les problèmes de climat social" },
+    ],
   },
   benefits_standard: {
     label: { en: "Benefits", es: "Beneficios", fr: "Avantages" },
@@ -207,5 +300,21 @@ export const DISCOVERY_QUESTIONS: Record<
   },
   silae: {
     hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Silae?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Silae?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Silae ?" }],
+  },
+  complaints: {
+    hr: [
+      { en: "How much time per month does your HR team spend handling complaints through informal channels (email, in-person)?", es: "¿Cuánto tiempo al mes dedica vuestro equipo de RRHH a gestionar quejas o denuncias por canales informales (email, en persona)?", fr: "Combien de temps par mois votre équipe RH consacre-t-elle à traiter les plaintes par des canaux informels (email, en personne) ?" },
+    ],
+    manager: [
+      { en: "How much time per month do your managers spend dealing with team conflict or compliance concerns?", es: "¿Cuánto tiempo al mes dedican vuestros managers a gestionar conflictos de equipo o temas de cumplimiento?", fr: "Combien de temps par mois vos managers passent-ils à gérer des conflits d'équipe ou des problèmes de conformité ?" },
+    ],
+  },
+  lms: {
+    employee: [{ en: "How much time per month do your employees spend searching for and accessing training content?", es: "¿Cuánto tiempo al mes dedican vuestros empleados a buscar y acceder a contenido formativo?", fr: "Combien de temps par mois vos employés passent-ils à chercher et accéder au contenu de formation ?" }],
+    hr: [{ en: "How many hours per month does your HR team spend creating and managing training content and tracking completions?", es: "¿Cuántas horas al mes dedica vuestro equipo de RRHH a crear contenido formativo y hacer seguimiento de completados?", fr: "Combien d'heures par mois votre équipe RH consacre-t-elle à créer du contenu de formation et suivre les complétions ?" }],
+  },
+  benefits_standard: {
+    hr: [{ en: "How many hours per month does your HR team spend administrating employee benefits (enrollment, changes, queries)?", es: "¿Cuántas horas al mes dedica vuestro equipo de RRHH a administrar los beneficios de empleados (altas, cambios, consultas)?", fr: "Combien d'heures par mois votre équipe RH consacre-t-elle à administrer les avantages sociaux (inscriptions, modifications, demandes) ?" }],
+    employee: [{ en: "How much time per month do your employees spend understanding and managing their benefits?", es: "¿Cuánto tiempo al mes dedican vuestros empleados a entender y gestionar sus beneficios?", fr: "Combien de temps par mois vos employés passent-ils à comprendre et gérer leurs avantages ?" }],
   },
 };

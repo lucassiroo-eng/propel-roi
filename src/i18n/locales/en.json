@@ -253,6 +253,11 @@
   "status.accepted": "Accepted",
   "status.declined": "Declined",
   "status.co_created": "Co-created",
+  "status.pre_call": "Pre-call",
+  "status.during_call": "During call",
+  "status.post_call": "Post-call",
+  "cocreation.save_progress": "Save progress",
+  "cocreation.saved": "Progress saved",
 
   "toast.session_saved": "Session saved!",
   "toast.save_session_first": "Save the session first",

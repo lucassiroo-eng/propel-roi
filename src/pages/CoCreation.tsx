@@ -16,7 +16,7 @@ import {
   FileText, Loader2, Send, Users, Shield,
   Briefcase, X, ChevronRight, ChevronDown, Package,
   Search, Share2, Sparkles, MessageSquare, Phone,
-  HelpCircle, Maximize2, Eye,
+  HelpCircle, Maximize2, Eye, CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,7 +161,7 @@ export default function CoCreation() {
           });
         }
         setAnnualCost(sess.factorial_annual_cost_eur ?? 0);
-        setStep(mods.length > 0 ? 4 : 0);
+        setStep((sess as any).current_step ?? (mods.length > 0 ? 4 : 0));
       } catch {
         toast.error(t("express.session_load_error"));
       } finally {
@@ -379,11 +379,19 @@ export default function CoCreation() {
     } finally { setPersonalizing(false); }
   }
 
-  const saveToHistory = useCallback(async (status: string = "co_created") => {
+  function stageForStep(s: number): string {
+    if (s <= 1) return "pre_call";
+    if (s <= 4) return "during_call";
+    return "post_call";
+  }
+
+  const saveToHistory = useCallback(async (status?: string) => {
     if (!user) return;
     const savings = roi?.savings ?? 0;
+    const resolvedStatus = status ?? stageForStep(step);
     const sessionPayload = {
-      status,
+      status: resolvedStatus,
+      current_step: step,
       selected_pains: [] as any,
       selected_modules: selectedModules as any,
       module_suggestions: [] as any,
@@ -410,7 +418,7 @@ export default function CoCreation() {
       }
       queryClient.invalidateQueries({ queryKey: ["roi_sessions"] });
     } catch (err: any) { console.error("Save failed:", err.message); }
-  }, [user, companyName, dealName, country, roiConfig, selectedModules, annualCost, roi, queryClient]);
+  }, [user, companyName, dealName, country, roiConfig, selectedModules, annualCost, roi, queryClient, step]);
 
   async function downloadPdf(type: "summary" | "detail") {
     setDlPdf(type);
@@ -634,7 +642,15 @@ export default function CoCreation() {
           </main>
           <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
             <div className="max-w-5xl mx-auto flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">{t("express.n_modules", { count: selectedModules.length })}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">{t("express.n_modules", { count: selectedModules.length })}</span>
+                {selectedModules.length > 0 && (
+                  <Button variant="ghost" size="sm" onClick={async () => { setSaving(true); await saveToHistory("pre_call"); setSaving(false); toast.success(t("cocreation.saved")); }} disabled={saving} className="h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground">
+                    {saving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Save className="h-3 w-3 mr-1" />}
+                    {t("cocreation.save_progress")}
+                  </Button>
+                )}
+              </div>
               <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90">
                 {t("express.continue")} <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
@@ -725,129 +741,157 @@ export default function CoCreation() {
       {/* ──────────── STEP 3: Discovery (module by module slides) ──────────── */}
       {step === 3 && currentModule && (() => {
         const modInfo = MODULE_INFO[currentModule];
-        const modColor = currentModuleCat?.color ?? "#94A3B8";
+        const modColor = modInfo?.color ?? currentModuleCat?.color ?? "#94A3B8";
         const lang = i18n.language;
+        const isES = lang.startsWith("es");
         const defaults = getHoursForModule(currentModule);
         const allQuestions = (["employee", "hr", "manager"] as Stakeholder[]).flatMap(sk =>
           (currentQuestions?.[sk] ?? []).map(q => ({ stakeholder: sk, question: q }))
         );
+        const valueProps = modInfo?.valueProps ?? [];
+        const modImage = isES ? modInfo?.image : undefined;
+        const modLabel = modInfo ? getLocalized(modInfo.label, lang) : (currentModuleCat?.label ?? moduleLabel(currentModule));
 
         return (
         <>
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-2xl mx-auto px-5 py-8 space-y-6">
-              {/* Progress dots */}
-              <div className="flex items-center justify-center gap-1.5">
-                {selectedModules.map((_, i) => (
-                  <button key={i} onClick={() => setDiscoveryIdx(i)} className={`w-2.5 h-2.5 rounded-full transition-all ${i === discoveryIdx ? "bg-foreground scale-125" : i < discoveryIdx ? "bg-emerald-400" : "bg-border"}`} />
+          <main className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-5 py-5 gap-5 min-h-0">
+
+              {/* Progress bar */}
+              <div className="flex items-center gap-2 shrink-0">
+                {selectedModules.map((mod, i) => (
+                  <button key={i} onClick={() => setDiscoveryIdx(i)} className="flex-1 h-1.5 rounded-full transition-all" style={{ backgroundColor: i === discoveryIdx ? modColor : i < discoveryIdx ? modColor + "60" : "rgba(0,0,0,0.08)" }} />
                 ))}
               </div>
 
-              {/* Module header card */}
-              <div className="rounded-2xl border border-border bg-card p-6 slide-up">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
-                  {t("cocreation.module_n_of_total", { n: discoveryIdx + 1, total: selectedModules.length })}
-                </p>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: modColor }} />
-                  <h2 className="text-xl font-extrabold tracking-tight text-foreground">
-                    {modInfo ? getLocalized(modInfo.label, lang) : (currentModuleCat?.label ?? moduleLabel(currentModule))}
-                  </h2>
-                </div>
-                {modInfo && (
-                  <p className="text-sm text-muted-foreground ml-7">{getLocalized(modInfo.description, lang)}</p>
-                )}
-              </div>
+              {/* Main content — 2-column layout */}
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-5 min-h-0">
 
-              {/* Discovery questions — all stakeholders together */}
-              {allQuestions.length > 0 && (
-                <div className="rounded-2xl border border-border bg-card p-6 space-y-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">{t("cocreation.discovery_questions")}</p>
-                  {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
-                    const style = STAKE_STYLE[sk];
-                    return (
-                      <div key={qi} className="flex items-start gap-3 py-1.5">
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: style.color + "18" }}>
-                          <HelpCircle className="h-3.5 w-3.5" style={{ color: style.color }} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground/85 leading-relaxed">{getQuestion(q, lang)}</p>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-
-              {/* Hour inputs — all 3 stakeholders in a row */}
-              <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.time_per_stakeholder")}</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
-                    const style = STAKE_STYLE[sk];
-                    const Icon = style.icon;
-                    const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
-                    return (
-                      <div key={sk} className="flex flex-col items-center gap-2 rounded-xl p-3" style={{ backgroundColor: style.bg }}>
-                        <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: style.color }}>
-                          <Icon className="h-4 w-4 text-white" />
-                        </div>
-                        <span className="text-[11px] font-bold text-foreground text-center leading-tight">{t(STAKE_LABEL_KEY[sk])}</span>
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            className="w-[64px] h-9 text-center text-sm font-bold tabular-nums rounded-lg border bg-white focus:outline-none focus:ring-2 focus:ring-ring/40"
-                            style={{ borderColor: style.border }}
-                            value={val}
-                            onChange={e => {
-                              const v = Math.max(0, parseFloat(e.target.value) || 0);
-                              setRoiConfig(prev => {
-                                const ho = { ...(prev.hours_overrides ?? {}) };
-                                ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
-                                if (v === defaults[sk]) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
-                                return { ...prev, hours_overrides: ho };
-                              });
-                            }}
-                          />
-                          <span className="text-[10px] text-muted-foreground">{t("cocreation.hrs_month")}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Module-specific inputs */}
-                {currentModule === "core" && (
-                  <div className="pt-2 border-t border-border/60">
-                    <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.onboardings_label")}</Label>
-                    <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-lg max-w-[160px]" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                {/* LEFT: Module info + visual */}
+                <div className="flex flex-col gap-4 min-h-0">
+                  {/* Module badge + title */}
+                  <div className="shrink-0">
+                    <span className="inline-block text-xs font-bold text-white px-3 py-1 rounded-full mb-3" style={{ backgroundColor: modColor }}>
+                      {modLabel}
+                    </span>
+                    <h2 className="text-2xl lg:text-3xl font-extrabold leading-tight text-foreground">
+                      {modInfo ? getLocalized(modInfo.description, lang) : ""}
+                    </h2>
                   </div>
-                )}
-                {currentModule === "expenses" && (
-                  <div className="pt-2 border-t border-border/60">
-                    <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.expense_submitters_label")}</Label>
-                    <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-lg max-w-[160px]" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+
+                  {/* Value props */}
+                  {valueProps.length > 0 && (
+                    <div className="space-y-2.5 shrink-0">
+                      {valueProps.map((vp, vi) => (
+                        <div key={vi} className="flex items-start gap-2.5">
+                          <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" style={{ color: modColor }} />
+                          <p className="text-sm text-foreground/80 leading-relaxed">{getLocalized(vp, lang)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Module screenshot (ES only) */}
+                  {modImage && (
+                    <div className="flex-1 min-h-0 rounded-2xl overflow-hidden border border-border/40 bg-muted/30">
+                      <img src={modImage} alt={modLabel} className="w-full h-full object-contain object-top" />
+                    </div>
+                  )}
+                </div>
+
+                {/* RIGHT: Questions + hour inputs */}
+                <div className="flex flex-col gap-4 min-h-0">
+                  {/* Questions */}
+                  {allQuestions.length > 0 && (
+                    <div className="rounded-2xl p-5 space-y-3 shrink-0" style={{ backgroundColor: modColor + "08", borderLeft: `4px solid ${modColor}` }}>
+                      {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
+                        const style = STAKE_STYLE[sk];
+                        return (
+                          <div key={qi} className="flex items-start gap-3">
+                            <HelpCircle className="h-4 w-4 shrink-0 mt-1" style={{ color: modColor }} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-foreground/90 leading-relaxed font-medium">{getQuestion(q, lang)}</p>
+                              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: style.color }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Hour inputs */}
+                  <div className="rounded-2xl border-2 p-5 space-y-4 shrink-0" style={{ borderColor: modColor + "30" }}>
+                    <p className="text-xs font-bold uppercase tracking-wider" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
+                        const style = STAKE_STYLE[sk];
+                        const Icon = style.icon;
+                        const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
+                        return (
+                          <div key={sk} className="flex flex-col items-center gap-2 rounded-xl p-3 bg-white border border-border/60">
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: style.color }}>
+                              <Icon className="h-4.5 w-4.5 text-white" />
+                            </div>
+                            <span className="text-[11px] font-bold text-foreground text-center leading-tight">{t(STAKE_LABEL_KEY[sk])}</span>
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                className="w-[72px] h-10 text-center text-base font-extrabold tabular-nums rounded-xl border-2 bg-white focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all"
+                                style={{ borderColor: modColor + "40", ["--tw-ring-color" as any]: modColor + "40" }}
+                                value={val}
+                                onChange={e => {
+                                  const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                  setRoiConfig(prev => {
+                                    const ho = { ...(prev.hours_overrides ?? {}) };
+                                    ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
+                                    if (v === defaults[sk]) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
+                                    return { ...prev, hours_overrides: ho };
+                                  });
+                                }}
+                              />
+                              <span className="text-[10px] text-muted-foreground font-medium">{t("cocreation.hrs_month")}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {currentModule === "core" && (
+                      <div className="pt-3 border-t border-border/40">
+                        <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.onboardings_label")}</Label>
+                        <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-xl max-w-[160px] border-2" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                      </div>
+                    )}
+                    {currentModule === "expenses" && (
+                      <div className="pt-3 border-t border-border/40">
+                        <Label className="text-[11px] font-semibold text-muted-foreground">{t("cocreation.expense_submitters_label")}</Label>
+                        <Input type="number" min={0} className="mt-1 h-10 text-center font-bold tabular-nums rounded-xl max-w-[160px] border-2" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  {/* Module counter */}
+                  <p className="text-center text-xs text-muted-foreground font-medium shrink-0">
+                    {t("cocreation.module_n_of_total", { n: discoveryIdx + 1, total: selectedModules.length })}
+                  </p>
+                </div>
               </div>
             </div>
           </main>
 
           <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
-            <div className="max-w-2xl mx-auto flex justify-between gap-3">
-              <Button variant="outline" onClick={() => discoveryIdx > 0 ? setDiscoveryIdx(i => i - 1) : setStep(2)} className="rounded-xl">
+            <div className="max-w-6xl mx-auto flex justify-between gap-3">
+              <Button variant="outline" onClick={() => discoveryIdx > 0 ? setDiscoveryIdx(i => i - 1) : setStep(2)} className="rounded-xl h-11">
                 <ArrowLeft className="h-4 w-4 mr-1.5" /> {discoveryIdx > 0 ? t("cocreation.prev_module") : t("express.back")}
               </Button>
               {discoveryIdx < selectedModules.length - 1 ? (
-                <Button onClick={() => setDiscoveryIdx(i => i + 1)} className="rounded-xl bg-foreground text-background hover:bg-foreground/90">
+                <Button onClick={() => setDiscoveryIdx(i => i + 1)} className="rounded-xl h-11 px-6 text-white font-bold" style={{ backgroundColor: modColor }}>
                   {t("cocreation.next_module")} <ArrowRight className="h-4 w-4 ml-1.5" />
                 </Button>
               ) : (
-                <Button onClick={() => setStep(4)} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">
+                <Button onClick={() => setStep(4)} className="rounded-xl h-11 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
                   {t("cocreation.finish_discovery")} <Check className="h-4 w-4 ml-1.5" />
                 </Button>
               )}
@@ -980,7 +1024,7 @@ export default function CoCreation() {
             {/* Save */}
             <div className="flex flex-col items-center gap-3 pt-2 pb-4">
               <Button
-                onClick={async () => { setSaving(true); await saveToHistory(); setSaving(false); toast.success(t("express.roi_saved")); }}
+                onClick={async () => { setSaving(true); await saveToHistory("during_call"); setSaving(false); toast.success(t("cocreation.saved")); }}
                 disabled={saving}
                 className="w-full max-w-sm h-12 rounded-xl bg-foreground text-background hover:bg-foreground/90 text-sm font-bold shadow-lg shadow-foreground/10"
               >

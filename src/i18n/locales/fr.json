@@ -253,6 +253,11 @@
   "status.declined": "Refuse",
   "status.generated": "Généré",
   "status.co_created": "Co-créé",
+  "status.pre_call": "Pré-appel",
+  "status.during_call": "En appel",
+  "status.post_call": "Post-appel",
+  "cocreation.save_progress": "Enregistrer",
+  "cocreation.saved": "Progrès enregistré",
 
   "toast.session_saved": "Session sauvegardee !",
   "toast.save_session_first": "Sauvegardez la session d'abord",

@@ -25,6 +25,9 @@ const STATUS_COLOR: Record<string, string> = {
   declined: "bg-red-50 text-red-600",
   generated: "bg-violet-50 text-violet-600",
   co_created: "bg-indigo-50 text-indigo-600",
+  pre_call: "bg-amber-50 text-amber-600",
+  during_call: "bg-sky-50 text-sky-600",
+  post_call: "bg-emerald-50 text-emerald-600",
 };
 
 interface SessionEntry {

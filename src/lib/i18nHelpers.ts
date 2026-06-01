@@ -21,6 +21,9 @@ export function statusI18nKey(status: string): string {
     accepted: "status.accepted",
     declined: "status.declined",
     co_created: "status.co_created",
+    pre_call: "status.pre_call",
+    during_call: "status.during_call",
+    post_call: "status.post_call",
   };
   return map[status] ?? status;
 }
