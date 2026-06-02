@@ -450,6 +450,7 @@ export default function AdminAnalytics() {
                         <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-16">ROI</th>
                         <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-32">Stage HubSpot</th>
                         <th className="text-right px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">Fecha</th>
+                        <th className="w-8"></th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
@@ -489,6 +490,18 @@ export default function AdminAnalytics() {
                               )}
                             </td>
                             <td className="px-4 py-2.5 text-right text-muted-foreground">{item.updated_at ? formatRelative(item.updated_at) : "—"}</td>
+                            <td className="pr-2 py-2.5">
+                              <button
+                                onClick={async () => {
+                                  await supabase.from("roi_sessions").update({ status: "generated" }).eq("id", item.id);
+                                  await loadPipeline();
+                                }}
+                                className="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors"
+                                title="Quitar de enviados"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                              </button>
+                            </td>
                           </tr>
                         );
                       })}
