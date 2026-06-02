@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { Users, Activity, FileCheck, Globe, TrendingUp, Target, Send, CheckSquare, Square, RefreshCw, GitBranch } from "lucide-react";
+import { Users, Activity, FileCheck, Globe, TrendingUp, Target, Send, CheckSquare, Square, RefreshCw, GitBranch, Plus, ChevronDown, ChevronRight, Trophy, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserStat {
@@ -83,6 +84,10 @@ export default function AdminAnalytics() {
   const [selectedForSend, setSelectedForSend] = useState<Set<string>>(new Set());
   const [movingToSent, setMovingToSent] = useState(false);
   const [dealStages, setDealStages] = useState<Record<string, { stage: string; closeDate: string | null; checking: boolean }>>({});
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [modalSelected, setModalSelected] = useState<Set<string>>(new Set());
+  const [tableOpen, setTableOpen] = useState(true);
+  const [syncingAll, setSyncingAll] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -159,6 +164,24 @@ export default function AdminAnalytics() {
     } catch {
       setDealStages((prev) => ({ ...prev, [sessionId]: { stage: "error", closeDate: null, checking: false } }));
     }
+  }
+
+  async function syncAllStages() {
+    const withUrl = pipelineSent.filter((i) => i.hubspot_deal_url);
+    if (!withUrl.length) return;
+    setSyncingAll(true);
+    await Promise.all(withUrl.map((i) => checkDealStage(i.id, i.hubspot_deal_url!)));
+    setSyncingAll(false);
+  }
+
+  async function addToSent() {
+    if (!modalSelected.size) return;
+    setMovingToSent(true);
+    await supabase.from("roi_sessions").update({ status: "sent" }).in("id", Array.from(modalSelected));
+    setModalSelected(new Set());
+    setShowAddModal(false);
+    await loadPipeline();
+    setMovingToSent(false);
   }
 
   async function loadUsers() {
@@ -327,6 +350,22 @@ export default function AdminAnalytics() {
     );
   }
 
+  // Deduplicate generated ROIs by company — best ROI per company for the modal
+  const pipelineGeneratedByCompany = useMemo(() => {
+    const map = new Map<string, PipelineItem>();
+    for (const item of pipelineGenerated) {
+      const key = item.company_name.trim().toLowerCase();
+      const existing = map.get(key);
+      if (!existing || item.roi_pct > existing.roi_pct) map.set(key, item);
+    }
+    return Array.from(map.values()).sort((a, b) => b.roi_pct - a.roi_pct);
+  }, [pipelineGenerated]);
+
+  const wonCount = pipelineSent.filter((i) => {
+    const s = dealStages[i.id]?.stage?.toLowerCase() ?? "";
+    return s.includes("closedwon");
+  }).length;
+
   const completionRate = totalSessions > 0
     ? Math.round((totalCompleted / totalSessions) * 100)
     : 0;
@@ -356,175 +395,191 @@ export default function AdminAnalytics() {
 
       {/* ROI Pipeline */}
       <Card className="border-border/50 overflow-hidden">
-        <CardHeader className="pb-2 pt-4 px-4">
-          <div className="flex items-center gap-2">
-            <GitBranch className="h-4 w-4 text-primary" />
-            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">ROI Pipeline</span>
+        <CardHeader className="pb-3 pt-4 px-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <GitBranch className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">ROI Pipeline</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={syncAllStages}
+                disabled={syncingAll || pipelineSent.filter(i => i.hubspot_deal_url).length === 0}
+                className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {syncingAll ? <RefreshCw className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                Sync HubSpot
+              </button>
+              <button
+                onClick={() => { setModalSelected(new Set()); setShowAddModal(true); }}
+                className="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="h-3 w-3" /> Añadir ROIs
+              </button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="px-0 pb-0">
-          <div className="grid grid-cols-2 divide-x divide-border/60">
-            {/* Left: Generados */}
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 px-4 pb-2">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Generados</span>
-                <span className="inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground min-w-[18px]">
-                  {pipelineGenerated.length}
-                </span>
-              </div>
-              <div className="overflow-y-auto max-h-56 px-2 pb-2 space-y-0.5">
-                {pipelineGenerated.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-6">Sin ROIs pendientes</p>
-                ) : (
-                  pipelineGenerated.map((item) => {
-                    const checked = selectedForSend.has(item.id);
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setSelectedForSend((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(item.id)) next.delete(item.id);
-                            else next.add(item.id);
-                            return next;
-                          });
-                        }}
-                        className={cn(
-                          "w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted/40",
-                          checked && "bg-primary/5"
-                        )}
-                      >
-                        {checked
-                          ? <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" />
-                          : <Square className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
-                        <span className="flex-1 text-xs font-medium text-foreground truncate min-w-0">
-                          {item.company_name}
-                        </span>
-                        {item.flow_type === "co_created" ? (
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>
-                            Co-creado
-                          </span>
-                        ) : item.flow_type === "express" ? (
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>
-                            Express
-                          </span>
-                        ) : null}
-                        {item.roi_pct > 0 && (
-                          <span className="text-[10px] font-semibold" style={{ color: "oklch(52% 0.16 145)" }}>
-                            +{item.roi_pct}%
-                          </span>
-                        )}
-                        <span className="text-[10px] text-muted-foreground shrink-0">
-                          {item.updated_at ? formatRelative(item.updated_at) : "—"}
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-              <div className="border-t border-border/40 px-3 py-2">
-                <button
-                  onClick={moveToSent}
-                  disabled={!selectedForSend.size || movingToSent}
-                  className={cn(
-                    "flex items-center gap-1.5 text-xs font-medium rounded-md px-3 py-1.5 transition-colors",
-                    selectedForSend.size && !movingToSent
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-muted text-muted-foreground cursor-not-allowed"
-                  )}
-                >
-                  {movingToSent ? (
-                    <RefreshCw className="h-3 w-3 animate-spin" />
-                  ) : (
-                    <Send className="h-3 w-3" />
-                  )}
-                  {selectedForSend.size > 0
-                    ? `Mover a enviados (${selectedForSend.size}) →`
-                    : "Mover a enviados →"}
-                </button>
-              </div>
-            </div>
 
-            {/* Right: Enviados */}
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 px-4 pb-2">
-                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Enviados</span>
-                <span className="inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground min-w-[18px]">
+        <CardContent className="px-4 pb-4 space-y-4">
+          {/* Collapsible sent table */}
+          <div className="rounded-xl border border-border/60 overflow-hidden">
+            <button
+              onClick={() => setTableOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-2.5 bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                {tableOpen ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+                <span className="text-[11px] font-semibold text-foreground">ROIs Enviados</span>
+                <span className="inline-flex items-center justify-center rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-[10px] font-bold min-w-[18px]">
                   {pipelineSent.length}
                 </span>
               </div>
-              <div className="overflow-y-auto max-h-56 px-2 pb-2 space-y-0.5">
-                {pipelineSent.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-6">Sin enviados aún</p>
-                ) : (
-                  pipelineSent.map((item) => {
-                    const ds = dealStages[item.id];
-                    const stageLower = ds?.stage?.toLowerCase() ?? "";
-                    const isWon = stageLower.includes("closedwon");
-                    const isLost = stageLower.includes("closedlost");
-                    return (
-                      <div key={item.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/40 transition-colors">
-                        <span className="flex-1 text-xs font-medium text-foreground truncate min-w-0">
-                          {item.company_name}
-                        </span>
-                        {item.flow_type === "co_created" ? (
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>
-                            Co-creado
-                          </span>
-                        ) : item.flow_type === "express" ? (
-                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>
-                            Express
-                          </span>
-                        ) : null}
-                        {item.roi_pct > 0 && (
-                          <span className="text-[10px] font-semibold shrink-0" style={{ color: "oklch(52% 0.16 145)" }}>
-                            +{item.roi_pct}%
-                          </span>
-                        )}
-                        {ds?.checking ? (
-                          <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground shrink-0" />
-                        ) : ds?.stage ? (
-                          <span
-                            className={cn(
-                              "text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0",
-                              isWon
-                                ? "text-emerald-700 bg-emerald-50"
-                                : isLost
-                                ? "text-red-600 bg-red-50"
-                                : "text-muted-foreground bg-muted"
-                            )}
-                            style={
-                              isWon
-                                ? { backgroundColor: "oklch(96% 0.05 155)", color: "oklch(38% 0.14 155)" }
-                                : isLost
-                                ? { backgroundColor: "oklch(96% 0.04 25)", color: "oklch(40% 0.16 25)" }
-                                : undefined
-                            }
-                          >
-                            {isWon ? "Closed Won ✓" : isLost ? "Closed Lost" : ds.stage}
-                          </span>
-                        ) : item.hubspot_deal_url ? (
-                          <button
-                            onClick={() => checkDealStage(item.id, item.hubspot_deal_url!)}
-                            className="text-[10px] font-medium text-primary hover:underline shrink-0"
-                          >
-                            Check HS
-                          </button>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground shrink-0">—</span>
-                        )}
-                        <span className="text-[10px] text-muted-foreground shrink-0">
-                          {item.updated_at ? formatRelative(item.updated_at) : "—"}
-                        </span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+              <Send className="h-3 w-3 text-muted-foreground" />
+            </button>
+
+            {tableOpen && (
+              pipelineSent.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-8">Sin enviados — usa "Añadir ROIs" para marcar los enviados</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border/50 bg-muted/10">
+                        <th className="text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Empresa</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">Tipo</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-16">ROI</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-32">Stage HubSpot</th>
+                        <th className="text-right px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">Fecha</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {pipelineSent.map((item) => {
+                        const ds = dealStages[item.id];
+                        const stageLower = ds?.stage?.toLowerCase() ?? "";
+                        const isWon = stageLower.includes("closedwon");
+                        const isLost = stageLower.includes("closedlost");
+                        return (
+                          <tr key={item.id} className="hover:bg-muted/20 transition-colors">
+                            <td className="px-4 py-2.5 font-medium text-foreground max-w-[200px] truncate">{item.company_name}</td>
+                            <td className="px-3 py-2.5 text-center">
+                              {item.flow_type === "co_created" ? (
+                                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>Co-creado</span>
+                              ) : item.flow_type === "express" ? (
+                                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>Express</span>
+                              ) : <span className="text-muted-foreground">—</span>}
+                            </td>
+                            <td className="px-3 py-2.5 text-center font-bold tabular-nums" style={{ color: item.roi_pct > 0 ? "oklch(48% 0.16 145)" : undefined }}>
+                              {item.roi_pct > 0 ? `+${item.roi_pct}%` : "—"}
+                            </td>
+                            <td className="px-3 py-2.5 text-center">
+                              {ds?.checking ? (
+                                <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground mx-auto" />
+                              ) : ds?.stage ? (
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={
+                                  isWon ? { backgroundColor: "oklch(94% 0.07 155)", color: "oklch(35% 0.14 155)" }
+                                  : isLost ? { backgroundColor: "oklch(95% 0.04 25)", color: "oklch(38% 0.16 25)" }
+                                  : { backgroundColor: "oklch(93% 0.01 250)", color: "oklch(45% 0.01 250)" }
+                                }>
+                                  {isWon ? "Closed Won ✓" : isLost ? "Closed Lost" : ds.stage}
+                                </span>
+                              ) : item.hubspot_deal_url ? (
+                                <button onClick={() => checkDealStage(item.id, item.hubspot_deal_url!)} className="text-[10px] font-medium text-primary hover:underline">Check</button>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-2.5 text-right text-muted-foreground">{item.updated_at ? formatRelative(item.updated_at) : "—"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Funnel: Enviados → Ganados */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 rounded-xl border border-border/60 px-5 py-4 text-center bg-muted/10">
+              <p className="text-2xl font-extrabold tabular-nums text-foreground">{pipelineSent.length}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                <Send className="h-3 w-3" /> Enviados
+              </p>
+            </div>
+            <ArrowRight className="h-5 w-5 text-muted-foreground/40 shrink-0" />
+            <div className="flex-1 rounded-xl border px-5 py-4 text-center" style={{ borderColor: "oklch(85% 0.08 155)", backgroundColor: "oklch(97% 0.03 155)" }}>
+              <p className="text-2xl font-extrabold tabular-nums" style={{ color: "oklch(38% 0.14 155)" }}>{wonCount}</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider mt-1 flex items-center justify-center gap-1" style={{ color: "oklch(48% 0.12 155)" }}>
+                <Trophy className="h-3 w-3" /> Close Won
+              </p>
+              {pipelineSent.length > 0 && (
+                <p className="text-[10px] mt-0.5" style={{ color: "oklch(52% 0.10 155)" }}>
+                  {Math.round((wonCount / pipelineSent.length) * 100)}% conversión
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Add ROIs modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">Añadir ROIs enviados</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1 max-h-72 overflow-y-auto -mx-1 px-1">
+            {pipelineGeneratedByCompany.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">No hay ROIs pendientes de envío</p>
+            ) : (
+              pipelineGeneratedByCompany.map((item) => {
+                const checked = modalSelected.has(item.id);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setModalSelected(prev => {
+                      const next = new Set(prev);
+                      if (next.has(item.id)) next.delete(item.id); else next.add(item.id);
+                      return next;
+                    })}
+                    className={cn("w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/40", checked && "bg-primary/5")}
+                  >
+                    {checked
+                      ? <CheckSquare className="h-4 w-4 text-primary shrink-0" />
+                      : <Square className="h-4 w-4 text-muted-foreground shrink-0" />}
+                    <span className="flex-1 text-sm font-medium text-foreground truncate">{item.company_name}</span>
+                    {item.flow_type === "co_created" ? (
+                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>Co-creado</span>
+                    ) : item.flow_type === "express" ? (
+                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>Express</span>
+                    ) : null}
+                    {item.roi_pct > 0 && (
+                      <span className="text-xs font-bold tabular-nums shrink-0" style={{ color: "oklch(48% 0.16 145)" }}>+{item.roi_pct}%</span>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-border/50">
+            <span className="text-xs text-muted-foreground">{modalSelected.size} seleccionados</span>
+            <div className="flex gap-2">
+              <button onClick={() => setShowAddModal(false)} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                Cancelar
+              </button>
+              <button
+                onClick={addToSent}
+                disabled={!modalSelected.size || movingToSent}
+                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {movingToSent ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
