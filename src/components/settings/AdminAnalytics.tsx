@@ -167,8 +167,12 @@ export default function AdminAnalytics() {
   }
 
   async function syncAllStages() {
+    if (syncingAll) return;
     const withUrl = pipelineSent.filter((i) => i.hubspot_deal_url);
-    if (!withUrl.length) return;
+    if (!withUrl.length) {
+      alert("Ningún ROI enviado tiene URL de HubSpot asociada. Importa los deals desde HubSpot para activar el sync.");
+      return;
+    }
     setSyncingAll(true);
     await Promise.all(withUrl.map((i) => checkDealStage(i.id, i.hubspot_deal_url!)));
     setSyncingAll(false);
@@ -404,7 +408,7 @@ export default function AdminAnalytics() {
             <div className="flex items-center gap-2">
               <button
                 onClick={syncAllStages}
-                disabled={syncingAll || pipelineSent.filter(i => i.hubspot_deal_url).length === 0}
+                disabled={syncingAll || pipelineSent.length === 0}
                 className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {syncingAll ? <RefreshCw className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
