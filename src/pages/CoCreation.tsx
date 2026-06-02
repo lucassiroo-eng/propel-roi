@@ -787,7 +787,7 @@ export default function CoCreation() {
                     <div className="px-4 py-2 border-b border-black/[0.06] shrink-0" style={{ backgroundColor: lightBg }}>
                       <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center px-4 py-3 gap-2.5">
+                    <div className="flex-1 flex flex-col px-4 py-3 gap-2.5">
                       {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
                         const style = STAKE_STYLE[sk];
                         const Icon = style.icon;
@@ -840,7 +840,7 @@ export default function CoCreation() {
                   return (
                     <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
                       {/* Info card */}
-                      <div className="rounded-xl flex flex-col justify-center px-6 py-6 gap-4" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
+                      <div className="rounded-xl flex flex-col justify-start px-6 py-6 gap-4" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
                         <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
                           {modLabel}
                         </span>
