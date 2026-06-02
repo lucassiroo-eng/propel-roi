@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { Users, Activity, FileCheck, Globe, TrendingUp, Target } from "lucide-react";
+import { Users, Activity, FileCheck, Globe, TrendingUp, Target, Send, CheckSquare, Square, RefreshCw, GitBranch } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface UserStat {
@@ -44,6 +44,17 @@ interface DealFunnel {
   roi_generated: number;
 }
 
+interface PipelineItem {
+  id: string;
+  company_name: string;
+  flow_type: 'express' | 'co_created' | null;
+  status: string;
+  roi_pct: number;
+  roi_eur: number;
+  hubspot_deal_url: string | null;
+  updated_at: string;
+}
+
 const COLORS = [
   "hsl(348, 100%, 60%)",
   "hsl(240, 25%, 19%)",
@@ -67,6 +78,11 @@ export default function AdminAnalytics() {
   const [totalSessions, setTotalSessions] = useState(0);
   const [totalCompleted, setTotalCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [pipelineGenerated, setPipelineGenerated] = useState<PipelineItem[]>([]);
+  const [pipelineSent, setPipelineSent] = useState<PipelineItem[]>([]);
+  const [selectedForSend, setSelectedForSend] = useState<Set<string>>(new Set());
+  const [movingToSent, setMovingToSent] = useState(false);
+  const [dealStages, setDealStages] = useState<Record<string, { stage: string; closeDate: string | null; checking: boolean }>>({});
 
   useEffect(() => {
     loadData();
@@ -75,9 +91,73 @@ export default function AdminAnalytics() {
   async function loadData() {
     setLoading(true);
     try {
-      await Promise.all([loadUsers(), loadPainsAndModules(), loadHubspot(), loadDeals()]);
+      await Promise.all([loadUsers(), loadPainsAndModules(), loadHubspot(), loadDeals(), loadPipeline()]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadPipeline() {
+    const { data: sessions } = await supabase
+      .from("roi_sessions")
+      .select("id, status, flow_type, prospect_id, pae_id, roi_pct, roi_eur, updated_at, created_at")
+      .or("status.in.(generated,co_created,sent),roi_pct.gt.0");
+
+    if (!sessions || sessions.length === 0) return;
+
+    const prospectIds = [...new Set(sessions.map((s) => s.prospect_id).filter(Boolean))];
+    const { data: prospects } = await supabase
+      .from("prospects")
+      .select("id, company_name, hubspot_deal_url")
+      .in("id", prospectIds);
+
+    const prospectMap = new Map<string, { company_name: string; hubspot_deal_url: string | null }>(
+      (prospects ?? []).map((p) => [p.id, { company_name: p.company_name, hubspot_deal_url: p.hubspot_deal_url ?? null }])
+    );
+
+    const items: PipelineItem[] = sessions.map((s) => ({
+      id: s.id,
+      company_name: prospectMap.get(s.prospect_id)?.company_name ?? "—",
+      flow_type: (s.flow_type as 'express' | 'co_created' | null) ?? null,
+      status: s.status ?? "",
+      roi_pct: s.roi_pct ?? 0,
+      roi_eur: s.roi_eur ?? 0,
+      hubspot_deal_url: prospectMap.get(s.prospect_id)?.hubspot_deal_url ?? null,
+      updated_at: s.updated_at ?? s.created_at ?? "",
+    }));
+
+    setPipelineGenerated(
+      items
+        .filter((i) => i.status !== "sent" && (["generated", "co_created"].includes(i.status) || i.roi_pct > 0))
+        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    );
+    setPipelineSent(
+      items
+        .filter((i) => i.status === "sent")
+        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    );
+  }
+
+  async function moveToSent() {
+    if (!selectedForSend.size) return;
+    setMovingToSent(true);
+    const ids = Array.from(selectedForSend);
+    await supabase.from("roi_sessions").update({ status: "sent" }).in("id", ids);
+    setSelectedForSend(new Set());
+    await loadPipeline();
+    setMovingToSent(false);
+  }
+
+  async function checkDealStage(sessionId: string, dealUrl: string) {
+    setDealStages((prev) => ({ ...prev, [sessionId]: { ...prev[sessionId], checking: true, stage: "", closeDate: null } }));
+    try {
+      const { data } = await supabase.functions.invoke("hubspot-deal", { body: { deal_url: dealUrl } });
+      setDealStages((prev) => ({
+        ...prev,
+        [sessionId]: { stage: data?.deal_stage ?? "unknown", closeDate: data?.close_date ?? null, checking: false },
+      }));
+    } catch {
+      setDealStages((prev) => ({ ...prev, [sessionId]: { stage: "error", closeDate: null, checking: false } }));
     }
   }
 
@@ -273,6 +353,178 @@ export default function AdminAnalytics() {
         <TrendingUp className="h-5 w-5 text-primary" />
         <h2 className="text-base font-semibold text-foreground">Platform Analytics</h2>
       </div>
+
+      {/* ROI Pipeline */}
+      <Card className="border-border/50 overflow-hidden">
+        <CardHeader className="pb-2 pt-4 px-4">
+          <div className="flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-primary" />
+            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">ROI Pipeline</span>
+          </div>
+        </CardHeader>
+        <CardContent className="px-0 pb-0">
+          <div className="grid grid-cols-2 divide-x divide-border/60">
+            {/* Left: Generados */}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 px-4 pb-2">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Generados</span>
+                <span className="inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground min-w-[18px]">
+                  {pipelineGenerated.length}
+                </span>
+              </div>
+              <div className="overflow-y-auto max-h-56 px-2 pb-2 space-y-0.5">
+                {pipelineGenerated.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">Sin ROIs pendientes</p>
+                ) : (
+                  pipelineGenerated.map((item) => {
+                    const checked = selectedForSend.has(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setSelectedForSend((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(item.id)) next.delete(item.id);
+                            else next.add(item.id);
+                            return next;
+                          });
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-muted/40",
+                          checked && "bg-primary/5"
+                        )}
+                      >
+                        {checked
+                          ? <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" />
+                          : <Square className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+                        <span className="flex-1 text-xs font-medium text-foreground truncate min-w-0">
+                          {item.company_name}
+                        </span>
+                        {item.flow_type === "co_created" ? (
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>
+                            Co-creado
+                          </span>
+                        ) : item.flow_type === "express" ? (
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>
+                            Express
+                          </span>
+                        ) : null}
+                        {item.roi_pct > 0 && (
+                          <span className="text-[10px] font-semibold" style={{ color: "oklch(52% 0.16 145)" }}>
+                            +{item.roi_pct}%
+                          </span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground shrink-0">
+                          {item.updated_at ? formatRelative(item.updated_at) : "—"}
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+              <div className="border-t border-border/40 px-3 py-2">
+                <button
+                  onClick={moveToSent}
+                  disabled={!selectedForSend.size || movingToSent}
+                  className={cn(
+                    "flex items-center gap-1.5 text-xs font-medium rounded-md px-3 py-1.5 transition-colors",
+                    selectedForSend.size && !movingToSent
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-muted text-muted-foreground cursor-not-allowed"
+                  )}
+                >
+                  {movingToSent ? (
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Send className="h-3 w-3" />
+                  )}
+                  {selectedForSend.size > 0
+                    ? `Mover a enviados (${selectedForSend.size}) →`
+                    : "Mover a enviados →"}
+                </button>
+              </div>
+            </div>
+
+            {/* Right: Enviados */}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2 px-4 pb-2">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Enviados</span>
+                <span className="inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground min-w-[18px]">
+                  {pipelineSent.length}
+                </span>
+              </div>
+              <div className="overflow-y-auto max-h-56 px-2 pb-2 space-y-0.5">
+                {pipelineSent.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">Sin enviados aún</p>
+                ) : (
+                  pipelineSent.map((item) => {
+                    const ds = dealStages[item.id];
+                    const stageLower = ds?.stage?.toLowerCase() ?? "";
+                    const isWon = stageLower.includes("closedwon");
+                    const isLost = stageLower.includes("closedlost");
+                    return (
+                      <div key={item.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/40 transition-colors">
+                        <span className="flex-1 text-xs font-medium text-foreground truncate min-w-0">
+                          {item.company_name}
+                        </span>
+                        {item.flow_type === "co_created" ? (
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>
+                            Co-creado
+                          </span>
+                        ) : item.flow_type === "express" ? (
+                          <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>
+                            Express
+                          </span>
+                        ) : null}
+                        {item.roi_pct > 0 && (
+                          <span className="text-[10px] font-semibold shrink-0" style={{ color: "oklch(52% 0.16 145)" }}>
+                            +{item.roi_pct}%
+                          </span>
+                        )}
+                        {ds?.checking ? (
+                          <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground shrink-0" />
+                        ) : ds?.stage ? (
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0",
+                              isWon
+                                ? "text-emerald-700 bg-emerald-50"
+                                : isLost
+                                ? "text-red-600 bg-red-50"
+                                : "text-muted-foreground bg-muted"
+                            )}
+                            style={
+                              isWon
+                                ? { backgroundColor: "oklch(96% 0.05 155)", color: "oklch(38% 0.14 155)" }
+                                : isLost
+                                ? { backgroundColor: "oklch(96% 0.04 25)", color: "oklch(40% 0.16 25)" }
+                                : undefined
+                            }
+                          >
+                            {isWon ? "Closed Won ✓" : isLost ? "Closed Lost" : ds.stage}
+                          </span>
+                        ) : item.hubspot_deal_url ? (
+                          <button
+                            onClick={() => checkDealStage(item.id, item.hubspot_deal_url!)}
+                            className="text-[10px] font-medium text-primary hover:underline shrink-0"
+                          >
+                            Check HS
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground shrink-0">—</span>
+                        )}
+                        <span className="text-[10px] text-muted-foreground shrink-0">
+                          {item.updated_at ? formatRelative(item.updated_at) : "—"}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">

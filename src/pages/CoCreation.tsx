@@ -394,6 +394,7 @@ export default function CoCreation() {
     const resolvedStatus = status ?? stageForStep(step);
     const sessionPayload = {
       status: resolvedStatus,
+      flow_type: 'co_created',
       current_step: step,
       selected_pains: [] as any,
       selected_modules: selectedModules as any,

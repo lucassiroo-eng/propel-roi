@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
     // Fetch deal with contact_id property and company associations
     const dealRes = await fetch(
-      `${HUBSPOT_BASE}/crm/v3/objects/deals/${dealId}?properties=dealname,amount,hubspot_owner_id,contact_id,revised_number_of_emloyeess&associations=companies`,
+      `${HUBSPOT_BASE}/crm/v3/objects/deals/${dealId}?properties=dealname,amount,hubspot_owner_id,contact_id,revised_number_of_emloyeess,dealstage,closedate&associations=companies`,
       { headers }
     );
     if (!dealRes.ok) {
@@ -50,6 +50,8 @@ Deno.serve(async (req) => {
       deal_name: deal.properties?.dealname ?? "",
       amount: deal.properties?.amount ?? null,
       employees: deal.properties?.revised_number_of_emloyeess ?? null,
+      deal_stage: deal.properties?.dealstage ?? null,
+      close_date: deal.properties?.closedate ?? null,
     };
 
     // Fetch associated company with custom HubSpot properties

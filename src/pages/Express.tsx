@@ -550,6 +550,7 @@ export default function Express() {
 
     const sessionPayload = {
       status,
+      flow_type: 'express',
       selected_pains: [] as any,
       selected_modules: selectedModules as any,
       module_suggestions: moduleSuggestions as any,
