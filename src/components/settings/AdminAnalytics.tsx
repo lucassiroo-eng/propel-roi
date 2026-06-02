@@ -8,6 +8,36 @@ import {
 import { Users, Activity, FileCheck, Globe, TrendingUp, Target, Send, CheckSquare, Square, RefreshCw, GitBranch, Plus, ChevronDown, ChevronRight, Trophy, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const HUBSPOT_STAGE_LABELS: Record<string, string> = {
+  // Sales Pipeline
+  "closedwon": "Closed Won",
+  "closedlost": "Closed Lost",
+  "51389338": "Pending Finance",
+  "15738025": "Contracting",
+  "qualifiedtobuy": "Pricing & Packaging",
+  "appointmentscheduled": "Product Alignment",
+  "49b7ad85-a23e-426c-9b3b-d44607d1c3af": "Discovery",
+  "96e820da-7bc1-4ea3-81a2-bc533ed26934": "Meeting Booked",
+  // Partners Distribution
+  "35118880": "Closed Won",
+  "104503991": "Pending Finance",
+  "35118879": "Contract Sent",
+  "35118878": "Economical Alignment",
+  "35070731": "Project Alignment",
+  "35070730": "Demo Booked",
+  "35070729": "New Deal",
+  "1008401982": "On Hold",
+  "35119283": "Closed Lost",
+  // SDR pipelines
+  "25761537": "Opportunity Lost",
+  "1002830341": "Opportunity Lost",
+  "1232383511": "Opportunity Lost",
+};
+
+function getStageName(stage: string): string {
+  return HUBSPOT_STAGE_LABELS[stage] ?? stage;
+}
+
 interface UserStat {
   pae_id: string;
   email: string;
@@ -365,9 +395,10 @@ export default function AdminAnalytics() {
     return Array.from(map.values()).sort((a, b) => b.roi_pct - a.roi_pct);
   }, [pipelineGenerated]);
 
+  const WON_STAGES = new Set(["closedwon", "35118880", "1003800949", "12669405"]);
   const wonCount = pipelineSent.filter((i) => {
-    const s = dealStages[i.id]?.stage?.toLowerCase() ?? "";
-    return s.includes("closedwon");
+    const s = dealStages[i.id]?.stage ?? "";
+    return WON_STAGES.has(s);
   }).length;
 
   const completionRate = totalSessions > 0
@@ -460,9 +491,9 @@ export default function AdminAnalytics() {
                     <tbody className="divide-y divide-border/30">
                       {pipelineSent.map((item) => {
                         const ds = dealStages[item.id];
-                        const stageLower = ds?.stage?.toLowerCase() ?? "";
-                        const isWon = stageLower.includes("closedwon");
-                        const isLost = stageLower.includes("closedlost");
+                        const rawStage = ds?.stage ?? "";
+                        const isWon = WON_STAGES.has(rawStage) || rawStage === "closedwon";
+                        const isLost = rawStage === "closedlost" || rawStage === "35119283" || rawStage === "1002830341" || rawStage === "25761537";
                         return (
                           <tr key={item.id} className="hover:bg-muted/20 transition-colors">
                             <td className="px-4 py-2.5 font-medium text-foreground max-w-[200px] truncate">{item.company_name}</td>
@@ -485,7 +516,7 @@ export default function AdminAnalytics() {
                                   : isLost ? { backgroundColor: "oklch(95% 0.04 25)", color: "oklch(38% 0.16 25)" }
                                   : { backgroundColor: "oklch(93% 0.01 250)", color: "oklch(45% 0.01 250)" }
                                 }>
-                                  {isWon ? "Closed Won ✓" : isLost ? "Closed Lost" : ds.stage}
+                                  {isWon ? "Closed Won ✓" : isLost ? "Closed Lost" : getStageName(ds.stage)}
                                 </span>
                               ) : item.hubspot_deal_url ? (
                                 <button onClick={() => checkDealStage(item.id, item.hubspot_deal_url!)} className="text-[10px] font-medium text-primary hover:underline">Check</button>
