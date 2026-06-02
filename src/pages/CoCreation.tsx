@@ -224,6 +224,8 @@ export default function CoCreation() {
   const bundleModuleIds = useMemo(() => selectedBundle ? new Set(parseModulesFromBundle(selectedBundle)) : new Set<string>(), [selectedBundle]);
   const bundlePepm = useMemo(() => selectedBundle ? getBundlePepm(selectedBundle, "yearly", "business") : 0, [selectedBundle]);
   const addonModules = useMemo(() => selectedModules.filter(id => !bundleModuleIds.has(id)), [selectedModules, bundleModuleIds]);
+  const catalogIds = useMemo(() => new Set(MODULE_CATALOG.map(m => m.id)), []);
+  const discoveryModules = useMemo(() => selectedModules.filter(id => catalogIds.has(id)), [selectedModules, catalogIds]);
 
   // Grouped catalog
   const grouped = useMemo(() => {
@@ -449,7 +451,7 @@ export default function CoCreation() {
     if (info) return getLocalized(info.label, lang);
     return fallback ?? moduleLabel(id);
   }, [lang]);
-  const currentModule = selectedModules[discoveryIdx];
+  const currentModule = discoveryModules[discoveryIdx];
   const currentModuleCat = MODULE_CATALOG.find(m => m.id === currentModule);
   const currentQuestions = currentModule ? DISCOVERY_QUESTIONS[currentModule] : undefined;
 
@@ -749,7 +751,6 @@ export default function CoCreation() {
       {step === 3 && currentModule && (() => {
         const modInfo = MODULE_INFO[currentModule];
         const modColor = modInfo?.color ?? currentModuleCat?.color ?? "#94A3B8";
-        const defaults = getHoursForModule(currentModule);
         const allQuestions = (["employee", "hr", "manager"] as Stakeholder[]).flatMap(sk =>
           (currentQuestions?.[sk] ?? []).map(q => ({ stakeholder: sk, question: q }))
         );
@@ -761,17 +762,17 @@ export default function CoCreation() {
         return (
         <>
           <main className="flex-1 overflow-hidden flex flex-col" style={{ background: `linear-gradient(150deg, ${modColor}09 0%, transparent 55%)` }}>
-            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 py-5 gap-5 min-h-0">
+            <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 py-3 gap-3 min-h-0">
 
               {/* Progress bar */}
               <div className="flex items-center gap-3 shrink-0">
                 <div className="flex items-center gap-1 flex-1">
-                  {selectedModules.map((_, i) => (
+                  {discoveryModules.map((_, i) => (
                     <button key={i} onClick={() => setDiscoveryIdx(i)} className="flex-1 h-1.5 rounded-full transition-all duration-200" style={{ backgroundColor: i === discoveryIdx ? modColor : i < discoveryIdx ? modColor + "45" : "rgba(0,0,0,0.07)" }} />
                   ))}
                 </div>
                 <span className="text-[11px] font-semibold tabular-nums shrink-0" style={{ color: modColor + "99" }}>
-                  {discoveryIdx + 1}/{selectedModules.length}
+                  {discoveryIdx + 1}/{discoveryModules.length}
                 </span>
               </div>
 
@@ -782,24 +783,24 @@ export default function CoCreation() {
                 // Reusable inputs card — flex-col so it can fill height
                 const inputsCardInner = (
                   <>
-                    <div className="px-5 py-3 border-b border-black/[0.06] shrink-0" style={{ backgroundColor: lightBg }}>
+                    <div className="px-4 py-2 border-b border-black/[0.06] shrink-0" style={{ backgroundColor: lightBg }}>
                       <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                     </div>
-                    <div className="flex-1 flex flex-col justify-center px-5 py-4 gap-3">
+                    <div className="flex-1 flex flex-col justify-center px-4 py-3 gap-2.5">
                       {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
                         const style = STAKE_STYLE[sk];
                         const Icon = style.icon;
-                        const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? defaults[sk];
+                        const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? 0;
                         return (
                           <div key={sk} className="flex items-center gap-3">
-                            <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '18' }}>
-                              <Icon className="h-4 w-4" style={{ color: style.color }} />
+                            <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '18' }}>
+                              <Icon className="h-3.5 w-3.5" style={{ color: style.color }} />
                             </div>
-                            <span className="text-[13px] font-medium flex-1" style={{ color: 'oklch(35% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                            <span className="text-[12px] font-medium flex-1" style={{ color: 'oklch(35% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
                             <div className="flex items-baseline gap-1.5">
                               <input
                                 type="number" step="0.1" min="0"
-                                className="w-[58px] h-8 text-center text-[14px] font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none transition-colors"
+                                className="w-[54px] h-7 text-center text-[13px] font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none transition-colors"
                                 style={{ borderColor: modColor + '40' }}
                                 value={val}
                                 onChange={e => {
@@ -807,7 +808,7 @@ export default function CoCreation() {
                                   setRoiConfig(prev => {
                                     const ho = { ...(prev.hours_overrides ?? {}) };
                                     ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
-                                    if (v === defaults[sk]) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
+                                    if (v === 0) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
                                     return { ...prev, hours_overrides: ho };
                                   });
                                 }}
@@ -838,21 +839,21 @@ export default function CoCreation() {
                   return (
                     <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
                       {/* Info card */}
-                      <div className="rounded-2xl flex flex-col justify-center px-8 py-8 gap-5" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
-                        <span className="inline-flex self-start items-center text-[12px] font-bold text-white px-3.5 py-1.5 rounded-lg tracking-wide" style={{ backgroundColor: modColor }}>
+                      <div className="rounded-xl flex flex-col justify-center px-6 py-6 gap-4" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
+                        <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
                           {modLabel}
                         </span>
-                        <h2 className="text-[1.75rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
+                        <h2 className="text-[1.45rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
                           {modInfo ? getLocalized(modInfo.description, lang) : ""}
                         </h2>
                         {valueProps.length > 0 && (
-                          <ul className="space-y-3">
+                          <ul className="space-y-2">
                             {valueProps.map((vp, vi) => (
-                              <li key={vi} className="flex items-start gap-3">
-                                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-[2px]" style={{ backgroundColor: modColor + "22" }}>
-                                  <Check className="h-3 w-3" style={{ color: modColor }} />
+                              <li key={vi} className="flex items-start gap-2.5">
+                                <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-[2px]" style={{ backgroundColor: modColor + "22" }}>
+                                  <Check className="h-2.5 w-2.5" style={{ color: modColor }} />
                                 </div>
-                                <p className="text-[14px] leading-snug" style={{ color: 'oklch(40% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
+                                <p className="text-[12.5px] leading-snug" style={{ color: 'oklch(40% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
                               </li>
                             ))}
                           </ul>
@@ -869,23 +870,23 @@ export default function CoCreation() {
                 return (
                   <div className="flex-1 flex flex-col gap-5 min-h-0">
                     {/* TOP ROW — module info left, screenshot right */}
-                    <div className="shrink-0 grid gap-5" style={{ height: '52%', gridTemplateColumns: modImage ? '1fr 1.1fr' : '1fr' }}>
+                    <div className="shrink-0 grid gap-4" style={{ height: '48%', gridTemplateColumns: modImage ? '1fr 1.1fr' : '1fr' }}>
                       {/* Module info */}
-                      <div className="flex flex-col justify-center gap-3.5 pr-2">
-                        <span className="inline-flex self-start items-center text-[12px] font-bold text-white px-3.5 py-1.5 rounded-lg tracking-wide" style={{ backgroundColor: modColor }}>
+                      <div className="flex flex-col justify-center gap-2.5 pr-2">
+                        <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
                           {modLabel}
                         </span>
-                        <h2 className="text-[1.6rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
+                        <h2 className="text-[1.35rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
                           {modInfo ? getLocalized(modInfo.description, lang) : ""}
                         </h2>
                         {valueProps.length > 0 && (
-                          <ul className="space-y-2">
+                          <ul className="space-y-1.5">
                             {valueProps.map((vp, vi) => (
-                              <li key={vi} className="flex items-start gap-2.5">
-                                <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-[3px]" style={{ backgroundColor: modColor + "1A" }}>
-                                  <Check className="h-2.5 w-2.5" style={{ color: modColor }} />
+                              <li key={vi} className="flex items-start gap-2">
+                                <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 mt-[3px]" style={{ backgroundColor: modColor + "1A" }}>
+                                  <Check className="h-2 w-2" style={{ color: modColor }} />
                                 </div>
-                                <p className="text-[13px] leading-snug" style={{ color: 'oklch(42% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
+                                <p className="text-[12px] leading-snug" style={{ color: 'oklch(42% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
                               </li>
                             ))}
                           </ul>
@@ -905,21 +906,21 @@ export default function CoCreation() {
                     </div>
 
                     {/* BOTTOM ROW — questions left, inputs right — grows to fill remaining space */}
-                    <div className="flex-1 grid grid-cols-2 gap-5 min-h-0">
+                    <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
                       {/* Questions card */}
-                      <div className="rounded-2xl overflow-hidden flex flex-col" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}20` }}>
-                        <div className="px-5 py-3 border-b shrink-0" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
+                      <div className="rounded-xl overflow-hidden flex flex-col" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}20` }}>
+                        <div className="px-4 py-2 border-b shrink-0" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
                           <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
                         </div>
-                        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3.5">
+                        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
                           {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
                             const style = STAKE_STYLE[sk];
                             return (
-                              <div key={qi} className="flex items-baseline gap-2.5">
-                                <span className="inline-flex shrink-0 items-center px-2 py-0.5 rounded text-[8.5px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
+                              <div key={qi} className="flex items-baseline gap-2">
+                                <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
                                   {t(STAKE_LABEL_KEY[sk])}
                                 </span>
-                                <p className="text-[13px] leading-snug" style={{ color: 'oklch(30% 0.01 250)' }}>{getQuestion(q, lang)}</p>
+                                <p className="text-[12px] leading-snug" style={{ color: 'oklch(30% 0.01 250)' }}>{getQuestion(q, lang)}</p>
                               </div>
                             );
                           })}
@@ -942,7 +943,7 @@ export default function CoCreation() {
                 <ArrowLeft className="h-4 w-4 mr-1.5" /> {discoveryIdx > 0 ? t("cocreation.prev_module") : t("express.back")}
               </Button>
               <span className="text-xs text-muted-foreground hidden sm:block">{modLabel}</span>
-              {discoveryIdx < selectedModules.length - 1 ? (
+              {discoveryIdx < discoveryModules.length - 1 ? (
                 <Button onClick={() => setDiscoveryIdx(i => i + 1)} className="rounded-xl h-11 px-8 text-white font-bold shadow-md transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" style={{ backgroundColor: modColor }}>
                   {t("cocreation.next_module")} <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
