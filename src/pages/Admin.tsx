@@ -8,7 +8,8 @@ import { AuditHistory } from "@/components/admin/AuditHistory";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigate } from "react-router-dom";
-import { Loader2, ShieldCheck, History, BarChart3, TrendingUp, FileText, Users, Percent, Globe, Building2, Package } from "lucide-react";
+import { Loader2, ShieldCheck, History, BarChart3, TrendingUp, FileText, Users, Percent, Globe, Building2, Package, GitBranch } from "lucide-react";
+import AdminAnalytics from "@/components/settings/AdminAnalytics";
 import type { TableEditorConfig } from "@/hooks/useAdminTable";
 
 const TABLE_CONFIGS: Record<string, TableEditorConfig> = {
@@ -403,7 +404,7 @@ export default function Admin() {
   const { user } = useAuth();
   const [activeTable, setActiveTable] = useState("pain_library");
   const [showAudit, setShowAudit] = useState(false);
-  const [view, setView] = useState<"metrics" | "tables">("metrics");
+  const [view, setView] = useState<"metrics" | "tables" | "pipeline">("metrics");
 
   const isAdminEmail = user?.email === ADMIN_EMAIL;
 
@@ -449,6 +450,13 @@ export default function Admin() {
             <BarChart3 className="h-3.5 w-3.5 mr-1" /> Metrics
           </Button>
           <Button
+            variant={view === "pipeline" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setView("pipeline")}
+          >
+            <GitBranch className="h-3.5 w-3.5 mr-1" /> Pipeline
+          </Button>
+          <Button
             variant={view === "tables" ? "default" : "ghost"}
             size="sm"
             onClick={() => setView("tables")}
@@ -459,7 +467,9 @@ export default function Admin() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-4 space-y-4">
-        {view === "metrics" ? (
+        {view === "pipeline" ? (
+          <AdminAnalytics />
+        ) : view === "metrics" ? (
           <MetricsDashboard />
         ) : (
           <>
