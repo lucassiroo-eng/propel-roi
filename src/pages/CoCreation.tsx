@@ -869,7 +869,7 @@ export default function CoCreation() {
                 return (
                   <div className="flex-1 flex flex-col gap-5 min-h-0">
                     {/* TOP ROW — module info left, screenshot right */}
-                    <div className="shrink-0 grid gap-5" style={{ minHeight: '220px', gridTemplateColumns: modImage ? '1fr 1.1fr' : '1fr' }}>
+                    <div className="shrink-0 grid gap-5" style={{ height: '52%', gridTemplateColumns: modImage ? '1fr 1.1fr' : '1fr' }}>
                       {/* Module info */}
                       <div className="flex flex-col justify-center gap-3.5 pr-2">
                         <span className="inline-flex self-start items-center text-[12px] font-bold text-white px-3.5 py-1.5 rounded-lg tracking-wide" style={{ backgroundColor: modColor }}>

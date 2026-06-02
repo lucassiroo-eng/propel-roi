@@ -478,23 +478,6 @@ export const MODULE_CATALOG: ModuleDef[] = [
       "Available 24/7 — answers outside business hours",
     ],
   },
-  {
-    id: "analytics",
-    label: "HR Analytics",
-    category: "Core",
-    color: catColor("Core"),
-    signals: [
-      "No HR dashboards — we pull data into Excel each month",
-      "Data-driven decisions needed but no tooling",
-      "Headcount reporting is manual and always outdated",
-      "HR KPI tracking is done in spreadsheets",
-    ],
-    savings: [
-      "Pre-built dashboards for headcount, attrition, diversity",
-      "Custom report builder with scheduled delivery",
-      "Real-time metrics accessible to leadership",
-    ],
-  },
   // ── Integrations ──
   {
     id: "integration_business_central",
