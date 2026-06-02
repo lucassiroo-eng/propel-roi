@@ -410,10 +410,10 @@ export default function CoCreation() {
       if (savedSessionId.current) {
         await supabase.from("roi_sessions").update(sessionPayload).eq("id", savedSessionId.current);
         if (loadedSessionProspect.current) {
-          await supabase.from("prospects").update({ company_name: companyName || dealName || "Co-creation ROI", deal_name: dealName || null, country, seats: roiConfig.headcounts.employee }).eq("id", loadedSessionProspect.current);
+          await supabase.from("prospects").update({ company_name: companyName || dealName || "Co-creation ROI", deal_name: dealName || null, country, seats: roiConfig.headcounts.employee, ...(hubspotUrl.trim() ? { hubspot_deal_url: hubspotUrl.trim() } : {}) }).eq("id", loadedSessionProspect.current);
         }
       } else {
-        const { data: prospect, error: pErr } = await supabase.from("prospects").insert({ pae_id: user.id, company_name: companyName || dealName || "Co-creation ROI", deal_name: dealName || null, country, seats: roiConfig.headcounts.employee }).select("id").single();
+        const { data: prospect, error: pErr } = await supabase.from("prospects").insert({ pae_id: user.id, company_name: companyName || dealName || "Co-creation ROI", deal_name: dealName || null, country, seats: roiConfig.headcounts.employee, ...(hubspotUrl.trim() ? { hubspot_deal_url: hubspotUrl.trim() } : {}) }).select("id").single();
         if (pErr) throw pErr;
         const { data: session, error: sErr } = await supabase.from("roi_sessions").insert({ pae_id: user.id, prospect_id: prospect!.id, ...sessionPayload }).select("id").single();
         if (sErr) throw sErr;

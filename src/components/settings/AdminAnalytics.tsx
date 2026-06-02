@@ -621,8 +621,8 @@ export default function AdminAnalytics() {
         />
       </div>
 
-      {/* Deal funnel chart */}
-      {dealFunnel.length > 0 && (
+      {/* Deal funnel chart — removed */}
+      {false && dealFunnel.length > 0 && (
         <Card className="border-border/50">
           <CardHeader className="pb-0 pt-4 px-4">
             <CardTitle className="text-sm font-medium">Deals Opened vs. ROI Generated</CardTitle>
@@ -663,8 +663,8 @@ export default function AdminAnalytics() {
         </Card>
       )}
 
-      {/* Deal tracker table */}
-      {deals.length > 0 && (
+      {/* Deal tracker table — removed */}
+      {false && deals.length > 0 && (
         <Card className="border-border/50 overflow-hidden">
           <CardHeader className="pb-0 pt-4 px-4">
             <CardTitle className="text-sm font-medium">Deal Tracker</CardTitle>
@@ -717,166 +717,6 @@ export default function AdminAnalytics() {
         </Card>
       )}
 
-      {/* Users table */}
-      <Card className="border-border/50 overflow-hidden">
-        <CardHeader className="pb-0 pt-4 px-4">
-          <CardTitle className="text-sm font-medium">User Activity</CardTitle>
-        </CardHeader>
-        <CardContent className="px-0 pb-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border/60">
-                  <th className="text-left font-medium text-muted-foreground px-4 py-2.5">User</th>
-                  <th className="text-center font-medium text-muted-foreground px-3 py-2.5 w-20">Started</th>
-                  <th className="text-center font-medium text-muted-foreground px-3 py-2.5 w-24">Completed</th>
-                  <th className="text-right font-medium text-muted-foreground px-4 py-2.5 w-28 hidden sm:table-cell">Last active</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u, i) => (
-                  <tr
-                    key={u.pae_id}
-                    className={cn(
-                      "border-b border-border/30 transition-colors hover:bg-muted/30",
-                      i % 2 === 0 && "bg-muted/10"
-                    )}
-                  >
-                    <td className="px-4 py-2.5 font-medium text-foreground truncate max-w-[200px]">
-                      {u.email}
-                    </td>
-                    <td className="text-center px-3 py-2.5 text-muted-foreground">{u.total}</td>
-                    <td className="text-center px-3 py-2.5">
-                      <span className={cn(
-                        "inline-flex items-center justify-center min-w-[20px] rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
-                        u.completed > 0
-                          ? "bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
-                      )}>
-                        {u.completed}
-                      </span>
-                    </td>
-                    <td className="text-right px-4 py-2.5 text-muted-foreground hidden sm:table-cell">
-                      {u.lastActive ? formatRelative(u.lastActive) : "—"}
-                    </td>
-                  </tr>
-                ))}
-                {users.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-6 text-muted-foreground">No users yet</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* HubSpot imports over time */}
-      {hubspot.length > 0 && (
-        <Card className="border-border/50">
-          <CardHeader className="pb-0 pt-4 px-4">
-            <CardTitle className="text-sm font-medium">HubSpot Imports Over Time</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={hubspot}>
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={{ stroke: "hsl(var(--border))" }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    allowDecimals={false}
-                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Bar dataKey="calls" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Two-column layout for pains + modules */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Top pains */}
-        <Card className="border-border/50">
-          <CardHeader className="pb-0 pt-4 px-4">
-            <CardTitle className="text-sm font-medium">Top Pains</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-3">
-            <div className="space-y-1.5">
-              {pains.map((p, i) => {
-                const maxCount = pains[0]?.count || 1;
-                const pct = Math.round((p.count / maxCount) * 100);
-                return (
-                  <div key={p.pain_id} className="group">
-                    <div className="flex items-center justify-between text-[11px] mb-0.5">
-                      <span className="text-foreground truncate max-w-[70%]" title={p.label}>
-                        {p.pain_id}
-                      </span>
-                      <span className="text-muted-foreground font-medium">{p.count}</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length] }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              {pains.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-4">No data yet</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Modules / Bundles */}
-        <Card className="border-border/50">
-          <CardHeader className="pb-0 pt-4 px-4">
-            <CardTitle className="text-sm font-medium">Bundles & Modules</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-3">
-            <div className="space-y-1.5">
-              {modules.length > 0 ? modules.map((m, i) => {
-                const maxCount = modules[0]?.count || 1;
-                const pct = Math.round((m.count / maxCount) * 100);
-                return (
-                  <div key={m.module}>
-                    <div className="flex items-center justify-between text-[11px] mb-0.5">
-                      <span className="text-foreground truncate max-w-[70%]">{m.module}</span>
-                      <span className="text-muted-foreground font-medium">{m.count}</span>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length] }}
-                      />
-                    </div>
-                  </div>
-                );
-              }) : (
-                <p className="text-xs text-muted-foreground text-center py-4">No data yet</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

@@ -579,6 +579,7 @@ export default function Express() {
               deal_name: dealName || null,
               country,
               seats: roiConfig.headcounts.employee,
+              ...(hubspotUrl.trim() ? { hubspot_deal_url: hubspotUrl.trim() } : {}),
             })
             .eq("id", loadedSessionProspect.current);
         }
@@ -592,6 +593,7 @@ export default function Express() {
             deal_name: dealName || null,
             country,
             seats: roiConfig.headcounts.employee,
+            ...(hubspotUrl.trim() ? { hubspot_deal_url: hubspotUrl.trim() } : {}),
           })
           .select("id")
           .single();
