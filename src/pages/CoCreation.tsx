@@ -424,6 +424,15 @@ export default function CoCreation() {
     } catch (err: any) { console.error("Save failed:", err.message); }
   }, [user, companyName, dealName, country, roiConfig, selectedModules, annualCost, roi, queryClient, step]);
 
+  // ── Auto-save when result is reached ──────────────────
+  const autoSaved = useRef(false);
+  useEffect(() => {
+    if (step === 4 && roi && user && !autoSaved.current) {
+      autoSaved.current = true;
+      saveToHistory("co_created");
+    }
+  }, [step, roi, user, saveToHistory]);
+
   async function downloadPdf(type: "summary" | "detail") {
     setDlPdf(type);
     try {

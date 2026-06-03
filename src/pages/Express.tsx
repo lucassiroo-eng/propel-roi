@@ -618,6 +618,15 @@ export default function Express() {
     }
   }, [user, companyName, dealName, country, roiConfig, selectedModules, moduleSuggestions, annualCost, roi, queryClient]);
 
+  // ── Auto-save when result is reached ──────────────────
+  const autoSaved = useRef(false);
+  useEffect(() => {
+    if (step === 3 && roi && user && !autoSaved.current) {
+      autoSaved.current = true;
+      saveToHistory("generated");
+    }
+  }, [step, roi, user, saveToHistory]);
+
   // ── PDF ────────────────────────────────────────────────
   async function downloadPdf(type: "summary" | "detail") {
     setDlPdf(type);
