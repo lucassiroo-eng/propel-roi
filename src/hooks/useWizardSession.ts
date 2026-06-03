@@ -106,6 +106,7 @@ export interface RoiConfig {
   hourly_costs: { employee: number; hr: number; manager: number };
   hours_overrides?: Record<string, Partial<Record<string, number>>>;
   tool_overrides?: Record<string, ToolOverride>;
+  stakeholder_tool_overrides?: Record<string, Partial<Record<string, ToolOverride>>>;
   onboardings_per_year?: number;
   expense_submitters?: number;
 }

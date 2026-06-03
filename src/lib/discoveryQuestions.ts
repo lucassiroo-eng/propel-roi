@@ -232,6 +232,110 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
       { en: "Flexible plans that adapt to each employee's lifestyle", es: "Planes flexibles que se adaptan al estilo de vida de cada empleado", fr: "Plans flexibles adaptés au mode de vie de chaque employé" },
     ],
   },
+  space: {
+    label: { en: "Spaces", es: "Espacios", fr: "Espaces" },
+    description: { en: "Manage office occupancy and desk booking with full visibility", es: "Gestiona la ocupación de la oficina y la reserva de puestos con total visibilidad", fr: "Gérez l'occupation du bureau et la réservation de postes avec une visibilité totale" },
+    color: "#0D9488",
+    valueProps: [
+      { en: "Employees book desks and rooms from their phone in seconds", es: "Los empleados reservan puestos y salas desde el móvil en segundos", fr: "Les employés réservent postes et salles depuis leur téléphone en quelques secondes" },
+      { en: "See who's coming to the office each day to plan team days", es: "Visualiza quién viene a la oficina cada día para organizar días de equipo", fr: "Visualisez qui vient au bureau chaque jour pour planifier les journées d'équipe" },
+      { en: "Occupancy analytics to optimize real estate and reduce costs", es: "Analíticas de ocupación para optimizar el espacio y reducir costes inmobiliarios", fr: "Analyses d'occupation pour optimiser les espaces et réduire les coûts immobiliers" },
+    ],
+  },
+  software_management: {
+    label: { en: "Software Management", es: "Gestión de Software", fr: "Gestion des Logiciels" },
+    description: { en: "Track every SaaS license and eliminate shelfware across your company", es: "Controla todas las licencias SaaS y elimina el software sin usar en tu empresa", fr: "Suivez chaque licence SaaS et éliminez les logiciels inutilisés dans votre entreprise" },
+    color: "#0D9488",
+    valueProps: [
+      { en: "Full inventory of every SaaS tool and license across the company", es: "Inventario completo de todas las herramientas SaaS y licencias de la empresa", fr: "Inventaire complet de tous les outils SaaS et licences de l'entreprise" },
+      { en: "Identify unused licenses and recover costs automatically", es: "Identifica licencias sin usar y recupera costes de forma automática", fr: "Identifiez les licences inutilisées et récupérez des coûts automatiquement" },
+      { en: "Renewal alerts with lead time to renegotiate contracts", es: "Alertas de renovación con margen para renegociar contratos", fr: "Alertes de renouvellement avec délai pour renégocier les contrats" },
+    ],
+  },
+  it_inventory: {
+    label: { en: "IT Inventory", es: "Inventario IT", fr: "Inventaire IT" },
+    description: { en: "Keep track of every device and automate provisioning on hire and exit", es: "Controla cada dispositivo y automatiza el aprovisionamiento en altas y bajas", fr: "Suivez chaque appareil et automatisez le provisionnement à l'entrée et à la sortie" },
+    color: "#0D9488",
+    valueProps: [
+      { en: "Centralised asset register linked to each employee profile", es: "Registro centralizado de activos vinculado al perfil de cada empleado", fr: "Registre d'actifs centralisé lié au profil de chaque employé" },
+      { en: "Auto-provision equipment and access on day one for new hires", es: "Aprovisiona equipos y accesos automáticamente el primer día para nuevas incorporaciones", fr: "Approvisionnez automatiquement équipements et accès dès le premier jour pour les nouvelles recrues" },
+      { en: "Auto-deprovision on exit — no forgotten accounts or unreturned assets", es: "Desaprovisiona automáticamente en la baja — sin cuentas olvidadas ni activos sin devolver", fr: "Désapprovisionnement automatique à la sortie — aucun compte oublié ni actif non rendu" },
+    ],
+  },
+  crm: {
+    label: { en: "CRM", es: "CRM", fr: "CRM" },
+    description: { en: "Build and nurture your talent pipeline beyond active job openings", es: "Construye y nutre tu pipeline de talento más allá de las vacantes activas", fr: "Construisez et nourrissez votre vivier de talents au-delà des postes ouverts" },
+    color: "#8B5CF6",
+    valueProps: [
+      { en: "Build a talent pool and proactively engage future candidates", es: "Construye un banco de talento y contacta a futuros candidatos de forma proactiva", fr: "Constituez un vivier de talents et engagez proactivement les futurs candidats" },
+      { en: "Manage alumni networks and referral programs in one place", es: "Gestiona redes de alumni y programas de referidos en un único lugar", fr: "Gérez les réseaux d'anciens et les programmes de cooptation en un seul endroit" },
+      { en: "Reduce time-to-hire for future openings with a warm pipeline", es: "Reduce el tiempo de contratación para futuras vacantes con un pipeline templado", fr: "Réduisez le délai de recrutement pour les prochaines ouvertures grâce à un vivier activé" },
+    ],
+  },
+  one: {
+    label: { en: "Factorial One (AI)", es: "Factorial One (IA)", fr: "Factorial One (IA)" },
+    description: { en: "Let AI answer your team's HR questions instantly, 24/7", es: "Deja que la IA responda las preguntas de RRHH de tu equipo al instante, 24/7", fr: "Laissez l'IA répondre instantanément aux questions RH de votre équipe, 24h/24" },
+    color: "#E05C75",
+    valueProps: [
+      { en: "Instant answers to HR questions: policies, balances, processes", es: "Respuestas instantáneas a preguntas de RRHH: políticas, saldos, procesos", fr: "Réponses instantanées aux questions RH : politiques, soldes, processus" },
+      { en: "Reduce HR inbox volume by up to 40% from day one", es: "Reduce el volumen del buzón de RRHH hasta un 40% desde el primer día", fr: "Réduisez le volume de la boîte RH jusqu'à 40% dès le premier jour" },
+      { en: "Available 24/7 in the employee's own language", es: "Disponible 24/7 en el idioma del empleado", fr: "Disponible 24h/24 dans la langue de l'employé" },
+    ],
+  },
+  integration_business_central: {
+    label: { en: "Business Central", es: "Business Central", fr: "Business Central" },
+    description: { en: "Sync HR data with Microsoft Business Central automatically", es: "Sincroniza los datos de RRHH con Microsoft Business Central de forma automática", fr: "Synchronisez les données RH avec Microsoft Business Central automatiquement" },
+    color: "#6366F1",
+    valueProps: [
+      { en: "Eliminate manual data entry between HR and your ERP", es: "Elimina la introducción manual de datos entre RRHH y tu ERP", fr: "Éliminez la saisie manuelle entre les RH et votre ERP" },
+      { en: "Bi-directional sync keeps both systems always aligned", es: "Sincronización bidireccional que mantiene ambos sistemas siempre alineados", fr: "Synchronisation bidirectionnelle pour garder les deux systèmes toujours alignés" },
+    ],
+  },
+  integration_netsuite: {
+    label: { en: "NetSuite", es: "NetSuite", fr: "NetSuite" },
+    description: { en: "Connect Factorial with Oracle NetSuite for seamless HR-finance data flow", es: "Conecta Factorial con Oracle NetSuite para un flujo de datos RRHH-finanzas sin fricciones", fr: "Connectez Factorial à Oracle NetSuite pour un flux de données RH-finance sans friction" },
+    color: "#6366F1",
+    valueProps: [
+      { en: "Employee and payroll data synced automatically with NetSuite", es: "Datos de empleados y nómina sincronizados automáticamente con NetSuite", fr: "Données employés et paie synchronisées automatiquement avec NetSuite" },
+      { en: "Single source of truth across HR and finance", es: "Fuente única de verdad para RRHH y finanzas", fr: "Source unique de vérité pour les RH et la finance" },
+    ],
+  },
+  integration_sage_200: {
+    label: { en: "SAGE 200", es: "SAGE 200", fr: "SAGE 200" },
+    description: { en: "Direct integration between Factorial and SAGE 200 for payroll and accounting", es: "Integración directa entre Factorial y SAGE 200 para nóminas y contabilidad", fr: "Intégration directe entre Factorial et SAGE 200 pour la paie et la comptabilité" },
+    color: "#6366F1",
+    valueProps: [
+      { en: "No more manual exports between HR and accounting", es: "Sin más exportaciones manuales entre RRHH y contabilidad", fr: "Plus d'exports manuels entre les RH et la comptabilité" },
+      { en: "Payroll and headcount data always up to date in SAGE", es: "Datos de nómina y plantilla siempre actualizados en SAGE", fr: "Données de paie et effectifs toujours à jour dans SAGE" },
+    ],
+  },
+  integration_milena: {
+    label: { en: "Milena", es: "Milena", fr: "Milena" },
+    description: { en: "Automate payroll data transfer between Factorial and Milena", es: "Automatiza la transferencia de datos de nómina entre Factorial y Milena", fr: "Automatisez le transfert de données de paie entre Factorial et Milena" },
+    color: "#6366F1",
+    valueProps: [
+      { en: "Automated payroll data sync every pay cycle", es: "Sincronización automática de datos de nómina cada ciclo", fr: "Synchronisation automatique des données de paie à chaque cycle" },
+      { en: "Eliminate manual re-entry and reduce payroll errors", es: "Elimina la re-introducción manual y reduce errores de nómina", fr: "Éliminez la re-saisie manuelle et réduisez les erreurs de paie" },
+    ],
+  },
+  integration_suprema_xiptic: {
+    label: { en: "Suprema / Xiptic", es: "Suprema / Xiptic", fr: "Suprema / Xiptic" },
+    description: { en: "Connect biometric attendance terminals directly to Factorial", es: "Conecta los terminales de fichaje biométrico directamente con Factorial", fr: "Connectez les terminaux de pointage biométrique directement à Factorial" },
+    color: "#6366F1",
+    valueProps: [
+      { en: "Clock-in data from terminals flows automatically into Factorial", es: "Los datos de fichaje de los terminales fluyen automáticamente a Factorial", fr: "Les données de pointage des terminaux arrivent automatiquement dans Factorial" },
+      { en: "No manual data export or reconciliation needed", es: "Sin necesidad de exportación manual ni conciliación", fr: "Aucune exportation manuelle ni réconciliation nécessaire" },
+    ],
+  },
+  silae: {
+    label: { en: "SILAE", es: "SILAE", fr: "SILAE" },
+    description: { en: "Sync Factorial with SILAE for seamless payroll processing in France", es: "Sincroniza Factorial con SILAE para una gestión de nóminas sin fricciones en Francia", fr: "Synchronisez Factorial avec SILAE pour un traitement de la paie sans friction en France" },
+    color: "#6366F1",
+    valueProps: [
+      { en: "Direct payroll data sync with your SILAE provider", es: "Sincronización directa de datos de nómina con tu proveedor SILAE", fr: "Synchronisation directe des données de paie avec votre prestataire SILAE" },
+      { en: "Reduce payroll prep time and eliminate manual file transfers", es: "Reduce el tiempo de preparación de nómina y elimina las transferencias de ficheros manuales", fr: "Réduisez le temps de préparation de la paie et éliminez les transferts de fichiers manuels" },
+    ],
+  },
 };
 
 export const DISCOVERY_QUESTIONS: Record<
@@ -240,7 +344,7 @@ export const DISCOVERY_QUESTIONS: Record<
 > = {
   core: {
     employee: [{ en: "How many minutes per month do you spend on HR admin (updating personal data, requesting documents, checking policies)?", es: "¿Cuántos minutos al mes dedicáis a gestiones de RRHH (actualizar datos, pedir documentos, consultar políticas)?", fr: "Combien de minutes par mois passez-vous sur l'admin RH (mise à jour de données, demandes de documents, consultation des politiques) ?" }],
-    hr: [{ en: "How many hours per month does your team spend maintaining employee records and answering routine requests?", es: "¿Cuántas horas al mes dedica vuestro equipo a mantener fichas de empleados y responder consultas rutinarias?", fr: "Combien d'heures par mois votre équipe consacre-t-elle à la tenue des dossiers employés et aux demandes courantes ?" }],
+    hr: [{ en: "How many hours does your HR team spend per new hire (onboarding admin, profile setup, documentation, access setup)?", es: "¿Cuántas horas dedica el equipo de RRHH a cada nueva incorporación (alta, configuración del perfil, documentación, accesos)?", fr: "Combien d'heures votre équipe RH consacre-t-elle à chaque nouvelle recrue (onboarding admin, création du profil, documentation, accès) ?" }],
     manager: [{ en: "How much time per month do you lose looking for team info (contracts, org chart, headcount)?", es: "¿Cuánto tiempo al mes perdéis buscando info de vuestro equipo (contratos, organigrama, plantilla)?", fr: "Combien de temps par mois perdez-vous à chercher les infos de votre équipe (contrats, organigramme, effectifs) ?" }],
   },
   time_off: {
@@ -304,6 +408,9 @@ export const DISCOVERY_QUESTIONS: Record<
   headcount_planning: {
     hr: [{ en: "How many hours per month does headcount planning and position tracking take?", es: "¿Cuántas horas al mes os lleva la planificación de plantilla y seguimiento de posiciones?", fr: "Combien d'heures par mois prennent la planification des effectifs et le suivi des postes ?" }],
     manager: [{ en: "How much time per quarter do you spend forecasting hiring needs?", es: "¿Cuánto tiempo por trimestre dedicáis a prever necesidades de contratación?", fr: "Combien de temps par trimestre passez-vous à prévoir vos besoins en recrutement ?" }],
+  },
+  it_inventory: {
+    hr: [{ en: "How many hours does your HR team spend provisioning equipment and access for each new hire (laptop setup, accounts, badges)?", es: "¿Cuántas horas dedica vuestro equipo de RRHH a gestionar el material y los accesos necesarios para cada nueva incorporación (portátil, cuentas, tarjetas)?", fr: "Combien d'heures votre équipe RH consacre-t-elle à provisionner le matériel et les accès pour chaque nouvelle recrue (PC, comptes, badges) ?" }],
   },
   integration_business_central: {
     hr: [{ en: "How many hours per month do you spend on manual data entry between HR and Business Central?", es: "¿Cuántas horas al mes dedicáis a introducir datos manualmente entre RRHH y Business Central?", fr: "Combien d'heures par mois passez-vous à saisir manuellement des données entre les RH et Business Central ?" }],

@@ -135,7 +135,6 @@ const COUNTRY_FILTERS = [
   { value: "FR", label: "🇫🇷 FR" },
 ];
 
-const ADMIN_EMAIL = "lucas.siroo@factorial.co";
 
 function MetricCard({ label, value, sub, icon: Icon, color }: { label: string; value: string; sub?: string; icon: any; color: string }) {
   return (
@@ -406,13 +405,11 @@ export default function Admin() {
   const [showAudit, setShowAudit] = useState(false);
   const [view, setView] = useState<"metrics" | "tables" | "pipeline">("metrics");
 
-  const isAdminEmail = user?.email === ADMIN_EMAIL;
-
   const { data: isAdmin, isLoading: roleLoading } = useQuery({
     queryKey: ["user_role_admin_page", user?.id],
     queryFn: async () => {
       if (!user) return false;
-      if (user.email === ADMIN_EMAIL) return true;
+      if (user.email === "lucas.siroo@factorial.co") return true;
       const { data } = await supabase
         .from("user_roles")
         .select("role")

@@ -82,24 +82,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check — allow unauthenticated requests (preview mode)
     const authHeader = req.headers.get("Authorization");
-    let userId: string | null = null;
-    if (authHeader && !authHeader.endsWith(Deno.env.get("SUPABASE_ANON_KEY")!)) {
-      const supabaseUser = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_ANON_KEY")!,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-      const { data: { user }, error: authErr } = await supabaseUser.auth.getUser();
-      if (authErr || !user) {
-        return new Response(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      userId = user.id;
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const supabaseUser = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user }, error: authErr } = await supabaseUser.auth.getUser();
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = user.id;
 
     const { session_id, tone } = await req.json();
     if (!session_id) {
@@ -127,8 +127,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Only enforce ownership if user is authenticated
-    if (userId && session.pae_id !== userId) {
+    if (session.pae_id !== userId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

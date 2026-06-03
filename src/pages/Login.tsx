@@ -79,7 +79,7 @@ export default function Login() {
           <CheckCircle className="mx-auto h-12 w-12 text-emerald-500" />
           <p
             className="text-sm text-muted-foreground leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: t("login.check_inbox", { email }) }}
+            dangerouslySetInnerHTML={{ __html: t("login.check_inbox", { email: email.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`) }) }}
           />
         </div>
       </div>
