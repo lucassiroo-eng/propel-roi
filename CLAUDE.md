@@ -79,3 +79,44 @@ pain-mapping, offering-suggestions, evidence-analysis, email-draft, unified-anal
 ## Design register
 
 **Product** (tool used during sales demos). Impeccable product register applies. Color strategy: Restrained with module-color accent. No dark mode.
+
+## Admin panel
+
+`src/pages/Admin.tsx` — views: analytics, pipeline, settings, docs.
+`src/components/settings/AdminAnalytics.tsx` — ROI Pipeline section.
+
+### Pipeline features
+- Collapsible sent table + "Añadir ROIs" modal (deduped by company)
+- "Sync HubSpot" button — calls `hubspot-deal` edge function per row
+- Per-row × to remove from sent list
+- Funnel: Enviados → Close Won
+- HubSpot stage IDs decoded via `HUBSPOT_STAGE_LABELS` map (see file)
+
+### RLS (updated 2026-06-03)
+`own_sessions_select` and `own_prospects_select` use `USING (true)` — all authenticated users
+can read all sessions and prospects (internal team tool).
+
+## Auto-save (added 2026-06-03)
+
+Both Express (step 3) and CoCreation (step 4) auto-save when the result screen is reached,
+using a `useRef` guard to fire only once per session. Prevents data loss.
+
+## hubspot_deal_url
+
+Stored in `prospects.hubspot_deal_url`. Persisted on both insert and update in both flows.
+Required for Sync HubSpot to work. Historical records need manual SQL update.
+HubSpot portal: `4960096` (EU1). Deal URL: `https://app-eu1.hubspot.com/contacts/4960096/record/0-3/{id}/`
+
+## roi_sessions.flow_type
+
+`'express'` or `'co_created'`. Added via migration `20260602120000_roi_pipeline.sql`.
+
+## Removed modules
+
+HR Analytics (`analytics`) fully removed from `moduleCatalog.ts` and `offeringEngine.ts`.
+`discoveryModules = selectedModules.filter(id => catalogIds.has(id))` guards against
+HubSpot-imported deals that include removed module IDs.
+
+## Supabase SQL tips
+
+Cast when joining auth.users: `r.pae_id::text = (SELECT id::text FROM auth.users WHERE email = '...')`
