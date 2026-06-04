@@ -315,7 +315,7 @@ const DECK_CSS = `
 body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;flex-direction:column;align-items:center;gap:40px;padding:40px 0}
 .slide{width:1280px;height:720px;background:${C.bg};overflow:hidden;box-shadow:0 20px 64px rgba(0,0,0,.12);flex-shrink:0;position:relative}
 .iso{position:absolute;top:22px;right:28px;width:30px;height:30px;opacity:.65}
-.brand{position:absolute;top:26px;left:${C.pad};font-size:11px;font-weight:500;color:${C.lgray};letter-spacing:.02em}
+.brand{position:absolute;top:26px;left:${C.pad};right:100px;font-size:11px;font-weight:500;color:${C.lgray};letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .kpis{display:flex;margin:0 ${C.pad};padding:14px 0 16px;border-bottom:1px solid ${C.border}!important}
 .kpi{flex:1}.kpi+.kpi{border-left:1px solid ${C.border}!important;padding-left:36px;margin-left:36px}
@@ -335,14 +335,14 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .btbl .btot td:last-child{font-size:15px;color:${C.coral}}
 .mdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:middle}
 
-.mhd{position:absolute;top:48px;left:0;right:0;height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 ${C.pad};border-bottom:1px solid ${C.border}!important}
-.mhd-name{font-size:26px;font-weight:800;letter-spacing:-.025em}
-.mhd-cat{font-size:13px;color:${C.lgray};font-weight:500;margin-top:2px}
-.mhd-r{text-align:right}
-.mhd-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${C.lgray};margin-bottom:2px}
-.mhd-val{font-size:30px;font-weight:800;letter-spacing:-.03em}
+.mhd{position:absolute;top:48px;left:0;right:0;min-height:72px;display:flex;align-items:center;justify-content:space-between;padding:8px ${C.pad};border-bottom:1px solid ${C.border}!important}
+.mhd-name{font-size:24px;font-weight:800;letter-spacing:-.025em;white-space:nowrap}
+.mhd-cat{font-size:12px;color:${C.lgray};font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:600px}
+.mhd-r{text-align:right;flex-shrink:0;margin-left:24px}
+.mhd-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${C.lgray};margin-bottom:1px;white-space:nowrap}
+.mhd-val{font-size:28px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
 
-.htbl{position:absolute;top:114px;left:${C.pad};right:${C.pad};bottom:48px;width:calc(100% - 160px);border-collapse:collapse;table-layout:fixed}
+.htbl{position:absolute;top:120px;left:${C.pad};right:${C.pad};bottom:48px;width:calc(100% - 160px);border-collapse:collapse;table-layout:fixed}
 .htbl thead th{padding:7px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:${C.dark};text-align:left;white-space:nowrap;height:32px}
 .htbl thead th:last-child{text-align:right}
 .htbl thead th:nth-child(1){width:14%}.htbl thead th:nth-child(2){width:34%}.htbl thead th:nth-child(3){width:30%}.htbl thead th:nth-child(4){width:22%}
@@ -438,8 +438,8 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
       </tbody>
     </table>
   </div>
-  <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between">
-    <span style="font-size:11px;color:#AEAEB8">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
+  <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:baseline">
+    <span style="font-size:10px;color:#AEAEB8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:16px">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
     <span style="font-size:11px;color:#AEAEB8">2 / ${totalSlides}</span>
   </div>
 </div>`;
@@ -461,7 +461,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     <div><div class="mhd-name" style="color:${color}">${escHtml(detail.name)}</div><div class="mhd-cat">${escHtml(detail.category_desc)}</div></div>
     <div class="mhd-r"><div class="mhd-lbl">${t.annual_savings}</div><div class="mhd-val" style="color:${color}">${fmtEur(detail.total_annual)}</div></div>
   </div>
-  <div style="position:absolute;top:114px;left:80px;right:80px;bottom:48px;display:flex;flex-direction:column;justify-content:center;gap:40px">
+  <div style="position:absolute;top:120px;left:80px;right:80px;bottom:48px;display:flex;flex-direction:column;justify-content:center;gap:40px">
     <div style="display:flex;align-items:center;justify-content:center;gap:48px">
       <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #E9E9EC!important;background:#fff">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#AEAEB8;margin-bottom:12px">${t.replaces_before}</div>
