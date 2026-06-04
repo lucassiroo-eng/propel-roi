@@ -132,6 +132,14 @@ export default function AdminAnalytics() {
     }
   }
 
+  useEffect(() => {
+    if (loading || !pipelineSent.length) return;
+    const withUrl = pipelineSent.filter((i) => i.hubspot_deal_url && !dealStages[i.id]);
+    if (withUrl.length > 0) {
+      Promise.all(withUrl.map((i) => checkDealStage(i.id, i.hubspot_deal_url!)));
+    }
+  }, [loading, pipelineSent]);
+
   async function loadPipeline() {
     const { data: sessions } = await supabase
       .from("roi_sessions")
