@@ -1,6 +1,7 @@
 import type { RoiSlideData, RoiSlideModule, RoiSlideInput } from "./generateRoiSlide";
 import { MODULE_HOURS, getEffectiveHours, getCountForEntry, getSavingsDescriptions, type Stakeholder, type RoiMultipliers } from "./moduleHours";
 import { MODULE_CATALOG } from "./moduleCatalog";
+import { MODULE_INFO, getLocalized } from "./discoveryQuestions";
 import jsPDF from "jspdf";
 
 const PILL_COLORS: Record<string, string> = {
@@ -124,6 +125,12 @@ function getModuleDesc(modId: string, lang: string): string {
   return (MODULE_SHORT_DESC[lang] ?? MODULE_SHORT_DESC.es)[modId] ?? "";
 }
 
+function localizedModuleName(modId: string, lang: string): string {
+  const info = MODULE_INFO[modId];
+  if (info) return getLocalized(info.label, lang);
+  return modId.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+}
+
 interface StakeholderRow {
   stakeholder: Stakeholder;
   hours_per_unit: number;
@@ -167,11 +174,12 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, lang: string): M
 
     const color = modColor(modId);
     const catDesc = catalog?.category ?? "";
+    const name = localizedModuleName(modId, lang);
 
     if (slideModule.tool_override) {
       details.push({
         id: modId,
-        name: slideModule.name,
+        name,
         color,
         category_desc: catDesc,
         rows: [],
@@ -209,7 +217,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, lang: string): M
 
     details.push({
       id: modId,
-      name: slideModule.name,
+      name,
       color,
       category_desc: catDesc,
       rows,
