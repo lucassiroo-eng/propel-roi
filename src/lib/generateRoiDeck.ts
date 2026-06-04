@@ -122,12 +122,14 @@ const MODULE_SHORT_DESC: Record<string, Record<string, string>> = {
 };
 
 function getModuleDesc(modId: string, lang: string): string {
-  return (MODULE_SHORT_DESC[lang] ?? MODULE_SHORT_DESC.es)[modId] ?? "";
+  const descLang = lang === "es" ? "es" : "en";
+  return (MODULE_SHORT_DESC[descLang] ?? MODULE_SHORT_DESC.en)[modId] ?? "";
 }
 
 function localizedModuleName(modId: string, lang: string): string {
+  const labelLang = lang === "es" ? "es" : "en";
   const info = MODULE_INFO[modId];
-  if (info) return getLocalized(info.label, lang);
+  if (info) return getLocalized(info.label, labelLang);
   return modId.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -408,7 +410,7 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
 
   const moduleRows = details.map(d => {
     const hCol = d.tool_override
-      ? `<td style="font-size:11px">${t.tool_label}</td>`
+      ? `<td style="font-size:10px;color:#6C6C7D">${escHtml(d.tool_override.tool_name || t.tool_label)}</td>`
       : `<td>${Math.round(d.total_hours * 10) / 10} h</td>`;
     const desc = getModuleDesc(d.id, lang) || d.category_desc || d.name;
     return `<tr><td><span class="mdot" style="background:${d.color}"></span><strong>${escHtml(d.name)}</strong></td><td style="color:#6C6C7D">${escHtml(desc)}</td>${hCol}<td>${fmtEur(d.total_annual)}</td></tr>`;
