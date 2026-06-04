@@ -121,15 +121,24 @@ const MODULE_SHORT_DESC: Record<string, Record<string, string>> = {
   },
 };
 
-function getModuleDesc(modId: string, lang: string): string {
-  const descLang = lang === "es" ? "es" : "en";
-  return (MODULE_SHORT_DESC[descLang] ?? MODULE_SHORT_DESC.en)[modId] ?? "";
+// Country → language mapping:
+//   ES → ui=es, modules=es
+//   FR → ui=fr, modules=en
+//   *  → ui=en, modules=en
+function resolveLangs(country: string): { uiLang: string; modLang: string } {
+  const c = (country || "").toUpperCase();
+  if (c === "ES") return { uiLang: "es", modLang: "es" };
+  if (c === "FR") return { uiLang: "fr", modLang: "en" };
+  return { uiLang: "en", modLang: "en" };
 }
 
-function localizedModuleName(modId: string, lang: string): string {
-  const labelLang = lang === "es" ? "es" : "en";
+function getModuleDesc(modId: string, modLang: string): string {
+  return (MODULE_SHORT_DESC[modLang] ?? MODULE_SHORT_DESC.en)[modId] ?? "";
+}
+
+function localizedModuleName(modId: string, modLang: string): string {
   const info = MODULE_INFO[modId];
-  if (info) return getLocalized(info.label, labelLang);
+  if (info) return getLocalized(info.label, modLang);
   return modId.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
@@ -156,7 +165,7 @@ interface ModuleDetail {
   tool_override?: { tool_name: string; annual_cost: number };
 }
 
-function buildDetails(input: RoiSlideInput, data: RoiSlideData, lang: string): ModuleDetail[] {
+function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, modLang: string): ModuleDetail[] {
   const { roiConfig, configModules } = input;
   const { headcounts, hourly_costs } = roiConfig;
   const multipliers: RoiMultipliers = {
@@ -164,7 +173,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, lang: string): M
     onboardings_per_year: roiConfig.onboardings_per_year,
     expense_submitters: roiConfig.expense_submitters,
   };
-  const descs = getSavingsDescriptions(lang);
+  const descs = getSavingsDescriptions(uiLang);
   const customDescs = input.customDescriptions;
 
   const details: ModuleDetail[] = [];
@@ -176,7 +185,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, lang: string): M
 
     const color = modColor(modId);
     const catDesc = catalog?.category ?? "";
-    const name = localizedModuleName(modId, lang);
+    const name = localizedModuleName(modId, modLang);
 
     if (slideModule.tool_override) {
       details.push({
@@ -541,21 +550,21 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
 // ── Public API ───────────────────────────────────────
 
 export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full"): string {
-  const lang = data.language ?? "es";
-  const t = getI18n(lang);
-  const details = buildDetails(input, data, lang);
+  const { uiLang, modLang } = resolveLangs(input.country);
+  const t = getI18n(uiLang);
+  const details = buildDetails(input, data, uiLang, modLang);
   const totalSlides = mode === "summary" ? 2 : 2 + details.length;
 
-  let slides = coverSlide(data, t, lang) + "\n\n" + summarySlide(data, details, t, lang, totalSlides);
+  let slides = coverSlide(data, t, uiLang) + "\n\n" + summarySlide(data, details, t, uiLang, totalSlides);
 
   if (mode === "full") {
     details.forEach((d, i) => {
-      slides += "\n\n" + moduleSlide(d, data, t, lang, i + 3, totalSlides);
+      slides += "\n\n" + moduleSlide(d, data, t, uiLang, i + 3, totalSlides);
     });
   }
 
   return `<!DOCTYPE html>
-<html lang="${lang}">
+<html lang="${uiLang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1280">
