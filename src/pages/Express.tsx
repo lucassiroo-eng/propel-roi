@@ -36,9 +36,10 @@ import {
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
 import {
-  buildRoiSlideData, generateRoiSlideHtml, generateRoiSlidePdf, generateMultiSlidePdf,
+  buildRoiSlideData, generateRoiSlideHtml,
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
+import { generateDeckPdf } from "@/lib/generateRoiDeck";
 import type { ModuleSuggestion, RoiConfig, ToolOverride } from "@/hooks/useWizardSession";
 import { TutorialGuide } from "@/components/TutorialGuide";
 
@@ -642,8 +643,7 @@ export default function Express() {
         ...(type === "detail" && enhancedDescriptions ? { customDescriptions: enhancedDescriptions } : {}),
       };
       const data = buildRoiSlideData(input);
-      if (type === "summary") await generateRoiSlidePdf(data);
-      else await generateMultiSlidePdf(data, input);
+      await generateDeckPdf(data, input, type === "summary" ? "summary" : "full");
       toast.success(t("express.pdf_downloaded"));
     } catch (err: any) { toast.error(err.message ?? "Error"); }
     finally { setDlPdf(null); }
