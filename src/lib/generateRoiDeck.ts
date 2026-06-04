@@ -1,4 +1,4 @@
-import type { RoiSlideData, RoiSlideModule, RoiSlideInput } from "./generateRoiSlide";
+import type { RoiSlideData, RoiSlideInput } from "./generateRoiSlide";
 import { MODULE_HOURS, getEffectiveHours, getCountForEntry, getSavingsDescriptions, type Stakeholder, type RoiMultipliers } from "./moduleHours";
 import { MODULE_CATALOG } from "./moduleCatalog";
 import { MODULE_INFO, getLocalized } from "./discoveryQuestions";
@@ -18,6 +18,7 @@ function modColor(id: string): string {
 }
 
 function fmtEur(n: number): string {
+  if (!isFinite(n) || isNaN(n)) return "€0";
   const s = Math.abs(Math.round(n)).toString();
   let r = "";
   for (let i = 0; i < s.length; i++) {
@@ -132,8 +133,8 @@ function resolveLangs(country: string): { uiLang: string; modLang: string } {
   return { uiLang: "en", modLang: "en" };
 }
 
-function getModuleDesc(modId: string, modLang: string): string {
-  return (MODULE_SHORT_DESC[modLang] ?? MODULE_SHORT_DESC.en)[modId] ?? "";
+function getModuleDesc(modId: string, lang: string): string {
+  return (MODULE_SHORT_DESC[lang] ?? MODULE_SHORT_DESC.en)[modId] ?? "";
 }
 
 function localizedModuleName(modId: string, modLang: string): string {
@@ -390,11 +391,13 @@ const ISO_USE = `<svg class="iso"><use href="#iso"/></svg>`;
 
 function coverSlide(data: RoiSlideData, t: DeckI18n, lang: string): string {
   const empLabel: Record<string, string> = { es: "empleados", en: "employees", fr: "employés" };
+  const nameLen = data.company_name.length;
+  const nameFontSize = nameLen > 40 ? 48 : nameLen > 28 ? 60 : 80;
   return `<div class="slide" style="background:#FF355E">
   <svg style="position:absolute;top:40px;right:48px;width:52px;height:52px;opacity:.3"><use href="#iso" style="fill:#fff"/></svg>
   <div style="position:absolute;top:48px;left:80px;font-size:15px;color:rgba(255,255,255,.55);font-weight:400">${escHtml(t.proposal)} · ${fmtMonth(lang)}</div>
-  <div style="position:absolute;top:100px;left:80px;right:160px">
-    <div style="font-size:80px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1.0">${escHtml(data.company_name)}</div>
+  <div style="position:absolute;top:100px;left:80px;right:120px">
+    <div style="font-size:${nameFontSize}px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1.05">${escHtml(data.company_name)}</div>
   </div>
   <div style="position:absolute;top:320px;left:80px;max-width:580px">
     <div style="font-size:20px;color:rgba(255,255,255,.6);font-weight:400;line-height:1.5">${t.cover_subtitle} ${data.total_employees} ${empLabel[lang] ?? empLabel.es}.</div>
@@ -408,7 +411,8 @@ function coverSlide(data: RoiSlideData, t: DeckI18n, lang: string): string {
 }
 
 function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number): string {
-  const roiPer1 = (data.total_annual_savings / data.annual_cost).toFixed(2).replace(".", ",");
+  const rawPer1 = data.annual_cost > 0 ? data.total_annual_savings / data.annual_cost : 0;
+  const roiPer1 = rawPer1.toFixed(2).replace(".", ",");
   const totalH = details.reduce((s, d) => s + d.total_hours, 0);
 
   const titleTemplates: Record<string, string> = {
