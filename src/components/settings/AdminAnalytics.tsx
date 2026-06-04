@@ -394,14 +394,16 @@ export default function AdminAnalytics() {
 
   // Deduplicate generated ROIs by company — best ROI per company for the modal
   const pipelineGeneratedByCompany = useMemo(() => {
+    const sentNames = new Set(pipelineSent.map((i) => i.company_name.trim().toLowerCase()));
     const map = new Map<string, PipelineItem>();
     for (const item of pipelineGenerated) {
       const key = item.company_name.trim().toLowerCase();
+      if (sentNames.has(key)) continue;
       const existing = map.get(key);
       if (!existing || item.roi_pct > existing.roi_pct) map.set(key, item);
     }
     return Array.from(map.values()).sort((a, b) => b.roi_pct - a.roi_pct);
-  }, [pipelineGenerated]);
+  }, [pipelineGenerated, pipelineSent]);
 
   const WON_STAGES = new Set(["closedwon", "35118880", "1003800949", "12669405"]);
   const wonCount = pipelineSent.filter((i) => {
@@ -604,7 +606,10 @@ export default function AdminAnalytics() {
                     {checked
                       ? <CheckSquare className="h-4 w-4 text-primary shrink-0" />
                       : <Square className="h-4 w-4 text-muted-foreground shrink-0" />}
-                    <span className="flex-1 text-sm font-medium text-foreground truncate">{item.company_name}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground truncate block">{item.company_name}</span>
+                      <span className="text-[10px] text-muted-foreground">{item.updated_at ? new Date(item.updated_at).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }) : ""}</span>
+                    </div>
                     {item.flow_type === "co_created" ? (
                       <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>Co-creado</span>
                     ) : item.flow_type === "express" ? (
