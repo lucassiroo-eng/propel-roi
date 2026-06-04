@@ -307,69 +307,61 @@ function fmtMonth(lang: string): string {
 }
 
 // ── CSS ──────────────────────────────────────────────
+// All colors hardcoded (no var()) — html2canvas doesn't resolve CSS custom properties reliably
+const C = { coral: "#FF355E", dark: "#25253D", gray: "#6C6C7D", lgray: "#AEAEB8", border: "#E9E9EC", bg: "#F9F9FB", pad: "80px" };
+
 const DECK_CSS = `
-:root{--coral:#FF355E;--dark:#25253D;--gray:#6C6C7D;--lgray:#AEAEB8;--border:#E9E9EC;--bg:#F9F9FB;--pad:80px}
 *{margin:0;padding:0;box-sizing:border-box;border:none;outline:none}
 body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;flex-direction:column;align-items:center;gap:40px;padding:40px 0}
-.slide{width:1280px;height:720px;background:var(--bg);overflow:hidden;box-shadow:0 20px 64px rgba(0,0,0,.12);flex-shrink:0;position:relative}
+.slide{width:1280px;height:720px;background:${C.bg};overflow:hidden;box-shadow:0 20px 64px rgba(0,0,0,.12);flex-shrink:0;position:relative}
 .iso{position:absolute;top:22px;right:28px;width:30px;height:30px;opacity:.65}
-.brand{position:absolute;top:26px;left:var(--pad);font-size:11px;font-weight:500;color:var(--lgray);letter-spacing:.02em}
+.brand{position:absolute;top:26px;left:${C.pad};font-size:11px;font-weight:500;color:${C.lgray};letter-spacing:.02em}
 
-/* S1 KPIs */
-.kpis{display:flex;margin:0 var(--pad);padding:14px 0 16px;border-bottom:1px solid var(--border)!important}
-.kpi{flex:1}.kpi+.kpi{border-left:1px solid var(--border)!important;padding-left:36px;margin-left:36px}
-.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--lgray);margin-bottom:6px}
+.kpis{display:flex;margin:0 ${C.pad};padding:14px 0 16px;border-bottom:1px solid ${C.border}!important}
+.kpi{flex:1}.kpi+.kpi{border-left:1px solid ${C.border}!important;padding-left:36px;margin-left:36px}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:${C.lgray};margin-bottom:6px}
 .kpi-val{font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.kpi-sub{font-size:11px;color:var(--gray);margin-top:5px;line-height:1.4}
+.kpi-sub{font-size:11px;color:${C.gray};margin-top:5px;line-height:1.4}
 
-/* Summary table */
 .btbl{width:100%;border-collapse:collapse}
-.btbl thead th{padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:var(--dark);text-align:left}
+.btbl thead th{padding:8px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:${C.dark};text-align:left}
 .btbl thead th:last-child{text-align:right}
 .btbl thead tr th:first-child{border-radius:4px 0 0 4px}.btbl thead tr th:last-child{border-radius:0 4px 4px 0}
-.btbl tbody td{padding:6px 12px;font-size:12px;color:var(--dark);border-bottom:1px solid var(--border)!important;vertical-align:middle}
-.btbl tbody td:nth-child(3){text-align:center;font-weight:600;font-variant-numeric:tabular-nums;color:var(--gray)}
+.btbl tbody td{padding:6px 12px;font-size:12px;color:${C.dark};border-bottom:1px solid ${C.border}!important;vertical-align:middle}
+.btbl tbody td:nth-child(3){text-align:center;font-weight:600;font-variant-numeric:tabular-nums;color:${C.gray}}
 .btbl tbody td:last-child{text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .btbl tbody tr:last-child td{border-bottom:none!important}
-.btbl .btot td{font-weight:800;font-size:13px;border-top:2px solid var(--border)!important;border-bottom:none!important;padding:9px 12px;background:var(--bg)}
-.btbl .btot td:last-child{font-size:15px;color:var(--coral)}
+.btbl .btot td{font-weight:800;font-size:13px;border-top:2px solid ${C.border}!important;border-bottom:none!important;padding:9px 12px;background:${C.bg}}
+.btbl .btot td:last-child{font-size:15px;color:${C.coral}}
 .mdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:middle}
 
-/* Module slides */
-.mhd{position:absolute;top:48px;left:0;right:0;height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad);border-bottom:1px solid var(--border)!important}
+.mhd{position:absolute;top:48px;left:0;right:0;height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 ${C.pad};border-bottom:1px solid ${C.border}!important}
 .mhd-name{font-size:26px;font-weight:800;letter-spacing:-.025em}
-.mhd-cat{font-size:13px;color:var(--lgray);font-weight:500;margin-top:2px}
+.mhd-cat{font-size:13px;color:${C.lgray};font-weight:500;margin-top:2px}
 .mhd-r{text-align:right}
-.mhd-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--lgray);margin-bottom:2px}
+.mhd-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${C.lgray};margin-bottom:2px}
 .mhd-val{font-size:30px;font-weight:800;letter-spacing:-.03em}
 
-.htbl{position:absolute;top:114px;left:var(--pad);right:var(--pad);bottom:48px;width:calc(100% - var(--pad)*2);border-collapse:collapse;table-layout:fixed}
-.htbl thead th{padding:7px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:var(--dark);text-align:left;white-space:nowrap;height:32px}
+.htbl{position:absolute;top:114px;left:${C.pad};right:${C.pad};bottom:48px;width:calc(100% - 160px);border-collapse:collapse;table-layout:fixed}
+.htbl thead th{padding:7px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:${C.dark};text-align:left;white-space:nowrap;height:32px}
 .htbl thead th:last-child{text-align:right}
 .htbl thead th:nth-child(1){width:14%}.htbl thead th:nth-child(2){width:34%}.htbl thead th:nth-child(3){width:30%}.htbl thead th:nth-child(4){width:22%}
-.htbl tbody td{padding:10px;font-size:13px;color:var(--dark);border-bottom:1px solid var(--border)!important;vertical-align:top;overflow:hidden}
+.htbl tbody td{padding:10px;font-size:13px;color:${C.dark};border-bottom:1px solid ${C.border}!important;vertical-align:top;overflow:hidden}
 .htbl tbody tr:last-child td{border-bottom:none!important}
 .htbl tbody td:nth-child(4){text-align:right;vertical-align:middle}
 .sk{display:flex;align-items:center;gap:8px}
 .sk-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.sk-nm{font-size:13px;font-weight:700;color:var(--dark)}
-.ht{font-size:13px;color:var(--gray);line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
-.calc-block{font-size:13px;line-height:1.6;color:var(--lgray)}
-.calc-block .bold{font-weight:700;color:var(--dark)}
-.calc-block .key{color:var(--gray);font-weight:500}
-.calc-res{font-size:13px;font-weight:600;color:var(--dark);margin:2px 0;display:block}
-.sav-mon{font-size:12px;color:var(--gray);font-variant-numeric:tabular-nums;margin-bottom:2px}
+.sk-nm{font-size:13px;font-weight:700;color:${C.dark}}
+.ht{font-size:13px;color:${C.gray};line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.calc-block{font-size:13px;line-height:1.6;color:${C.lgray}}
+.calc-block .bold{font-weight:700;color:${C.dark}}
+.calc-block .key{color:${C.gray};font-weight:500}
+.calc-res{font-size:13px;font-weight:600;color:${C.dark};margin:2px 0;display:block}
+.sav-mon{font-size:12px;color:${C.gray};font-variant-numeric:tabular-nums;margin-bottom:2px}
 .sav-ann{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.htot{position:absolute;bottom:0;left:0;right:0;height:48px;background:var(--dark);display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad)}
+.htot{position:absolute;bottom:0;left:0;right:0;height:48px;background:${C.dark};display:flex;align-items:center;justify-content:space-between;padding:0 ${C.pad}}
 .htot-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4)}
 .htot-val{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-
-@media print{
-  @page{size:1280px 720px;margin:0}
-  html,body{width:1280px;height:auto;overflow:visible;background:#fff;display:block}
-  .slide{position:relative!important;display:block!important;width:1280px!important;height:720px!important;page-break-after:always;page-break-inside:avoid;break-after:page;box-shadow:none}
-  .slide:last-child{page-break-after:auto;break-after:auto}
-}
 `;
 
 const ISO_SVG = `<svg style="display:none"><symbol id="iso" viewBox="0 0 714 714" fill="none"><path d="M581.784 634.362C520.414 684.16 442.192 714 357 714C271.808 714 193.586 684.16 132.216 634.362C193.586 584.563 271.808 554.723 357 554.723C442.192 554.723 520.414 584.563 581.784 634.362Z" fill="#FF355E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M130.258 548.192C86.681 496.565 60.415 429.85 60.415 357C60.415 193.201 193.201 60.415 357 60.415C520.799 60.415 653.585 193.201 653.585 357C653.585 429.85 627.319 496.565 583.742 548.192C598.735 557.56 613.105 567.827 626.773 578.918L632.744 583.763C683.513 522.1 714 443.11 714 357C714 159.834 554.166 0 357 0C159.834 0 0 159.834 0 357C0 443.11 30.487 522.099 81.256 583.763L87.227 578.918C100.895 567.827 115.265 557.56 130.258 548.192Z" fill="#FF355E"/><path d="M488.815 346.015C488.815 418.815 429.8 477.831 357 477.831C284.2 477.831 225.185 418.815 225.185 346.015C225.185 273.216 284.2 214.2 357 214.2C429.8 214.2 488.815 273.216 488.815 346.015Z" fill="#FF355E"/></symbol></svg>`;
@@ -379,16 +371,16 @@ const ISO_USE = `<svg class="iso"><use href="#iso"/></svg>`;
 
 function coverSlide(data: RoiSlideData, t: DeckI18n, lang: string): string {
   const empLabel: Record<string, string> = { es: "empleados", en: "employees", fr: "employés" };
-  return `<div class="slide" style="background:var(--coral)">
+  return `<div class="slide" style="background:#FF355E">
   <svg style="position:absolute;top:40px;right:48px;width:52px;height:52px;opacity:.3"><use href="#iso" style="fill:#fff"/></svg>
-  <div style="position:absolute;top:48px;left:var(--pad);font-size:15px;color:rgba(255,255,255,.55);font-weight:400">${escHtml(t.proposal)} · ${fmtMonth(lang)}</div>
-  <div style="position:absolute;top:100px;left:var(--pad);right:160px">
+  <div style="position:absolute;top:48px;left:80px;font-size:15px;color:rgba(255,255,255,.55);font-weight:400">${escHtml(t.proposal)} · ${fmtMonth(lang)}</div>
+  <div style="position:absolute;top:100px;left:80px;right:160px">
     <div style="font-size:80px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1.0">${escHtml(data.company_name)}</div>
   </div>
-  <div style="position:absolute;top:320px;left:var(--pad);max-width:580px">
+  <div style="position:absolute;top:320px;left:80px;max-width:580px">
     <div style="font-size:20px;color:rgba(255,255,255,.6);font-weight:400;line-height:1.5">${t.cover_subtitle} ${data.total_employees} ${empLabel[lang] ?? empLabel.es}.</div>
   </div>
-  <div style="position:absolute;bottom:40px;left:var(--pad);right:var(--pad)">
+  <div style="position:absolute;bottom:40px;left:80px;right:80px">
     <div style="border-top:1px solid rgba(255,255,255,.2)!important;padding-top:14px">
       <div style="font-size:13px;color:rgba(255,255,255,.35)">${t.confidential} · ${fmtMonth(lang)}</div>
     </div>
@@ -401,9 +393,9 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
   const totalH = details.reduce((s, d) => s + d.total_hours, 0);
 
   const titleTemplates: Record<string, string> = {
-    es: `Factorial tiene un retorno de la inversión de <span style="color:var(--coral)">${data.roi_percent}%</span><br>para ${escHtml(data.company_name)}`,
-    en: `Factorial delivers a <span style="color:var(--coral)">${data.roi_percent}%</span> return on investment<br>for ${escHtml(data.company_name)}`,
-    fr: `Factorial offre un retour sur investissement de <span style="color:var(--coral)">${data.roi_percent}%</span><br>pour ${escHtml(data.company_name)}`,
+    es: `Factorial tiene un retorno de la inversión de <span style="color:#FF355E">${data.roi_percent}%</span><br>para ${escHtml(data.company_name)}`,
+    en: `Factorial delivers a <span style="color:#FF355E">${data.roi_percent}%</span> return on investment<br>for ${escHtml(data.company_name)}`,
+    fr: `Factorial offre un retour sur investissement de <span style="color:#FF355E">${data.roi_percent}%</span><br>pour ${escHtml(data.company_name)}`,
   };
 
   const moduleRows = details.map(d => {
@@ -411,33 +403,33 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
       ? `<td style="font-size:11px">${t.tool_label}</td>`
       : `<td>${Math.round(d.total_hours * 10) / 10} h</td>`;
     const desc = getModuleDesc(d.id, lang) || d.category_desc || d.name;
-    return `<tr><td><span class="mdot" style="background:${d.color}"></span><strong>${escHtml(d.name)}</strong></td><td style="color:var(--gray)">${escHtml(desc)}</td>${hCol}<td>${fmtEur(d.total_annual)}</td></tr>`;
+    return `<tr><td><span class="mdot" style="background:${d.color}"></span><strong>${escHtml(d.name)}</strong></td><td style="color:#6C6C7D">${escHtml(desc)}</td>${hCol}<td>${fmtEur(d.total_annual)}</td></tr>`;
   }).join("\n");
 
   return `<div class="slide" id="s1">
   ${ISO_USE}
   <div class="brand">${escHtml(t.proposal)}</div>
-  <div style="position:absolute;top:52px;left:var(--pad);right:var(--pad)">
-    <div style="font-size:32px;font-weight:800;color:var(--dark);letter-spacing:-.025em;line-height:1.1">${titleTemplates[lang] ?? titleTemplates.es}</div>
+  <div style="position:absolute;top:52px;left:80px;right:80px">
+    <div style="font-size:32px;font-weight:800;color:#25253D;letter-spacing:-.025em;line-height:1.1">${titleTemplates[lang] ?? titleTemplates.es}</div>
   </div>
   <div class="kpis" style="position:absolute;top:132px;left:0;right:0">
     <div class="kpi">
       <div class="kpi-lbl">${t.annual_savings}</div>
-      <div class="kpi-val" style="color:var(--coral)">${fmtEur(data.total_annual_savings)}</div>
+      <div class="kpi-val" style="color:#FF355E">${fmtEur(data.total_annual_savings)}</div>
       <div class="kpi-sub">${t.savings_vs_sub(fmtEur(data.annual_cost))}</div>
     </div>
     <div class="kpi">
       <div class="kpi-lbl">${t.roi}</div>
-      <div class="kpi-val" style="color:var(--dark)">${data.roi_percent}%</div>
+      <div class="kpi-val" style="color:#25253D">${data.roi_percent}%</div>
       <div class="kpi-sub">${t.roi_sub("€" + roiPer1)}</div>
     </div>
     <div class="kpi">
       <div class="kpi-lbl">${t.payback}</div>
-      <div class="kpi-val" style="color:var(--dark)">${data.payback_months} m</div>
+      <div class="kpi-val" style="color:#25253D">${data.payback_months} m</div>
       <div class="kpi-sub">${t.payback_sub(String(data.payback_months))}</div>
     </div>
   </div>
-  <div style="position:absolute;top:278px;left:var(--pad);right:var(--pad)">
+  <div style="position:absolute;top:278px;left:80px;right:80px">
     <table class="btbl">
       <thead><tr><th style="width:20%">${t.module}</th><th style="width:40%">${t.what_is}</th><th style="width:16%">${t.h_month}</th><th style="width:24%;text-align:right">${t.savings_year}</th></tr></thead>
       <tbody>
@@ -446,9 +438,9 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
       </tbody>
     </table>
   </div>
-  <div style="position:absolute;bottom:14px;left:var(--pad);right:var(--pad);display:flex;justify-content:space-between">
-    <span style="font-size:11px;color:var(--lgray)">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
-    <span style="font-size:11px;color:var(--lgray)">2 / ${totalSlides}</span>
+  <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between">
+    <span style="font-size:11px;color:#AEAEB8">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
+    <span style="font-size:11px;color:#AEAEB8">2 / ${totalSlides}</span>
   </div>
 </div>`;
 }
@@ -469,35 +461,35 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     <div><div class="mhd-name" style="color:${color}">${escHtml(detail.name)}</div><div class="mhd-cat">${escHtml(detail.category_desc)}</div></div>
     <div class="mhd-r"><div class="mhd-lbl">${t.annual_savings}</div><div class="mhd-val" style="color:${color}">${fmtEur(detail.total_annual)}</div></div>
   </div>
-  <div style="position:absolute;top:114px;left:var(--pad);right:var(--pad);bottom:48px;display:flex;flex-direction:column;justify-content:center;gap:40px">
+  <div style="position:absolute;top:114px;left:80px;right:80px;bottom:48px;display:flex;flex-direction:column;justify-content:center;gap:40px">
     <div style="display:flex;align-items:center;justify-content:center;gap:48px">
-      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid var(--border)!important;background:#fff">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--lgray);margin-bottom:12px">${t.replaces_before}</div>
-        <div style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:6px">${escHtml(toolName)}</div>
-        <div style="font-size:14px;color:var(--gray);margin-bottom:16px">${t.replaces_current_cost}</div>
+      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #E9E9EC!important;background:#fff">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#AEAEB8;margin-bottom:12px">${t.replaces_before}</div>
+        <div style="font-size:18px;font-weight:700;color:#25253D;margin-bottom:6px">${escHtml(toolName)}</div>
+        <div style="font-size:14px;color:#6C6C7D;margin-bottom:16px">${t.replaces_current_cost}</div>
         <div style="display:flex;align-items:baseline;gap:8px">
-          <span style="font-size:32px;font-weight:800;color:var(--dark);letter-spacing:-.02em">${monthlyCost}</span>
-          <span style="font-size:14px;color:var(--lgray)">${moLabel}</span>
+          <span style="font-size:32px;font-weight:800;color:#25253D;letter-spacing:-.02em">${monthlyCost}</span>
+          <span style="font-size:14px;color:#AEAEB8">${moLabel}</span>
         </div>
-        <div style="font-size:13px;color:var(--lgray);margin-top:4px">${fmtEur(detail.total_annual)} ${yrLabel}</div>
+        <div style="font-size:13px;color:#AEAEB8;margin-top:4px">${fmtEur(detail.total_annual)} ${yrLabel}</div>
       </div>
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 24h28M30 18l6 6-6 6" stroke="var(--coral)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid var(--coral)!important;background:rgba(255,53,94,.04)">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--coral);margin-bottom:12px">${t.replaces_after}</div>
-        <div style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:6px">${t.replaces_factorial} ${escHtml(detail.name)}</div>
-        <div style="font-size:14px;color:var(--gray);margin-bottom:16px">${t.replaces_included}</div>
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 24h28M30 18l6 6-6 6" stroke="#FF355E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #FF355E!important;background:rgba(255,53,94,.04)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#FF355E;margin-bottom:12px">${t.replaces_after}</div>
+        <div style="font-size:18px;font-weight:700;color:#25253D;margin-bottom:6px">${t.replaces_factorial} ${escHtml(detail.name)}</div>
+        <div style="font-size:14px;color:#6C6C7D;margin-bottom:16px">${t.replaces_included}</div>
         <div style="display:flex;align-items:baseline;gap:8px">
-          <span style="font-size:32px;font-weight:800;color:var(--coral);letter-spacing:-.02em">€0</span>
-          <span style="font-size:14px;color:var(--lgray)">${t.replaces_extra}</span>
+          <span style="font-size:32px;font-weight:800;color:#FF355E;letter-spacing:-.02em">€0</span>
+          <span style="font-size:14px;color:#AEAEB8">${t.replaces_extra}</span>
         </div>
       </div>
     </div>
     <div style="text-align:center;max-width:640px;margin:0 auto">
-      <div style="font-size:15px;color:var(--dark);line-height:1.6"><strong>${t.replaces_direct}: ${fmtEur(detail.total_annual)}/${t.year}</strong></div>
+      <div style="font-size:15px;color:#25253D;line-height:1.6"><strong>${t.replaces_direct}: ${fmtEur(detail.total_annual)}/${t.year}</strong></div>
     </div>
   </div>
   <div class="htot"><span class="htot-lbl">${t.total_annual}</span><span class="htot-val">${fmtEur(detail.total_annual)}</span></div>
-  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">${slideNum} / ${totalSlides}</div>
+  <div style="position:absolute;bottom:56px;right:80px;font-size:10px;color:#AEAEB8">${slideNum} / ${totalSlides}</div>
 </div>`;
   }
 
@@ -532,7 +524,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     <tbody>${rowsHtml}</tbody>
   </table>
   <div class="htot"><span class="htot-lbl">${t.total_annual}</span><span class="htot-val">${fmtEur(detail.total_annual)}</span></div>
-  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">${slideNum} / ${totalSlides}</div>
+  <div style="position:absolute;bottom:56px;right:80px;font-size:10px;color:#AEAEB8">${slideNum} / ${totalSlides}</div>
 </div>`;
 }
 
@@ -650,16 +642,30 @@ export async function generateDeckPdf(data: RoiSlideData, input: RoiSlideInput, 
     const slides = iframe.contentDocument!.querySelectorAll(".slide") as NodeListOf<HTMLElement>;
     if (slides.length === 0) throw new Error("No slides found");
 
-    const slideEls = Array.from(slides).map(s => s.outerHTML);
+    const slideHtmls = Array.from(slides).map(s => s.outerHTML);
+
+    const styleMatch = srcdoc.match(/<style>([\s\S]*?)<\/style>/g);
+    const allStyles = styleMatch ? styleMatch.join("\n") : "";
+    const svgDefs = ISO_SVG;
+
     const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1280, 720] });
 
-    for (let i = 0; i < slideEls.length; i++) {
+    for (let i = 0; i < slideHtmls.length; i++) {
       if (i > 0) pdf.addPage([1280, 720], "landscape");
-      iframe.contentDocument!.body.innerHTML = slideEls[i];
+
+      const singleSlideDoc = `<!DOCTYPE html><html><head>${allStyles}</head><body style="margin:0;padding:0;width:1280px;height:720px;overflow:hidden">${svgDefs}${slideHtmls[i]}</body></html>`;
+      iframe.contentDocument!.open();
+      iframe.contentDocument!.write(singleSlideDoc);
+      iframe.contentDocument!.close();
+
       iframe.contentDocument!.body.offsetHeight;
-      await new Promise(r => setTimeout(r, 80));
+      await new Promise(r => setTimeout(r, 120));
+
       const slide = iframe.contentDocument!.querySelector(".slide") as HTMLElement;
       if (!slide) continue;
+
+      slide.style.position = "relative";
+      slide.style.opacity = "1";
 
       const canvas = await html2canvas(slide, {
         width: 1280, height: 720, scale: 2,
