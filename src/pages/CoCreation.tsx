@@ -885,7 +885,6 @@ export default function CoCreation() {
                                     setRoiConfig(prev => {
                                       const ho = { ...(prev.hours_overrides ?? {}) };
                                       ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
-                                      if (v === 0) { delete ho[currentModule]![sk]; if (!Object.keys(ho[currentModule]!).length) delete ho[currentModule]; }
                                       return { ...prev, hours_overrides: ho };
                                     });
                                   }}
