@@ -126,7 +126,7 @@ Rules:
 6. Bad: "HR spends approximately 40 hours per month — managing absence tracking, calendar management, and leave administration"
 7. Only include stakeholders where the transcript has relevant content
 8. If a module was NOT discussed in the transcript, omit it entirely
-9. Respond in ${lang}
+9. ALWAYS respond in ${lang}, regardless of the transcript language. The transcript may be in Catalan, French, Portuguese, or any other language — translate all insights, quotes, and pain points into ${lang}. Preserve proper nouns (names, tool names, company names) but translate everything else.
 10. Do not invent details not present in the transcript`;
 }
 
