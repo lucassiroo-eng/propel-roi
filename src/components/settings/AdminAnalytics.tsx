@@ -118,6 +118,10 @@ export default function AdminAnalytics() {
   const [modalSelected, setModalSelected] = useState<Set<string>>(new Set());
   const [tableOpen, setTableOpen] = useState(true);
   const [syncingAll, setSyncingAll] = useState(false);
+  const [showDealModal, setShowDealModal] = useState(false);
+  const [dealCompany, setDealCompany] = useState("");
+  const [dealUrl, setDealUrl] = useState("");
+  const [addingDeal, setAddingDeal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -214,6 +218,31 @@ export default function AdminAnalytics() {
     setSyncingAll(true);
     await Promise.all(withUrl.map((i) => checkDealStage(i.id, i.hubspot_deal_url!)));
     setSyncingAll(false);
+  }
+
+  async function addManualDeal() {
+    const name = dealCompany.trim();
+    const url = dealUrl.trim();
+    if (!name) return;
+    setAddingDeal(true);
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      const paeId = user.user?.id;
+      const { data: prospect } = await supabase
+        .from("prospects")
+        .insert({ pae_id: paeId, company_name: name, ...(url ? { hubspot_deal_url: url } : {}), country: "ES", seats: 0 })
+        .select("id")
+        .single();
+      if (prospect) {
+        await supabase.from("roi_sessions").insert({ prospect_id: prospect.id, pae_id: paeId, status: "sent", flow_type: "express" });
+      }
+      setShowDealModal(false);
+      setDealCompany("");
+      setDealUrl("");
+      await loadPipeline();
+    } finally {
+      setAddingDeal(false);
+    }
   }
 
   async function addToSent() {
@@ -455,6 +484,12 @@ export default function AdminAnalytics() {
               >
                 <Plus className="h-3 w-3" /> Añadir ROIs
               </button>
+              <button
+                onClick={() => setShowDealModal(true)}
+                className="flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+              >
+                <Plus className="h-3 w-3" /> Añadir deal
+              </button>
             </div>
           </div>
         </CardHeader>
@@ -636,6 +671,49 @@ export default function AdminAnalytics() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showDealModal} onOpenChange={setShowDealModal}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-semibold">Añadir deal manual</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">Empresa</label>
+              <input
+                type="text"
+                placeholder="Nombre de la empresa"
+                value={dealCompany}
+                onChange={e => setDealCompany(e.target.value)}
+                className="w-full h-9 px-3 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">URL de HubSpot (opcional)</label>
+              <input
+                type="url"
+                placeholder="https://app-eu1.hubspot.com/contacts/..."
+                value={dealUrl}
+                onChange={e => setDealUrl(e.target.value)}
+                className="w-full h-9 px-3 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button onClick={() => setShowDealModal(false)} className="text-xs font-medium px-3 py-1.5 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+              Cancelar
+            </button>
+            <button
+              onClick={addManualDeal}
+              disabled={!dealCompany.trim() || addingDeal}
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
+            >
+              {addingDeal ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+              Añadir
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
