@@ -28,6 +28,9 @@ const HUBSPOT_STAGE_LABELS: Record<string, string> = {
   "35070729": "New Deal",
   "1008401982": "On Hold",
   "35119283": "Closed Lost",
+  "5366023400": "MEDDPICC Validation Started",
+  "1003800949": "Closed Won",
+  "12669405": "Closed Won",
   // SDR pipelines
   "25761537": "Opportunity Lost",
   "1002830341": "Opportunity Lost",
