@@ -36,7 +36,7 @@ import {
   type Stakeholder, type RoiMultipliers,
 } from "@/lib/moduleHours";
 import {
-  buildRoiSlideData, generateRoiSlideHtml,
+  buildRoiSlideData,
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
 import { generateDeckPdf } from "@/lib/generateRoiDeck";
@@ -54,72 +54,6 @@ const STAKE_LABEL_KEY: Record<Stakeholder, string> = { employee: "express.employ
 
 interface Msg { text: string; done: boolean }
 
-function SlidePreview({ html }: { html: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.4);
-  const [fullscreen, setFullscreen] = useState(false);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const update = () => setScale(el.clientWidth / 1440);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!fullscreen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setFullscreen(false); };
-    window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
-    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
-  }, [fullscreen]);
-
-  const fsScale = typeof window !== "undefined"
-    ? Math.min(window.innerWidth / 1440, window.innerHeight / 810)
-    : 0.5;
-
-  return (
-    <>
-      <div className="border-t border-border p-4">
-        <div ref={containerRef} className="relative w-full rounded-xl overflow-hidden bg-slate-100 border border-border/60 group cursor-pointer" style={{ height: Math.round(810 * scale) }} onClick={() => setFullscreen(true)}>
-          <iframe
-            srcDoc={html}
-            title="ROI Slide Preview"
-            sandbox="allow-same-origin"
-            className="absolute top-0 left-0 border-0 pointer-events-none"
-            style={{ width: 1440, height: 810, transform: `scale(${scale})`, transformOrigin: "top left" }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors">
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5">
-              <Maximize2 className="h-3.5 w-3.5" /> Fullscreen
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {fullscreen && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreen(false)}>
-          <button onClick={() => setFullscreen(false)} className="absolute top-5 right-5 z-10 text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2">
-            <X className="h-5 w-5" />
-          </button>
-          <div onClick={e => e.stopPropagation()} className="relative rounded-xl overflow-hidden shadow-2xl" style={{ width: Math.round(1440 * fsScale), height: Math.round(810 * fsScale) }}>
-            <iframe
-              srcDoc={html}
-              title="ROI Slide Fullscreen"
-              sandbox="allow-same-origin"
-              className="absolute top-0 left-0 border-0"
-              style={{ width: 1440, height: 810, transform: `scale(${fsScale})`, transformOrigin: "top left" }}
-            />
-          </div>
-          <p className="absolute bottom-5 text-white/40 text-xs font-medium">ESC to close</p>
-        </div>
-      )}
-    </>
-  );
-}
 
 export default function Express() {
   const navigate = useNavigate();
@@ -169,7 +103,6 @@ export default function Express() {
   // Step 3
   const [dlPdf, setDlPdf] = useState<string | null>(null);
   const [hypothesesOpen, setHypothesesOpen] = useState(false);
-  const [slidePreviewOpen, setSlidePreviewOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>> | null>(null);
   const [enhanceDialogOpen, setEnhanceDialogOpen] = useState(false);
@@ -497,21 +430,6 @@ export default function Express() {
     const c = annualCost;
     return { savings: ann, cost: c, pct: c > 0 ? ((ann - c) / c * 100) : 0, payback: ann > 0 ? (c / ann * 12) : 0, hrs: mHrs };
   }, [selectedModules, roiConfig, annualCost]);
-
-  const slideHtml = useMemo(() => {
-    if (!roi || !selectedModules.length) return null;
-    const lang = (i18n.language ?? "en").slice(0, 2);
-    const input: RoiSlideInput = {
-      companyName: companyName || dealName || "Company",
-      country, language: lang,
-      configModules: selectedModules,
-      bundleName: selectedBundle?.bundle_name ?? "Factorial",
-      bundleModules: selectedBundle ? [...bundleModuleIds] : selectedModules,
-      roiConfig, annualCost,
-      ...(enhancedDescriptions ? { customDescriptions: enhancedDescriptions } : {}),
-    };
-    return generateRoiSlideHtml(buildRoiSlideData(input));
-  }, [roi, selectedModules, roiConfig, annualCost, companyName, dealName, country, i18n.language, selectedBundle, bundleModuleIds, enhancedDescriptions]);
 
   // ── Enhance with AI ─────────────────────────────────────
   async function handleEnhanceWithAI() {
@@ -1357,33 +1275,6 @@ export default function Express() {
               )}
             </div>
 
-            {/* Live slide preview */}
-            {slideHtml && (
-              <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <button
-                  onClick={() => setSlidePreviewOpen(o => !o)}
-                  className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center">
-                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-semibold text-foreground">{t("express.slide_preview")}</span>
-                      <p className="text-[11px] text-muted-foreground">{t("express.slide_preview_sub")}</p>
-                    </div>
-                  </div>
-                  {slidePreviewOpen
-                    ? <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                </button>
-
-                {slidePreviewOpen && (
-                  <SlidePreview html={slideHtml} />
-                )}
-              </div>
-            )}
-
             {/* PDF downloads */}
             <div className="grid grid-cols-2 gap-3" data-tut="download-section">
               {/* Summary PDF */}
@@ -1523,7 +1414,7 @@ export default function Express() {
                 {t("express.share_link")}
               </Button>
               <button
-                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); setSlidePreviewOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setEnhancedDescriptions(null); setEnhanceTranscript(""); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
+                onClick={() => { setStep(0); setMsgs([]); setHubspotUrl(""); setSelectedModules([]); setModuleSuggestions([]); setSelectedBundle(null); setCompanyName(""); setDealName(""); setHypothesesOpen(false); savedSessionId.current = null; loadedSessionProspect.current = null; setSkipAnalysis(false); setEnhancedDescriptions(null); setEnhanceTranscript(""); setRoiConfig({ headcounts: { employee: 50, hr: 2, manager: 5 }, hourly_costs: { employee: 20, hr: 30, manager: 25 } }); setSearchParams({}); }}
                 className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {t("express.new_analysis")}
