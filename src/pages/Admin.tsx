@@ -403,7 +403,7 @@ export default function Admin() {
   const { user } = useAuth();
   const [activeTable, setActiveTable] = useState("pain_library");
   const [showAudit, setShowAudit] = useState(false);
-  const [view, setView] = useState<"metrics" | "tables" | "pipeline">("metrics");
+  const [view, setView] = useState<"metrics" | "tables" | "pipeline">("pipeline");
 
   const { data: isAdmin, isLoading: roleLoading } = useQuery({
     queryKey: ["user_role_admin_page", user?.id],
@@ -438,70 +438,10 @@ export default function Admin() {
       <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b px-4 py-3 flex items-center gap-2">
         <ShieldCheck className="h-5 w-5 text-primary" />
         <h1 className="font-semibold text-foreground">Admin</h1>
-        <div className="ml-auto flex items-center gap-1.5">
-          <Button
-            variant={view === "metrics" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("metrics")}
-          >
-            <BarChart3 className="h-3.5 w-3.5 mr-1" /> Metrics
-          </Button>
-          <Button
-            variant={view === "pipeline" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("pipeline")}
-          >
-            <GitBranch className="h-3.5 w-3.5 mr-1" /> Pipeline
-          </Button>
-          <Button
-            variant={view === "tables" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setView("tables")}
-          >
-            <History className="h-3.5 w-3.5 mr-1" /> Tables
-          </Button>
-        </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-4 space-y-4">
-        {view === "pipeline" ? (
-          <AdminAnalytics />
-        ) : view === "metrics" ? (
-          <MetricsDashboard />
-        ) : (
-          <>
-            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
-              {TABLE_TABS.map((t) => (
-                <Button
-                  key={t.key}
-                  variant={activeTable === t.key ? "default" : "outline"}
-                  size="sm"
-                  className="shrink-0 text-xs"
-                  onClick={() => { setActiveTable(t.key); setShowAudit(false); }}
-                >
-                  {t.label}
-                </Button>
-              ))}
-              <Button
-                variant={showAudit ? "default" : "ghost"}
-                size="sm"
-                className="shrink-0 text-xs ml-auto"
-                onClick={() => setShowAudit(!showAudit)}
-              >
-                <History className="h-3 w-3 mr-1" /> Audit
-              </Button>
-            </div>
-
-            {showAudit ? (
-              <AuditHistory tableName={activeTable} />
-            ) : (
-              <AdminTableEditor
-                config={config}
-                filterOptions={hasCountryFilter ? COUNTRY_FILTERS : undefined}
-              />
-            )}
-          </>
-        )}
+        <AdminAnalytics />
       </main>
 
       <BottomNav />
