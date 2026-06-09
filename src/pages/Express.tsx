@@ -1325,7 +1325,6 @@ export default function Express() {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-foreground">{t("express.enhance_title")}</p>
-                    <p className="text-[11px] text-muted-foreground">{t("express.enhance_sub")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
