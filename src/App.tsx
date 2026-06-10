@@ -20,16 +20,7 @@ const queryClient = new QueryClient();
 const isPreview = window.location.hostname.includes("id-preview--") || window.location.hostname.includes("lovableproject.com") || window.location.hostname === "localhost";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  if (isPreview) return <>{children}</>;
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-  if (!user) return <Navigate to="/login" replace />;
+  // Auth temporarily disabled — all users go straight to Home
   return <>{children}</>;
 }
 
