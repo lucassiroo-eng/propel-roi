@@ -462,9 +462,9 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
       </tbody>
     </table>
   </div>
-  <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:baseline">
-    <span style="font-size:10px;color:#AEAEB8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:16px">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
-    <span style="font-size:11px;color:#AEAEB8">2 / ${totalSlides}</span>
+  <div style="position:absolute;bottom:10px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:flex-end">
+    <span style="font-size:10px;color:#AEAEB8;line-height:1.4;margin-right:24px">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
+    <span style="font-size:10px;color:#AEAEB8;flex-shrink:0">2 / ${totalSlides}</span>
   </div>
 </div>`;
 }
