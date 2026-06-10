@@ -372,7 +372,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .sk{display:flex;align-items:center;gap:8px}
 .sk-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
 .sk-nm{font-size:13px;font-weight:700;color:${C.dark}}
-.ht{font-size:13px;color:${C.gray};line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.ht{font-size:13px;color:${C.gray};line-height:1.45;overflow:hidden}
 .calc-block{font-size:13px;line-height:1.6;color:${C.lgray}}
 .calc-block .bold{font-weight:700;color:${C.dark}}
 .calc-block .key{color:${C.gray};font-weight:500}
@@ -517,7 +517,6 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
 </div>`;
   }
 
-  const clamp = detail.rows.length <= 2 ? 6 : 4;
   const rowsHtml = detail.rows.map(r => {
     const ico = STAKEHOLDER_ICONS[r.stakeholder];
     const swLbl = scalesWithLabel(r.scales_with, lang);
@@ -530,7 +529,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     const monthlySav = isAnnual ? fmtEur(Math.round(r.annual_savings / 12)) + ` ${moLabel[lang] ?? moLabel.es}` : fmtEur(Math.round(r.monthly_savings)) + ` ${moLabel[lang] ?? moLabel.es}`;
     return `<tr>
         <td><div class="sk"><div class="sk-ico" style="background:${ico.bg}">${ico.emoji}</div><div class="sk-nm">${stakeholderLabel(r.stakeholder, lang)}</div></div></td>
-        <td><div class="ht" style="-webkit-line-clamp:${clamp}">${escHtml(r.description)}</div></td>
+        <td><div class="ht">${escHtml(r.description)}</div></td>
         <td><div class="calc-block"><div class="bold">${hUnit} ${t.per} ${swLbl.replace(/s$/, "")}</div><div class="key">× ${Math.round(r.count)} ${swLbl}</div><div class="calc-res">${totalLabel}</div><div>× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div></div></td>
         <td><div class="sav-mon">${monthlySav}</div><div class="sav-ann" style="color:${color}">${fmtEur(Math.round(r.annual_savings))} ${yrLabel[lang] ?? yrLabel.es}</div></td>
       </tr>`;
