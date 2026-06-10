@@ -118,7 +118,7 @@ Stakeholder types:
 Modules to analyze: ${modules.join(", ")}
 
 Rules:
-1. Return EXACTLY 1 sentence per stakeholder per module
+1. Return EXACTLY 1 sentence per stakeholder per module — maximum 250 characters. If longer, shorten it. The sentence must fit in 6 lines of a presentation slide.
 2. Focus on the human story: frustrations, workarounds, wasted effort, emotional pain. Numbers are fine when the prospect mentioned them, but don't lead with metrics. Prioritize what people actually feel and do day to day.
 3. Write like a sharp consultant, not a chatbot. Vary sentence structure. Never start with "[Stakeholder] spend approximately..." or "Currently, [stakeholder]...". No em dashes. No filler words.
 4. Use the prospect's own language, names, and specific details (tools, people, processes they mentioned)
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
       for (const [sk, bullets] of Object.entries(stakeholders as any)) {
         if (!["employee", "hr", "manager"].includes(sk)) continue;
         if (Array.isArray(bullets) && bullets.length > 0) {
-          cleaned[sk] = bullets.map(String).slice(0, 5);
+          cleaned[sk] = bullets.map(s => { const t = String(s); return t.length > 280 ? t.slice(0, 277) + "..." : t; }).slice(0, 5);
           totalBullets += cleaned[sk].length;
         }
       }
