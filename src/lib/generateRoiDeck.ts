@@ -272,7 +272,7 @@ function getI18n(lang: string): DeckI18n {
       replaces_before: "Antes", replaces_after: "Después", replaces_current_cost: "Coste actual",
       replaces_factorial: "Factorial", replaces_included: "Incluido en el plan contratado",
       replaces_direct: "Ahorro directo", replaces_extra: "adicional",
-      disclaimer: (e, h, m, o) => `Estimación: ${e} empleados · ${h} admin RRHH · ${m} managers · ${o} altas/año. No garantiza resultados.`,
+      disclaimer: (e, h, m, o) => `Estimación basada en ${e} empleados · ${h} admin RRHH · ${m} managers · ${o} altas/año`,
       ae_title: "Account Executive · Factorial",
       h_year_saved: "h/año ahorradas", h_month_saved: "h/mes ahorradas", per: "por", hourly_cost: "coste horario", year: "año",
     },
@@ -290,7 +290,7 @@ function getI18n(lang: string): DeckI18n {
       replaces_before: "Before", replaces_after: "After", replaces_current_cost: "Current cost",
       replaces_factorial: "Factorial", replaces_included: "Included in your plan",
       replaces_direct: "Direct savings", replaces_extra: "additional",
-      disclaimer: (e, h, m, o) => `Estimate: ${e} employees · ${h} HR admin · ${m} managers · ${o} hires/year. No guarantee of results.`,
+      disclaimer: (e, h, m, o) => `Estimate based on ${e} employees · ${h} HR admin · ${m} managers · ${o} hires/year`,
       ae_title: "Account Executive · Factorial",
       h_year_saved: "h/year saved", h_month_saved: "h/month saved", per: "per", hourly_cost: "hourly cost", year: "year",
     },
@@ -308,7 +308,7 @@ function getI18n(lang: string): DeckI18n {
       replaces_before: "Avant", replaces_after: "Après", replaces_current_cost: "Coût actuel",
       replaces_factorial: "Factorial", replaces_included: "Inclus dans votre plan",
       replaces_direct: "Économie directe", replaces_extra: "supplémentaire",
-      disclaimer: (e, h, m, o) => `Estimation: ${e} employés · ${h} admin RH · ${m} managers · ${o} recrutements/an. Sans garantie de résultats.`,
+      disclaimer: (e, h, m, o) => `Estimation basée sur ${e} employés · ${h} admin RH · ${m} managers · ${o} recrutements/an`,
       ae_title: "Account Executive · Factorial",
       h_year_saved: "h/an économisées", h_month_saved: "h/mois économisées", per: "par", hourly_cost: "coût horaire", year: "an",
     },
@@ -462,9 +462,9 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
       </tbody>
     </table>
   </div>
-  <div style="position:absolute;bottom:10px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:flex-end">
-    <span style="font-size:10px;color:#AEAEB8;line-height:1.4;margin-right:24px">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
-    <span style="font-size:10px;color:#AEAEB8;flex-shrink:0">2 / ${totalSlides}</span>
+  <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:10px;color:#AEAEB8;white-space:nowrap">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
+    <span style="font-size:10px;color:#AEAEB8;flex-shrink:0;margin-left:16px">2 / ${totalSlides}</span>
   </div>
 </div>`;
 }
