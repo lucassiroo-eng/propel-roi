@@ -543,5 +543,7 @@
   "tour.cocreate_body": "Click here to start co-creating an ROI. Import a deal, select modules, and build the ROI live during a discovery call.",
   "tour.sessions_title": "Your ROIs",
   "tour.sessions_body": "All your co-created ROIs live here. Click any to view, edit, or download the deck.",
-  "tour.cta": "Click 'Co-create an ROI' to start"
+  "tour.cta": "Click 'Co-create an ROI' to start",
+  "settings.language_it": "Italiano",
+  "settings.language_de": "Deutsch"
 }

@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, Zap, ShieldCheck, HelpCircle, X, MessageSquare } from "lucide-react";
+import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, ShieldCheck, HelpCircle, X, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -16,8 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const FLAG: Record<string, string> = { ES: "\u{1F1EA}\u{1F1F8}", FR: "\u{1F1EB}\u{1F1F7}" };
-const LANG_FLAG: Record<string, string> = { en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}" };
+const FLAG: Record<string, string> = { ES: "\u{1F1EA}\u{1F1F8}", FR: "\u{1F1EB}\u{1F1F7}", IT: "\u{1F1EE}\u{1F1F9}", DE: "\u{1F1E9}\u{1F1EA}" };
+const LANG_FLAG: Record<string, string> = { en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}", it: "\u{1F1EE}\u{1F1F9}", de: "\u{1F1E9}\u{1F1EA}" };
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-gray-100 text-gray-600",
@@ -56,12 +56,12 @@ interface CompanyGroup {
 function TutorialOverlay({
   expressRef,
   sessionsRef,
-  onClickExpress,
+  onClickCoCreate,
   onClose,
 }: {
   expressRef: React.RefObject<HTMLElement | null>;
   sessionsRef: React.RefObject<HTMLElement | null>;
-  onClickExpress: () => void;
+  onClickCoCreate: () => void;
   onClose: () => void;
 }) {
   const [rects, setRects] = useState<{ express: DOMRect | null; sessions: DOMRect | null }>({ express: null, sessions: null });
@@ -123,7 +123,7 @@ function TutorialOverlay({
 
       {/* Express highlight ring — clickable */}
       <button
-        onClick={onClickExpress}
+        onClick={onClickCoCreate}
         className="absolute rounded-2xl ring-2 ring-primary animate-pulse cursor-pointer"
         style={{ top: ex.top, left: ex.left, width: ex.width, height: ex.height }}
       />
@@ -197,24 +197,17 @@ export default function Home() {
 
   const tutorialKey = `propel_tutorial_seen_${user?.id ?? "anon"}`;
 
-  const startTutorial = useCallback(() => {
-    i18n.changeLanguage("en");
-    localStorage.setItem("propel_locale", "en");
-    setShowTutorial(true);
-  }, [i18n]);
   const closeTutorial = useCallback(() => {
     setShowTutorial(false);
     localStorage.setItem(tutorialKey, "1");
-    localStorage.removeItem("propel_tutorial_active");
   }, [tutorialKey]);
 
-  const handleExpressClick = useCallback(() => {
+  const handleCoCreateClick = useCallback(() => {
     if (showTutorial) {
-      localStorage.setItem("propel_tutorial_active", "1");
       localStorage.setItem(tutorialKey, "1");
       setShowTutorial(false);
     }
-    navigate("/express");
+    navigate("/co-creation");
   }, [showTutorial, navigate, tutorialKey]);
 
   useEffect(() => {
@@ -313,7 +306,7 @@ export default function Home() {
         <TutorialOverlay
           expressRef={expressRef}
           sessionsRef={sessionsRef}
-          onClickExpress={handleExpressClick}
+          onClickCoCreate={handleCoCreateClick}
           onClose={closeTutorial}
         />
       )}
@@ -349,7 +342,7 @@ export default function Home() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {[["en", "\u{1F1EC}\u{1F1E7} English"], ["es", "\u{1F1EA}\u{1F1F8} Español"], ["fr", "\u{1F1EB}\u{1F1F7} Français"]].map(([lng, label]) => (
+              {[["en", "\u{1F1EC}\u{1F1E7} English"], ["es", "\u{1F1EA}\u{1F1F8} Español"], ["fr", "\u{1F1EB}\u{1F1F7} Français"], ["it", "\u{1F1EE}\u{1F1F9} Italiano"], ["de", "\u{1F1E9}\u{1F1EA} Deutsch"]].map(([lng, label]) => (
                 <DropdownMenuItem key={lng} onClick={() => { i18n.changeLanguage(lng); localStorage.setItem("propel_locale", lng); }}>
                   {label}
                 </DropdownMenuItem>

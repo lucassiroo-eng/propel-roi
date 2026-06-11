@@ -543,5 +543,7 @@
   "tour.cocreate_body": "Clicca qui per co-creare un ROI. Importa un deal, seleziona i moduli e costruisci il ROI in diretta.",
   "tour.sessions_title": "I tuoi ROI",
   "tour.sessions_body": "Tutti i tuoi ROI co-creati sono qui. Clicca per vedere, modificare o scaricare il deck.",
-  "tour.cta": "Clicca 'Co-crea un ROI' per iniziare"
+  "tour.cta": "Clicca 'Co-crea un ROI' per iniziare",
+  "settings.language_it": "Italiano",
+  "settings.language_de": "Tedesco"
 }
