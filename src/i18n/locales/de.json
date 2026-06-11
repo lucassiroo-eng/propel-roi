@@ -504,12 +504,16 @@
   "login.signup_description": "Erstellen Sie Ihr Konto, um zu starten",
   "login.password_placeholder": "Passwort",
   "login.password_min": "Das Passwort muss mindestens 6 Zeichen haben",
-  "login.name_placeholder": "Vollstandiger Name (z.B. Lucas Siroo)",
+  "login.name_placeholder": "Vollstandiger Name (nur beim ersten Login)",
   "login.name_required": "Bitte geben Sie Ihren vollstandigen Namen ein",
   "login.sign_in": "Anmelden",
   "login.create_account": "Konto erstellen",
   "login.no_account": "Kein Konto? Registrieren",
   "login.have_account": "Bereits ein Konto? Anmelden",
   "login.invalid_credentials": "Ungultige E-Mail oder Passwort",
-  "login.already_registered": "Diese E-Mail ist bereits registriert. Versuchen Sie sich anzumelden."
+  "login.already_registered": "Diese E-Mail ist bereits registriert. Versuchen Sie sich anzumelden.",
+  "login.description": "Geben Sie Ihre Zugangsdaten ein",
+  "login.enter": "Eintreten",
+  "login.invalid_user": "Ungultiger Benutzer",
+  "login.hint": "Erstes Mal? Alle Felder ausfullen. Bereits registriert? Nur E-Mail und Passwort."
 }

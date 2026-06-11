@@ -504,12 +504,16 @@
   "login.signup_description": "Crea tu cuenta para empezar",
   "login.password_placeholder": "Contrasena",
   "login.password_min": "La contrasena debe tener al menos 6 caracteres",
-  "login.name_placeholder": "Nombre completo (ej. Lucas Siroo)",
+  "login.name_placeholder": "Nombre completo (solo la primera vez)",
   "login.name_required": "Introduce tu nombre completo",
   "login.sign_in": "Iniciar sesion",
   "login.create_account": "Crear cuenta",
   "login.no_account": "No tienes cuenta? Registrate",
   "login.have_account": "Ya tienes cuenta? Inicia sesion",
   "login.invalid_credentials": "Email o contrasena incorrectos",
-  "login.already_registered": "Este email ya esta registrado. Prueba a iniciar sesion."
+  "login.already_registered": "Este email ya esta registrado. Prueba a iniciar sesion.",
+  "login.description": "Introduce tus credenciales para continuar",
+  "login.enter": "Entrar",
+  "login.invalid_user": "Usuario no valido",
+  "login.hint": "Primera vez? Rellena todos los campos. Ya registrado? Solo email y contrasena."
 }

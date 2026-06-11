@@ -2,27 +2,25 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, ArrowRight, CheckCircle } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import factorialLogo from "@/assets/factorial-logo-red.svg";
 
 export default function Login() {
   const { signUp, signIn } = useAuth();
   const { t } = useTranslation();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [signUpDone, setSignUpDone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     const trimmed = email.trim().toLowerCase();
     if (!trimmed.endsWith("@factorial.co")) {
-      setError(t("login.domain_error"));
+      setError(t("login.invalid_user"));
       return;
     }
     if (password.length < 6) {
@@ -31,52 +29,26 @@ export default function Login() {
     }
     setLoading(true);
 
-    if (mode === "signup") {
-      if (!fullName.trim()) {
-        setError(t("login.name_required"));
-        setLoading(false);
-        return;
+    // Try sign in first
+    const { error: signInErr } = await signIn(trimmed, password);
+    if (!signInErr) {
+      setLoading(false);
+      return;
+    }
+
+    // Sign in failed — try sign up if name is provided
+    if (fullName.trim()) {
+      const { error: signUpErr } = await signUp(trimmed, password, fullName.trim());
+      if (signUpErr) {
+        setError(t("login.invalid_user"));
       }
-      const { error: err } = await signUp(trimmed, password, fullName.trim());
-      if (err) {
-        if (err.message.includes("already registered")) {
-          setError(t("login.already_registered"));
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setSignUpDone(true);
-      }
+      // signUp with auto-confirm will log the user in automatically
     } else {
-      const { error: err } = await signIn(trimmed, password);
-      if (err) {
-        if (err.message === "Invalid login credentials") {
-          setError(t("login.invalid_credentials"));
-        } else {
-          setError(err.message);
-        }
-      }
+      // No name → existing user with wrong password, or new user without name
+      setError(t("login.invalid_user"));
     }
     setLoading(false);
   };
-
-  if (signUpDone) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-        <div className="w-full max-w-xs text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto">
-            <CheckCircle className="h-7 w-7 text-emerald-500" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground mb-1">{t("login.check_title")}</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {t("login.check_body", { email })}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
@@ -84,9 +56,7 @@ export default function Login() {
         <div className="text-center space-y-1">
           <img src={factorialLogo} alt="Factorial" className="mx-auto h-7 mb-4" />
           <h1 className="text-lg font-semibold tracking-tight">{t("login.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {mode === "signup" ? t("login.signup_description") : t("login.signin_description")}
-          </p>
+          <p className="text-sm text-muted-foreground">{t("login.description")}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -100,16 +70,14 @@ export default function Login() {
             autoFocus
           />
 
-          {mode === "signup" && (
-            <Input
-              type="text"
-              placeholder={t("login.name_placeholder")}
-              value={fullName}
-              onChange={(e) => { setFullName(e.target.value); setError(null); }}
-              className="h-11"
-              autoComplete="name"
-            />
-          )}
+          <Input
+            type="text"
+            placeholder={t("login.name_placeholder")}
+            value={fullName}
+            onChange={(e) => { setFullName(e.target.value); setError(null); }}
+            className="h-11"
+            autoComplete="name"
+          />
 
           <Input
             type="password"
@@ -117,7 +85,7 @@ export default function Login() {
             value={password}
             onChange={(e) => { setPassword(e.target.value); setError(null); }}
             className="h-11"
-            autoComplete={mode === "signup" ? "new-password" : "current-password"}
+            autoComplete="current-password"
           />
 
           {error && (
@@ -133,32 +101,16 @@ export default function Login() {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                {mode === "signup" ? t("login.create_account") : t("login.sign_in")}
+                {t("login.enter")}
                 <ArrowRight className="h-4 w-4 ml-2" />
               </>
             )}
           </Button>
         </form>
 
-        <div className="text-center">
-          {mode === "signin" ? (
-            <button
-              type="button"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => { setMode("signup"); setError(null); }}
-            >
-              {t("login.no_account")}
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => { setMode("signin"); setError(null); }}
-            >
-              {t("login.have_account")}
-            </button>
-          )}
-        </div>
+        <p className="text-center text-[11px] text-muted-foreground/60">
+          {t("login.hint")}
+        </p>
       </div>
     </div>
   );

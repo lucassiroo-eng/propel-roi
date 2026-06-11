@@ -504,12 +504,16 @@
   "login.signup_description": "Creez votre compte pour commencer",
   "login.password_placeholder": "Mot de passe",
   "login.password_min": "Le mot de passe doit contenir au moins 6 caracteres",
-  "login.name_placeholder": "Nom complet (ex. Lucas Siroo)",
+  "login.name_placeholder": "Nom complet (premiere connexion uniquement)",
   "login.name_required": "Veuillez entrer votre nom complet",
   "login.sign_in": "Se connecter",
   "login.create_account": "Creer un compte",
   "login.no_account": "Pas de compte ? Inscrivez-vous",
   "login.have_account": "Deja un compte ? Connectez-vous",
   "login.invalid_credentials": "Email ou mot de passe incorrect",
-  "login.already_registered": "Cet email est deja enregistre. Essayez de vous connecter."
+  "login.already_registered": "Cet email est deja enregistre. Essayez de vous connecter.",
+  "login.description": "Entrez vos identifiants pour continuer",
+  "login.enter": "Entrer",
+  "login.invalid_user": "Utilisateur non valide",
+  "login.hint": "Premiere fois ? Remplissez tous les champs. Deja inscrit ? Email et mot de passe."
 }

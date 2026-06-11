@@ -504,12 +504,16 @@
   "login.signup_description": "Create your account to get started",
   "login.password_placeholder": "Password",
   "login.password_min": "Password must be at least 6 characters",
-  "login.name_placeholder": "Full name (e.g. Lucas Siroo)",
+  "login.name_placeholder": "Full name (only for first login)",
   "login.name_required": "Please enter your full name",
   "login.sign_in": "Sign in",
   "login.create_account": "Create account",
   "login.no_account": "Don't have an account? Sign up",
   "login.have_account": "Already have an account? Sign in",
   "login.invalid_credentials": "Invalid email or password",
-  "login.already_registered": "This email is already registered. Try signing in."
+  "login.already_registered": "This email is already registered. Try signing in.",
+  "login.description": "Enter your credentials to continue",
+  "login.enter": "Enter",
+  "login.invalid_user": "Invalid user",
+  "login.hint": "First time? Fill in all fields. Already registered? Just email and password."
 }
