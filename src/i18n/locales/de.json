@@ -527,5 +527,13 @@
   "onboarding.s3_title": "Der Co-Kreations-Prozess",
   "onboarding.s3_body": "1. Importieren Sie den Deal aus HubSpot — die KI holt den Kontext automatisch.\n2. Wahlen Sie die relevanten Factorial-Module fur den Prospect.\n3. Konfigurieren Sie wahrend des Gesprachs die Stunden pro Stakeholder.\n4. Laden Sie ein Factorial-gebrandetes PDF-Deck herunter, bereit zum Versand an den Economic Buyer.",
   "onboarding.s4_title": "Die Berechnung verstehen",
-  "onboarding.s4_body": "Die Einsparungen jedes Moduls folgen einer einfachen Formel:\n\nEingesparte Stunden/Monat x Anzahl Personen x Stundenkosten x 12 Monate = Jahrliche Einsparungen\n\nBeispiel: Wenn 5 HR-Admins je 6h/Monat bei 30€/h einsparen, spart dieses Modul 10.800€/Jahr. Der Gesamt-ROI vergleicht diese Einsparungen mit der Factorial-Investition."
+  "onboarding.s4_body": "Die Einsparungen jedes Moduls folgen einer einfachen Formel:\n\nEingesparte Stunden/Monat x Anzahl Personen x Stundenkosten x 12 Monate = Jahrliche Einsparungen\n\nBeispiel: Wenn 5 HR-Admins je 6h/Monat bei 30€/h einsparen, spart dieses Modul 10.800€/Jahr. Der Gesamt-ROI vergleicht diese Einsparungen mit der Factorial-Investition.",
+  "onboarding.h1_title": "Schritt 1: Deal importieren",
+  "onboarding.h1_body": "Fugen Sie den HubSpot-Deal-Link ein. Die KI holt Kontext, Kontakte und Kommunikationsverlauf automatisch ab — E-Mails, Anrufe und Notizen.",
+  "onboarding.h2_title": "Schritt 2: Module wahlen und konfigurieren",
+  "onboarding.h2_body": "Wahlen Sie die benotigten Factorial-Module. Legen Sie Mitarbeiterzahlen und Stundenkosten pro Stakeholder-Typ fest (Mitarbeiter, HR, Manager).",
+  "onboarding.h3_title": "Schritt 3: Wahrend des Gesprachs co-erstellen",
+  "onboarding.h3_body": "Passen Sie wahrend des Discovery-Gesprachs die Stunden pro Stakeholder an. Fragen Sie: 'Wie viele Stunden pro Monat verbringen Sie mit X?' Der ROI aktualisiert sich live.",
+  "onboarding.h4_title": "Schritt 4: Deck herunterladen",
+  "onboarding.h4_body": "Erstellen Sie ein Factorial-gebrandetes PDF — einseitige Zusammenfassung oder vollstandiges Detail mit Berechnungsaufschlusselung pro Modul. Bereit fur den Economic Buyer."
 }

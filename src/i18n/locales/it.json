@@ -527,5 +527,13 @@
   "onboarding.s3_title": "Il processo di co-creazione",
   "onboarding.s3_body": "1. Importa il deal da HubSpot — l'IA recupera il contesto automaticamente.\n2. Seleziona i moduli Factorial rilevanti per il prospect.\n3. Durante la chiamata, configura le ore per stakeholder in base a quello che ti dicono.\n4. Scarica un deck PDF brandizzato Factorial pronto da inviare all'Economic Buyer.",
   "onboarding.s4_title": "Capire il calcolo",
-  "onboarding.s4_body": "Il risparmio di ogni modulo segue una formula semplice:\n\nOre risparmiate/mese x Numero di persone x Costo orario x 12 mesi = Risparmio annuale\n\nAd esempio: se 5 admin HR risparmiano 6h/mese ciascuno a 30€/h, quel modulo risparmia 10.800€/anno. Il ROI totale confronta questo risparmio con l'investimento in Factorial."
+  "onboarding.s4_body": "Il risparmio di ogni modulo segue una formula semplice:\n\nOre risparmiate/mese x Numero di persone x Costo orario x 12 mesi = Risparmio annuale\n\nAd esempio: se 5 admin HR risparmiano 6h/mese ciascuno a 30€/h, quel modulo risparmia 10.800€/anno. Il ROI totale confronta questo risparmio con l'investimento in Factorial.",
+  "onboarding.h1_title": "Passo 1: Importa il tuo deal",
+  "onboarding.h1_body": "Incolla il link del deal HubSpot. L'IA recupera contesto, contatti e cronologia comunicazioni automaticamente — email, chiamate e note.",
+  "onboarding.h2_title": "Passo 2: Seleziona moduli e configura",
+  "onboarding.h2_body": "Scegli i moduli Factorial necessari. Imposta organico e costi orari per tipo di stakeholder (dipendenti, HR, manager).",
+  "onboarding.h3_title": "Passo 3: Co-crea durante la chiamata",
+  "onboarding.h3_body": "Durante la chiamata di discovery, regola le ore per stakeholder. Chiedi: 'Quante ore al mese dedicate a X?' Il ROI si aggiorna in diretta.",
+  "onboarding.h4_title": "Passo 4: Scarica il deck",
+  "onboarding.h4_body": "Genera un PDF brandizzato Factorial — riepilogo di una pagina o dettaglio completo con calcoli per modulo. Pronto da inviare all'Economic Buyer."
 }

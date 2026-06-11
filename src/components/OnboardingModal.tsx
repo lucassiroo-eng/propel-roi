@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, ArrowRight, ChevronRight, Target, Handshake, GitBranch, Calculator } from "lucide-react";
+import { Globe, ArrowRight, ChevronRight, Target, Handshake, GitBranch, Calculator, Link, Layers, Phone, FileDown } from "lucide-react";
 
 const LANGUAGES = [
   { code: "es", flag: "\u{1F1EA}\u{1F1F8}", label: "Español" },
@@ -10,12 +10,21 @@ const LANGUAGES = [
   { code: "de", flag: "\u{1F1E9}\u{1F1EA}", label: "Deutsch" },
 ];
 
-const SLIDES = [
+const WHY_SLIDES = [
   { icon: Target, color: "#FF355E", bg: "#FFF1F3", title: "onboarding.s1_title", body: "onboarding.s1_body" },
   { icon: Handshake, color: "#7C3AED", bg: "#F3F0FF", title: "onboarding.s2_title", body: "onboarding.s2_body" },
   { icon: GitBranch, color: "#0EA5E9", bg: "#EFF6FF", title: "onboarding.s3_title", body: "onboarding.s3_body" },
   { icon: Calculator, color: "#059669", bg: "#ECFDF5", title: "onboarding.s4_title", body: "onboarding.s4_body" },
 ];
+
+const HOW_SLIDES = [
+  { icon: Link, color: "#F59E0B", bg: "#FFFBEB", title: "onboarding.h1_title", body: "onboarding.h1_body" },
+  { icon: Layers, color: "#8B5CF6", bg: "#F3F0FF", title: "onboarding.h2_title", body: "onboarding.h2_body" },
+  { icon: Phone, color: "#0EA5E9", bg: "#EFF6FF", title: "onboarding.h3_title", body: "onboarding.h3_body" },
+  { icon: FileDown, color: "#059669", bg: "#ECFDF5", title: "onboarding.h4_title", body: "onboarding.h4_body" },
+];
+
+const ALL_SLIDES = [...WHY_SLIDES, ...HOW_SLIDES];
 
 export default function OnboardingModal({ onComplete }: { onComplete: () => void }) {
   const { t, i18n } = useTranslation();
@@ -80,7 +89,7 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
         {phase === "tutorial" && (
           <div className="p-8">
             {(() => {
-              const slide = SLIDES[slideIdx];
+              const slide = ALL_SLIDES[slideIdx];
               const Icon = slide.icon;
               return (
                 <div className="text-center">
@@ -94,13 +103,13 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
             })()}
 
             <div className="flex items-center justify-center gap-1.5 mb-6">
-              {SLIDES.map((_, i) => (
+              {ALL_SLIDES.map((_, i) => (
                 <div key={i} className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-6 bg-foreground" : "w-1.5 bg-border"}`} />
               ))}
             </div>
 
             <div className="flex gap-3">
-              {slideIdx < SLIDES.length - 1 ? (
+              {slideIdx < ALL_SLIDES.length - 1 ? (
                 <>
                   <button onClick={finish} className="flex-1 h-11 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
                     {t("onboarding.skip")}

@@ -527,5 +527,13 @@
   "onboarding.s3_title": "Le processus de co-creation",
   "onboarding.s3_body": "1. Importez le deal depuis HubSpot — l'IA recupere le contexte automatiquement.\n2. Selectionnez les modules Factorial pertinents pour le prospect.\n3. Pendant l'appel, configurez les heures par partie prenante selon ce qu'ils vous disent.\n4. Telechargez un deck PDF aux couleurs Factorial pret a envoyer a l'Economic Buyer.",
   "onboarding.s4_title": "Comprendre le calcul",
-  "onboarding.s4_body": "Les economies de chaque module suivent une formule simple :\n\nHeures economisees/mois x Nombre de personnes x Cout horaire x 12 mois = Economies annuelles\n\nPar exemple : si 5 admins RH economisent 6h/mois chacun a 30€/h, ce module economise 10 800€/an. Le ROI total compare ces economies avec l'investissement Factorial."
+  "onboarding.s4_body": "Les economies de chaque module suivent une formule simple :\n\nHeures economisees/mois x Nombre de personnes x Cout horaire x 12 mois = Economies annuelles\n\nPar exemple : si 5 admins RH economisent 6h/mois chacun a 30€/h, ce module economise 10 800€/an. Le ROI total compare ces economies avec l'investissement Factorial.",
+  "onboarding.h1_title": "Etape 1 : Importez votre deal",
+  "onboarding.h1_body": "Collez le lien du deal HubSpot. L'IA recupere le contexte, les contacts et l'historique de communication automatiquement — emails, appels et notes.",
+  "onboarding.h2_title": "Etape 2 : Selectionnez les modules et configurez",
+  "onboarding.h2_body": "Choisissez les modules Factorial necessaires. Definissez les effectifs et couts horaires par type de partie prenante (employes, RH, managers).",
+  "onboarding.h3_title": "Etape 3 : Co-creez pendant l'appel",
+  "onboarding.h3_body": "Pendant l'appel de decouverte, ajustez les heures par partie prenante. Demandez : 'Combien d'heures par mois consacrez-vous a X ?' Le ROI se met a jour en direct.",
+  "onboarding.h4_title": "Etape 4 : Telechargez le deck",
+  "onboarding.h4_body": "Generez un PDF aux couleurs Factorial — resume d'une page ou detail complet avec ventilation des calculs par module. Pret a envoyer a l'Economic Buyer."
 }

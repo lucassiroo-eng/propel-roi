@@ -527,5 +527,13 @@
   "onboarding.s3_title": "The co-creation process",
   "onboarding.s3_body": "1. Import the deal from HubSpot — the AI fetches context automatically.\n2. Select the Factorial modules relevant to the prospect.\n3. During the call, configure hours per stakeholder based on what they tell you.\n4. Download a branded PDF deck ready to send to the Economic Buyer.",
   "onboarding.s4_title": "Understanding the calculation",
-  "onboarding.s4_body": "Each module's savings follow a simple formula:\n\nHours saved/month × Number of people × Hourly cost × 12 months = Annual savings\n\nFor example: if 5 HR admins save 6h/month each at €30/h, that module saves €10,800/year. The total ROI compares this savings against the Factorial investment."
+  "onboarding.s4_body": "Each module's savings follow a simple formula:\n\nHours saved/month × Number of people × Hourly cost × 12 months = Annual savings\n\nFor example: if 5 HR admins save 6h/month each at €30/h, that module saves €10,800/year. The total ROI compares this savings against the Factorial investment.",
+  "onboarding.h1_title": "Step 1: Import your deal",
+  "onboarding.h1_body": "Paste the HubSpot deal link. The AI fetches context, contacts, and communication history automatically — emails, calls, and notes.",
+  "onboarding.h2_title": "Step 2: Select modules & configure",
+  "onboarding.h2_body": "Choose the Factorial modules your prospect needs. Set headcounts and hourly costs per stakeholder type (employees, HR, managers).",
+  "onboarding.h3_title": "Step 3: Co-create during the call",
+  "onboarding.h3_body": "During the discovery call, adjust hours per stakeholder based on what the prospect tells you. Ask: 'How many hours a month do you spend on X?' The ROI updates live.",
+  "onboarding.h4_title": "Step 4: Download the deck",
+  "onboarding.h4_body": "Generate a branded Factorial PDF — 1-pager summary or full detail with calculation breakdown per module. Ready to send to the Economic Buyer."
 }

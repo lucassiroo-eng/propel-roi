@@ -527,5 +527,13 @@
   "onboarding.s3_title": "El proceso de co-creacion",
   "onboarding.s3_body": "1. Importa el deal desde HubSpot — la IA recupera el contexto automaticamente.\n2. Selecciona los modulos de Factorial relevantes para el prospect.\n3. Durante la llamada, configura las horas por stakeholder segun lo que te cuenten.\n4. Descarga un deck PDF con marca Factorial listo para enviar al Economic Buyer.",
   "onboarding.s4_title": "Entender el calculo",
-  "onboarding.s4_body": "El ahorro de cada modulo sigue una formula simple:\n\nHoras ahorradas/mes x Numero de personas x Coste horario x 12 meses = Ahorro anual\n\nPor ejemplo: si 5 admins RRHH ahorran 6h/mes cada uno a 30€/h, ese modulo ahorra 10.800€/año. El ROI total compara este ahorro con la inversion en Factorial."
+  "onboarding.s4_body": "El ahorro de cada modulo sigue una formula simple:\n\nHoras ahorradas/mes x Numero de personas x Coste horario x 12 meses = Ahorro anual\n\nPor ejemplo: si 5 admins RRHH ahorran 6h/mes cada uno a 30€/h, ese modulo ahorra 10.800€/año. El ROI total compara este ahorro con la inversion en Factorial.",
+  "onboarding.h1_title": "Paso 1: Importa tu deal",
+  "onboarding.h1_body": "Pega el link del deal de HubSpot. La IA recupera el contexto, contactos e historial de comunicacion automaticamente — emails, llamadas y notas.",
+  "onboarding.h2_title": "Paso 2: Selecciona modulos y configura",
+  "onboarding.h2_body": "Elige los modulos de Factorial que necesita tu prospect. Configura headcount y coste por hora por tipo de stakeholder (empleados, RRHH, managers).",
+  "onboarding.h3_title": "Paso 3: Co-crea durante la llamada",
+  "onboarding.h3_body": "Durante la llamada de discovery, ajusta las horas por stakeholder segun lo que te cuente el prospect. Pregunta: 'Cuantas horas al mes dedicais a X?' El ROI se actualiza en vivo.",
+  "onboarding.h4_title": "Paso 4: Descarga el deck",
+  "onboarding.h4_body": "Genera un PDF con marca Factorial — resumen de 1 pagina o detalle completo con desglose de calculo por modulo. Listo para enviar al Economic Buyer."
 }
