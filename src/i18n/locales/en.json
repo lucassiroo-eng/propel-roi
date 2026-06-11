@@ -1,11 +1,9 @@
 {
   "app.name": "Propel ROI",
-
   "nav.home": "Home",
   "nav.help": "Help",
   "nav.admin": "Admin",
   "nav.settings": "Settings",
-
   "login.title": "Propel ROI",
   "login.magic_description": "Enter your Factorial email to receive a login link",
   "login.placeholder": "you@factorial.co",
@@ -15,13 +13,11 @@
   "login.check_body": "We sent a login link to {{email}}. Click the link to sign in.",
   "login.try_another": "Use a different email",
   "login.magic_hint": "We'll send you a secure link. No password needed.",
-
   "home.greeting": "Hello",
   "home.new_session": "New ROI session",
   "home.recent": "Recent sessions",
   "home.empty": "No sessions yet. Create your first one!",
   "home.seats": "{{count}} seats",
-
   "wizard.back": "Back",
   "wizard.next": "Next",
   "wizard.finish": "Finish",
@@ -36,7 +32,6 @@
   "wizard.step.offering": "Offering",
   "wizard.step.benchmarks": "Benchmarks",
   "wizard.step.review": "Review",
-
   "prospect.title": "Prospect details",
   "prospect.subtitle": "Enter the basics about this prospect.",
   "prospect.hubspot_import": "Import from HubSpot",
@@ -58,7 +53,6 @@
   "prospect.contact_name_placeholder": "Maria Garcia",
   "prospect.contact_email": "Contact email",
   "prospect.deal": "Deal:",
-
   "ai_assist.title": "AI Pain Assistant",
   "ai_assist.subtitle": "Paste your discovery call notes and let AI suggest relevant pains.",
   "ai_assist.placeholder": "e.g. 'The HR director mentioned they spend 3 hours per week on manual payroll corrections. They also have high turnover in their Madrid office and struggle with onboarding...'",
@@ -71,20 +65,18 @@
   "ai_assist.error": "AI suggestion failed — you can select pains manually",
   "ai_assist.hubspot_summary": "AI-generated summary of the main pains from your deal notes. You can edit before mapping.",
   "ai_assist.analyzing_notes": "Analyzing deal notes...",
-
   "pains.title": "Select pains",
   "pains.subtitle": "Choose the pains your prospect experiences. ({{count}} selected)",
   "pains.detected": "Pains detected",
   "pains.other_pains": "Other pains",
   "pains.quote_tooltip": "Evidence from notes",
-
- "quantify.title": "Quantify impact",
+  "quantify.title": "Quantify impact",
   "quantify.subtitle": "Adjust values per pain to estimate annual savings.",
   "quantify.total_annual": "Total annual benefit",
- "quantify.per_year": "year",
- "quantify.edit_all_variables": "Edit all variables",
- "quantify.source_country": "Country default",
- "quantify.source_prospect": "From prospect",
+  "quantify.per_year": "year",
+  "quantify.edit_all_variables": "Edit all variables",
+  "quantify.source_country": "Country default",
+  "quantify.source_prospect": "From prospect",
   "quantify.source_constant": "Constant",
   "quantify.custom_pains": "Custom pains",
   "quantify.add_pain": "Add a pain",
@@ -97,7 +89,6 @@
   "quantify.legend_manual": "Manual",
   "quantify.notes_popover_title": "Extracted from call notes",
   "quantify.analysing_notes": "Analysing notes...",
-
   "offering.title": "Configure offering",
   "offering.subtitle": "Pick a bundle and add-ons to cover the prospect's pains.",
   "offering.billing": "Billing",
@@ -142,7 +133,6 @@
   "offering.constraint_no_enterprise": "{{module}} is not available on Enterprise tier.",
   "offering.no_sector_data": "Select a sector in Prospect step for personalised recommendations.",
   "offering.cost_only": "Cost only -- not linked to any pain",
-
   "benchmarks.title": "Industry benchmarks",
   "benchmarks.subtitle": "Compare with similar companies in your sector.",
   "benchmarks.similar_title": "Similar companies",
@@ -157,7 +147,6 @@
   "benchmarks.attach_rates": "Module attach rates",
   "benchmarks.no_data": "No benchmark data available for this sector and country.",
   "benchmarks.no_sector": "Select a sector in the Prospect step to see benchmarks.",
-
   "review.title": "Review & generate",
   "review.prospect_section": "Prospect",
   "review.pains_section": "Selected pains",
@@ -187,7 +176,6 @@
   "review.pptx_success": "PPTX generated!",
   "review.pptx_error": "Failed to generate PPTX",
   "review.offering_section": "Offering",
-
   "settings.title": "Settings",
   "settings.language": "Language",
   "settings.language_en": "English",
@@ -196,12 +184,9 @@
   "settings.account": "Account",
   "settings.signed_in_as": "Signed in as",
   "settings.sign_out": "Sign out",
-
   "notfound.title": "Page not found",
   "notfound.back": "Go home",
-
   "help.title": "Help & docs",
-
   "sector.agriculture": "Agriculture",
   "sector.automobiles": "Automobiles & Components",
   "sector.banking": "Banking & Insurance",
@@ -228,19 +213,16 @@
   "sector.trading": "Trading Companies & Distributors",
   "sector.transportation": "Transportation",
   "sector.utilities": "Utilities",
-
   "persona.hr_director": "HR Director",
   "persona.people_ops": "People Ops",
   "persona.finance": "Finance",
   "persona.it_admin": "IT/Admin",
   "persona.c_level": "C-Level / IT",
   "persona.other": "Other",
-
   "subgroup.time": "Time savings",
   "subgroup.inefficiency": "Inefficiency reduction",
   "subgroup.direct_cost_saving": "Direct cost saving",
   "subgroup.other": "Other",
-
   "status.draft": "Draft",
   "status.generated": "Generated",
   "status.sent": "Sent",
@@ -252,7 +234,6 @@
   "status.post_call": "ROI enhancement",
   "cocreation.save_progress": "Save progress",
   "cocreation.saved": "Progress saved",
-
   "toast.session_saved": "Session saved!",
   "toast.save_session_first": "Save the session first",
   "toast.doc_updated": "Documentation updated",
@@ -261,15 +242,11 @@
   "toast.fetch_failed": "Failed to fetch deal",
   "toast.modules_identified": "{{count}} modules identified",
   "toast.analysis_failed": "Module analysis failed",
-
   "home.untitled": "Untitled",
   "home.versions": "{{count}} versions",
-
   "help.write_markdown": "Write markdown here...",
   "help.preview": "Preview",
-
   "time.just_now": "just now",
-
   "stakeholder.employee": "Employees",
   "stakeholder.hr": "HR / Finance",
   "stakeholder.manager": "Managers",
@@ -281,7 +258,6 @@
   "stakeholder.people_total": "people total",
   "stakeholder.weighted_avg": "Weighted avg:",
   "stakeholder.per_hour": "/h",
-
   "setup.import_deal": "Import Deal",
   "setup.fetch": "Fetch",
   "setup.fetching_hubspot": "Fetching HubSpot...",
@@ -307,11 +283,9 @@
   "setup.expense_submitters": "Expense submitters",
   "setup.expense_submitters_hint": "Employees who submit expenses",
   "setup.fill_team": "Fill in the team breakdown to generate ROI",
-
   "content.emails": "Emails",
   "content.calls": "Calls",
   "content.notes": "Notes",
-
   "offering.generate_roi": "Generate ROI",
   "offering.roi_title": "ROI & Offering",
   "offering.roi_subtitle": "Choose a pack, customize modules, and review the ROI",
@@ -336,7 +310,6 @@
   "offering.save": "Save",
   "offering.download": "Download",
   "offering.view_link": "View",
-
   "hyp.title": "Check Hypothesis",
   "hyp.back": "Back",
   "hyp.save": "Save",
@@ -353,7 +326,6 @@
   "hyp.onboardings_help": "Core HR, Recruitment, IT Inventory",
   "hyp.expense_submitters": "Expense submitters",
   "hyp.expense_help": "Expense Management",
-
   "express.skip_analysis": "I already have the modules agreed with the prospect",
   "express.skip_analysis_done": "Modules agreed — select manually",
   "express.hyp_module": "Module",
@@ -362,7 +334,6 @@
   "express.type_tool": "Tool",
   "express.tool_name": "Tool name",
   "express.year": "year",
-
   "express.step_import": "Import",
   "express.step_modules": "Modules",
   "express.step_configure": "Configure",
@@ -456,9 +427,7 @@
   "express.enhance_badge": "Enhanced",
   "express.enhance_clear": "Clear enhancement",
   "express.enhance_clear_done": "Enhancement cleared",
-
   "home.start": "Start",
-
   "tutorial.help": "Tutorial",
   "tutorial.next": "Next",
   "tutorial.done": "Got it!",
@@ -476,7 +445,6 @@
   "tutorial.express_step2_body": "Set headcounts, hourly costs, and annual Factorial price. These drive the savings calculation.",
   "tutorial.express_step3_title": "Step 4: Your ROI is ready!",
   "tutorial.express_step3_body": "Review the result, download the PDF, or share the link with your prospect.",
-
   "cocreation.title": "ROI Co-creation",
   "cocreation.subtitle": "Build the ROI live with your prospect",
   "cocreation.step_import": "Import",
@@ -517,5 +485,19 @@
   "cocreation.clear": "Clear",
   "cocreation.skip_personalize": "Skip — use default descriptions",
   "cocreation.call_duration": "{{min}} min",
-  "cocreation.mode_label": "Co-created"
+  "cocreation.mode_label": "Co-created",
+  "onboarding.lang_title": "Choose your language",
+  "onboarding.lang_sub": "You can change this later in Settings",
+  "onboarding.continue": "Continue",
+  "onboarding.skip": "Skip",
+  "onboarding.next": "Next",
+  "onboarding.start": "Start using Propel ROI",
+  "onboarding.slide1_title": "Import your deal",
+  "onboarding.slide1_body": "Paste the HubSpot deal link and the AI will fetch the context, contacts, and communication history automatically.",
+  "onboarding.slide2_title": "Select modules & configure",
+  "onboarding.slide2_body": "Choose the Factorial modules your prospect needs. Set headcounts and hourly costs to calculate savings per stakeholder.",
+  "onboarding.slide3_title": "Co-create live",
+  "onboarding.slide3_body": "During the discovery call, adjust hours per stakeholder based on what the prospect tells you. The ROI updates in real time.",
+  "onboarding.slide4_title": "Download the deck",
+  "onboarding.slide4_body": "Generate a branded PDF deck ready to send — summary or full detail with calculation breakdown per module."
 }

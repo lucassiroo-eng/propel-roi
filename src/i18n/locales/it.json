@@ -485,5 +485,19 @@
   "cocreation.clear": "Cancella",
   "cocreation.skip_personalize": "Salta — usa descrizioni predefinite",
   "cocreation.call_duration": "{{min}} min",
-  "cocreation.mode_label": "Co-creato"
+  "cocreation.mode_label": "Co-creato",
+  "onboarding.lang_title": "Scegli la tua lingua",
+  "onboarding.lang_sub": "Puoi cambiarla nelle Impostazioni",
+  "onboarding.continue": "Continua",
+  "onboarding.skip": "Salta",
+  "onboarding.next": "Avanti",
+  "onboarding.start": "Inizia a usare Propel ROI",
+  "onboarding.slide1_title": "Importa il tuo deal",
+  "onboarding.slide1_body": "Incolla il link del deal HubSpot e l'IA recuperera il contesto, i contatti e la cronologia delle comunicazioni automaticamente.",
+  "onboarding.slide2_title": "Seleziona i moduli e configura",
+  "onboarding.slide2_body": "Scegli i moduli Factorial necessari. Imposta organico e costi orari per calcolare i risparmi per stakeholder.",
+  "onboarding.slide3_title": "Co-crea in diretta",
+  "onboarding.slide3_body": "Durante la chiamata di discovery, regola le ore per stakeholder. Il ROI si aggiorna in tempo reale.",
+  "onboarding.slide4_title": "Scarica il deck",
+  "onboarding.slide4_body": "Genera un PDF brandizzato Factorial pronto da inviare — riepilogo o dettaglio completo con calcoli per modulo."
 }

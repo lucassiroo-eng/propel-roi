@@ -8,6 +8,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { statusI18nKey } from "@/lib/i18nHelpers";
+import OnboardingModal from "@/components/OnboardingModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,6 +190,7 @@ export default function Home() {
   const { t, i18n } = useTranslation();
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("propel_onboarded"));
 
   const expressRef = useRef<HTMLButtonElement | null>(null);
   const sessionsRef = useRef<HTMLDivElement | null>(null);
@@ -299,6 +301,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background">
+      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
       {/* Tutorial overlay */}
       {showTutorial && (
         <TutorialOverlay

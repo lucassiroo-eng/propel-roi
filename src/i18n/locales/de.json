@@ -485,5 +485,19 @@
   "cocreation.clear": "Löschen",
   "cocreation.skip_personalize": "Überspringen — Standardbeschreibungen verwenden",
   "cocreation.call_duration": "{{min}} Min",
-  "cocreation.mode_label": "Co-erstellt"
+  "cocreation.mode_label": "Co-erstellt",
+  "onboarding.lang_title": "Wahlen Sie Ihre Sprache",
+  "onboarding.lang_sub": "Sie konnen dies spater in den Einstellungen andern",
+  "onboarding.continue": "Weiter",
+  "onboarding.skip": "Uberspringen",
+  "onboarding.next": "Weiter",
+  "onboarding.start": "Propel ROI starten",
+  "onboarding.slide1_title": "Deal importieren",
+  "onboarding.slide1_body": "Fugen Sie den HubSpot-Deal-Link ein und die KI holt Kontext, Kontakte und Kommunikationsverlauf automatisch ab.",
+  "onboarding.slide2_title": "Module wahlen und konfigurieren",
+  "onboarding.slide2_body": "Wahlen Sie die benotigten Factorial-Module. Legen Sie Mitarbeiterzahlen und Stundenkosten fest, um Einsparungen pro Stakeholder zu berechnen.",
+  "onboarding.slide3_title": "Live co-erstellen",
+  "onboarding.slide3_body": "Passen Sie wahrend des Discovery-Gesprachs die Stunden pro Stakeholder an. Der ROI aktualisiert sich in Echtzeit.",
+  "onboarding.slide4_title": "Deck herunterladen",
+  "onboarding.slide4_body": "Erstellen Sie ein Factorial-gebrandetes PDF — Zusammenfassung oder vollstandiges Detail mit Berechnungsaufschlusselung pro Modul."
 }

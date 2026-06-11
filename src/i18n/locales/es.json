@@ -1,11 +1,9 @@
 {
   "app.name": "Propel ROI",
-
   "nav.home": "Inicio",
   "nav.help": "Ayuda",
   "nav.admin": "Admin",
   "nav.settings": "Ajustes",
-
   "login.title": "Propel ROI",
   "login.magic_description": "Introduce tu email de Factorial para recibir un enlace de acceso",
   "login.placeholder": "tu@factorial.co",
@@ -15,13 +13,11 @@
   "login.check_body": "Hemos enviado un enlace de acceso a {{email}}. Haz clic en el enlace para entrar.",
   "login.try_another": "Usar otro email",
   "login.magic_hint": "Te enviaremos un enlace seguro. Sin contrasena.",
-
   "home.greeting": "Hola",
   "home.new_session": "Nueva sesion ROI",
   "home.recent": "Sesiones recientes",
   "home.empty": "Aun no tienes sesiones. Crea la primera.",
   "home.seats": "{{count}} empleados",
-
   "wizard.back": "Atras",
   "wizard.next": "Siguiente",
   "wizard.finish": "Finalizar",
@@ -36,7 +32,6 @@
   "wizard.step.offering": "Oferta",
   "wizard.step.benchmarks": "Benchmarks",
   "wizard.step.review": "Resumen",
-
   "prospect.title": "Datos del prospecto",
   "prospect.subtitle": "Introduce los datos basicos del prospecto.",
   "prospect.hubspot_import": "Importar desde HubSpot",
@@ -58,7 +53,6 @@
   "prospect.contact_name_placeholder": "Maria Garcia",
   "prospect.contact_email": "Email de contacto",
   "prospect.deal": "Deal:",
-
   "ai_assist.title": "Asistente IA de Pains",
   "ai_assist.subtitle": "Pega las notas de la llamada de descubrimiento y deja que la IA sugiera pains relevantes.",
   "ai_assist.placeholder": "Ej: 'La directora de RRHH menciono que dedican 3 horas por semana a correcciones manuales de nomina. Tambien tienen alta rotacion en su oficina de Madrid y problemas con el onboarding...'",
@@ -71,20 +65,18 @@
   "ai_assist.error": "La sugerencia IA fallo — puedes seleccionar pains manualmente",
   "ai_assist.hubspot_summary": "Resumen generado por IA de los principales pains de las notas del deal. Puedes editar antes de mapear.",
   "ai_assist.analyzing_notes": "Analizando notas del deal...",
-
   "pains.title": "Seleccionar pains",
   "pains.subtitle": "Elige los pains que experimenta tu prospecto. ({{count}} seleccionados)",
   "pains.detected": "Pains detectados",
   "pains.other_pains": "Otros pains",
   "pains.quote_tooltip": "Evidencia de las notas",
-
- "quantify.title": "Cuantificar impacto",
+  "quantify.title": "Cuantificar impacto",
   "quantify.subtitle": "Ajusta los valores por pain para estimar el ahorro anual.",
   "quantify.total_annual": "Beneficio anual total",
- "quantify.per_year": "ano",
- "quantify.edit_all_variables": "Editar todas las variables",
- "quantify.source_country": "Valor pais",
- "quantify.source_prospect": "Del prospecto",
+  "quantify.per_year": "ano",
+  "quantify.edit_all_variables": "Editar todas las variables",
+  "quantify.source_country": "Valor pais",
+  "quantify.source_prospect": "Del prospecto",
   "quantify.source_constant": "Constante",
   "quantify.custom_pains": "Pains personalizados",
   "quantify.add_pain": "Anadir un pain",
@@ -97,7 +89,6 @@
   "quantify.legend_manual": "Manual",
   "quantify.notes_popover_title": "Extraido de las notas de la llamada",
   "quantify.analysing_notes": "Analizando notas...",
-
   "offering.title": "Configurar oferta",
   "offering.subtitle": "Elige un bundle y add-ons para cubrir los pains del prospecto.",
   "offering.billing": "Facturacion",
@@ -142,7 +133,6 @@
   "offering.constraint_no_enterprise": "{{module}} no esta disponible en Enterprise.",
   "offering.no_sector_data": "Selecciona un sector en Prospecto para recomendaciones personalizadas.",
   "offering.cost_only": "Solo coste -- no vinculado a ningun pain",
-
   "benchmarks.title": "Benchmarks del sector",
   "benchmarks.subtitle": "Compara con empresas similares en tu sector.",
   "benchmarks.similar_title": "Empresas similares",
@@ -157,7 +147,6 @@
   "benchmarks.attach_rates": "Tasas de adopcion de modulos",
   "benchmarks.no_data": "No hay datos de benchmark para este sector y pais.",
   "benchmarks.no_sector": "Selecciona un sector en el paso Prospecto para ver benchmarks.",
-
   "review.title": "Resumen y generar",
   "review.prospect_section": "Prospecto",
   "review.pains_section": "Pains seleccionados",
@@ -187,7 +176,6 @@
   "review.pptx_success": "PPTX generado!",
   "review.pptx_error": "Error al generar el PPTX",
   "review.offering_section": "Oferta",
-
   "settings.title": "Ajustes",
   "settings.language": "Idioma",
   "settings.language_en": "English",
@@ -196,12 +184,9 @@
   "settings.account": "Cuenta",
   "settings.signed_in_as": "Sesion iniciada como",
   "settings.sign_out": "Cerrar sesion",
-
   "notfound.title": "Pagina no encontrada",
   "notfound.back": "Volver al inicio",
-
   "help.title": "Ayuda y documentacion",
-
   "sector.agriculture": "Agricultura",
   "sector.automobiles": "Automoviles y componentes",
   "sector.banking": "Banca y seguros",
@@ -228,19 +213,16 @@
   "sector.trading": "Empresas comerciales y distribuidoras",
   "sector.transportation": "Transporte",
   "sector.utilities": "Servicios publicos",
-
   "persona.hr_director": "Director/a de RRHH",
   "persona.people_ops": "People Ops",
   "persona.finance": "Finanzas",
   "persona.it_admin": "IT/Admin",
   "persona.c_level": "C-Level / IT",
   "persona.other": "Otro",
-
   "subgroup.time": "Ahorro de tiempo",
   "subgroup.inefficiency": "Reducción de ineficiencia",
   "subgroup.direct_cost_saving": "Ahorro directo de coste",
   "subgroup.other": "Otro",
-
   "status.draft": "Borrador",
   "status.sent": "Enviado",
   "status.accepted": "Aceptado",
@@ -252,7 +234,6 @@
   "status.post_call": "Mejora del ROI",
   "cocreation.save_progress": "Guardar progreso",
   "cocreation.saved": "Progreso guardado",
-
   "toast.session_saved": "Sesion guardada!",
   "toast.save_session_first": "Guarda la sesion primero",
   "toast.doc_updated": "Documentacion actualizada",
@@ -261,15 +242,11 @@
   "toast.fetch_failed": "Error al obtener el deal",
   "toast.modules_identified": "{{count}} módulos identificados",
   "toast.analysis_failed": "El análisis de módulos falló",
-
   "home.untitled": "Sin titulo",
   "home.versions": "{{count}} versiones",
-
   "help.write_markdown": "Escribe markdown aqui...",
   "help.preview": "Vista previa",
-
   "time.just_now": "justo ahora",
-
   "stakeholder.employee": "Empleados",
   "stakeholder.hr": "RRHH / Finanzas",
   "stakeholder.manager": "Managers",
@@ -281,7 +258,6 @@
   "stakeholder.people_total": "personas en total",
   "stakeholder.weighted_avg": "Media ponderada:",
   "stakeholder.per_hour": "/h",
-
   "setup.import_deal": "Importar Deal",
   "setup.fetch": "Obtener",
   "setup.fetching_hubspot": "Obteniendo de HubSpot...",
@@ -307,11 +283,9 @@
   "setup.expense_submitters": "Usuarios de gastos",
   "setup.expense_submitters_hint": "Empleados que envían gastos",
   "setup.fill_team": "Rellena el desglose de equipo para generar el ROI",
-
   "content.emails": "Emails",
   "content.calls": "Llamadas",
   "content.notes": "Notas",
-
   "offering.generate_roi": "Generar ROI",
   "offering.roi_title": "ROI y Oferta",
   "offering.roi_subtitle": "Elige un pack, personaliza módulos y revisa el ROI",
@@ -336,7 +310,6 @@
   "offering.save": "Guardar",
   "offering.download": "Descargar",
   "offering.view_link": "Ver",
-
   "hyp.title": "Ver Hipótesis",
   "hyp.back": "Volver",
   "hyp.save": "Guardar",
@@ -353,7 +326,6 @@
   "hyp.onboardings_help": "Core HR, Recruitment, IT Inventory",
   "hyp.expense_submitters": "Usuarios gastos",
   "hyp.expense_help": "Expense Management",
-
   "express.skip_analysis": "Ya tengo los módulos acordados con el prospect",
   "express.skip_analysis_done": "Módulos acordados — selecciona manualmente",
   "express.hyp_module": "Módulo",
@@ -362,7 +334,6 @@
   "express.type_tool": "Herramienta",
   "express.tool_name": "Nombre herramienta",
   "express.year": "año",
-
   "express.step_import": "Importar",
   "express.step_modules": "Módulos",
   "express.step_configure": "Configurar",
@@ -456,9 +427,7 @@
   "express.enhance_badge": "Mejorado",
   "express.enhance_clear": "Limpiar mejora",
   "express.enhance_clear_done": "Mejora eliminada",
-
   "home.start": "Empezar",
-
   "tutorial.help": "Tutorial",
   "tutorial.next": "Siguiente",
   "tutorial.done": "Entendido",
@@ -476,7 +445,6 @@
   "tutorial.express_step2_body": "Define las plantillas, costes por hora y precio anual de Factorial. Estos datos calculan el ahorro.",
   "tutorial.express_step3_title": "Paso 4: Tu ROI esta listo!",
   "tutorial.express_step3_body": "Revisa el resultado, descarga el PDF o comparte el enlace con tu prospecto.",
-
   "cocreation.title": "ROI Co-creación",
   "cocreation.subtitle": "Construye el ROI en directo con tu prospecto",
   "cocreation.step_import": "Importar",
@@ -517,5 +485,19 @@
   "cocreation.clear": "Limpiar",
   "cocreation.skip_personalize": "Omitir — usar descripciones por defecto",
   "cocreation.call_duration": "{{min}} min",
-  "cocreation.mode_label": "Co-creado"
+  "cocreation.mode_label": "Co-creado",
+  "onboarding.lang_title": "Elige tu idioma",
+  "onboarding.lang_sub": "Puedes cambiarlo en Ajustes",
+  "onboarding.continue": "Continuar",
+  "onboarding.skip": "Saltar",
+  "onboarding.next": "Siguiente",
+  "onboarding.start": "Empezar a usar Propel ROI",
+  "onboarding.slide1_title": "Importa tu deal",
+  "onboarding.slide1_body": "Pega el link del deal de HubSpot y la IA recuperara el contexto, contactos e historial de comunicacion automaticamente.",
+  "onboarding.slide2_title": "Selecciona modulos y configura",
+  "onboarding.slide2_body": "Elige los modulos de Factorial que necesita tu prospect. Configura el headcount y costes por hora para calcular el ahorro por stakeholder.",
+  "onboarding.slide3_title": "Co-crea en vivo",
+  "onboarding.slide3_body": "Durante la llamada de discovery, ajusta las horas por stakeholder segun lo que te diga el prospect. El ROI se actualiza en tiempo real.",
+  "onboarding.slide4_title": "Descarga el deck",
+  "onboarding.slide4_body": "Genera un PDF con la marca Factorial listo para enviar — resumen o detalle completo con desglose de calculo por modulo."
 }
