@@ -85,7 +85,7 @@ export default function Login() {
           <h1 className="text-lg font-semibold tracking-tight">{t("login.title")}</h1>
         </div>
 
-        {mode === "login" ? (
+        {mode === "login" && (
           <form onSubmit={handleLogin} className="space-y-3">
             <Input type="email" placeholder={t("login.placeholder")} value={email} onChange={e => { setEmail(e.target.value); clearError(); }} className="h-11" autoComplete="email" autoFocus />
             <Input type="password" placeholder={t("login.password_placeholder")} value={password} onChange={e => { setPassword(e.target.value); clearError(); }} className="h-11" autoComplete="current-password" />
@@ -102,7 +102,8 @@ export default function Login() {
               </button>
             </div>
           </form>
-        ) : (
+        )}
+        {mode === "register" && (
           <form onSubmit={handleRegister} className="space-y-3">
             <Input type="text" placeholder={t("login.name_placeholder")} value={fullName} onChange={e => { setFullName(e.target.value); clearError(); }} className="h-11" autoComplete="name" autoFocus />
             <Input type="email" placeholder={t("login.placeholder")} value={email} onChange={e => { setEmail(e.target.value); clearError(); }} className="h-11" autoComplete="email" />
@@ -115,7 +116,8 @@ export default function Login() {
               {t("login.have_account")}
             </button>
           </form>
-        ) : (
+        )}
+        {mode === "reset" && (
           <form onSubmit={handleResetPassword} className="space-y-3">
             <Input type="email" placeholder={t("login.placeholder")} value={email} onChange={e => { setEmail(e.target.value); clearError(); }} className="h-11" autoComplete="email" autoFocus />
             <Input type="password" placeholder={t("login.new_password_placeholder")} value={newPassword} onChange={e => { setNewPassword(e.target.value); clearError(); }} className="h-11" autoComplete="new-password" />
