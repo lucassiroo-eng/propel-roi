@@ -11,12 +11,12 @@ import factorialLogo from "@/assets/factorial-logo-red.svg";
 export default function Login() {
   const { signUp, signIn } = useAuth();
   const { t } = useTranslation();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [mode, setMode] = useState<"login" | "register" | "reset">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function clearError() { setError(null); }
@@ -52,17 +52,21 @@ export default function Login() {
     setLoading(false);
   }
 
-  async function handleResetPassword() {
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) { setError(t("login.enter_email_first")); return; }
-    setResetting(true);
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
     setError(null);
-    const { error: err } = await supabase.auth.resetPasswordForEmail(trimmed, {
-      redirectTo: window.location.origin + "/",
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed.endsWith("@factorial.co")) { setError(t("login.invalid_user")); return; }
+    if (newPassword.length < 6) { setError(t("login.password_min")); return; }
+    setLoading(true);
+    const { error: err } = await supabase.functions.invoke("reset-password", {
+      body: { email: trimmed, new_password: newPassword },
     });
-    setResetting(false);
-    if (err) { setError(err.message); return; }
-    toast.success(t("login.reset_sent"));
+    setLoading(false);
+    if (err) { setError(t("login.reset_failed")); return; }
+    toast.success(t("login.password_changed"));
+    setNewPassword("");
+    setMode("login");
   }
 
   return (
@@ -85,8 +89,8 @@ export default function Login() {
               <button type="button" onClick={() => { setMode("register"); clearError(); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                 {t("login.no_account")}
               </button>
-              <button type="button" onClick={handleResetPassword} disabled={resetting} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
+              <button type="button" onClick={() => { setMode("reset"); clearError(); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {t("login.forgot_password")}
               </button>
             </div>
           </form>
@@ -101,6 +105,18 @@ export default function Login() {
             </Button>
             <button type="button" onClick={() => { setMode("login"); clearError(); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center">
               {t("login.have_account")}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleResetPassword} className="space-y-3">
+            <Input type="email" placeholder={t("login.placeholder")} value={email} onChange={e => { setEmail(e.target.value); clearError(); }} className="h-11" autoComplete="email" autoFocus />
+            <Input type="password" placeholder={t("login.new_password_placeholder")} value={newPassword} onChange={e => { setNewPassword(e.target.value); clearError(); }} className="h-11" autoComplete="new-password" />
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
+            <Button type="submit" className="w-full h-11 font-semibold" disabled={loading || !email || !newPassword}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{t("login.change_password")} <ArrowRight className="h-4 w-4 ml-2" /></>}
+            </Button>
+            <button type="button" onClick={() => { setMode("login"); clearError(); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center">
+              {t("login.back_to_login")}
             </button>
           </form>
         )}

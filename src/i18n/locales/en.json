@@ -522,5 +522,10 @@
   "login.wrong_credentials": "Wrong email or password",
   "login.already_exists": "Account already exists. Try logging in.",
   "login.enter_email_first": "Enter your email first",
-  "login.reset_sent": "Password reset link sent to your email"
+  "login.reset_sent": "Password reset link sent to your email",
+  "login.new_password_placeholder": "New password",
+  "login.change_password": "Change password",
+  "login.back_to_login": "Back to login",
+  "login.reset_failed": "Could not reset password",
+  "login.password_changed": "Password changed. You can now log in."
 }

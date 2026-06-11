@@ -522,5 +522,10 @@
   "login.wrong_credentials": "Falsche E-Mail oder Passwort",
   "login.already_exists": "Konto existiert bereits. Versuchen Sie sich anzumelden.",
   "login.enter_email_first": "Geben Sie zuerst Ihre E-Mail ein",
-  "login.reset_sent": "Link zum Zurucksetzen des Passworts gesendet"
+  "login.reset_sent": "Link zum Zurucksetzen des Passworts gesendet",
+  "login.new_password_placeholder": "Neues Passwort",
+  "login.change_password": "Passwort andern",
+  "login.back_to_login": "Zuruck zum Login",
+  "login.reset_failed": "Passwort konnte nicht geandert werden",
+  "login.password_changed": "Passwort geandert. Sie konnen sich jetzt anmelden."
 }

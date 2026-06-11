@@ -522,5 +522,10 @@
   "login.wrong_credentials": "Email ou mot de passe incorrect",
   "login.already_exists": "Le compte existe deja. Essayez de vous connecter.",
   "login.enter_email_first": "Entrez d'abord votre email",
-  "login.reset_sent": "Lien de reinitialisation envoye par email"
+  "login.reset_sent": "Lien de reinitialisation envoye par email",
+  "login.new_password_placeholder": "Nouveau mot de passe",
+  "login.change_password": "Changer le mot de passe",
+  "login.back_to_login": "Retour a la connexion",
+  "login.reset_failed": "Impossible de changer le mot de passe",
+  "login.password_changed": "Mot de passe change. Vous pouvez vous connecter."
 }

@@ -522,5 +522,10 @@
   "login.wrong_credentials": "Email o contrasena incorrectos",
   "login.already_exists": "La cuenta ya existe. Prueba a entrar.",
   "login.enter_email_first": "Introduce tu email primero",
-  "login.reset_sent": "Enlace para restablecer contrasena enviado"
+  "login.reset_sent": "Enlace para restablecer contrasena enviado",
+  "login.new_password_placeholder": "Nueva contrasena",
+  "login.change_password": "Cambiar contrasena",
+  "login.back_to_login": "Volver al login",
+  "login.reset_failed": "No se pudo cambiar la contrasena",
+  "login.password_changed": "Contrasena cambiada. Ya puedes entrar."
 }

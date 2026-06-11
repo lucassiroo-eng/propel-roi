@@ -522,5 +522,10 @@
   "login.wrong_credentials": "Email o password errati",
   "login.already_exists": "L'account esiste gia. Prova ad accedere.",
   "login.enter_email_first": "Inserisci prima la tua email",
-  "login.reset_sent": "Link per reimpostare la password inviato"
+  "login.reset_sent": "Link per reimpostare la password inviato",
+  "login.new_password_placeholder": "Nuova password",
+  "login.change_password": "Cambia password",
+  "login.back_to_login": "Torna al login",
+  "login.reset_failed": "Impossibile cambiare la password",
+  "login.password_changed": "Password cambiata. Ora puoi accedere."
 }
