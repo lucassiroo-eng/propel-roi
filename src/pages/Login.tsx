@@ -90,8 +90,8 @@ export default function Login() {
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-3">
-            <Input type="email" placeholder={t("login.placeholder")} value={email} onChange={e => { setEmail(e.target.value); clearError(); }} className="h-11" autoComplete="email" autoFocus />
-            <Input type="text" placeholder={t("login.name_placeholder")} value={fullName} onChange={e => { setFullName(e.target.value); clearError(); }} className="h-11" autoComplete="name" />
+            <Input type="text" placeholder={t("login.name_placeholder")} value={fullName} onChange={e => { setFullName(e.target.value); clearError(); }} className="h-11" autoComplete="name" autoFocus />
+            <Input type="email" placeholder={t("login.placeholder")} value={email} onChange={e => { setEmail(e.target.value); clearError(); }} className="h-11" autoComplete="email" />
             <Input type="password" placeholder={t("login.password_placeholder")} value={password} onChange={e => { setPassword(e.target.value); clearError(); }} className="h-11" autoComplete="new-password" />
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
             <Button type="submit" className="w-full h-11 font-semibold" disabled={loading || !email || !password || !fullName}>
