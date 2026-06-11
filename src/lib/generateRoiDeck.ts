@@ -43,6 +43,8 @@ function stakeholderLabel(s: Stakeholder, lang: string): string {
     es: { employee: "Empleados", hr: "Admin RRHH", manager: "Managers" },
     en: { employee: "Employees", hr: "HR Admin", manager: "Managers" },
     fr: { employee: "Employés", hr: "Admin RH", manager: "Managers" },
+    it: { employee: "Dipendenti", hr: "Admin HR", manager: "Manager" },
+    de: { employee: "Mitarbeiter", hr: "HR-Admin", manager: "Manager" },
   };
   return (labels[lang] ?? labels.es)[s];
 }
@@ -52,6 +54,8 @@ function scalesWithLabel(sw: string, lang: string): string {
     es: { employees: "empleados", hr_ftes: "admins", managers: "managers", onboardings: "altas al año", submitters: "submitters" },
     en: { employees: "employees", hr_ftes: "admins", managers: "managers", onboardings: "hires/year", submitters: "submitters" },
     fr: { employees: "employés", hr_ftes: "admins", managers: "managers", onboardings: "recrutements/an", submitters: "soumetteurs" },
+    it: { employees: "dipendenti", hr_ftes: "admin", managers: "manager", onboardings: "assunzioni/anno", submitters: "submitter" },
+    de: { employees: "Mitarbeiter", hr_ftes: "Admins", managers: "Manager", onboardings: "Einstellungen/Jahr", submitters: "Einreicher" },
   };
   return (labels[lang] ?? labels.es)[sw] ?? sw;
 }
@@ -120,6 +124,48 @@ const MODULE_SHORT_DESC: Record<string, Record<string, string>> = {
     headcount_planning: "Planification des effectifs",
     lms: "Plateforme d'apprentissage en ligne",
   },
+  it: {
+    core: "Gestione centralizzata dipendenti e onboarding automatico",
+    time_tracking: "Timbratura digitale e registro presenze",
+    time_off: "Gestione ferie, permessi e assenze",
+    time_planning: "Pianificazione turni e rotazioni",
+    payroll: "Sincronizzazione automatica con il provider paghe",
+    expenses: "Cattura OCR e approvazione note spese",
+    recruitment: "ATS per la gestione dei processi di selezione",
+    performance: "Valutazioni delle performance e obiettivi",
+    trainings: "Gestione formazione e sviluppo",
+    compensations: "Revisioni salariali e fasce retributive",
+    engagement: "Sondaggi di clima ed engagement",
+    procurement: "Gestione acquisti e fornitori",
+    projects: "Monitoraggio progetti e costi",
+    complaints: "Canale di segnalazione e conformità",
+    benefits: "Anticipo stipendio e benefit flessibili",
+    wellhub: "Benessere aziendale e accesso palestra",
+    documents: "Gestione documentale e firma digitale",
+    headcount_planning: "Pianificazione organico",
+    lms: "Piattaforma di apprendimento online",
+  },
+  de: {
+    core: "Zentrale Mitarbeiterverwaltung und automatisiertes Onboarding",
+    time_tracking: "Digitale Zeiterfassung und Anwesenheit",
+    time_off: "Urlaubs- und Abwesenheitsmanagement",
+    time_planning: "Schichtplanung und Dienstpläne",
+    payroll: "Automatische Synchronisation mit dem Lohnanbieter",
+    expenses: "OCR-Erfassung und Spesenfreigabe",
+    recruitment: "ATS für Bewerbermanagement",
+    performance: "Leistungsbeurteilungen und Zielvereinbarungen",
+    trainings: "Schulungs- und Weiterbildungsmanagement",
+    compensations: "Gehaltsüberprüfungen und Vergütungsbänder",
+    engagement: "Mitarbeiterbefragungen und Engagement",
+    procurement: "Einkaufs- und Lieferantenmanagement",
+    projects: "Projekt-Tracking und Kostenerfassung",
+    complaints: "Hinweisgebersystem und Compliance",
+    benefits: "Gehaltsvorschuss und flexible Benefits",
+    wellhub: "Betriebliches Gesundheitsmanagement und Fitness",
+    documents: "Dokumentenmanagement und E-Signatur",
+    headcount_planning: "Personalplanung",
+    lms: "Online-Lernplattform",
+  },
 };
 
 // Country → language mapping:
@@ -130,6 +176,8 @@ function resolveLangs(country: string): { uiLang: string; modLang: string } {
   const c = (country || "").toUpperCase();
   if (c === "ES") return { uiLang: "es", modLang: "es" };
   if (c === "FR") return { uiLang: "fr", modLang: "en" };
+  if (c === "IT") return { uiLang: "it", modLang: "en" };
+  if (c === "DE") return { uiLang: "de", modLang: "en" };
   return { uiLang: "en", modLang: "en" };
 }
 
@@ -312,6 +360,42 @@ function getI18n(lang: string): DeckI18n {
       ae_title: "Account Executive · Factorial",
       h_year_saved: "h/an économisées", h_month_saved: "h/mois économisées", per: "par", hourly_cost: "coût horaire", year: "an",
     },
+    it: {
+      proposal: "Proposta ROI Factorial", cover_subtitle: "Da processi manuali a una piattaforma centralizzata per i tuoi",
+      confidential: "Confidenziale",
+      annual_savings: "Risparmio annuale stimato", roi: "ROI annuale", payback: "Payback",
+      roi_sub: v => `per ogni €1 investito<br>recuperi ${v}`,
+      payback_sub: m => `l'investimento si recupera<br>in ${m} mesi`,
+      savings_vs_sub: c => `rispetto a ${c}/anno di investimento<br>in Factorial`,
+      what_is: "Descrizione", module: "Modulo", description: "Descrizione", h_month: "Risparmio mensile", savings_year: "Risparmio / anno",
+      total: "Totale risparmi annuali stimati", tool_label: "Strumento",
+      type_employee: "Tipo di dipendente", hypothesis: "Ipotesi di risparmio", assumption: "Assunzione e calcolo", estimated_saving: "Risparmio stimato",
+      total_annual: "Totale risparmio annuale",
+      replaces_before: "Prima", replaces_after: "Dopo", replaces_current_cost: "Costo attuale",
+      replaces_factorial: "Factorial", replaces_included: "Incluso nel piano sottoscritto",
+      replaces_direct: "Risparmio diretto", replaces_extra: "aggiuntivo",
+      disclaimer: (e, h, m, o) => `Stima basata su ${e} dipendenti · ${h} admin HR · ${m} manager · ${o} assunzioni/anno`,
+      ae_title: "Account Executive · Factorial",
+      h_year_saved: "h/anno risparmiate", h_month_saved: "h/mese risparmiate", per: "per", hourly_cost: "costo orario", year: "anno",
+    },
+    de: {
+      proposal: "Factorial ROI-Vorschlag", cover_subtitle: "Von manuellen Prozessen zu einer zentralen Plattform für Ihre",
+      confidential: "Vertraulich",
+      annual_savings: "Geschätzte jährliche Einsparungen", roi: "Jährlicher ROI", payback: "Payback",
+      roi_sub: v => `für jeden investierten €1<br>erhalten Sie ${v} zurück`,
+      payback_sub: m => `die Investition amortisiert sich<br>in ${m} Monaten`,
+      savings_vs_sub: c => `gegenüber ${c}/Jahr Investition<br>in Factorial`,
+      what_is: "Beschreibung", module: "Modul", description: "Beschreibung", h_month: "Monatliche Einsparung", savings_year: "Einsparung / Jahr",
+      total: "Geschätzte jährliche Gesamteinsparungen", tool_label: "Tool",
+      type_employee: "Mitarbeitertyp", hypothesis: "Einsparungshypothese", assumption: "Annahme und Berechnung", estimated_saving: "Geschätzte Einsparung",
+      total_annual: "Jährliche Gesamteinsparung",
+      replaces_before: "Vorher", replaces_after: "Nachher", replaces_current_cost: "Aktuelle Kosten",
+      replaces_factorial: "Factorial", replaces_included: "Im gebuchten Plan enthalten",
+      replaces_direct: "Direkte Einsparung", replaces_extra: "zusätzlich",
+      disclaimer: (e, h, m, o) => `Schätzung basierend auf ${e} Mitarbeitern · ${h} HR-Admins · ${m} Managern · ${o} Einstellungen/Jahr`,
+      ae_title: "Account Executive · Factorial",
+      h_year_saved: "h/Jahr eingespart", h_month_saved: "h/Monat eingespart", per: "pro", hourly_cost: "Stundenkosten", year: "Jahr",
+    },
   };
   return i18n[lang] ?? i18n.es;
 }
@@ -322,6 +406,8 @@ function fmtMonth(lang: string): string {
     es: ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"],
     en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
     fr: ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
+    it: ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"],
+    de: ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
   };
   return `${(m[lang] ?? m.es)[d.getMonth()]} ${d.getFullYear()}`;
 }
@@ -390,7 +476,7 @@ const ISO_USE = `<svg class="iso"><use href="#iso"/></svg>`;
 // ── Slide generators ─────────────────────────────────
 
 function coverSlide(data: RoiSlideData, t: DeckI18n, lang: string): string {
-  const empLabel: Record<string, string> = { es: "empleados", en: "employees", fr: "employés" };
+  const empLabel: Record<string, string> = { es: "empleados", en: "employees", fr: "employés", it: "dipendenti", de: "Mitarbeiter" };
   const nameLen = data.company_name.length;
   const nameFontSize = nameLen > 40 ? 48 : nameLen > 28 ? 60 : 80;
   return `<div class="slide" style="background:#FF355E">
@@ -419,6 +505,8 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
     es: `Factorial tiene un retorno de la inversión de <span style="color:#FF355E">${data.roi_percent}%</span><br>para ${escHtml(data.company_name)}`,
     en: `Factorial delivers a <span style="color:#FF355E">${data.roi_percent}%</span> return on investment<br>for ${escHtml(data.company_name)}`,
     fr: `Factorial offre un retour sur investissement de <span style="color:#FF355E">${data.roi_percent}%</span><br>pour ${escHtml(data.company_name)}`,
+    it: `Factorial offre un ritorno sull'investimento del <span style="color:#FF355E">${data.roi_percent}%</span><br>per ${escHtml(data.company_name)}`,
+    de: `Factorial liefert eine Kapitalrendite von <span style="color:#FF355E">${data.roi_percent}%</span><br>für ${escHtml(data.company_name)}`,
   };
 
   const moduleRows = details.map(d => {
@@ -473,11 +561,11 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
   const color = detail.color;
 
   if (detail.tool_override) {
-    const fallbackTool: Record<string, string> = { es: "herramienta actual", en: "current tool", fr: "outil actuel" };
+    const fallbackTool: Record<string, string> = { es: "herramienta actual", en: "current tool", fr: "outil actuel", it: "strumento attuale", de: "aktuelles Tool" };
     const toolName = detail.tool_override.tool_name || (fallbackTool[lang] ?? fallbackTool.es);
     const monthlyCost = fmtEur(Math.round(detail.total_annual / 12));
-    const moLabel = { es: "/mes", en: "/mo", fr: "/mois" }[lang] ?? "/mes";
-    const yrLabel = { es: "/año", en: "/year", fr: "/an" }[lang] ?? "/año";
+    const moLabel = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat" }[lang] ?? "/mes";
+    const yrLabel = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr" }[lang] ?? "/año";
     return `<div class="slide">
   ${ISO_USE}
   <div class="brand">${escHtml(t.proposal)}</div>
@@ -521,11 +609,11 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     const ico = STAKEHOLDER_ICONS[r.stakeholder];
     const swLbl = scalesWithLabel(r.scales_with, lang);
     const isAnnual = r.scales_with === "onboardings";
-    const hUnitLabel: Record<string, string> = { es: isAnnual ? "h/alta" : "h/mes", en: isAnnual ? "h/hire" : "h/month", fr: isAnnual ? "h/recrutement" : "h/mois" };
+    const hUnitLabel: Record<string, string> = { es: isAnnual ? "h/alta" : "h/mes", en: isAnnual ? "h/hire" : "h/month", fr: isAnnual ? "h/recrutement" : "h/mois", it: isAnnual ? "h/assunzione" : "h/mese", de: isAnnual ? "h/Einstellung" : "h/Monat" };
     const hUnit = `${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es}`;
     const totalLabel = isAnnual ? `= ${Math.round(r.total_hours)} ${t.h_year_saved}` : `= ${Math.round(r.total_hours * 10) / 10} ${t.h_month_saved}`;
-    const moLabel: Record<string, string> = { es: "/mes", en: "/mo", fr: "/mois" };
-    const yrLabel: Record<string, string> = { es: "/año", en: "/year", fr: "/an" };
+    const moLabel: Record<string, string> = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat" };
+    const yrLabel: Record<string, string> = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr" };
     const monthlySav = isAnnual ? fmtEur(Math.round(r.annual_savings / 12)) + ` ${moLabel[lang] ?? moLabel.es}` : fmtEur(Math.round(r.monthly_savings)) + ` ${moLabel[lang] ?? moLabel.es}`;
     return `<tr>
         <td><div class="sk"><div class="sk-ico" style="background:${ico.bg}">${ico.emoji}</div><div class="sk-nm">${stakeholderLabel(r.stakeholder, lang)}</div></div></td>
