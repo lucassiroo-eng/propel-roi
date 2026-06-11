@@ -10,7 +10,7 @@
   "login.send_link": "Send link",
   "login.domain_error": "Only @factorial.co emails are allowed",
   "login.check_title": "Check your email",
-  "login.check_body": "We sent a login link to {{email}}. Click the link to sign in.",
+  "login.check_body": "We sent a confirmation link to {{email}}. Click the link to activate your account.",
   "login.try_another": "Use a different email",
   "login.magic_hint": "We'll send you a secure link. No password needed.",
   "home.greeting": "Hello",
@@ -499,5 +499,17 @@
   "onboarding.slide3_title": "Co-create live",
   "onboarding.slide3_body": "During the discovery call, adjust hours per stakeholder based on what the prospect tells you. The ROI updates in real time.",
   "onboarding.slide4_title": "Download the deck",
-  "onboarding.slide4_body": "Generate a branded PDF deck ready to send — summary or full detail with calculation breakdown per module."
+  "onboarding.slide4_body": "Generate a branded PDF deck ready to send — summary or full detail with calculation breakdown per module.",
+  "login.signin_description": "Sign in with your Factorial account",
+  "login.signup_description": "Create your account to get started",
+  "login.password_placeholder": "Password",
+  "login.password_min": "Password must be at least 6 characters",
+  "login.name_placeholder": "Full name (e.g. Lucas Siroo)",
+  "login.name_required": "Please enter your full name",
+  "login.sign_in": "Sign in",
+  "login.create_account": "Create account",
+  "login.no_account": "Don't have an account? Sign up",
+  "login.have_account": "Already have an account? Sign in",
+  "login.invalid_credentials": "Invalid email or password",
+  "login.already_registered": "This email is already registered. Try signing in."
 }

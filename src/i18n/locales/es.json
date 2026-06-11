@@ -10,7 +10,7 @@
   "login.send_link": "Enviar enlace",
   "login.domain_error": "Solo se permiten emails @factorial.co",
   "login.check_title": "Revisa tu email",
-  "login.check_body": "Hemos enviado un enlace de acceso a {{email}}. Haz clic en el enlace para entrar.",
+  "login.check_body": "Hemos enviado un enlace de confirmacion a {{email}}. Haz clic para activar tu cuenta.",
   "login.try_another": "Usar otro email",
   "login.magic_hint": "Te enviaremos un enlace seguro. Sin contrasena.",
   "home.greeting": "Hola",
@@ -499,5 +499,17 @@
   "onboarding.slide3_title": "Co-crea en vivo",
   "onboarding.slide3_body": "Durante la llamada de discovery, ajusta las horas por stakeholder segun lo que te diga el prospect. El ROI se actualiza en tiempo real.",
   "onboarding.slide4_title": "Descarga el deck",
-  "onboarding.slide4_body": "Genera un PDF con la marca Factorial listo para enviar — resumen o detalle completo con desglose de calculo por modulo."
+  "onboarding.slide4_body": "Genera un PDF con la marca Factorial listo para enviar — resumen o detalle completo con desglose de calculo por modulo.",
+  "login.signin_description": "Inicia sesion con tu cuenta de Factorial",
+  "login.signup_description": "Crea tu cuenta para empezar",
+  "login.password_placeholder": "Contrasena",
+  "login.password_min": "La contrasena debe tener al menos 6 caracteres",
+  "login.name_placeholder": "Nombre completo (ej. Lucas Siroo)",
+  "login.name_required": "Introduce tu nombre completo",
+  "login.sign_in": "Iniciar sesion",
+  "login.create_account": "Crear cuenta",
+  "login.no_account": "No tienes cuenta? Registrate",
+  "login.have_account": "Ya tienes cuenta? Inicia sesion",
+  "login.invalid_credentials": "Email o contrasena incorrectos",
+  "login.already_registered": "Este email ya esta registrado. Prueba a iniciar sesion."
 }

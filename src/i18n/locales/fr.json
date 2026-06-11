@@ -10,7 +10,7 @@
   "login.send_link": "Envoyer le lien",
   "login.domain_error": "Seuls les emails @factorial.co sont autorises",
   "login.check_title": "Verifiez votre email",
-  "login.check_body": "Nous avons envoye un lien de connexion a {{email}}. Cliquez sur le lien pour vous connecter.",
+  "login.check_body": "Nous avons envoye un lien de confirmation a {{email}}. Cliquez pour activer votre compte.",
   "login.try_another": "Utiliser un autre email",
   "login.magic_hint": "Nous vous enverrons un lien securise. Pas de mot de passe.",
   "home.greeting": "Bonjour",
@@ -499,5 +499,17 @@
   "onboarding.slide3_title": "Co-creez en direct",
   "onboarding.slide3_body": "Pendant l'appel de decouverte, ajustez les heures par partie prenante. Le ROI se met a jour en temps reel.",
   "onboarding.slide4_title": "Telechargez le deck",
-  "onboarding.slide4_body": "Generez un PDF a la marque Factorial pret a envoyer — resume ou detail complet avec ventilation des calculs par module."
+  "onboarding.slide4_body": "Generez un PDF a la marque Factorial pret a envoyer — resume ou detail complet avec ventilation des calculs par module.",
+  "login.signin_description": "Connectez-vous avec votre compte Factorial",
+  "login.signup_description": "Creez votre compte pour commencer",
+  "login.password_placeholder": "Mot de passe",
+  "login.password_min": "Le mot de passe doit contenir au moins 6 caracteres",
+  "login.name_placeholder": "Nom complet (ex. Lucas Siroo)",
+  "login.name_required": "Veuillez entrer votre nom complet",
+  "login.sign_in": "Se connecter",
+  "login.create_account": "Creer un compte",
+  "login.no_account": "Pas de compte ? Inscrivez-vous",
+  "login.have_account": "Deja un compte ? Connectez-vous",
+  "login.invalid_credentials": "Email ou mot de passe incorrect",
+  "login.already_registered": "Cet email est deja enregistre. Essayez de vous connecter."
 }

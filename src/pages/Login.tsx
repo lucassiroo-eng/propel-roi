@@ -2,17 +2,20 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, CheckCircle, ArrowRight, Mail } from "lucide-react";
+import { Loader2, ArrowRight, CheckCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import factorialLogo from "@/assets/factorial-logo-red.svg";
 
 export default function Login() {
-  const { signInWithOtp } = useAuth();
+  const { signUp, signIn } = useAuth();
   const { t } = useTranslation();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [signUpDone, setSignUpDone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,17 +25,42 @@ export default function Login() {
       setError(t("login.domain_error"));
       return;
     }
+    if (password.length < 6) {
+      setError(t("login.password_min"));
+      return;
+    }
     setLoading(true);
-    const { error: otpError } = await signInWithOtp(trimmed);
-    if (otpError) {
-      setError(otpError.message);
+
+    if (mode === "signup") {
+      if (!fullName.trim()) {
+        setError(t("login.name_required"));
+        setLoading(false);
+        return;
+      }
+      const { error: err } = await signUp(trimmed, password, fullName.trim());
+      if (err) {
+        if (err.message.includes("already registered")) {
+          setError(t("login.already_registered"));
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setSignUpDone(true);
+      }
     } else {
-      setSent(true);
+      const { error: err } = await signIn(trimmed, password);
+      if (err) {
+        if (err.message === "Invalid login credentials") {
+          setError(t("login.invalid_credentials"));
+        } else {
+          setError(err.message);
+        }
+      }
     }
     setLoading(false);
   };
 
-  if (sent) {
+  if (signUpDone) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-background">
         <div className="w-full max-w-xs text-center space-y-4">
@@ -45,12 +73,6 @@ export default function Login() {
               {t("login.check_body", { email })}
             </p>
           </div>
-          <button
-            onClick={() => { setSent(false); setEmail(""); }}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {t("login.try_another")}
-          </button>
         </div>
       </div>
     );
@@ -58,11 +80,13 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-background">
-      <div className="w-full max-w-xs space-y-8">
+      <div className="w-full max-w-xs space-y-6">
         <div className="text-center space-y-1">
           <img src={factorialLogo} alt="Factorial" className="mx-auto h-7 mb-4" />
           <h1 className="text-lg font-semibold tracking-tight">{t("login.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("login.magic_description")}</p>
+          <p className="text-sm text-muted-foreground">
+            {mode === "signup" ? t("login.signup_description") : t("login.signin_description")}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -76,6 +100,26 @@ export default function Login() {
             autoFocus
           />
 
+          {mode === "signup" && (
+            <Input
+              type="text"
+              placeholder={t("login.name_placeholder")}
+              value={fullName}
+              onChange={(e) => { setFullName(e.target.value); setError(null); }}
+              className="h-11"
+              autoComplete="name"
+            />
+          )}
+
+          <Input
+            type="password"
+            placeholder={t("login.password_placeholder")}
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(null); }}
+            className="h-11"
+            autoComplete={mode === "signup" ? "new-password" : "current-password"}
+          />
+
           {error && (
             <p className="text-sm text-destructive text-center">{error}</p>
           )}
@@ -83,22 +127,38 @@ export default function Login() {
           <Button
             type="submit"
             className="w-full h-11 font-semibold"
-            disabled={loading || !email.trim()}
+            disabled={loading || !email || !password}
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                <Mail className="h-4 w-4 mr-2" />
-                {t("login.send_link")}
+                {mode === "signup" ? t("login.create_account") : t("login.sign_in")}
+                <ArrowRight className="h-4 w-4 ml-2" />
               </>
             )}
           </Button>
         </form>
 
-        <p className="text-center text-[11px] text-muted-foreground/60">
-          {t("login.magic_hint")}
-        </p>
+        <div className="text-center">
+          {mode === "signin" ? (
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => { setMode("signup"); setError(null); }}
+            >
+              {t("login.no_account")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => { setMode("signin"); setError(null); }}
+            >
+              {t("login.have_account")}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
