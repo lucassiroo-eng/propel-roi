@@ -68,7 +68,7 @@ export default function CoCreation() {
   const STEPS = [
     t("cocreation.step_import"), t("cocreation.step_modules"),
     t("cocreation.step_config"), t("cocreation.step_discovery"),
-    t("cocreation.step_result"), t("cocreation.step_personalize"),
+    t("cocreation.step_result"),
   ];
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -159,6 +159,7 @@ export default function CoCreation() {
   const [searchingCalls, setSearchingCalls] = useState(false);
   const [selectedCall, setSelectedCall] = useState<ModjoCall | null>(null);
   const [personalizing, setPersonalizing] = useState(false);
+  const [personalizeOpen, setPersonalizeOpen] = useState(false);
   const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>> | null>(null);
 
   // Bundles
@@ -285,7 +286,7 @@ export default function CoCreation() {
   }
 
   useEffect(() => {
-    if (step === 5 && modjoCalls.length === 0 && !searchingCalls && (dealName || companyName)) {
+    if (step === 4 && personalizeOpen && modjoCalls.length === 0 && !searchingCalls && (dealName || companyName)) {
       searchModjoCalls();
     }
   }, [step]);
@@ -1052,43 +1053,72 @@ export default function CoCreation() {
               </button>
             </div>
 
-            {/* Personalize CTA */}
-            {enhancedDescriptions ? (
-              <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
-                      <Sparkles className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{t("cocreation.personalized")}</p>
-                      <p className="text-xs text-muted-foreground">{t("cocreation.personalized_sub")}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => setStep(5)} className="h-8 rounded-lg text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-100">
-                      {t("cocreation.re_personalize")}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => { setEnhancedDescriptions(null); toast.success(t("express.enhance_cleared")); }} className="h-8 rounded-lg text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-                      {t("cocreation.clear")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setStep(5)} className="w-full rounded-2xl border border-dashed border-violet-300 bg-violet-50/30 p-5 text-left hover:border-violet-400 hover:bg-violet-50/60 transition-all group">
+            {/* Personalize with call notes — inline */}
+            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+              <button
+                onClick={() => setPersonalizeOpen(o => !o)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0 group-hover:bg-violet-200 transition-colors">
-                    <Sparkles className="h-5 w-5 text-violet-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-foreground">{t("cocreation.personalize_title")}</p>
-                    <p className="text-xs text-muted-foreground">{t("cocreation.personalize_cta")}</p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-muted-foreground ml-auto group-hover:translate-x-0.5 transition-transform" />
+                  <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center"><Sparkles className="h-3.5 w-3.5 text-violet-600" /></div>
+                  <span className="text-sm font-semibold text-foreground">{t("cocreation.personalize_title")}</span>
+                  {enhancedDescriptions && <span className="text-[10px] font-bold text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full">{t("express.enhance_badge")}</span>}
                 </div>
+                {personalizeOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
               </button>
-            )}
+              {personalizeOpen && (
+                <div className="border-t border-border px-5 py-4 space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder={dealName || companyName || "Deal name..."}
+                      value={modjoSearch}
+                      onChange={e => setModjoSearch(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && !searchingCalls && searchModjoCalls()}
+                      className="flex-1 h-10 rounded-lg text-sm"
+                      disabled={searchingCalls}
+                    />
+                    <Button onClick={searchModjoCalls} disabled={searchingCalls} size="sm" className="h-10 rounded-lg bg-violet-600 hover:bg-violet-700 text-white shrink-0">
+                      {searchingCalls ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Search className="h-4 w-4 mr-1.5" /> {t("cocreation.search_calls")}</>}
+                    </Button>
+                  </div>
+                  {modjoCalls.length > 0 && (
+                    <div className="space-y-2">
+                      {modjoCalls.map(call => {
+                        const isSelected = selectedCall?.callId === call.callId;
+                        const dateStr = call.date ? new Date(call.date).toLocaleDateString() : "";
+                        const mins = Math.round(call.duration / 60);
+                        return (
+                          <button key={call.callId} onClick={() => setSelectedCall(isSelected ? null : call)} className={`w-full rounded-lg border p-3 text-left transition-all text-xs ${isSelected ? "border-violet-400 bg-violet-50" : "border-border hover:border-foreground/20"}`}>
+                            <p className="font-semibold text-foreground truncate">{call.title}</p>
+                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                              {dateStr && <span>{dateStr}</span>}
+                              {mins > 0 && <span>{mins} min</span>}
+                            </div>
+                            {isSelected && <Check className="h-4 w-4 text-violet-600 float-right -mt-8" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <Button
+                    onClick={handlePersonalize}
+                    disabled={!selectedCall || personalizing}
+                    size="sm"
+                    className="w-full h-10 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold"
+                  >
+                    {personalizing
+                      ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> {t("cocreation.personalizing")}</>
+                      : <><Sparkles className="h-4 w-4 mr-2" /> {t("cocreation.personalize_btn")}</>
+                    }
+                  </Button>
+                  {enhancedDescriptions && (
+                    <button onClick={() => { setEnhancedDescriptions(null); toast.success(t("express.enhance_cleared")); }} className="text-[11px] text-muted-foreground hover:text-destructive transition-colors">
+                      {t("cocreation.clear")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Save */}
             <div className="flex flex-col items-center gap-3 pt-2 pb-4">
@@ -1100,88 +1130,6 @@ export default function CoCreation() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {t("express.save_and_back")}
               </Button>
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* ──────────── STEP 5: Personalize with Modjo ──────────── */}
-      {step === 5 && (
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
-            <div className="text-center slide-up">
-              <div className="w-16 h-16 rounded-2xl bg-violet-600 flex items-center justify-center mx-auto mb-4">
-                <Phone className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-extrabold tracking-tight text-foreground mb-2">{t("cocreation.personalize_title")}</h2>
-              <p className="text-sm text-muted-foreground max-w-[360px] mx-auto">{t("cocreation.personalize_sub")}</p>
-            </div>
-
-            {/* Search calls */}
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  placeholder={dealName || companyName || "Deal name..."}
-                  value={modjoSearch}
-                  onChange={e => setModjoSearch(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && !searchingCalls && searchModjoCalls()}
-                  className="flex-1 h-11 rounded-xl text-sm"
-                  disabled={searchingCalls}
-                />
-                <Button onClick={searchModjoCalls} disabled={searchingCalls} className="h-11 rounded-xl bg-violet-600 hover:bg-violet-700 text-white shrink-0">
-                  {searchingCalls ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Search className="h-4 w-4 mr-1.5" /> {t("cocreation.search_calls")}</>}
-                </Button>
-              </div>
-
-              {modjoCalls.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {modjoCalls.map(call => {
-                    const isSelected = selectedCall?.callId === call.callId;
-                    const dateStr = call.date ? new Date(call.date).toLocaleDateString() : "";
-                    const mins = Math.round(call.duration / 60);
-                    return (
-                      <button
-                        key={call.callId}
-                        onClick={() => setSelectedCall(isSelected ? null : call)}
-                        className={`w-full rounded-xl border p-4 text-left transition-all ${isSelected ? "border-violet-400 bg-violet-50" : "border-border hover:border-foreground/20"}`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-foreground truncate">{call.title}</p>
-                            <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                              {dateStr && <span>{dateStr}</span>}
-                              {mins > 0 && <span>{t("cocreation.call_duration", { min: mins })}</span>}
-                              {call.users.map(u => u.name).filter(Boolean).join(", ") && (
-                                <span className="truncate">{call.users.map(u => u.name).filter(Boolean).join(", ")}</span>
-                              )}
-                            </div>
-                            {call.summary && <p className="text-xs text-muted-foreground mt-2 line-clamp-2">{call.summary}</p>}
-                          </div>
-                          {isSelected && <Check className="h-5 w-5 text-violet-600 shrink-0 mt-0.5" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Personalize button */}
-            <div className="flex flex-col items-center gap-3">
-              <Button
-                onClick={handlePersonalize}
-                disabled={!selectedCall || personalizing}
-                className="w-full max-w-sm h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold"
-              >
-                {personalizing
-                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> {t("cocreation.personalizing")}</>
-                  : <><Sparkles className="h-4 w-4 mr-2" /> {t("cocreation.personalize_btn")}</>
-                }
-              </Button>
-
-              <button onClick={() => { setStep(4); }} className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors mt-2">
-                {t("cocreation.skip_personalize")}
-              </button>
             </div>
           </div>
         </main>

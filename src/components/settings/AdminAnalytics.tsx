@@ -78,6 +78,17 @@ interface DealFunnel {
   roi_generated: number;
 }
 
+function emailToShortName(email: string): string {
+  const local = email.split("@")[0] ?? "";
+  const parts = local.split(".");
+  if (parts.length >= 2) {
+    const first = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+    const last = parts[1].charAt(0).toUpperCase() + ".";
+    return `${first} ${last}`;
+  }
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
 interface PipelineItem {
   id: string;
   company_name: string;
@@ -87,6 +98,7 @@ interface PipelineItem {
   roi_eur: number;
   hubspot_deal_url: string | null;
   updated_at: string;
+  pae_name: string;
 }
 
 const COLORS = [
@@ -165,6 +177,13 @@ export default function AdminAnalytics() {
       (prospects ?? []).map((p) => [p.id, { company_name: p.company_name, hubspot_deal_url: p.hubspot_deal_url ?? null }])
     );
 
+    const paeIds = [...new Set(sessions.map((s) => s.pae_id).filter(Boolean))];
+    let emailMap = new Map<string, string>();
+    try {
+      const { data: emailRows } = await supabase.rpc("get_user_emails", { _user_ids: paeIds });
+      emailMap = new Map((emailRows || []).map((r: any) => [r.user_id, r.email]));
+    } catch { /* RPC may not exist yet */ }
+
     const items: PipelineItem[] = sessions.map((s) => ({
       id: s.id,
       company_name: prospectMap.get(s.prospect_id)?.company_name ?? "—",
@@ -174,6 +193,7 @@ export default function AdminAnalytics() {
       roi_eur: s.roi_eur ?? 0,
       hubspot_deal_url: prospectMap.get(s.prospect_id)?.hubspot_deal_url ?? null,
       updated_at: s.updated_at ?? s.created_at ?? "",
+      pae_name: emailToShortName(emailMap.get(s.pae_id) ?? ""),
     }));
 
     setPipelineGenerated(
@@ -523,6 +543,7 @@ export default function AdminAnalytics() {
                     <thead>
                       <tr className="border-b border-border/50 bg-muted/10">
                         <th className="text-left px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Empresa</th>
+                        <th className="text-left px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">AE</th>
                         <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-24">Tipo</th>
                         <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-16">ROI</th>
                         <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground w-32">Stage HubSpot</th>
@@ -539,6 +560,7 @@ export default function AdminAnalytics() {
                         return (
                           <tr key={item.id} className="hover:bg-muted/20 transition-colors">
                             <td className="px-4 py-2.5 font-medium text-foreground max-w-[200px] truncate">{item.company_name}</td>
+                            <td className="px-3 py-2.5 text-[11px] text-muted-foreground truncate max-w-[100px]">{item.pae_name || "—"}</td>
                             <td className="px-3 py-2.5 text-center">
                               {item.flow_type === "co_created" ? (
                                 <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>Co-creado</span>
