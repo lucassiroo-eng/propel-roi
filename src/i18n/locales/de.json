@@ -535,5 +535,13 @@
   "onboarding.h3_title": "Schritt 3: Wahrend des Gesprachs co-erstellen",
   "onboarding.h3_body": "Passen Sie wahrend des Discovery-Gesprachs die Stunden pro Stakeholder an. Fragen Sie: 'Wie viele Stunden pro Monat verbringen Sie mit X?' Der ROI aktualisiert sich live.",
   "onboarding.h4_title": "Schritt 4: Deck herunterladen",
-  "onboarding.h4_body": "Erstellen Sie ein Factorial-gebrandetes PDF — einseitige Zusammenfassung oder vollstandiges Detail mit Berechnungsaufschlusselung pro Modul. Bereit fur den Economic Buyer."
+  "onboarding.h4_body": "Erstellen Sie ein Factorial-gebrandetes PDF — einseitige Zusammenfassung oder vollstandiges Detail mit Berechnungsaufschlusselung pro Modul. Bereit fur den Economic Buyer.",
+  "onboarding.tour_title": "Mochten Sie eine gefuhrte Tour?",
+  "onboarding.tour_body": "Wir fuhren Sie Schritt fur Schritt durch die App — wo Sie einen ROI erstellen, wie der Flow funktioniert, und wo Ihre Sitzungen sind.",
+  "onboarding.start_tour": "Tour starten",
+  "tour.cocreate_title": "ROI co-erstellen",
+  "tour.cocreate_body": "Klicken Sie hier, um einen ROI zu co-erstellen. Importieren Sie einen Deal, wahlen Sie Module und erstellen Sie den ROI live.",
+  "tour.sessions_title": "Ihre ROIs",
+  "tour.sessions_body": "Alle Ihre co-erstellten ROIs sind hier. Klicken Sie, um anzusehen, zu bearbeiten oder das Deck herunterzuladen.",
+  "tour.cta": "Klicken Sie auf 'ROI co-erstellen' um zu starten"
 }

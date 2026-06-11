@@ -135,8 +135,8 @@ function TutorialOverlay({
       >
         <div style={{ pointerEvents: "auto" }}>
           <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
-            <p className="text-sm font-semibold text-foreground">Create an ROI</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Click here to start an Express ROI analysis. Paste a HubSpot deal link and get the result in minutes.</p>
+            <p className="text-sm font-semibold text-foreground">{t("tour.cocreate_title", "Co-create an ROI")}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("tour.cocreate_body", "Click here to start co-creating an ROI. Import a deal, select modules, and build the ROI live during a discovery call.")}</p>
           </div>
           <div className="mt-[-1px]" style={{ paddingLeft: Math.max(16, Math.min(exCenterX - Math.max(20, exCenterX - 160) - 8, Math.min(320, window.innerWidth - 40) - 24)) }}>
             <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white" />
@@ -163,8 +163,8 @@ function TutorialOverlay({
               <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white" />
             </div>
             <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
-              <p className="text-sm font-semibold text-foreground">Your sessions</p>
-              <p className="text-xs text-muted-foreground mt-0.5">All your ROI analyses live here. Click any to view, edit, or share.</p>
+              <p className="text-sm font-semibold text-foreground">{t("tour.sessions_title", "Your ROIs")}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{t("tour.sessions_body", "All your co-created ROIs live here. Click any to view, edit, or download the deck.")}</p>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ function TutorialOverlay({
       {/* Bottom bar: skip + CTA */}
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/80 to-transparent" style={{ pointerEvents: "auto" }}>
         <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
-          <p className="text-white text-sm font-medium text-center">Click ROI Express to start the guided tour</p>
+          <p className="text-white text-sm font-medium text-center">{t("tour.cta", "Click 'Co-create an ROI' to start")}</p>
           <button onClick={onClose} className="text-white/60 text-xs hover:text-white transition-colors">
             Skip tutorial
           </button>
@@ -301,7 +301,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden bg-background">
-      {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+      {showOnboarding && (
+        <OnboardingModal
+          mode={localStorage.getItem("propel_onboarded") ? "why" : "full"}
+          onComplete={() => setShowOnboarding(false)}
+          onStartTour={() => { setShowOnboarding(false); setShowTutorial(true); }}
+        />
+      )}
       {/* Tutorial overlay */}
       {showTutorial && (
         <TutorialOverlay

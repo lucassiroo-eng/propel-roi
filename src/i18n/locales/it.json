@@ -535,5 +535,13 @@
   "onboarding.h3_title": "Passo 3: Co-crea durante la chiamata",
   "onboarding.h3_body": "Durante la chiamata di discovery, regola le ore per stakeholder. Chiedi: 'Quante ore al mese dedicate a X?' Il ROI si aggiorna in diretta.",
   "onboarding.h4_title": "Passo 4: Scarica il deck",
-  "onboarding.h4_body": "Genera un PDF brandizzato Factorial — riepilogo di una pagina o dettaglio completo con calcoli per modulo. Pronto da inviare all'Economic Buyer."
+  "onboarding.h4_body": "Genera un PDF brandizzato Factorial — riepilogo di una pagina o dettaglio completo con calcoli per modulo. Pronto da inviare all'Economic Buyer.",
+  "onboarding.tour_title": "Vuoi un tour guidato?",
+  "onboarding.tour_body": "Ti guidiamo passo passo nell'app — dove creare un ROI, come funziona il flow, e dove sono le tue sessioni.",
+  "onboarding.start_tour": "Inizia il tour",
+  "tour.cocreate_title": "Co-crea un ROI",
+  "tour.cocreate_body": "Clicca qui per co-creare un ROI. Importa un deal, seleziona i moduli e costruisci il ROI in diretta.",
+  "tour.sessions_title": "I tuoi ROI",
+  "tour.sessions_body": "Tutti i tuoi ROI co-creati sono qui. Clicca per vedere, modificare o scaricare il deck.",
+  "tour.cta": "Clicca 'Co-crea un ROI' per iniziare"
 }
