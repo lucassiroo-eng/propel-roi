@@ -322,7 +322,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={startTutorial}
+            onClick={() => setShowOnboarding(true)}
             className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             title={t("tutorial.help")}
           >
