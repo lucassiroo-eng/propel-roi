@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, ArrowRight, ChevronRight, Link, Layers, Phone, FileDown } from "lucide-react";
+import { Globe, ArrowRight, ChevronRight, Target, Handshake, GitBranch, Calculator } from "lucide-react";
 
 const LANGUAGES = [
   { code: "es", flag: "\u{1F1EA}\u{1F1F8}", label: "Español" },
@@ -11,10 +11,10 @@ const LANGUAGES = [
 ];
 
 const SLIDES = [
-  { icon: Link, title: "onboarding.slide1_title", body: "onboarding.slide1_body" },
-  { icon: Layers, title: "onboarding.slide2_title", body: "onboarding.slide2_body" },
-  { icon: Phone, title: "onboarding.slide3_title", body: "onboarding.slide3_body" },
-  { icon: FileDown, title: "onboarding.slide4_title", body: "onboarding.slide4_body" },
+  { icon: Target, color: "#FF355E", bg: "#FFF1F3", title: "onboarding.s1_title", body: "onboarding.s1_body" },
+  { icon: Handshake, color: "#7C3AED", bg: "#F3F0FF", title: "onboarding.s2_title", body: "onboarding.s2_body" },
+  { icon: GitBranch, color: "#0EA5E9", bg: "#EFF6FF", title: "onboarding.s3_title", body: "onboarding.s3_body" },
+  { icon: Calculator, color: "#059669", bg: "#ECFDF5", title: "onboarding.s4_title", body: "onboarding.s4_body" },
 ];
 
 export default function OnboardingModal({ onComplete }: { onComplete: () => void }) {
@@ -27,10 +27,6 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
     setSelectedLang(code);
     i18n.changeLanguage(code);
     localStorage.setItem("propel_locale", code);
-  }
-
-  function goToTutorial() {
-    setPhase("tutorial");
   }
 
   function finish() {
@@ -47,8 +43,8 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Globe className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-xl font-bold text-center text-foreground mb-1">{t("onboarding.lang_title", "Choose your language")}</h2>
-            <p className="text-sm text-muted-foreground text-center mb-6">{t("onboarding.lang_sub", "You can change this later in Settings")}</p>
+            <h2 className="text-xl font-bold text-center text-foreground mb-1">{t("onboarding.lang_title")}</h2>
+            <p className="text-sm text-muted-foreground text-center mb-6">{t("onboarding.lang_sub")}</p>
 
             <div className="grid grid-cols-1 gap-2">
               {LANGUAGES.map(l => (
@@ -73,10 +69,10 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
             </div>
 
             <button
-              onClick={goToTutorial}
+              onClick={() => setPhase("tutorial")}
               className="w-full mt-6 h-11 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
             >
-              {t("onboarding.continue", "Continue")} <ArrowRight className="h-4 w-4" />
+              {t("onboarding.continue")} <ArrowRight className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -88,18 +84,18 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
               const Icon = slide.icon;
               return (
                 <div className="text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-                    <Icon className="h-7 w-7 text-primary" />
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: slide.bg }}>
+                    <Icon className="h-7 w-7" style={{ color: slide.color }} />
                   </div>
-                  <h2 className="text-lg font-bold text-foreground mb-2">{t(slide.title)}</h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-8">{t(slide.body)}</p>
+                  <h2 className="text-lg font-bold text-foreground mb-3">{t(slide.title)}</h2>
+                  <p className="text-[13px] text-muted-foreground leading-relaxed mb-8 text-left">{t(slide.body)}</p>
                 </div>
               );
             })()}
 
             <div className="flex items-center justify-center gap-1.5 mb-6">
               {SLIDES.map((_, i) => (
-                <div key={i} className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-6 bg-primary" : "w-1.5 bg-border"}`} />
+                <div key={i} className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-6 bg-foreground" : "w-1.5 bg-border"}`} />
               ))}
             </div>
 
@@ -107,13 +103,13 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
               {slideIdx < SLIDES.length - 1 ? (
                 <>
                   <button onClick={finish} className="flex-1 h-11 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-                    {t("onboarding.skip", "Skip")}
+                    {t("onboarding.skip")}
                   </button>
                   <button
                     onClick={() => setSlideIdx(i => i + 1)}
                     className="flex-1 h-11 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
                   >
-                    {t("onboarding.next", "Next")} <ChevronRight className="h-4 w-4" />
+                    {t("onboarding.next")} <ChevronRight className="h-4 w-4" />
                   </button>
                 </>
               ) : (
@@ -121,7 +117,7 @@ export default function OnboardingModal({ onComplete }: { onComplete: () => void
                   onClick={finish}
                   className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
                 >
-                  {t("onboarding.start", "Start using Propel ROI")} <ArrowRight className="h-4 w-4" />
+                  {t("onboarding.start")} <ArrowRight className="h-4 w-4" />
                 </button>
               )}
             </div>
