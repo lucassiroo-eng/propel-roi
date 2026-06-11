@@ -16,6 +16,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function clearError() { setError(null); }
@@ -54,11 +55,12 @@ export default function Login() {
   async function handleResetPassword() {
     const trimmed = email.trim().toLowerCase();
     if (!trimmed) { setError(t("login.enter_email_first")); return; }
-    setLoading(true);
+    setResetting(true);
+    setError(null);
     const { error: err } = await supabase.auth.resetPasswordForEmail(trimmed, {
       redirectTo: window.location.origin + "/",
     });
-    setLoading(false);
+    setResetting(false);
     if (err) { setError(err.message); return; }
     toast.success(t("login.reset_sent"));
   }
@@ -83,8 +85,8 @@ export default function Login() {
               <button type="button" onClick={() => { setMode("register"); clearError(); }} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                 {t("login.no_account")}
               </button>
-              <button type="button" onClick={handleResetPassword} disabled={loading} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                {t("login.forgot_password")}
+              <button type="button" onClick={handleResetPassword} disabled={resetting} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                {resetting ? <Loader2 className="inline h-3 w-3 animate-spin" /> : t("login.forgot_password")}
               </button>
             </div>
           </form>
