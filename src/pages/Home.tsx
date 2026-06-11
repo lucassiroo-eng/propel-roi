@@ -224,16 +224,34 @@ export default function Home() {
     }
   }, [user, tutorialKey, i18n]);
 
-  const { data: sessions, isLoading } = useQuery({
-    queryKey: ["roi_sessions"],
+  const { data: isAdmin } = useQuery({
+    queryKey: ["user_role_home", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!user) return false;
+      if (user.email === "lucas.siroo@factorial.co") return true;
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .in("role", ["strategy_admin", "super_admin"]);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!user,
+  });
+
+  const { data: sessions, isLoading } = useQuery({
+    queryKey: ["roi_sessions", user?.id, isAdmin],
+    queryFn: async () => {
+      let query = supabase
         .from("roi_sessions")
-        .select("id, status, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
+        .select("id, status, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, pae_id, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
         .order("updated_at", { ascending: false });
+      if (!isAdmin && user) query = query.eq("pae_id", user.id);
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
+    enabled: !!user,
   });
 
   const companies = (() => {
@@ -350,43 +368,20 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
 
-        {/* Express CTA */}
+        {/* Co-creation CTA — primary action */}
         <button
           ref={expressRef}
-          onClick={handleExpressClick}
+          onClick={() => navigate("/co-creation")}
           className="w-full rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
           <div className="flex items-start justify-between">
             <div className="w-11 h-11 rounded-xl bg-background/15 flex items-center justify-center mb-3">
-              <Zap className="h-6 w-6 text-background" />
+              <MessageSquare className="h-6 w-6 text-background" />
             </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-background/50 bg-background/10 px-2 py-0.5 rounded-full">
-              Express
-            </span>
           </div>
-          <p className="text-background font-bold text-lg leading-snug">ROI Express</p>
-          <p className="text-background/60 text-sm mt-1 mb-3">Pega el deal link y genera el ROI en minutos</p>
+          <p className="text-background font-bold text-lg leading-snug">{t("home.cocreate_title", "Co-crea un ROI")}</p>
+          <p className="text-background/60 text-sm mt-1 mb-3">{t("home.cocreate_sub", "Importa el deal, configura los modulos y descarga el deck")}</p>
           <div className="flex items-center gap-1 text-background font-semibold text-sm">
-            {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
-          </div>
-        </button>
-
-        {/* Co-creation CTA */}
-        <button
-          onClick={() => navigate("/co-creation")}
-          className="w-full rounded-2xl p-5 text-left border-2 border-foreground/10 bg-card transition-transform hover:scale-[1.01] active:scale-[0.99] hover:border-foreground/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <div className="flex items-start justify-between">
-            <div className="w-11 h-11 rounded-xl bg-foreground/10 flex items-center justify-center mb-3">
-              <MessageSquare className="h-6 w-6 text-foreground" />
-            </div>
-            <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-              Co-creation
-            </span>
-          </div>
-          <p className="text-foreground font-bold text-lg leading-snug">ROI Co-creation</p>
-          <p className="text-muted-foreground text-sm mt-1 mb-3">Build the ROI live during a discovery call</p>
-          <div className="flex items-center gap-1 text-foreground font-semibold text-sm">
             {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
           </div>
         </button>
@@ -414,7 +409,7 @@ export default function Home() {
                 return (
                   <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
                     <button
-                      onClick={() => navigate(`/${["co_created","pre_call","during_call","post_call"].includes(latest.status) ? "co-creation" : "express"}?session=${latest.id}`)}
+                      onClick={() => navigate(`/co-creation?session=${latest.id}`)}
                       className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -504,7 +499,7 @@ export default function Home() {
                             {c.sessions.map((sess, i) => (
                               <button
                                 key={sess.id}
-                                onClick={() => navigate(`/${["co_created","pre_call","during_call","post_call"].includes(sess.status) ? "co-creation" : "express"}?session=${sess.id}`)}
+                                onClick={() => navigate(`/co-creation?session=${sess.id}`)}
                                 className={`w-full flex items-center justify-between px-4 py-3 text-left hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${i > 0 ? "border-t border-border/60" : ""}`}
                               >
                                 <div className="flex items-center gap-2 min-w-0">

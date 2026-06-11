@@ -20,7 +20,16 @@ const queryClient = new QueryClient();
 const isPreview = window.location.hostname.includes("id-preview--") || window.location.hostname.includes("lovableproject.com") || window.location.hostname === "localhost";
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  // Auth temporarily disabled — all users go straight to Home
+  const { user, loading } = useAuth();
+  if (isPreview) return <>{children}</>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
@@ -52,7 +61,7 @@ const App = () => (
             <Route path="/help" element={<RequireAuth><Help /></RequireAuth>} />
             <Route path="/admin" element={<RequireAuth><Admin /></RequireAuth>} />
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
-            <Route path="/express" element={<RequireAuth><Express /></RequireAuth>} />
+            <Route path="/express" element={<Navigate to="/co-creation" replace />} />
             <Route path="/co-creation" element={<RequireAuth><CoCreation /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
