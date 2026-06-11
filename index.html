@@ -4,7 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- TODO: Set the document title to the name of your application -->
-    <title>Propel ROI Agent</title>
+    <title>Propel ROI</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <meta name="description" content="Propel ROI is a mobile-first tool for sales professionals to generate prospect ROI reports.">
     <meta name="author" content="Lovable" />
 
@@ -24,19 +27,6 @@
 </head>
 
   <body>
-    <script>
-      // GitHub Pages SPA: restore path from 404.html redirect
-      (function(){
-        var r = window.location.search.match(/[?&]p=([^&]*)/) ;
-        if (r) {
-          var path = '/' + r[1];
-          var q = window.location.search.match(/[?&]q=([^&]*)/);
-          path += q ? '?' + decodeURIComponent(q[1]) : '';
-          path += window.location.hash;
-          window.history.replaceState(null, '', path);
-        }
-      })();
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
