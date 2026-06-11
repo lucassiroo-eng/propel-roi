@@ -869,6 +869,163 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       hr: ["Synchronisation directe avec SILAE élimine l'échange manuel de données avec le prestataire"],
     },
   },
+
+  it: {
+    core: {
+      employee: ["Autoservizio per aggiornamenti profilo e download documenti elimina richieste di routine all'HR", "Buste paga e certificati sempre accessibili da mobile, senza attese"],
+      hr: ["Database unico dei dipendenti elimina fogli di calcolo duplicati e copia-incolla", "Flussi di approvazione automatici gestiscono le modifiche ai dati senza routing manuale", "Checklist di onboarding/offboarding si eseguono automaticamente"],
+      manager: ["Dashboard del team mostra approvazioni, organigramma e riporti diretti in un click", "Niente più email all'HR per organico, date contrattuali o dettagli dei dipendenti"],
+    },
+    time_off: {
+      hr: ["Motore di maturazione automatica sostituisce i calcoli manuali dei saldi", "Integrazione con paghe sincronizza i dati di assenza automaticamente", "Regole di policy prevengono le approvazioni eccessive prima che accadano"],
+      manager: ["Calendario visuale del team mostra chi è assente senza consultare fogli di calcolo", "Approva o rifiuta in un click con avvisi di conflitto di copertura"],
+    },
+    time_tracking: {
+      employee: ["Timbratura da qualsiasi dispositivo sostituisce i fogli presenze cartacei", "Le timbrature mancanti si risolvono nell'app con approvazione del manager"],
+      hr: ["I dati di tempo fluiscono alle paghe automaticamente, eliminando la riconciliazione settimanale", "Gli straordinari sono calcolati secondo la normativa, senza controlli manuali", "Le mancanze attivano promemoria automatici"],
+      manager: ["Dashboard presenze in tempo reale sostituisce i controlli mattutini", "Avvisi di anomalie (ritardi, timbrature mancanti) inviati automaticamente"],
+    },
+    time_planning: {
+      employee: ["Turni visibili su mobile, sostituendo fogli cartacei e chat di gruppo", "Richieste di scambio turno gestite nell'app con notifica istantanea al manager"],
+      hr: ["Turni generati automaticamente da domanda, regole e preferenze", "Conformità straordinari e riposi verificata automaticamente", "Elimina completamente la creazione manuale settimanale dei turni"],
+      manager: ["Pianificatore drag-and-drop con rilevamento conflitti istantaneo", "Avvisi di gap di copertura e straordinari prima della pubblicazione"],
+    },
+    payroll: {
+      hr: ["Tempo, assenze, spese e variabili si sincronizzano automaticamente nelle paghe", "Il rilevamento discrepanze cattura errori prima dell'invio", "Elimina la consolidazione manuale dei dati ad ogni ciclo paghe"],
+    },
+    expenses: {
+      employee: ["Cattura ricevute con OCR dal mobile, auto-categorizza e invia le spese istantaneamente", "Controlli di policy al momento dell'invio prevengono rifiuti e correzioni"],
+      hr: ["Riconciliazione automatica e flussi di approvazione integrati con la contabilità", "Violazioni di policy segnalate prima dell'approvazione, senza revisione riga per riga"],
+      manager: ["Approvazione in un click su invii pre-validati e conformi alla policy", "Dashboard spese del team con avvisi di budget eliminano la necessità di rincorrere report"],
+    },
+    compensations: {
+      hr: ["Cicli di merito e bonus centralizzati con guardrail di budget prevengono le eccedenze", "Routing approvazioni completamente automatico, eliminando catene email"],
+      manager: ["Revisione guidata mostra dati salariali del team, benchmark e budget residuo", "Decisioni retributive inviate nell'app, sostituendo email e tracking offline"],
+    },
+    recruitment: {
+      hr: ["ATS completo: pubblicazione offerte, pipeline candidati, agenda colloqui e scorecard", "Comunicazioni automatiche con i candidati eliminano il follow-up manuale via email"],
+      manager: ["Scorecard strutturate sostituiscono appunti liberi per ogni candidato", "Confronto side-by-side dei candidati accelera le decisioni di assunzione"],
+    },
+    performance: {
+      hr: ["Cicli di valutazione automatizzati gestiscono lancio, promemoria e calibrazione", "Sostituisce template Word/Excel ed elimina il rincorso manuale tra i cicli"],
+      manager: ["Moduli pre-compilati con dati storici riducono il tempo di preparazione", "Dashboard performance del team pronta per ogni one-to-one"],
+    },
+    engagement: {
+      hr: ["Creazione, programmazione e distribuzione automatica dei sondaggi", "Dashboard in tempo reale con risultati per team e reparto"],
+      manager: ["Punteggi engagement del team in dashboard live con indicatori di tendenza", "Avvisi su punteggi in calo con azioni suggerite"],
+    },
+    trainings: {
+      hr: ["Distribuzione automatica della formazione con tracciamento completamento e reporting conformità", "Documentazione sussidi e crediti fiscali generata automaticamente"],
+    },
+    benefits: {
+      hr: ["Finestre di iscrizione automatiche con regole di idoneità eliminano il coordinamento manuale", "Integrazione fornitori sincronizza le selezioni benefit senza riconciliazione manuale"],
+    },
+    wellhub: {
+      hr: ["Piattaforma benessere integrata nel portale HR", "Single sign-on elimina la registrazione separata al provider", "Reporting utilizzo automatizzato"],
+    },
+    complaints: {
+      hr: ["Portale segnalazioni anonime con gestione casi integrata", "Conformità Direttiva Whistleblower UE inclusa", "Avvisi scadenze e tracking casi eliminano il follow-up manuale"],
+    },
+    one: {
+      employee: ["L'IA risponde istantaneamente alle domande HR: policy, saldi, richieste documenti", "Riduce il tempo speso a cercare nell'intranet o aspettare risposte via email"],
+      hr: ["L'IA gestisce le richieste di routine su ferie, buste paga e policy senza intervento HR", "Libera il team HR dalle richieste ripetitive per lavoro a maggior valore"],
+    },
+    projects: {
+      hr: ["Report costi e redditività progetto generati automaticamente dai dati di tempo"],
+      manager: ["Dashboard progetto in tempo reale mostra allocazione, budget e redditività"],
+    },
+    procurement: {
+      hr: ["Flussi PO digitali con approvazione multi-livello eliminano il follow-up manuale"],
+    },
+    lms: {
+      hr: ["Course builder con template e creazione contenuti assistita da IA accelera lo sviluppo"],
+    },
+    headcount_planning: {
+      hr: ["Pianificazione organico basata su scenari con impatto budget in tempo reale"],
+      manager: ["Organico approvato vs effettivo visibile a colpo d'occhio senza chiedere all'HR"],
+    },
+    silae: {
+      hr: ["Sincronizzazione diretta dati paghe con SILAE elimina lo scambio manuale di dati"],
+    },
+  },
+  de: {
+    core: {
+      employee: ["Self-Service für Profilaktualisierungen und Dokumenten-Downloads beseitigt Routineanfragen an HR", "Gehaltsabrechnungen und Bescheinigungen sind jederzeit mobil verfügbar, ohne Wartezeiten"],
+      hr: ["Zentrale Mitarbeiterdatenbank beseitigt doppelte Tabellen und Copy-Paste", "Automatisierte Genehmigungsworkflows bearbeiten Datenänderungen ohne manuelles Routing", "Onboarding/Offboarding-Checklisten laufen automatisch ab"],
+      manager: ["Team-Dashboard zeigt offene Genehmigungen, Organigramm und direkte Berichte auf einen Klick", "Keine E-Mails mehr an HR für Personalstand, Vertragsdaten oder Mitarbeiterdetails"],
+    },
+    time_off: {
+      hr: ["Automatische Saldenberechnung ersetzt manuelle Urlaubskontenverwaltung", "Lohnintegration synchronisiert Abwesenheitsdaten automatisch", "Richtlinienregeln verhindern Überzeichnungen bevor sie passieren"],
+      manager: ["Visueller Teamkalender zeigt Abwesenheiten ohne Tabellenprüfung", "Ein-Klick-Genehmigung mit Konflikterkennungs-Warnungen"],
+    },
+    time_tracking: {
+      employee: ["Digitale Zeiterfassung von jedem Gerät ersetzt Papier-Stundenzettel", "Fehlende Stempelungen werden in der App mit Manager-Genehmigung gelöst"],
+      hr: ["Zeitdaten fließen automatisch in die Lohnabrechnung — ohne wöchentliche Abstimmung", "Überstunden werden gesetzeskonform berechnet, manuelle Prüfungen entfallen", "Fehlende Einträge lösen automatische Erinnerungen aus"],
+      manager: ["Echtzeit-Anwesenheits-Dashboard ersetzt morgendliche Kontrollen", "Anomalie-Warnungen (Verspätungen, fehlende Stempelungen) automatisch gesendet"],
+    },
+    time_planning: {
+      employee: ["Kommende Schichten auf dem Handy sichtbar — ersetzt Papierpläne und Gruppenchats", "Schichttausch-Anfragen in der App mit sofortiger Manager-Benachrichtigung"],
+      hr: ["Automatisch generierte Dienstpläne aus Bedarf, Arbeitsregeln und Präferenzen", "Überstunden- und Ruhezeit-Compliance automatisch geprüft", "Eliminiert die wöchentliche manuelle Dienstplanerstellung vollständig"],
+      manager: ["Drag-and-Drop-Planer mit sofortiger Konflikterkennung", "Deckungslücken- und Überstundenwarnungen vor der Veröffentlichung"],
+    },
+    payroll: {
+      hr: ["Zeit, Abwesenheiten, Spesen und variable Vergütung synchronisieren sich automatisch mit der Lohnabrechnung", "Diskrepanzerkennung fängt Fehler vor der Übermittlung ab", "Eliminiert manuelle Datenkonsolidierung bei jedem Lohnlauf"],
+    },
+    expenses: {
+      employee: ["Mobile Belegerfassung mit OCR kategorisiert und übermittelt Spesen sofort", "Richtlinienprüfung bei Einreichung verhindert Ablehnungen und Korrekturrunden"],
+      hr: ["Automatisierte Abstimmung und Genehmigungsworkflows integriert mit der Buchhaltung", "Richtlinienverstöße werden vor der Genehmigung markiert — keine zeilenweise Prüfung mehr"],
+      manager: ["Ein-Klick-Genehmigung auf vorab validierte, richtlinienkonforme Einreichungen", "Team-Ausgaben-Dashboards mit Budget-Warnungen ersetzen das Nachfragen von Berichten"],
+    },
+    compensations: {
+      hr: ["Zentrale Merit- und Bonuszyklen mit Budget-Leitplanken verhindern Mehrausgaben", "Genehmigungsrouting vollständig automatisiert — keine E-Mail-Ketten mehr"],
+      manager: ["Geführte Überprüfung zeigt Team-Gehaltsdaten, Benchmarks und Restbudget", "Vergütungsentscheidungen werden in der App eingereicht statt per E-Mail"],
+    },
+    recruitment: {
+      hr: ["Vollständiges ATS: Stellenausschreibung, Pipeline, Terminplanung und Scorecards", "Automatisierte Kandidatenkommunikation eliminiert manuelles Follow-up per E-Mail"],
+      manager: ["Strukturierte Interview-Scorecards ersetzen freie Notizen für jeden Kandidaten", "Seite-an-Seite-Kandidatenvergleich beschleunigt Einstellungsentscheidungen"],
+    },
+    performance: {
+      hr: ["Automatisierte Bewertungszyklen handhaben Start, Erinnerungen und Kalibrierung", "Ersetzt Word/Excel-Templates und eliminiert manuelles Nachfassen"],
+      manager: ["Vorausgefüllte Bewertungsformulare mit historischen Daten reduzieren die Vorbereitungszeit", "Team-Performance-Dashboard bereit für jedes Einzelgespräch"],
+    },
+    engagement: {
+      hr: ["Automatisierte Umfrageerstellung, Planung und Verteilung", "Echtzeit-Dashboards mit Ergebnissen nach Team und Abteilung"],
+      manager: ["Team-Engagement-Scores in Live-Dashboard mit Trendanzeigen", "Warnungen bei sinkenden Scores mit vorgeschlagenen Maßnahmen"],
+    },
+    trainings: {
+      hr: ["Automatisierte Schulungsverteilung mit Abschluss-Tracking und Compliance-Reporting", "Fördermittel- und Steuergutschrift-Dokumentation automatisch erstellt"],
+    },
+    benefits: {
+      hr: ["Automatisierte Anmeldefenster mit Berechtigungsregeln eliminieren manuelle Koordination", "Anbieterintegration synchronisiert Benefit-Auswahl ohne manuelle Abstimmung"],
+    },
+    wellhub: {
+      hr: ["Integrierte Wellness-Plattform im HR-Portal", "Single Sign-On beseitigt separate Anbieterregistrierung", "Automatisiertes Nutzungsreporting"],
+    },
+    complaints: {
+      hr: ["Anonymes Meldeportal mit integriertem Fallmanagement", "EU-Hinweisgeberschutzrichtlinie standardmäßig abgedeckt", "Fristenwarnungen und Fallverfolgung eliminieren manuelles Nachfassen"],
+    },
+    one: {
+      employee: ["KI beantwortet HR-Fragen sofort: Richtlinien, Salden, Dokumentenanfragen", "Reduziert die Zeit für Intranet-Suche oder Warten auf HR-E-Mail-Antworten"],
+      hr: ["KI bearbeitet Routineanfragen zu Urlaub, Gehaltsabrechnungen und Richtlinien ohne HR-Eingriff", "Befreit das HR-Team von repetitiven Anfragen für wertvollere Arbeit"],
+    },
+    projects: {
+      hr: ["Projektkosten- und Rentabilitätsberichte automatisch aus Echtzeit-Zeitdaten erstellt"],
+      manager: ["Echtzeit-Projekt-Dashboard zeigt Zuordnung, Budgetverbrauch und Rentabilität"],
+    },
+    procurement: {
+      hr: ["Digitale PO-Workflows mit mehrstufiger Genehmigung eliminieren manuelles Nachfassen"],
+    },
+    lms: {
+      hr: ["Kurs-Builder mit Templates und KI-unterstützter Inhaltserstellung beschleunigt die Entwicklung"],
+    },
+    headcount_planning: {
+      hr: ["Szenariobasierte Personalplanung mit Echtzeit-Budgetauswirkung"],
+      manager: ["Genehmigter vs. tatsächlicher Personalstand auf einen Blick sichtbar"],
+    },
+    silae: {
+      hr: ["Direkte Lohndatensynchronisation mit SILAE eliminiert manuellen Datenaustausch"],
+    },
+  },
 };
 
 export function getSavingsDescriptions(lang: string): Record<string, Partial<Record<Stakeholder, string[]>>> {
