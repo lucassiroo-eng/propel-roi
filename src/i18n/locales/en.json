@@ -515,5 +515,6 @@
   "login.description": "Enter your credentials to continue",
   "login.enter": "Enter",
   "login.invalid_user": "Invalid user",
-  "login.hint": "First time? Fill in all fields. Already registered? Just email and password."
+  "login.hint": "First time? Fill in all fields. Already registered? Just email and password.",
+  "login.wrong_password": "Wrong password. Try again."
 }

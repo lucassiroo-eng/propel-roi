@@ -515,5 +515,6 @@
   "login.description": "Entrez vos identifiants pour continuer",
   "login.enter": "Entrer",
   "login.invalid_user": "Utilisateur non valide",
-  "login.hint": "Premiere fois ? Remplissez tous les champs. Deja inscrit ? Email et mot de passe."
+  "login.hint": "Premiere fois ? Remplissez tous les champs. Deja inscrit ? Email et mot de passe.",
+  "login.wrong_password": "Mot de passe incorrect. Reessayez."
 }

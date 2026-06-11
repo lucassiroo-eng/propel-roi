@@ -515,5 +515,6 @@
   "login.description": "Inserisci le tue credenziali per continuare",
   "login.enter": "Entra",
   "login.invalid_user": "Utente non valido",
-  "login.hint": "Prima volta? Compila tutti i campi. Gia registrato? Solo email e password."
+  "login.hint": "Prima volta? Compila tutti i campi. Gia registrato? Solo email e password.",
+  "login.wrong_password": "Password errata. Riprova."
 }

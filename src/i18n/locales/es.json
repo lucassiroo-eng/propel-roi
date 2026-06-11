@@ -515,5 +515,6 @@
   "login.description": "Introduce tus credenciales para continuar",
   "login.enter": "Entrar",
   "login.invalid_user": "Usuario no valido",
-  "login.hint": "Primera vez? Rellena todos los campos. Ya registrado? Solo email y contrasena."
+  "login.hint": "Primera vez? Rellena todos los campos. Ya registrado? Solo email y contrasena.",
+  "login.wrong_password": "Contrasena incorrecta. Intenta de nuevo."
 }

@@ -515,5 +515,6 @@
   "login.description": "Geben Sie Ihre Zugangsdaten ein",
   "login.enter": "Eintreten",
   "login.invalid_user": "Ungultiger Benutzer",
-  "login.hint": "Erstes Mal? Alle Felder ausfullen. Bereits registriert? Nur E-Mail und Passwort."
+  "login.hint": "Erstes Mal? Alle Felder ausfullen. Bereits registriert? Nur E-Mail und Passwort.",
+  "login.wrong_password": "Falsches Passwort. Versuchen Sie es erneut."
 }

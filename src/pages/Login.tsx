@@ -36,16 +36,22 @@ export default function Login() {
       return;
     }
 
-    // Sign in failed — try sign up if name is provided
-    if (fullName.trim()) {
-      const { error: signUpErr } = await signUp(trimmed, password, fullName.trim());
-      if (signUpErr) {
+    // Sign in failed
+    if (!fullName.trim()) {
+      // No name → either wrong password or unregistered
+      setError(t("login.wrong_password"));
+      setLoading(false);
+      return;
+    }
+
+    // Has name → try sign up
+    const { error: signUpErr } = await signUp(trimmed, password, fullName.trim());
+    if (signUpErr) {
+      if (signUpErr.message.includes("already registered")) {
+        setError(t("login.wrong_password"));
+      } else {
         setError(t("login.invalid_user"));
       }
-      // signUp with auto-confirm will log the user in automatically
-    } else {
-      // No name → existing user with wrong password, or new user without name
-      setError(t("login.invalid_user"));
     }
     setLoading(false);
   };
