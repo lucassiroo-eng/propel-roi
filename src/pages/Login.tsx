@@ -59,14 +59,22 @@ export default function Login() {
     if (!trimmed.endsWith("@factorial.co")) { setError(t("login.invalid_user")); return; }
     if (newPassword.length < 6) { setError(t("login.password_min")); return; }
     setLoading(true);
-    const { error: err } = await supabase.functions.invoke("reset-password", {
-      body: { email: trimmed, new_password: newPassword },
-    });
+    try {
+      const { data, error: fnErr } = await supabase.functions.invoke("reset-password", {
+        body: { email: trimmed, new_password: newPassword },
+      });
+      if (fnErr || data?.error) {
+        setError(t("login.reset_failed"));
+      } else {
+        toast.success(t("login.password_changed"));
+        setNewPassword("");
+        setPassword(newPassword);
+        setMode("login");
+      }
+    } catch {
+      setError(t("login.reset_failed"));
+    }
     setLoading(false);
-    if (err) { setError(t("login.reset_failed")); return; }
-    toast.success(t("login.password_changed"));
-    setNewPassword("");
-    setMode("login");
   }
 
   return (
