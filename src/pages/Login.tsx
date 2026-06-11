@@ -29,28 +29,23 @@ export default function Login() {
     }
     setLoading(true);
 
-    // Try sign in first
-    const { error: signInErr } = await signIn(trimmed, password);
-    if (!signInErr) {
-      setLoading(false);
-      return;
-    }
-
-    // Sign in failed
-    if (!fullName.trim()) {
-      // No name → either wrong password or unregistered
-      setError(t("login.wrong_password"));
-      setLoading(false);
-      return;
-    }
-
-    // Has name → try sign up
-    const { error: signUpErr } = await signUp(trimmed, password, fullName.trim());
-    if (signUpErr) {
-      if (signUpErr.message.includes("already registered")) {
+    if (fullName.trim()) {
+      // Has name → sign up (new user)
+      const { error: signUpErr } = await signUp(trimmed, password, fullName.trim());
+      if (signUpErr) {
+        if (signUpErr.message.includes("already registered")) {
+          // Already exists → try sign in with same password
+          const { error: signInErr } = await signIn(trimmed, password);
+          if (signInErr) setError(t("login.wrong_password"));
+        } else {
+          setError(t("login.invalid_user"));
+        }
+      }
+    } else {
+      // No name → sign in (existing user)
+      const { error: signInErr } = await signIn(trimmed, password);
+      if (signInErr) {
         setError(t("login.wrong_password"));
-      } else {
-        setError(t("login.invalid_user"));
       }
     }
     setLoading(false);
