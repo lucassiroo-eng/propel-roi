@@ -443,7 +443,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 
 .mhd{position:absolute;top:48px;left:0;right:0;min-height:72px;display:flex;align-items:center;justify-content:space-between;padding:8px ${C.pad};border-bottom:1px solid ${C.border}!important}
 .mhd-name{font-size:24px;font-weight:800;letter-spacing:-.025em;white-space:nowrap}
-.mhd-cat{font-size:12px;color:${C.lgray};font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:600px}
+.mhd-cat{font-size:12px;color:${C.lgray};font-weight:500;margin-top:2px}
 .mhd-r{text-align:right;flex-shrink:0;margin-left:24px}
 .mhd-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${C.lgray};margin-bottom:1px;white-space:nowrap}
 .mhd-val{font-size:32px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
@@ -596,7 +596,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     </div>
   </div>
   <div class="htot"><span class="htot-lbl">${t.total_annual}</span><span class="htot-val">${fmtEur(detail.total_annual)}</span></div>
-  <div style="position:absolute;bottom:56px;right:80px;font-size:10px;color:#AEAEB8">${slideNum} / ${totalSlides}</div>
+  <div style="position:absolute;bottom:54px;right:80px;font-size:10px;color:#AEAEB8;white-space:nowrap">${slideNum} / ${totalSlides}</div>
 </div>`;
   }
 
@@ -630,7 +630,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     <tbody>${rowsHtml}</tbody>
   </table>
   <div class="htot"><span class="htot-lbl">${t.total_annual}</span><span class="htot-val">${fmtEur(detail.total_annual)}</span></div>
-  <div style="position:absolute;bottom:56px;right:80px;font-size:10px;color:#AEAEB8">${slideNum} / ${totalSlides}</div>
+  <div style="position:absolute;bottom:54px;right:80px;font-size:10px;color:#AEAEB8;white-space:nowrap">${slideNum} / ${totalSlides}</div>
 </div>`;
 }
 
