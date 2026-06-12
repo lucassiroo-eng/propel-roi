@@ -475,7 +475,7 @@ export default function CoCreation() {
 
             {/* Language selector */}
             <div className="flex items-center justify-center gap-2 mb-8">
-              {([["en", "\u{1F1EC}\u{1F1E7}", "English"], ["es", "\u{1F1EA}\u{1F1F8}", "Español"], ["fr", "\u{1F1EB}\u{1F1F7}", "Français"]] as const).map(([lng, flag, label]) => (
+              {([["en", "\u{1F1EC}\u{1F1E7}", "English"], ["es", "\u{1F1EA}\u{1F1F8}", "Español"], ["fr", "\u{1F1EB}\u{1F1F7}", "Français"], ["it", "\u{1F1EE}\u{1F1F9}", "Italiano"], ["de", "\u{1F1E9}\u{1F1EA}", "Deutsch"]] as const).map(([lng, flag, label]) => (
                 <button
                   key={lng}
                   onClick={() => { i18n.changeLanguage(lng); localStorage.setItem("propel_locale", lng); }}
