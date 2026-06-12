@@ -10,14 +10,6 @@ const LANGUAGES = [
   { code: "de", flag: "\u{1F1E9}\u{1F1EA}", label: "Deutsch" },
 ];
 
-const WHY_SLIDES = [
-  { icon: Target, color: "#FF355E", bg: "#FFF1F3", title: "onboarding.s1_title", body: "onboarding.s1_body" },
-  { icon: Handshake, color: "#7C3AED", bg: "#F3F0FF", title: "onboarding.s2_title", body: "onboarding.s2_body" },
-  { icon: GitBranch, color: "#0EA5E9", bg: "#EFF6FF", title: "onboarding.s3_title", body: "onboarding.s3_body" },
-  { icon: Calculator, color: "#059669", bg: "#ECFDF5", title: "onboarding.s4_title", body: "onboarding.s4_body" },
-];
-
-
 interface Props {
   mode?: "full" | "slides";
   onComplete: () => void;
@@ -31,7 +23,7 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedLang, setSelectedLang] = useState(i18n.language?.slice(0, 2) || "en");
 
-  const slides = WHY_SLIDES;
+  const TOTAL_SLIDES = 5;
 
   function pickLang(code: string) {
     setSelectedLang(code);
@@ -44,27 +36,169 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
     onComplete();
   }
 
-  function handleLast() {
-    if (onStartTour) {
-      onComplete();
-      setTimeout(() => onStartTour(), 200);
-    } else {
-      finish();
-    }
+  function handleStartTour() {
+    if (mode === "full") localStorage.setItem("propel_onboarded", "true");
+    onComplete();
+    if (onStartTour) setTimeout(() => onStartTour(), 200);
   }
+
+  function handleStartDirect() {
+    if (mode === "full") localStorage.setItem("propel_onboarded", "true");
+    onComplete();
+  }
+
+  // Slide 1: The Problem + Solution
+  function Slide1() {
+    return (
+      <div>
+        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
+          <Target className="h-8 w-8 text-red-500" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground text-center mb-6">{t("onboarding.s1_title")}</h2>
+        <div className="space-y-4 text-left">
+          <div className="rounded-xl bg-red-50/60 border border-red-100 p-4">
+            <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-1">{t("onboarding.s1_problem_label")}</p>
+            <p className="text-[13px] text-foreground leading-relaxed">{t("onboarding.s1_problem")}</p>
+          </div>
+          <div className="rounded-xl bg-emerald-50/60 border border-emerald-100 p-4">
+            <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">{t("onboarding.s1_solution_label")}</p>
+            <p className="text-[13px] text-foreground leading-relaxed">{t("onboarding.s1_solution")}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Slide 2: Co-creation value
+  function Slide2() {
+    return (
+      <div>
+        <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-6">
+          <Handshake className="h-8 w-8 text-violet-600" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground text-center mb-4">{t("onboarding.s2_title")}</h2>
+        <p className="text-[13px] text-muted-foreground text-center mb-6 leading-relaxed">{t("onboarding.s2_intro")}</p>
+        <div className="space-y-2">
+          {["s2_point1", "s2_point2", "s2_point3"].map(k => (
+            <div key={k} className="flex items-start gap-3 rounded-lg bg-violet-50/40 p-3">
+              <span className="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </span>
+              <p className="text-[13px] text-foreground leading-relaxed">{t(`onboarding.${k}`)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Slide 3: Process stages
+  function Slide3() {
+    const stages = ["s3_stage1", "s3_stage2", "s3_stage3", "s3_stage4"];
+    const colors = ["#F59E0B", "#8B5CF6", "#0EA5E9", "#059669"];
+    const nums = ["1", "2", "3", "4"];
+    return (
+      <div>
+        <div className="w-16 h-16 rounded-2xl bg-sky-50 flex items-center justify-center mx-auto mb-6">
+          <GitBranch className="h-8 w-8 text-sky-500" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground text-center mb-6">{t("onboarding.s3_title")}</h2>
+        <div className="space-y-3">
+          {stages.map((key, i) => (
+            <div key={key} className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white font-bold text-sm" style={{ backgroundColor: colors[i] }}>
+                {nums[i]}
+              </div>
+              <div className="flex-1 rounded-lg border border-border/60 px-4 py-2.5">
+                <p className="text-[13px] font-semibold text-foreground">{t(`onboarding.${key}_title`)}</p>
+                <p className="text-[11px] text-muted-foreground">{t(`onboarding.${key}_sub`)}</p>
+              </div>
+              {i < stages.length - 1 && <div className="hidden" />}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Slide 4: ROI calculation logic
+  function Slide4() {
+    return (
+      <div>
+        <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-6">
+          <Calculator className="h-8 w-8 text-emerald-600" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground text-center mb-4">{t("onboarding.s4_title")}</h2>
+        <p className="text-[13px] text-muted-foreground text-center mb-6">{t("onboarding.s4_intro")}</p>
+        <div className="flex items-center justify-center gap-2 mb-6">
+          {[
+            { label: t("onboarding.s4_hours"), color: "#F59E0B", bg: "#FFFBEB" },
+            { label: "×" },
+            { label: t("onboarding.s4_people"), color: "#8B5CF6", bg: "#F3F0FF" },
+            { label: "×" },
+            { label: t("onboarding.s4_cost"), color: "#0EA5E9", bg: "#EFF6FF" },
+            { label: "×" },
+            { label: "12", color: "#059669", bg: "#ECFDF5" },
+          ].map((item, i) =>
+            item.color ? (
+              <div key={i} className="rounded-lg px-3 py-2 text-center" style={{ backgroundColor: item.bg }}>
+                <p className="text-[11px] font-bold" style={{ color: item.color }}>{item.label}</p>
+              </div>
+            ) : (
+              <span key={i} className="text-lg font-bold text-muted-foreground">{item.label}</span>
+            )
+          )}
+        </div>
+        <div className="rounded-xl bg-muted/40 border border-border/60 p-4 text-center">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">{t("onboarding.s4_example_label")}</p>
+          <p className="text-[13px] text-foreground leading-relaxed">{t("onboarding.s4_example")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Slide 5: Start
+  function Slide5() {
+    return (
+      <div className="text-center">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+          <Compass className="h-8 w-8 text-primary" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground mb-3">{t("onboarding.s5_title")}</h2>
+        <p className="text-[13px] text-muted-foreground leading-relaxed mb-8">{t("onboarding.s5_body")}</p>
+        <div className="space-y-3">
+          {onStartTour && (
+            <button
+              onClick={handleStartTour}
+              className="w-full h-12 rounded-xl border-2 border-foreground text-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground hover:text-background transition-colors"
+            >
+              <Compass className="h-4 w-4" /> {t("onboarding.guided_tour")}
+            </button>
+          )}
+          <button
+            onClick={handleStartDirect}
+            className="w-full h-12 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
+          >
+            {t("onboarding.go_create")} <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const slideComponents = [Slide1, Slide2, Slide3, Slide4, Slide5];
 
   return (
     <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
 
         {phase === "lang" && (
           <div className="p-8">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Globe className="h-6 w-6 text-primary" />
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+              <Globe className="h-7 w-7 text-primary" />
             </div>
             <h2 className="text-xl font-bold text-center text-foreground mb-1">{t("onboarding.lang_title")}</h2>
             <p className="text-sm text-muted-foreground text-center mb-6">{t("onboarding.lang_sub")}</p>
-
             <div className="grid grid-cols-1 gap-2">
               {LANGUAGES.map(l => (
                 <button
@@ -84,10 +218,9 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
                 </button>
               ))}
             </div>
-
             <button
               onClick={() => setPhase("slides")}
-              className="w-full mt-6 h-11 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
+              className="w-full mt-6 h-12 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
             >
               {t("onboarding.continue")} <ArrowRight className="h-4 w-4" />
             </button>
@@ -97,74 +230,25 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
         {phase === "slides" && (
           <div className="p-8">
             {(() => {
-              const isLastSlide = slideIdx === slides.length - 1;
-              const showTourPrompt = isLastSlide && onStartTour;
-
-              if (showTourPrompt) {
-                return (
-                  <div className="text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
-                      <Compass className="h-7 w-7 text-primary" />
-                    </div>
-                    <h2 className="text-lg font-bold text-foreground mb-3">{t("onboarding.tour_title")}</h2>
-                    <p className="text-[13px] text-muted-foreground leading-relaxed mb-8">{t("onboarding.tour_body")}</p>
-                  </div>
-                );
-              }
-
-              const slide = slides[slideIdx];
-              const Icon = slide.icon;
-              return (
-                <div className="text-center">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: slide.bg }}>
-                    <Icon className="h-7 w-7" style={{ color: slide.color }} />
-                  </div>
-                  <h2 className="text-lg font-bold text-foreground mb-3">{t(slide.title)}</h2>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed mb-8 text-left whitespace-pre-line">{t(slide.body)}</p>
-                </div>
-              );
+              const SlideComponent = slideComponents[slideIdx];
+              return <SlideComponent />;
             })()}
 
-            <div className="flex items-center justify-center gap-1.5 mb-6">
-              {slides.map((_, i) => (
-                <div key={i} className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-6 bg-foreground" : "w-1.5 bg-border"}`} />
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              {slideIdx < slides.length - 1 ? (
-                <>
-                  <button onClick={finish} className="flex-1 h-11 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-                    {t("onboarding.skip")}
-                  </button>
-                  <button
-                    onClick={() => setSlideIdx(i => i + 1)}
-                    className="flex-1 h-11 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
-                  >
-                    {t("onboarding.next")} <ChevronRight className="h-4 w-4" />
-                  </button>
-                </>
-              ) : onStartTour ? (
-                <>
-                  <button onClick={finish} className="flex-1 h-11 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-                    {t("onboarding.skip")}
-                  </button>
-                  <button
-                    onClick={handleLast}
-                    className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
-                  >
-                    {t("onboarding.start_tour")} <Compass className="h-4 w-4" />
-                  </button>
-                </>
-              ) : (
+            {slideIdx < TOTAL_SLIDES - 1 && (
+              <>
+                <div className="flex items-center justify-center gap-1.5 mt-8 mb-6">
+                  {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
+                    <div key={i} className={`h-1.5 rounded-full transition-all ${i === slideIdx ? "w-8 bg-foreground" : "w-2 bg-border"}`} />
+                  ))}
+                </div>
                 <button
-                  onClick={finish}
-                  className="w-full h-11 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
+                  onClick={() => setSlideIdx(i => i + 1)}
+                  className="w-full h-12 rounded-xl bg-foreground text-background font-semibold text-sm flex items-center justify-center gap-2 hover:bg-foreground/90 transition-colors"
                 >
-                  {t("onboarding.start")} <ArrowRight className="h-4 w-4" />
+                  {t("onboarding.next")} <ChevronRight className="h-4 w-4" />
                 </button>
-              )}
-            </div>
+              </>
+            )}
           </div>
         )}
       </div>
