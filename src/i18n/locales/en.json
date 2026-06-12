@@ -521,13 +521,13 @@
   "login.reset_failed": "Could not reset password",
   "login.password_changed": "Password changed. You can now log in.",
   "onboarding.s1_title": "Why build an ROI?",
-  "onboarding.s1_body": "Too many deals stall because we never reach the Economic Buyer — the CEO, CFO, or whoever signs the budget. We stay convincing a champion who can't approve the spend. A personalized ROI is the tool that unlocks the deal: it gives the decision-maker real numbers to justify the investment internally.",
+  "onboarding.s1_body": "Many deals stall because we never reach the Economic Buyer. A personalized ROI gives the decision-maker real numbers to justify the investment.",
   "onboarding.s2_title": "The power of co-creating it",
-  "onboarding.s2_body": "When you build the ROI live with the prospect during a discovery call, two things happen: they own the numbers (because they gave you the inputs), and you uncover pain points you'd never find in a slide deck. It stops being your pitch and becomes their business case.",
+  "onboarding.s2_body": "When you build the ROI live with the prospect, they own the numbers — and you uncover pain points no slide deck would reveal.",
   "onboarding.s3_title": "The co-creation process",
-  "onboarding.s3_body": "1. Import the deal from HubSpot — the AI fetches context automatically.\n2. Select the Factorial modules relevant to the prospect.\n3. During the call, configure hours per stakeholder based on what they tell you.\n4. Download a branded PDF deck ready to send to the Economic Buyer.",
+  "onboarding.s3_body": "Import deal → Select modules → Co-create during the call → Download branded PDF deck.",
   "onboarding.s4_title": "Understanding the calculation",
-  "onboarding.s4_body": "Each module's savings follow a simple formula:\n\nHours saved/month × Number of people × Hourly cost × 12 months = Annual savings\n\nFor example: if 5 HR admins save 6h/month each at €30/h, that module saves €10,800/year. The total ROI compares this savings against the Factorial investment.",
+  "onboarding.s4_body": "Hours saved/month × People × Hourly cost × 12 = Annual savings.\n\nExample: 5 HR admins × 6h/month × €30/h × 12 = €10,800/year.",
   "onboarding.h1_title": "Step 1: Import your deal",
   "onboarding.h1_body": "Paste the HubSpot deal link. The AI fetches context, contacts, and communication history automatically — emails, calls, and notes.",
   "onboarding.h2_title": "Step 2: Select modules & configure",
@@ -545,5 +545,8 @@
   "tour.sessions_body": "All your co-created ROIs live here. Click any to view, edit, or download the deck.",
   "tour.cta": "Click 'Co-create an ROI' to start",
   "settings.language_it": "Italiano",
-  "settings.language_de": "Deutsch"
+  "settings.language_de": "Deutsch",
+  "express.country_it": "Italy",
+  "express.country_de": "Germany",
+  "express.country_uk": "United Kingdom"
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Globe, ArrowRight, ChevronRight, Target, Handshake, GitBranch, Calculator, Link, Layers, Phone, FileDown, Compass } from "lucide-react";
+import { Globe, ArrowRight, ChevronRight, Target, Handshake, GitBranch, Calculator, Compass } from "lucide-react";
 
 const LANGUAGES = [
   { code: "es", flag: "\u{1F1EA}\u{1F1F8}", label: "Español" },
@@ -17,15 +17,9 @@ const WHY_SLIDES = [
   { icon: Calculator, color: "#059669", bg: "#ECFDF5", title: "onboarding.s4_title", body: "onboarding.s4_body" },
 ];
 
-const HOW_SLIDES = [
-  { icon: Link, color: "#F59E0B", bg: "#FFFBEB", title: "onboarding.h1_title", body: "onboarding.h1_body" },
-  { icon: Layers, color: "#8B5CF6", bg: "#F3F0FF", title: "onboarding.h2_title", body: "onboarding.h2_body" },
-  { icon: Phone, color: "#0EA5E9", bg: "#EFF6FF", title: "onboarding.h3_title", body: "onboarding.h3_body" },
-  { icon: FileDown, color: "#059669", bg: "#ECFDF5", title: "onboarding.h4_title", body: "onboarding.h4_body" },
-];
 
 interface Props {
-  mode?: "full" | "why" | "how";
+  mode?: "full" | "slides";
   onComplete: () => void;
   onStartTour?: () => void;
 }
@@ -37,7 +31,7 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
   const [slideIdx, setSlideIdx] = useState(0);
   const [selectedLang, setSelectedLang] = useState(i18n.language?.slice(0, 2) || "en");
 
-  const slides = mode === "how" ? HOW_SLIDES : [...WHY_SLIDES, ...HOW_SLIDES];
+  const slides = WHY_SLIDES;
 
   function pickLang(code: string) {
     setSelectedLang(code);

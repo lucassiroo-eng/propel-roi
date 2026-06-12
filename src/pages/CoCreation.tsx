@@ -129,7 +129,8 @@ export default function CoCreation() {
   const [companyName, setCompanyName] = useState("");
   const [dealName, setDealName] = useState("");
   const [hubspotDealId, setHubspotDealId] = useState<string | null>(null);
-  const [country, setCountry] = useState<"ES" | "FR">("ES");
+  const langToCountry: Record<string, string> = { es: "ES", fr: "FR", it: "IT", de: "DE", en: "UK" };
+  const [country, setCountry] = useState(langToCountry[i18n.language?.slice(0, 2)] ?? "ES");
 
   // Step 1: Modules
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -273,6 +274,9 @@ export default function CoCreation() {
         if (hs.company_name) setCompanyName(hs.company_name);
         const hsCountry = (hs.country ?? "").toLowerCase();
         if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
+        else if (hsCountry.includes("ital") || hsCountry === "it") setCountry("IT");
+        else if (hsCountry.includes("german") || hsCountry.includes("deutsch") || hsCountry === "de") setCountry("DE");
+        else if (hsCountry.includes("united kingdom") || hsCountry.includes("uk") || hsCountry.includes("england")) setCountry("UK");
         const hsSeats = parseInt(hs.employees, 10);
         if (hsSeats > 0) {
           setRoiConfig(prev => ({ ...prev, headcounts: { employee: Math.round(hsSeats * 0.8), hr: Math.max(1, Math.round(hsSeats * 0.05)), manager: Math.round(hsSeats * 0.15) } }));
@@ -643,11 +647,14 @@ export default function CoCreation() {
                 </div>
                 <div className="w-[160px] space-y-1.5">
                   <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{t("express.country_label")}</Label>
-                  <Select value={country} onValueChange={v => setCountry(v as "ES" | "FR")}>
+                  <Select value={country} onValueChange={v => setCountry(v)}>
                     <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ES">{"\u{1F1EA}\u{1F1F8}"} {t("express.country_es")}</SelectItem>
                       <SelectItem value="FR">{"\u{1F1EB}\u{1F1F7}"} {t("express.country_fr")}</SelectItem>
+                      <SelectItem value="IT">{"\u{1F1EE}\u{1F1F9}"} {t("express.country_it")}</SelectItem>
+                      <SelectItem value="DE">{"\u{1F1E9}\u{1F1EA}"} {t("express.country_de")}</SelectItem>
+                      <SelectItem value="UK">{"\u{1F1EC}\u{1F1E7}"} {t("express.country_uk")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

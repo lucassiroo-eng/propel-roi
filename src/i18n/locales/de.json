@@ -521,13 +521,13 @@
   "login.reset_failed": "Passwort konnte nicht geandert werden",
   "login.password_changed": "Passwort geandert. Sie konnen sich jetzt anmelden.",
   "onboarding.s1_title": "Warum einen ROI erstellen?",
-  "onboarding.s1_body": "Zu viele Deals bleiben stecken, weil wir den Economic Buyer nicht erreichen — den CEO, CFO oder die Person, die das Budget genehmigt. Wir uberzeugen einen Champion, der den Vertrag nicht unterschreiben kann. Ein personalisierter ROI ist das Werkzeug, das den Deal freischaltet: Er gibt dem Entscheider echte Zahlen, um die Investition intern zu rechtfertigen.",
+  "onboarding.s1_body": "Zu viele Deals bleiben stecken, weil wir den Economic Buyer nicht erreichen. Ein personalisierter ROI gibt dem Entscheider echte Zahlen zur Rechtfertigung.",
   "onboarding.s2_title": "Der Wert der Co-Kreation",
-  "onboarding.s2_body": "Wenn Sie den ROI live mit dem Prospect wahrend eines Discovery-Gesprachs erstellen, passieren zwei Dinge: Die Zahlen gehoren ihnen (weil sie die Inputs gegeben haben), und Sie entdecken Schmerzpunkte, die Sie in einem Deck nie finden wurden. Es ist nicht mehr Ihr Pitch — es wird ihr Business Case.",
+  "onboarding.s2_body": "Wenn Sie den ROI live mit dem Prospect erstellen, gehoren die Zahlen ihnen — und Sie entdecken Schmerzpunkte, die kein Deck offenbaren wurde.",
   "onboarding.s3_title": "Der Co-Kreations-Prozess",
-  "onboarding.s3_body": "1. Importieren Sie den Deal aus HubSpot — die KI holt den Kontext automatisch.\n2. Wahlen Sie die relevanten Factorial-Module fur den Prospect.\n3. Konfigurieren Sie wahrend des Gesprachs die Stunden pro Stakeholder.\n4. Laden Sie ein Factorial-gebrandetes PDF-Deck herunter, bereit zum Versand an den Economic Buyer.",
+  "onboarding.s3_body": "Deal importieren → Module wahlen → Wahrend des Gesprachs co-erstellen → PDF-Deck herunterladen.",
   "onboarding.s4_title": "Die Berechnung verstehen",
-  "onboarding.s4_body": "Die Einsparungen jedes Moduls folgen einer einfachen Formel:\n\nEingesparte Stunden/Monat x Anzahl Personen x Stundenkosten x 12 Monate = Jahrliche Einsparungen\n\nBeispiel: Wenn 5 HR-Admins je 6h/Monat bei 30€/h einsparen, spart dieses Modul 10.800€/Jahr. Der Gesamt-ROI vergleicht diese Einsparungen mit der Factorial-Investition.",
+  "onboarding.s4_body": "Eingesparte Stunden/Monat × Personen × Stundenkosten × 12 = Jahrliche Einsparungen.\n\nBeispiel: 5 HR-Admins × 6h/Monat × 30€/h × 12 = 10.800€/Jahr.",
   "onboarding.h1_title": "Schritt 1: Deal importieren",
   "onboarding.h1_body": "Fugen Sie den HubSpot-Deal-Link ein. Die KI holt Kontext, Kontakte und Kommunikationsverlauf automatisch ab — E-Mails, Anrufe und Notizen.",
   "onboarding.h2_title": "Schritt 2: Module wahlen und konfigurieren",
@@ -545,5 +545,8 @@
   "tour.sessions_body": "Alle Ihre co-erstellten ROIs sind hier. Klicken Sie, um anzusehen, zu bearbeiten oder das Deck herunterzuladen.",
   "tour.cta": "Klicken Sie auf 'ROI co-erstellen' um zu starten",
   "settings.language_it": "Italienisch",
-  "settings.language_de": "Deutsch"
+  "settings.language_de": "Deutsch",
+  "express.country_it": "Italien",
+  "express.country_de": "Deutschland",
+  "express.country_uk": "Vereinigtes Konigreich"
 }

@@ -521,13 +521,13 @@
   "login.reset_failed": "Impossible de changer le mot de passe",
   "login.password_changed": "Mot de passe change. Vous pouvez vous connecter.",
   "onboarding.s1_title": "Pourquoi faire un ROI ?",
-  "onboarding.s1_body": "Trop de deals stagnent parce qu'on n'arrive pas a impliquer l'Economic Buyer — le CEO, CFO, ou celui qui approuve le budget. On reste a convaincre un champion qui ne peut pas signer l'offre. Un ROI personnalise est l'outil qui debloque le deal : il donne au decideur des chiffres reels pour justifier l'investissement en interne.",
+  "onboarding.s1_body": "Trop de deals stagnent car on n'atteint pas l'Economic Buyer. Un ROI personnalise donne au decideur des chiffres reels pour justifier l'investissement.",
   "onboarding.s2_title": "La valeur de le co-creer",
-  "onboarding.s2_body": "Quand vous construisez le ROI en direct avec le prospect pendant un appel de decouverte, deux choses se passent : les chiffres leur appartiennent (car ils vous ont donne les donnees), et vous decouvrez des points de douleur invisibles dans un deck. Ca cesse d'etre votre pitch et devient leur business case.",
+  "onboarding.s2_body": "En construisant le ROI en direct avec le prospect, les chiffres leur appartiennent — et vous decouvrez des points de douleur qu'aucun deck ne revelerait.",
   "onboarding.s3_title": "Le processus de co-creation",
-  "onboarding.s3_body": "1. Importez le deal depuis HubSpot — l'IA recupere le contexte automatiquement.\n2. Selectionnez les modules Factorial pertinents pour le prospect.\n3. Pendant l'appel, configurez les heures par partie prenante selon ce qu'ils vous disent.\n4. Telechargez un deck PDF aux couleurs Factorial pret a envoyer a l'Economic Buyer.",
+  "onboarding.s3_body": "Importez le deal → Selectionnez les modules → Co-creez pendant l'appel → Telechargez le deck PDF.",
   "onboarding.s4_title": "Comprendre le calcul",
-  "onboarding.s4_body": "Les economies de chaque module suivent une formule simple :\n\nHeures economisees/mois x Nombre de personnes x Cout horaire x 12 mois = Economies annuelles\n\nPar exemple : si 5 admins RH economisent 6h/mois chacun a 30€/h, ce module economise 10 800€/an. Le ROI total compare ces economies avec l'investissement Factorial.",
+  "onboarding.s4_body": "Heures economisees/mois × Personnes × Cout horaire × 12 = Economies annuelles.\n\nExemple : 5 admins RH × 6h/mois × 30€/h × 12 = 10 800€/an.",
   "onboarding.h1_title": "Etape 1 : Importez votre deal",
   "onboarding.h1_body": "Collez le lien du deal HubSpot. L'IA recupere le contexte, les contacts et l'historique de communication automatiquement — emails, appels et notes.",
   "onboarding.h2_title": "Etape 2 : Selectionnez les modules et configurez",
@@ -545,5 +545,8 @@
   "tour.sessions_body": "Tous vos ROIs co-crees sont ici. Cliquez pour voir, editer ou telecharger le deck.",
   "tour.cta": "Cliquez sur 'Co-creez un ROI' pour commencer",
   "settings.language_it": "Italien",
-  "settings.language_de": "Allemand"
+  "settings.language_de": "Allemand",
+  "express.country_it": "Italie",
+  "express.country_de": "Allemagne",
+  "express.country_uk": "Royaume-Uni"
 }

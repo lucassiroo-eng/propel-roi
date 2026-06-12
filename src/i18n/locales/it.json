@@ -521,13 +521,13 @@
   "login.reset_failed": "Impossibile cambiare la password",
   "login.password_changed": "Password cambiata. Ora puoi accedere.",
   "onboarding.s1_title": "Perche fare un ROI?",
-  "onboarding.s1_body": "Troppi deal si bloccano perche non riusciamo a coinvolgere l'Economic Buyer — il CEO, CFO, o chi approva il budget. Restiamo a convincere un champion che non puo firmare l'offerta. Un ROI personalizzato e lo strumento che sblocca il deal: fornisce al decisore numeri reali per giustificare l'investimento internamente.",
+  "onboarding.s1_body": "Troppi deal si bloccano perche non raggiungiamo l'Economic Buyer. Un ROI personalizzato fornisce al decisore numeri reali per giustificare l'investimento.",
   "onboarding.s2_title": "Il valore di co-crearlo",
-  "onboarding.s2_body": "Quando costruisci il ROI in diretta con il prospect durante una chiamata di discovery, succedono due cose: i numeri sono loro (perche ti hanno dato gli input), e scopri pain point che non troveresti mai in un deck. Smette di essere il tuo pitch e diventa il loro business case.",
+  "onboarding.s2_body": "Costruendo il ROI in diretta con il prospect, i numeri sono loro — e scopri pain point che nessun deck rivelerebbe.",
   "onboarding.s3_title": "Il processo di co-creazione",
-  "onboarding.s3_body": "1. Importa il deal da HubSpot — l'IA recupera il contesto automaticamente.\n2. Seleziona i moduli Factorial rilevanti per il prospect.\n3. Durante la chiamata, configura le ore per stakeholder in base a quello che ti dicono.\n4. Scarica un deck PDF brandizzato Factorial pronto da inviare all'Economic Buyer.",
+  "onboarding.s3_body": "Importa deal → Seleziona moduli → Co-crea durante la chiamata → Scarica deck PDF.",
   "onboarding.s4_title": "Capire il calcolo",
-  "onboarding.s4_body": "Il risparmio di ogni modulo segue una formula semplice:\n\nOre risparmiate/mese x Numero di persone x Costo orario x 12 mesi = Risparmio annuale\n\nAd esempio: se 5 admin HR risparmiano 6h/mese ciascuno a 30€/h, quel modulo risparmia 10.800€/anno. Il ROI totale confronta questo risparmio con l'investimento in Factorial.",
+  "onboarding.s4_body": "Ore risparmiate/mese × Persone × Costo orario × 12 = Risparmio annuale.\n\nEsempio: 5 admin HR × 6h/mese × 30€/h × 12 = 10.800€/anno.",
   "onboarding.h1_title": "Passo 1: Importa il tuo deal",
   "onboarding.h1_body": "Incolla il link del deal HubSpot. L'IA recupera contesto, contatti e cronologia comunicazioni automaticamente — email, chiamate e note.",
   "onboarding.h2_title": "Passo 2: Seleziona moduli e configura",
@@ -545,5 +545,8 @@
   "tour.sessions_body": "Tutti i tuoi ROI co-creati sono qui. Clicca per vedere, modificare o scaricare il deck.",
   "tour.cta": "Clicca 'Co-crea un ROI' per iniziare",
   "settings.language_it": "Italiano",
-  "settings.language_de": "Tedesco"
+  "settings.language_de": "Tedesco",
+  "express.country_it": "Italia",
+  "express.country_de": "Germania",
+  "express.country_uk": "Regno Unito"
 }

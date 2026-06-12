@@ -296,7 +296,7 @@ export default function Home() {
     <div className="min-h-screen relative overflow-x-hidden bg-background">
       {showOnboarding && (
         <OnboardingModal
-          mode={localStorage.getItem("propel_onboarded") ? "why" : "full"}
+          mode={localStorage.getItem("propel_onboarded") ? "slides" : "full"}
           onComplete={() => setShowOnboarding(false)}
           onStartTour={() => { setShowOnboarding(false); setShowTutorial(true); }}
         />
