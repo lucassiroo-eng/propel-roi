@@ -313,7 +313,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `por cada €1 invertido<br>recuperas ${v}`,
       payback_sub: m => `la inversión se recupera<br>en ${m} meses`,
       savings_vs_sub: c => `frente a ${c}/año de inversión<br>en Factorial`,
-      what_is: "Qué es", module: "Módulo", description: "Descripción", h_month: "Ahorro mensual", savings_year: "Ahorro / año",
+      what_is: "Qué es", module: "Módulo", description: "Descripción", h_month: "h/mes ahorradas", savings_year: "Ahorro / año",
       total: "Total ahorros anuales estimados", tool_label: "Herram.",
       type_employee: "Tipo de empleado", hypothesis: "Hipótesis de ahorro", assumption: "Asunción y cálculo", estimated_saving: "Ahorro estimado",
       total_annual: "Total ahorro anual",
@@ -331,7 +331,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `for every €1 invested<br>you get back ${v}`,
       payback_sub: m => `investment recovered<br>in ${m} months`,
       savings_vs_sub: c => `vs. ${c}/year investment<br>in Factorial`,
-      what_is: "What it is", module: "Module", description: "Description", h_month: "Monthly savings", savings_year: "Savings / year",
+      what_is: "What it is", module: "Module", description: "Description", h_month: "h/month saved", savings_year: "Savings / year",
       total: "Total estimated annual savings", tool_label: "Tool",
       type_employee: "Employee type", hypothesis: "Savings hypothesis", assumption: "Assumption & calculation", estimated_saving: "Estimated savings",
       total_annual: "Total annual savings",
@@ -349,7 +349,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `pour chaque €1 investi<br>vous récupérez ${v}`,
       payback_sub: m => `investissement récupéré<br>en ${m} mois`,
       savings_vs_sub: c => `contre ${c}/an d'investissement<br>dans Factorial`,
-      what_is: "Description", module: "Module", description: "Description", h_month: "Économies mensuelles", savings_year: "Économies / an",
+      what_is: "Description", module: "Module", description: "Description", h_month: "h/mois économisées", savings_year: "Économies / an",
       total: "Total économies annuelles estimées", tool_label: "Outil",
       type_employee: "Type d'employé", hypothesis: "Hypothèse d'économie", assumption: "Hypothèse et calcul", estimated_saving: "Économie estimée",
       total_annual: "Total économies annuelles",
@@ -367,7 +367,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `per ogni €1 investito<br>recuperi ${v}`,
       payback_sub: m => `l'investimento si recupera<br>in ${m} mesi`,
       savings_vs_sub: c => `rispetto a ${c}/anno di investimento<br>in Factorial`,
-      what_is: "Descrizione", module: "Modulo", description: "Descrizione", h_month: "Risparmio mensile", savings_year: "Risparmio / anno",
+      what_is: "Descrizione", module: "Modulo", description: "Descrizione", h_month: "h/mese risparmiate", savings_year: "Risparmio / anno",
       total: "Totale risparmi annuali stimati", tool_label: "Strumento",
       type_employee: "Tipo di dipendente", hypothesis: "Ipotesi di risparmio", assumption: "Assunzione e calcolo", estimated_saving: "Risparmio stimato",
       total_annual: "Totale risparmio annuale",
@@ -385,7 +385,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `für jeden investierten €1<br>erhalten Sie ${v} zurück`,
       payback_sub: m => `die Investition amortisiert sich<br>in ${m} Monaten`,
       savings_vs_sub: c => `gegenüber ${c}/Jahr Investition<br>in Factorial`,
-      what_is: "Beschreibung", module: "Modul", description: "Beschreibung", h_month: "Monatliche Einsparung", savings_year: "Einsparung / Jahr",
+      what_is: "Beschreibung", module: "Modul", description: "Beschreibung", h_month: "h/Monat eingespart", savings_year: "Einsparung / Jahr",
       total: "Geschätzte jährliche Gesamteinsparungen", tool_label: "Tool",
       type_employee: "Mitarbeitertyp", hypothesis: "Einsparungshypothese", assumption: "Annahme und Berechnung", estimated_saving: "Geschätzte Einsparung",
       total_annual: "Jährliche Gesamteinsparung",
@@ -510,10 +510,9 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
   };
 
   const moduleRows = details.map(d => {
-    const monthlySavings = fmtEur(Math.round(d.total_annual / 12));
     const hCol = d.tool_override
       ? `<td style="font-size:10px;color:#6C6C7D">${escHtml(d.tool_override.tool_name || t.tool_label)}</td>`
-      : `<td>${monthlySavings}</td>`;
+      : `<td>${Math.round(d.total_hours * 10) / 10} h</td>`;
     const desc = getModuleDesc(d.id, lang) || d.category_desc || d.name;
     return `<tr><td><span class="mdot" style="background:${d.color}"></span><strong>${escHtml(d.name)}</strong></td><td style="color:#6C6C7D">${escHtml(desc)}</td>${hCol}<td>${fmtEur(d.total_annual)}</td></tr>`;
   }).join("\n");
@@ -546,7 +545,7 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
       <thead><tr><th style="width:20%">${t.module}</th><th style="width:40%">${t.what_is}</th><th style="width:16%">${t.h_month}</th><th style="width:24%;text-align:right">${t.savings_year}</th></tr></thead>
       <tbody>
         ${moduleRows}
-        <tr class="btot"><td colspan="2">${t.total}</td><td style="text-align:center;font-weight:800">${fmtEur(Math.round(data.total_annual_savings / 12))}</td><td>${fmtEur(data.total_annual_savings)}</td></tr>
+        <tr class="btot"><td colspan="2">${t.total}</td><td style="text-align:center;font-weight:800">${Math.round(totalH * 10) / 10} h</td><td>${fmtEur(data.total_annual_savings)}</td></tr>
       </tbody>
     </table>
   </div>
