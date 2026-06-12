@@ -35,9 +35,9 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     color: "#6B7280",
     image: "/modules/core.png",
     valueProps: [
-      { en: "Single source of truth for all employee data", es: "Fuente única de verdad para todos los datos de empleados", fr: "Source unique de vérité pour toutes les données employés", it: "Single source of truth for all employee data", de: "Single source of truth for all employee data" },
-      { en: "Reduce HR admin with employee self-service", es: "Reduce el trabajo administrativo de RRHH con autoservicio", fr: "Réduisez l'admin RH grâce au libre-service employé", it: "Reduce HR admin with employee self-service", de: "Reduce HR admin with employee self-service" },
-      { en: "Automatic notifications and approval workflows", es: "Notificaciones automáticas y flujos de aprobación", fr: "Notifications automatiques et workflows d'approbation", it: "Automatic notifications and approval workflows", de: "Automatic notifications and approval workflows" },
+      { en: "Single source of truth for all employee data", es: "Fuente única de verdad para todos los datos de empleados", fr: "Source unique de vérité pour toutes les données employés", it: "Fonte unica di verità per tutti i dati dei dipendenti", de: "Zentrale Datenquelle für alle Mitarbeiterdaten" },
+      { en: "Reduce HR admin with employee self-service", es: "Reduce el trabajo administrativo de RRHH con autoservicio", fr: "Réduisez l'admin RH grâce au libre-service employé", it: "Riduci il lavoro HR con il self-service dei dipendenti", de: "HR-Aufwand reduzieren durch Mitarbeiter-Self-Service" },
+      { en: "Automatic notifications and approval workflows", es: "Notificaciones automáticas y flujos de aprobación", fr: "Notifications automatiques et workflows d'approbation", it: "Notifiche automatiche e flussi di approvazione", de: "Automatische Benachrichtigungen und Genehmigungsworkflows" },
     ],
   },
   time_off: {
@@ -46,9 +46,9 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     color: "#6B7280",
     image: "/modules/time_off.png",
     valueProps: [
-      { en: "Employees request and track leave from their phone", es: "Los empleados solicitan y consultan ausencias desde el móvil", fr: "Les employés demandent et suivent leurs congés depuis leur téléphone", it: "Employees request and track leave from their phone", de: "Employees request and track leave from their phone" },
-      { en: "Automatic balance calculations and carryover rules", es: "Cálculo automático de saldos y reglas de arrastre", fr: "Calcul automatique des soldes et règles de report", it: "Automatic balance calculations and carryover rules", de: "Automatic balance calculations and carryover rules" },
-      { en: "Managers approve with one tap, no email chains", es: "Los managers aprueban con un clic, sin cadenas de email", fr: "Les managers approuvent en un clic, sans chaînes d'emails", it: "Managers approve with one tap, no email chains", de: "Managers approve with one tap, no email chains" },
+      { en: "Employees request and track leave from their phone", es: "Los empleados solicitan y consultan ausencias desde el móvil", fr: "Les employés demandent et suivent leurs congés depuis leur téléphone", it: "I dipendenti richiedono e monitorano le assenze dal telefono", de: "Mitarbeiter beantragen und verfolgen Abwesenheiten vom Handy" },
+      { en: "Automatic balance calculations and carryover rules", es: "Cálculo automático de saldos y reglas de arrastre", fr: "Calcul automatique des soldes et règles de report", it: "Calcolo automatico dei saldi e regole di riporto", de: "Automatische Saldenberechnung und Übertragungsregeln" },
+      { en: "Managers approve with one tap, no email chains", es: "Los managers aprueban con un clic, sin cadenas de email", fr: "Les managers approuvent en un clic, sans chaînes d'emails", it: "I manager approvano con un clic, senza catene email", de: "Manager genehmigen mit einem Klick, ohne E-Mail-Ketten" },
     ],
   },
   time_tracking: {
@@ -57,9 +57,9 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     color: "#6B7280",
     image: "/modules/time_tracking.png",
     valueProps: [
-      { en: "One-click clock in from any device", es: "Fichaje con un clic desde cualquier dispositivo", fr: "Pointage en un clic depuis n'importe quel appareil", it: "One-click clock in from any device", de: "One-click clock in from any device" },
-      { en: "Automatic overtime calculation and alerts", es: "Cálculo automático de horas extra y alertas", fr: "Calcul automatique des heures sup et alertes", it: "Automatic overtime calculation and alerts", de: "Automatic overtime calculation and alerts" },
-      { en: "Direct sync with payroll for zero errors", es: "Sincronización directa con nóminas sin errores", fr: "Synchronisation directe avec la paie sans erreurs", it: "Direct sync with payroll for zero errors", de: "Direct sync with payroll for zero errors" },
+      { en: "One-click clock in from any device", es: "Fichaje con un clic desde cualquier dispositivo", fr: "Pointage en un clic depuis n'importe quel appareil", it: "Timbratura con un clic da qualsiasi dispositivo", de: "Ein-Klick-Zeiterfassung von jedem Gerät" },
+      { en: "Automatic overtime calculation and alerts", es: "Cálculo automático de horas extra y alertas", fr: "Calcul automatique des heures sup et alertes", it: "Calcolo automatico straordinari e avvisi", de: "Automatische Überstundenberechnung und Warnungen" },
+      { en: "Direct sync with payroll for zero errors", es: "Sincronización directa con nóminas sin errores", fr: "Synchronisation directe avec la paie sans erreurs", it: "Sincronizzazione diretta con paghe, zero errori", de: "Direkte Synchronisation mit der Lohnabrechnung, null Fehler" },
     ],
   },
   time_planning: {
@@ -68,8 +68,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     color: "#2563EB",
     image: "/modules/time_planning.png",
     valueProps: [
-      { en: "Drag-and-drop shift planning", es: "Planificación de turnos con arrastrar y soltar", fr: "Planification des plannings par glisser-déposer", it: "Drag-and-drop shift planning", de: "Drag-and-drop shift planning" },
-      { en: "Automatic conflict detection and coverage alerts", es: "Detección automática de conflictos y alertas de cobertura", fr: "Détection automatique des conflits et alertes de couverture", it: "Automatic conflict detection and coverage alerts", de: "Automatic conflict detection and coverage alerts" },
+      { en: "Drag-and-drop shift planning", es: "Planificación de turnos con arrastrar y soltar", fr: "Planification des plannings par glisser-déposer", it: "Pianificazione turni drag-and-drop", de: "Drag-and-Drop-Schichtplanung" },
+      { en: "Automatic conflict detection and coverage alerts", es: "Detección automática de conflictos y alertas de cobertura", fr: "Détection automatique des conflits et alertes de couverture", it: "Rilevamento automatico conflitti e avvisi di copertura", de: "Automatische Konflikterkennung und Deckungswarnungen" },
     ],
   },
   payroll: {
@@ -78,8 +78,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     color: "#FB923C",
     image: "/modules/payroll.png",
     valueProps: [
-      { en: "One-click payroll data sync", es: "Sincronización de datos de nómina con un clic", fr: "Synchronisation des données de paie en un clic", it: "One-click payroll data sync", de: "One-click payroll data sync" },
-      { en: "Track and manage variable pay components", es: "Controla y gestiona los componentes variables de nómina", fr: "Suivez et gérez les composantes variables de la paie", it: "Track and manage variable pay components", de: "Track and manage variable pay components" },
+      { en: "One-click payroll data sync", es: "Sincronización de datos de nómina con un clic", fr: "Synchronisation des données de paie en un clic", it: "Sincronizzazione dati paghe con un clic", de: "Ein-Klick-Lohndatensynchronisation" },
+      { en: "Track and manage variable pay components", es: "Controla y gestiona los componentes variables de nómina", fr: "Suivez et gérez les composantes variables de la paie", it: "Gestisci i componenti variabili della retribuzione", de: "Variable Gehaltsbestandteile verwalten" },
     ],
   },
   recruitment: {
@@ -88,7 +88,7 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     color: "#E05C75",
     image: "/modules/recruitment.png",
     valueProps: [
-      { en: "Post to multiple job boards in one click", es: "Publica en múltiples portales de empleo con un clic", fr: "Publiez sur plusieurs job boards en un clic", it: "Post to multiple job boards in one click", de: "Post to multiple job boards in one click" },
+      { en: "Post to multiple job boards in one click", es: "Publica en múltiples portales de empleo con un clic", fr: "Publiez sur plusieurs job boards en un clic", it: "Pubblica su più portali con un clic", de: "Mit einem Klick auf mehreren Jobbörsen veröffentlichen" },
       { en: "Collaborative hiring with structured scorecards", es: "Contratación colaborativa con scorecards estructurados", fr: "Recrutement collaboratif avec des grilles d'évaluation", it: "Collaborative hiring with structured scorecards", de: "Collaborative hiring with structured scorecards" },
     ],
   },
@@ -347,9 +347,9 @@ export const DISCOVERY_QUESTIONS: Record<
   Partial<Record<Stakeholder, DiscoveryQuestion[]>>
 > = {
   core: {
-    employee: [{ en: "How many minutes per month do you spend on HR admin (updating personal data, requesting documents, checking policies)?", es: "¿Cuántos minutos al mes dedicáis a gestiones de RRHH (actualizar datos, pedir documentos, consultar políticas)?", fr: "Combien de minutes par mois passez-vous sur l'admin RH (mise à jour de données, demandes de documents, consultation des politiques) ?", it: "How many minutes per month do you spend on HR admin (updating personal data, requesting documents, checking policies)?", de: "How many minutes per month do you spend on HR admin (updating personal data, requesting documents, checking policies)?" }],
-    hr: [{ en: "How many hours does your HR team spend per new hire (onboarding admin, profile setup, documentation, access setup)?", es: "¿Cuántas horas dedica el equipo de RRHH a cada nueva incorporación (alta, configuración del perfil, documentación, accesos)?", fr: "Combien d'heures votre équipe RH consacre-t-elle à chaque nouvelle recrue (onboarding admin, création du profil, documentation, accès) ?", it: "How many hours does your HR team spend per new hire (onboarding admin, profile setup, documentation, access setup)?", de: "How many hours does your HR team spend per new hire (onboarding admin, profile setup, documentation, access setup)?" }],
-    manager: [{ en: "How much time per month do you lose looking for team info (contracts, org chart, headcount)?", es: "¿Cuánto tiempo al mes perdéis buscando info de vuestro equipo (contratos, organigrama, plantilla)?", fr: "Combien de temps par mois perdez-vous à chercher les infos de votre équipe (contrats, organigramme, effectifs) ?", it: "How much time per month do you lose looking for team info (contracts, org chart, headcount)?", de: "How much time per month do you lose looking for team info (contracts, org chart, headcount)?" }],
+    employee: [{ en: "How many minutes per month do you spend on HR admin (updating personal data, requesting documents, checking policies)?", es: "¿Cuántos minutos al mes dedicáis a gestiones de RRHH (actualizar datos, pedir documentos, consultar políticas)?", fr: "Combien de minutes par mois passez-vous sur l'admin RH (mise à jour de données, demandes de documents, consultation des politiques) ?", it: "Quanti minuti al mese dedicate all'amministrazione HR (aggiornamento dati, richiesta documenti, verifica policy)?", de: "Wie viele Minuten pro Monat verbringen Sie mit HR-Verwaltung (Datenaktualisierung, Dokumentenanfragen, Richtlinienprüfung)?" }],
+    hr: [{ en: "How many hours does your HR team spend per new hire (onboarding admin, profile setup, documentation, access setup)?", es: "¿Cuántas horas dedica el equipo de RRHH a cada nueva incorporación (alta, configuración del perfil, documentación, accesos)?", fr: "Combien d'heures votre équipe RH consacre-t-elle à chaque nouvelle recrue (onboarding admin, création du profil, documentation, accès) ?", it: "Quante ore dedica il team HR per ogni nuova assunzione (onboarding, profilo, documentazione, accessi)?", de: "Wie viele Stunden verbringt Ihr HR-Team pro Neueinstellung (Onboarding, Profilerstellung, Dokumentation, Zugänge)?" }],
+    manager: [{ en: "How much time per month do you lose looking for team info (contracts, org chart, headcount)?", es: "¿Cuánto tiempo al mes perdéis buscando info de vuestro equipo (contratos, organigrama, plantilla)?", fr: "Combien de temps par mois perdez-vous à chercher les infos de votre équipe (contrats, organigramme, effectifs) ?", it: "Quanto tempo al mese perdete a cercare informazioni del team (contratti, organigramma, organico)?", de: "Wie viel Zeit pro Monat verlieren Sie bei der Suche nach Team-Infos (Verträge, Organigramm, Personalstand)?" }],
   },
   time_off: {
     employee: [{ en: "How many minutes does it take you to request a day off and check your balance?", es: "¿Cuántos minutos tardáis en solicitar un día libre y consultar vuestro saldo?", fr: "Combien de minutes vous faut-il pour poser un congé et consulter votre solde ?", it: "How many minutes does it take you to request a day off and check your balance?", de: "How many minutes does it take you to request a day off and check your balance?" }],
