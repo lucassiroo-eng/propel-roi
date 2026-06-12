@@ -426,7 +426,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .kpis{display:flex;margin:0 ${C.pad};padding:14px 0 16px;border-bottom:1px solid ${C.border}!important}
 .kpi{flex:1}.kpi+.kpi{border-left:1px solid ${C.border}!important;padding-left:36px;margin-left:36px}
 .kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:${C.lgray};margin-bottom:6px}
-.kpi-val{font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.kpi-val{font-size:48px;font-weight:800;letter-spacing:-.04em;line-height:1}
 .kpi-sub{font-size:11px;color:${C.gray};margin-top:5px;line-height:1.4}
 
 .btbl{width:100%;border-collapse:collapse}
@@ -438,7 +438,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .btbl tbody td:last-child{text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .btbl tbody tr:last-child td{border-bottom:none!important}
 .btbl .btot td{font-weight:800;font-size:13px;border-top:2px solid ${C.border}!important;border-bottom:none!important;padding:9px 12px;background:${C.bg}}
-.btbl .btot td:last-child{font-size:15px;color:${C.coral}}
+.btbl .btot td:last-child{font-size:17px;color:${C.coral}}
 .mdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:middle}
 
 .mhd{position:absolute;top:48px;left:0;right:0;min-height:72px;display:flex;align-items:center;justify-content:space-between;padding:8px ${C.pad};border-bottom:1px solid ${C.border}!important}
@@ -446,7 +446,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .mhd-cat{font-size:12px;color:${C.lgray};font-weight:500;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:600px}
 .mhd-r{text-align:right;flex-shrink:0;margin-left:24px}
 .mhd-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${C.lgray};margin-bottom:1px;white-space:nowrap}
-.mhd-val{font-size:28px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
+.mhd-val{font-size:32px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
 
 .htbl{position:absolute;top:120px;left:${C.pad};right:${C.pad};bottom:48px;width:calc(100% - 160px);border-collapse:collapse;table-layout:fixed}
 .htbl thead th{padding:7px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:${C.dark};text-align:left;white-space:nowrap;height:32px}
@@ -464,10 +464,10 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .calc-block .key{color:${C.gray};font-weight:500}
 .calc-res{font-size:13px;font-weight:600;color:${C.dark};margin:2px 0;display:block}
 .sav-mon{font-size:12px;color:${C.gray};font-variant-numeric:tabular-nums;margin-bottom:2px}
-.sav-ann{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.sav-ann{font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .htot{position:absolute;bottom:0;left:0;right:0;height:48px;background:${C.dark};display:flex;align-items:center;justify-content:space-between;padding:0 ${C.pad}}
 .htot-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4)}
-.htot-val{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.htot-val{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 `;
 
 const ISO_SVG = `<svg style="display:none"><symbol id="iso" viewBox="0 0 714 714" fill="none"><path d="M581.784 634.362C520.414 684.16 442.192 714 357 714C271.808 714 193.586 684.16 132.216 634.362C193.586 584.563 271.808 554.723 357 554.723C442.192 554.723 520.414 584.563 581.784 634.362Z" fill="#FF355E"/><path fill-rule="evenodd" clip-rule="evenodd" d="M130.258 548.192C86.681 496.565 60.415 429.85 60.415 357C60.415 193.201 193.201 60.415 357 60.415C520.799 60.415 653.585 193.201 653.585 357C653.585 429.85 627.319 496.565 583.742 548.192C598.735 557.56 613.105 567.827 626.773 578.918L632.744 583.763C683.513 522.1 714 443.11 714 357C714 159.834 554.166 0 357 0C159.834 0 0 159.834 0 357C0 443.11 30.487 522.099 81.256 583.763L87.227 578.918C100.895 567.827 115.265 557.56 130.258 548.192Z" fill="#FF355E"/><path d="M488.815 346.015C488.815 418.815 429.8 477.831 357 477.831C284.2 477.831 225.185 418.815 225.185 346.015C225.185 273.216 284.2 214.2 357 214.2C429.8 214.2 488.815 273.216 488.815 346.015Z" fill="#FF355E"/></symbol></svg>`;
