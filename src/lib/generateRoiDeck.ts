@@ -640,7 +640,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
 export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full"): string {
   const { uiLang, modLang } = resolveLangs(input.country);
   const t = getI18n(uiLang);
-  const details = buildDetails(input, data, uiLang, modLang).filter(d => d.total_annual > 0);
+  const details = buildDetails(input, data, uiLang, modLang).filter(d => d.total_annual > 0 && (d.tool_override || d.rows.length > 0));
   const totalSlides = mode === "summary" ? 2 : 2 + details.length;
 
   let slides = coverSlide(data, t, uiLang) + "\n\n" + summarySlide(data, details, t, uiLang, totalSlides);
