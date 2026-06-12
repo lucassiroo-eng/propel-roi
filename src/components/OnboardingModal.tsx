@@ -191,10 +191,10 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
 
   return (
     <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
+      <div className="bg-background rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
 
         {phase === "lang" && (
-          <div className="p-8">
+          <div className="p-10">
             <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
               <Globe className="h-7 w-7 text-primary" />
             </div>
@@ -229,7 +229,7 @@ export default function OnboardingModal({ mode = "full", onComplete, onStartTour
         )}
 
         {phase === "slides" && (
-          <div className="p-8">
+          <div className="p-10">
             {(() => {
               const SlideComponent = slideComponents[slideIdx];
               return <SlideComponent />;
