@@ -573,8 +573,8 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     <div class="mhd-r"><div class="mhd-lbl">${t.annual_savings}</div><div class="mhd-val" style="color:${color}">${fmtEur(detail.total_annual)}</div></div>
   </div>
   <div style="position:absolute;top:120px;left:80px;right:80px;bottom:48px;display:flex;flex-direction:column;justify-content:center;gap:40px">
-    <div style="display:flex;align-items:center;justify-content:center;gap:48px">
-      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #E9E9EC!important;background:#fff">
+    <div style="display:flex;align-items:stretch;justify-content:center;gap:48px">
+      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #E9E9EC!important;background:#fff;display:flex;flex-direction:column">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#AEAEB8;margin-bottom:12px">${t.replaces_before}</div>
         <div style="font-size:18px;font-weight:700;color:#25253D;margin-bottom:6px">${escHtml(toolName)}</div>
         <div style="font-size:14px;color:#6C6C7D;margin-bottom:16px">${t.replaces_current_cost}</div>
@@ -585,7 +585,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
         <div style="font-size:13px;color:#AEAEB8;margin-top:4px">${fmtEur(detail.total_annual)} ${yrLabel}</div>
       </div>
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 24h28M30 18l6 6-6 6" stroke="#FF355E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #FF355E!important;background:rgba(255,53,94,.04)">
+      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #FF355E!important;background:rgba(255,53,94,.04);display:flex;flex-direction:column;justify-content:center">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#FF355E;margin-bottom:12px">${t.replaces_after}</div>
         <div style="font-size:18px;font-weight:700;color:#25253D;margin-bottom:6px">${t.replaces_factorial} ${escHtml(detail.name)}</div>
         <div style="font-size:22px;font-weight:800;color:#FF355E;margin-top:20px">${t.replaces_included_plan}</div>
