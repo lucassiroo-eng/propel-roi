@@ -298,7 +298,7 @@ interface DeckI18n {
   type_employee: string; hypothesis: string; assumption: string; estimated_saving: string;
   total_annual: string;
   replaces_before: string; replaces_after: string; replaces_current_cost: string;
-  replaces_factorial: string; replaces_included: string; replaces_direct: string; replaces_extra: string;
+  replaces_factorial: string; replaces_included: string; replaces_included_plan: string; replaces_direct: string; replaces_extra: string;
   disclaimer: (emp: number, hr: number, mgr: number, onb: number) => string;
   ae_title: string;
   h_year_saved: string; h_month_saved: string; per: string; hourly_cost: string; year: string;
@@ -318,7 +318,7 @@ function getI18n(lang: string): DeckI18n {
       type_employee: "Tipo de empleado", hypothesis: "Hipótesis de ahorro", assumption: "Asunción y cálculo", estimated_saving: "Ahorro estimado",
       total_annual: "Total ahorro anual",
       replaces_before: "Antes", replaces_after: "Después", replaces_current_cost: "Coste actual",
-      replaces_factorial: "Factorial", replaces_included: "Incluido en el plan contratado",
+      replaces_factorial: "Factorial", replaces_included: "Incluido en el plan contratado", replaces_included_plan: "Incluido con tu plan",
       replaces_direct: "Ahorro directo", replaces_extra: "adicional",
       disclaimer: (e, h, m, o) => `Estimación basada en ${e} empleados · ${h} admin RRHH · ${m} managers · ${o} altas/año`,
       ae_title: "Account Executive · Factorial",
@@ -336,7 +336,7 @@ function getI18n(lang: string): DeckI18n {
       type_employee: "Employee type", hypothesis: "Savings hypothesis", assumption: "Assumption & calculation", estimated_saving: "Estimated savings",
       total_annual: "Total annual savings",
       replaces_before: "Before", replaces_after: "After", replaces_current_cost: "Current cost",
-      replaces_factorial: "Factorial", replaces_included: "Included in your plan",
+      replaces_factorial: "Factorial", replaces_included: "Included in your plan", replaces_included_plan: "Included with your plan",
       replaces_direct: "Direct savings", replaces_extra: "additional",
       disclaimer: (e, h, m, o) => `Estimate based on ${e} employees · ${h} HR admin · ${m} managers · ${o} hires/year`,
       ae_title: "Account Executive · Factorial",
@@ -354,7 +354,7 @@ function getI18n(lang: string): DeckI18n {
       type_employee: "Type d'employé", hypothesis: "Hypothèse d'économie", assumption: "Hypothèse et calcul", estimated_saving: "Économie estimée",
       total_annual: "Total économies annuelles",
       replaces_before: "Avant", replaces_after: "Après", replaces_current_cost: "Coût actuel",
-      replaces_factorial: "Factorial", replaces_included: "Inclus dans votre plan",
+      replaces_factorial: "Factorial", replaces_included: "Inclus dans votre plan", replaces_included_plan: "Inclus avec votre plan",
       replaces_direct: "Économie directe", replaces_extra: "supplémentaire",
       disclaimer: (e, h, m, o) => `Estimation basée sur ${e} employés · ${h} admin RH · ${m} managers · ${o} recrutements/an`,
       ae_title: "Account Executive · Factorial",
@@ -372,7 +372,7 @@ function getI18n(lang: string): DeckI18n {
       type_employee: "Tipo di dipendente", hypothesis: "Ipotesi di risparmio", assumption: "Assunzione e calcolo", estimated_saving: "Risparmio stimato",
       total_annual: "Totale risparmio annuale",
       replaces_before: "Prima", replaces_after: "Dopo", replaces_current_cost: "Costo attuale",
-      replaces_factorial: "Factorial", replaces_included: "Incluso nel piano sottoscritto",
+      replaces_factorial: "Factorial", replaces_included: "Incluso nel piano sottoscritto", replaces_included_plan: "Incluso con il tuo piano",
       replaces_direct: "Risparmio diretto", replaces_extra: "aggiuntivo",
       disclaimer: (e, h, m, o) => `Stima basata su ${e} dipendenti · ${h} admin HR · ${m} manager · ${o} assunzioni/anno`,
       ae_title: "Account Executive · Factorial",
@@ -390,7 +390,7 @@ function getI18n(lang: string): DeckI18n {
       type_employee: "Mitarbeitertyp", hypothesis: "Einsparungshypothese", assumption: "Annahme und Berechnung", estimated_saving: "Geschätzte Einsparung",
       total_annual: "Jährliche Gesamteinsparung",
       replaces_before: "Vorher", replaces_after: "Nachher", replaces_current_cost: "Aktuelle Kosten",
-      replaces_factorial: "Factorial", replaces_included: "Im gebuchten Plan enthalten",
+      replaces_factorial: "Factorial", replaces_included: "Im gebuchten Plan enthalten", replaces_included_plan: "In Ihrem Plan enthalten",
       replaces_direct: "Direkte Einsparung", replaces_extra: "zusätzlich",
       disclaimer: (e, h, m, o) => `Schätzung basierend auf ${e} Mitarbeitern · ${h} HR-Admins · ${m} Managern · ${o} Einstellungen/Jahr`,
       ae_title: "Account Executive · Factorial",
@@ -589,11 +589,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
       <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid #FF355E!important;background:rgba(255,53,94,.04)">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#FF355E;margin-bottom:12px">${t.replaces_after}</div>
         <div style="font-size:18px;font-weight:700;color:#25253D;margin-bottom:6px">${t.replaces_factorial} ${escHtml(detail.name)}</div>
-        <div style="font-size:14px;color:#6C6C7D;margin-bottom:16px">${t.replaces_included}</div>
-        <div style="display:flex;align-items:baseline;gap:8px">
-          <span style="font-size:32px;font-weight:800;color:#FF355E;letter-spacing:-.02em">€0</span>
-          <span style="font-size:14px;color:#AEAEB8">${t.replaces_extra}</span>
-        </div>
+        <div style="font-size:22px;font-weight:800;color:#FF355E;margin-top:20px">${t.replaces_included_plan}</div>
       </div>
     </div>
     <div style="text-align:center;max-width:640px;margin:0 auto">
