@@ -299,6 +299,7 @@ export default function Home() {
           mode={localStorage.getItem("propel_onboarded") ? "slides" : "full"}
           onComplete={() => setShowOnboarding(false)}
           onStartTour={() => { setShowOnboarding(false); setShowTutorial(true); }}
+          onCreateRoi={() => navigate("/co-creation")}
         />
       )}
       {/* Tutorial overlay */}
