@@ -9,6 +9,7 @@ import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 import { statusI18nKey } from "@/lib/i18nHelpers";
 import OnboardingModal from "@/components/OnboardingModal";
+import { AppHeader } from "@/components/AppHeader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -312,54 +313,9 @@ export default function Home() {
         />
       )}
 
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-5 pt-6 pb-2">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-primary">
-            <BarChart3 className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-foreground text-base">Propel ROI</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setShowOnboarding(true)}
-            className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            title={t("tutorial.help")}
-          >
-            <HelpCircle className="h-4 w-4" />
-          </button>
-          {user?.email === "lucas.siroo@factorial.co" && (
-            <button
-              onClick={() => navigate("/admin")}
-              className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <ShieldCheck className="h-4 w-4" />
-            </button>
-          )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                {LANG_FLAG[i18n.language?.substring(0, 2)] ?? "\u{1F310}"}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {[["en", "\u{1F1EC}\u{1F1E7} English"], ["es", "\u{1F1EA}\u{1F1F8} Español"], ["fr", "\u{1F1EB}\u{1F1F7} Français"], ["it", "\u{1F1EE}\u{1F1F9} Italiano"], ["de", "\u{1F1E9}\u{1F1EA} Deutsch"]].map(([lng, label]) => (
-                <DropdownMenuItem key={lng} onClick={() => { i18n.changeLanguage(lng); localStorage.setItem("propel_locale", lng); }}>
-                  {label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <button
-            onClick={signOut}
-            className="h-11 w-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </div>
-      </header>
+      <AppHeader />
 
-      <main className="relative z-10 px-5 pt-8 pb-24 max-w-lg mx-auto space-y-6">
+      <main className="relative z-10 px-6 pt-8 pb-16 max-w-4xl mx-auto space-y-6">
         {/* Hero */}
         <div className="text-center space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">

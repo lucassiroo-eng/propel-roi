@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BottomNav } from "@/components/BottomNav";
+import { AppHeader } from "@/components/AppHeader";
 import { AdminTableEditor } from "@/components/admin/AdminTableEditor";
 import { AuditHistory } from "@/components/admin/AuditHistory";
 import { Button } from "@/components/ui/button";
@@ -435,16 +435,11 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-background pb-16">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b px-4 py-3 flex items-center gap-2">
-        <ShieldCheck className="h-5 w-5 text-primary" />
-        <h1 className="font-semibold text-foreground">Admin</h1>
-      </header>
+      <AppHeader />
 
-      <main className="max-w-3xl mx-auto px-4 py-4 space-y-4">
+      <main className="max-w-4xl mx-auto px-6 py-6 space-y-4">
         <AdminAnalytics />
       </main>
-
-      <BottomNav />
     </div>
   );
 }

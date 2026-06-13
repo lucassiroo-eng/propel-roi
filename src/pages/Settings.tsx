@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
-import { BottomNav } from "@/components/BottomNav";
+import { AppHeader } from "@/components/AppHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -40,14 +40,10 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-16">
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b px-4 py-3">
-        <div className="max-w-lg mx-auto">
-          <h1 className="text-lg font-semibold text-foreground">{t("settings.title")}</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background">
+      <AppHeader />
 
-      <main className={`px-4 py-6 mx-auto space-y-6 ${isSuperAdmin ? "max-w-3xl" : "max-w-lg"}`}>
+      <main className="max-w-2xl mx-auto px-6 py-8 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t("settings.language")}</CardTitle>
@@ -88,10 +84,7 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {isSuperAdmin && <AdminAnalytics />}
       </main>
-
-      <BottomNav />
     </div>
   );
 }

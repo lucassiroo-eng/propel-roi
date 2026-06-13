@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { BottomNav } from "@/components/BottomNav";
+import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -100,9 +100,9 @@ export default function Help() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-16">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur border-b px-4 py-3 flex items-center gap-3">
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+      <header className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-3">
         {selectedDoc && (
           <Button variant="ghost" size="icon" onClick={() => { setSelectedSlug(null); setEditing(false); }}>
             <ChevronLeft className="h-5 w-5" />
@@ -195,8 +195,6 @@ export default function Help() {
           </div>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }
