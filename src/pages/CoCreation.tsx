@@ -72,6 +72,17 @@ export default function CoCreation() {
   ];
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { data: isAdmin } = useQuery({
+    queryKey: ["user_role_cocreation", user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      if (user.email === "lucas.siroo@factorial.co") return true;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).in("role", ["strategy_admin", "super_admin"]);
+      return (data?.length ?? 0) > 0;
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
   const savedSessionId = useRef<string | null>(null);
   const loadedSessionProspect = useRef<string | null>(null);
 
@@ -92,7 +103,7 @@ export default function CoCreation() {
           .eq("id", sid)
           .single();
         if (error || !sess || cancelled) return;
-        if (sess.pae_id !== user?.id) {
+        if (sess.pae_id !== user?.id && !isAdmin) {
           toast.error("Session not found");
           return;
         }
