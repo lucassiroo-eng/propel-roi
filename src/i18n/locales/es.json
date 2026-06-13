@@ -574,5 +574,11 @@
   "onboarding.s5_title": "Listo para empezar?",
   "onboarding.s5_body": "Puedes hacer una visita guiada por la herramienta o ir directamente a co-crear tu primer ROI.",
   "onboarding.guided_tour": "Visita guiada",
-  "onboarding.go_create": "Crear un ROI"
+  "onboarding.go_create": "Crear un ROI",
+  "feedback.title": "Reportar un problema",
+  "feedback.placeholder": "Describe el problema...",
+  "feedback.send": "Enviar",
+  "feedback.sent": "Gracias! Lo revisaremos.",
+  "feedback.attached": "Adjunto a este ROI",
+  "feedback.general": "Feedback general"
 }

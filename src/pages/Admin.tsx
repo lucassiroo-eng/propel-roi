@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigate } from "react-router-dom";
 import { Loader2, ShieldCheck, History, BarChart3, TrendingUp, FileText, Users, Percent, Globe, Building2, Package, GitBranch } from "lucide-react";
 import AdminAnalytics from "@/components/settings/AdminAnalytics";
+import AdminFeedback from "@/components/settings/AdminFeedback";
 import type { TableEditorConfig } from "@/hooks/useAdminTable";
 
 const TABLE_CONFIGS: Record<string, TableEditorConfig> = {
@@ -437,7 +438,8 @@ export default function Admin() {
     <div className="min-h-screen bg-background pb-16">
       <AppHeader />
 
-      <main className="max-w-4xl mx-auto px-6 py-6 space-y-4">
+      <main className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+        <AdminFeedback />
         <AdminAnalytics />
       </main>
     </div>

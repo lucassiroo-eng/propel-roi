@@ -38,6 +38,7 @@ import {
   type RoiSlideInput,
 } from "@/lib/generateRoiSlide";
 import { generateDeckPdf } from "@/lib/generateRoiDeck";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { DISCOVERY_QUESTIONS, MODULE_INFO, getLocalized, getQuestion } from "@/lib/discoveryQuestions";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 
@@ -1157,6 +1158,7 @@ export default function CoCreation() {
           </div>
         </main>
       )}
+      <FeedbackButton sessionId={savedSessionId.current} page="co-creation" step={step} />
     </div>
   );
 }

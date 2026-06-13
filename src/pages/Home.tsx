@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { statusI18nKey } from "@/lib/i18nHelpers";
 import OnboardingModal from "@/components/OnboardingModal";
 import { AppHeader } from "@/components/AppHeader";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -499,6 +500,7 @@ export default function Home() {
           )}
         </div>
       </main>
+      <FeedbackButton page="home" />
     </div>
   );
 }
