@@ -92,6 +92,10 @@ export default function CoCreation() {
           .eq("id", sid)
           .single();
         if (error || !sess || cancelled) return;
+        if (sess.pae_id !== user?.id) {
+          toast.error("Session not found");
+          return;
+        }
         savedSessionId.current = sess.id;
         loadedSessionProspect.current = sess.prospect_id;
         const prospect = (sess as any).prospects;

@@ -317,14 +317,20 @@ export default function Home() {
 
       <main className="relative z-10 px-6 pt-8 pb-16 max-w-4xl mx-auto space-y-6">
         {/* Hero */}
-        <div className="text-center space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            ROI Simulator
-          </p>
-          <h1 className="text-4xl font-extrabold leading-tight text-slate-800">
-            {t("home.greeting")}
-          </h1>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold leading-tight text-foreground">
+              {t("home.greeting")}{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(" ")[0]}` : ""}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">ROI Simulator</p>
+          </div>
+          <button
+            onClick={() => setShowOnboarding(true)}
+            className="h-9 w-9 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            title={t("tutorial.help")}
+          >
+            <HelpCircle className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Co-creation CTA — primary action */}
