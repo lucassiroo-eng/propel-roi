@@ -54,10 +54,6 @@ interface CompanyGroup {
   hasDocument: boolean;
 }
 
-/* ─── Guided tour: navigates to co-creation with demo data ─── */
-  );
-}
-
 /* ─── Home page ─── */
 export default function Home() {
   const { user, signOut } = useAuth();
