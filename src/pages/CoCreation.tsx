@@ -12,7 +12,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, ArrowRight, Check, Download, Save,
+  ArrowLeft, ArrowRight, BarChart3, Check, Download, Save,
   FileText, Loader2, Send, Users, Shield,
   Briefcase, X, ChevronRight, ChevronDown, Package,
   Search, Share2, Sparkles, MessageSquare, Phone,
@@ -436,30 +436,31 @@ export default function CoCreation() {
       `}</style>
 
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-xl border-b border-border/60">
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/60">
         <div className="h-[2px] bg-border/40">
           <div className="h-full bg-foreground transition-all duration-700 ease-[cubic-bezier(.16,1,.3,1)]" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
         </div>
-        <div className="px-4 py-2.5">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <button onClick={() => step === 0 ? navigate("/") : setStep(s => s - 1)} className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all">
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <div className="flex items-center gap-1">
-              {STEPS.map((label, i) => (
-                <div key={label} className="flex items-center">
-                  <div className="flex items-center gap-1.5 px-1">
-                    <div className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${i < step ? "bg-emerald-500 text-white" : i === step ? "bg-foreground text-background shadow-sm" : "bg-muted text-muted-foreground"}`}>
-                      {i < step ? <Check className="h-3 w-3" /> : i + 1}
-                    </div>
-                    <span className={`text-xs hidden sm:inline transition-colors ${i === step ? "text-foreground font-semibold" : "text-muted-foreground"}`}>{label}</span>
-                  </div>
-                  {i < STEPS.length - 1 && <div className={`w-4 h-px hidden sm:block transition-colors ${i < step ? "bg-emerald-400" : "bg-border"}`} />}
-                </div>
-              ))}
+        <div className="max-w-5xl mx-auto flex items-center h-12 px-6">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2 mr-6 hover:opacity-80 transition-opacity" title={t("nav.home")}>
+            <div className="w-6 h-6 rounded-md flex items-center justify-center bg-primary">
+              <BarChart3 className="h-3 w-3 text-primary-foreground" />
             </div>
-            <div className="w-9" />
+            <span className="font-bold text-foreground text-xs">Propel ROI</span>
+          </button>
+          <div className="flex-1 flex items-center justify-center gap-1">
+            {STEPS.map((label, i) => (
+              <div key={label} className="flex items-center">
+                <div className="flex items-center gap-1.5 px-1">
+                  <div className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${i < step ? "bg-emerald-500 text-white" : i === step ? "bg-foreground text-background shadow-sm" : "bg-muted text-muted-foreground"}`}>
+                    {i < step ? <Check className="h-3 w-3" /> : i + 1}
+                  </div>
+                  <span className={`text-xs hidden sm:inline transition-colors ${i === step ? "text-foreground font-semibold" : "text-muted-foreground"}`}>{label}</span>
+                </div>
+                {i < STEPS.length - 1 && <div className={`w-4 h-px hidden sm:block transition-colors ${i < step ? "bg-emerald-400" : "bg-border"}`} />}
+              </div>
+            ))}
           </div>
+          <div className="w-20" />
         </div>
       </header>
 
