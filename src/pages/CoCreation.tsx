@@ -138,6 +138,24 @@ export default function CoCreation() {
     return () => { cancelled = true; };
   }, [searchParams]);
 
+  // Demo mode: pre-fill with sample data for guided tour
+  useEffect(() => {
+    if (searchParams.get("demo") !== "true") return;
+    setCompanyName("Demo Company SL");
+    setSelectedModules(["core"]);
+    setRoiConfig(prev => ({
+      ...prev,
+      headcounts: { employee: 80, hr: 3, manager: 10 },
+      hourly_costs: { employee: 20, hr: 30, manager: 28 },
+      hours_overrides: { core: { employee: 0.3, hr: 6, manager: 1 } },
+      onboardings_per_year: 20,
+    }));
+    setAnnualCost(15000);
+    setStep(4);
+    searchParams.delete("demo");
+    setSearchParams(searchParams, { replace: true });
+  }, []);
+
   // Step 0: Import
   const [hubspotUrl, setHubspotUrl] = useState("");
   const [fetching, setFetching] = useState(false);

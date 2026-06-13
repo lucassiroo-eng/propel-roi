@@ -93,15 +93,15 @@ export function FeedbackButton({ sessionId, page = "", step }: Props) {
 
       <button
         onClick={() => setOpen(o => !o)}
-        className={`group h-9 rounded-full shadow-md flex items-center gap-0 transition-all duration-200 ${
+        className={`group h-9 rounded-full shadow-md flex items-center justify-center transition-all duration-200 ${
           open
-            ? "bg-foreground text-background px-3"
-            : "bg-background border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:shadow-lg w-9 hover:w-auto hover:px-3"
+            ? "bg-foreground text-background px-3 gap-1.5"
+            : "bg-background border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:shadow-lg w-9 hover:w-auto hover:px-3 hover:gap-1.5"
         }`}
       >
         <MessageCircleWarning className="h-4 w-4 flex-shrink-0" />
         <span className={`text-xs font-medium overflow-hidden transition-all duration-200 whitespace-nowrap ${
-          open ? "ml-1.5 max-w-[120px] opacity-100" : "max-w-0 opacity-0 group-hover:ml-1.5 group-hover:max-w-[120px] group-hover:opacity-100"
+          open ? "max-w-[120px] opacity-100" : "max-w-0 opacity-0 group-hover:max-w-[120px] group-hover:opacity-100"
         }`}>
           {t("feedback.title", "Report an issue")}
         </span>

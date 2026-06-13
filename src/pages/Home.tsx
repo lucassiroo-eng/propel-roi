@@ -54,134 +54,7 @@ interface CompanyGroup {
   hasDocument: boolean;
 }
 
-/* ─── Tutorial overlay (both highlights at once) ─── */
-function TutorialOverlay({
-  expressRef,
-  sessionsRef,
-  onClickCoCreate,
-  onClose,
-}: {
-  expressRef: React.RefObject<HTMLElement | null>;
-  sessionsRef: React.RefObject<HTMLElement | null>;
-  onClickCoCreate: () => void;
-  onClose: () => void;
-}) {
-  const [rects, setRects] = useState<{ express: DOMRect | null; sessions: DOMRect | null }>({ express: null, sessions: null });
-
-  useEffect(() => {
-    const update = () => {
-      setRects({
-        express: expressRef.current?.getBoundingClientRect() ?? null,
-        sessions: sessionsRef.current?.getBoundingClientRect() ?? null,
-      });
-    };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [expressRef, sessionsRef]);
-
-  if (!rects.express) return null;
-
-  const pad = 8;
-  const scrollY = window.scrollY;
-
-  const ex = {
-    top: rects.express.top - pad + scrollY,
-    left: rects.express.left - pad,
-    width: rects.express.width + pad * 2,
-    height: rects.express.height + pad * 2,
-  };
-
-  const seMaxH = 180;
-  const se = rects.sessions ? {
-    top: rects.sessions.top - pad + scrollY,
-    left: rects.sessions.left - pad,
-    width: rects.sessions.width + pad * 2,
-    height: Math.min(rects.sessions.height + pad * 2, seMaxH),
-  } : null;
-
-  const pageH = document.documentElement.scrollHeight;
-
-  const exCenterX = ex.left + ex.width / 2;
-  const seCenterX = se ? se.left + se.width / 2 : 0;
-
-  return (
-    <div className="absolute inset-0 z-50" style={{ height: pageH, pointerEvents: "auto" }}>
-      {/* Backdrop with two cutouts */}
-      <svg className="absolute inset-0 w-full" style={{ height: pageH }}>
-        <defs>
-          <mask id="tut-mask">
-            <rect width="100%" height="100%" fill="white" />
-            <rect x={ex.left} y={ex.top} width={ex.width} height={ex.height} rx="16" fill="black" />
-            {se && <rect x={se.left} y={se.top} width={se.width} height={se.height} rx="16" fill="black" />}
-          </mask>
-        </defs>
-        <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#tut-mask)" />
-      </svg>
-
-      {/* Express highlight ring — clickable */}
-      <button
-        onClick={onClickCoCreate}
-        className="absolute rounded-2xl ring-2 ring-primary animate-pulse cursor-pointer"
-        style={{ top: ex.top, left: ex.left, width: ex.width, height: ex.height }}
-      />
-
-      {/* Express tooltip (above the card) */}
-      <div
-        className="absolute"
-        style={{ top: ex.top - 16, left: Math.max(20, exCenterX - 160), width: Math.min(320, window.innerWidth - 40), transform: "translateY(-100%)", pointerEvents: "none" }}
-      >
-        <div style={{ pointerEvents: "auto" }}>
-          <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
-            <p className="text-sm font-semibold text-foreground">{t("tour.cocreate_title", "Co-create an ROI")}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{t("tour.cocreate_body", "Click here to start co-creating an ROI. Import a deal, select modules, and build the ROI live during a discovery call.")}</p>
-          </div>
-          <div className="mt-[-1px]" style={{ paddingLeft: Math.max(16, Math.min(exCenterX - Math.max(20, exCenterX - 160) - 8, Math.min(320, window.innerWidth - 40) - 24)) }}>
-            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white" />
-          </div>
-        </div>
-      </div>
-
-      {/* Sessions highlight ring */}
-      {se && (
-        <div
-          className="absolute rounded-2xl ring-2 ring-blue-400 animate-pulse"
-          style={{ top: se.top, left: se.left, width: se.width, height: se.height, pointerEvents: "none" }}
-        />
-      )}
-
-      {/* Sessions tooltip (below cutout, in dark zone) */}
-      {se && (
-        <div
-          className="absolute"
-          style={{ top: se.top + se.height + 14, left: Math.max(20, seCenterX - 160), width: Math.min(320, window.innerWidth - 40), pointerEvents: "none" }}
-        >
-          <div style={{ pointerEvents: "auto" }}>
-            <div className="mb-[-1px]" style={{ paddingLeft: Math.max(16, Math.min(seCenterX - Math.max(20, seCenterX - 160) - 8, Math.min(320, window.innerWidth - 40) - 24)) }}>
-              <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[8px] border-b-white" />
-            </div>
-            <div className="bg-white rounded-xl shadow-lg px-4 py-3 border border-border">
-              <p className="text-sm font-semibold text-foreground">{t("tour.sessions_title", "Your ROIs")}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t("tour.sessions_body", "All your co-created ROIs live here. Click any to view, edit, or download the deck.")}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bottom bar: skip + CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/80 to-transparent" style={{ pointerEvents: "auto" }}>
-        <div className="max-w-sm mx-auto flex flex-col items-center gap-3">
-          <p className="text-white text-sm font-medium text-center">{t("tour.cta", "Click 'Co-create an ROI' to start")}</p>
-          <button onClick={onClose} className="text-white/60 text-xs hover:text-white transition-colors">
-            Skip tutorial
-          </button>
-        </div>
-      </div>
-    </div>
+/* ─── Guided tour: navigates to co-creation with demo data ─── */
   );
 }
 
@@ -191,35 +64,8 @@ export default function Home() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
-  const [showTutorial, setShowTutorial] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("propel_onboarded"));
 
-  const expressRef = useRef<HTMLButtonElement | null>(null);
-  const sessionsRef = useRef<HTMLDivElement | null>(null);
-
-  const tutorialKey = `propel_tutorial_seen_${user?.id ?? "anon"}`;
-
-  const closeTutorial = useCallback(() => {
-    setShowTutorial(false);
-    localStorage.setItem(tutorialKey, "1");
-  }, [tutorialKey]);
-
-  const handleCoCreateClick = useCallback(() => {
-    if (showTutorial) {
-      localStorage.setItem(tutorialKey, "1");
-      setShowTutorial(false);
-    }
-    navigate("/co-creation");
-  }, [showTutorial, navigate, tutorialKey]);
-
-  useEffect(() => {
-    if (user && !localStorage.getItem(tutorialKey)) {
-      i18n.changeLanguage("en");
-      localStorage.setItem("propel_locale", "en");
-      const timer = setTimeout(() => setShowTutorial(true), 600);
-      return () => clearTimeout(timer);
-    }
-  }, [user, tutorialKey, i18n]);
 
   const { data: isAdmin } = useQuery({
     queryKey: ["user_role_home", user?.id],
@@ -300,17 +146,8 @@ export default function Home() {
         <OnboardingModal
           mode={localStorage.getItem("propel_onboarded") ? "slides" : "full"}
           onComplete={() => setShowOnboarding(false)}
-          onStartTour={() => { setShowOnboarding(false); setShowTutorial(true); }}
+          onStartTour={() => { setShowOnboarding(false); navigate("/co-creation?demo=true"); }}
           onCreateRoi={() => navigate("/co-creation")}
-        />
-      )}
-      {/* Tutorial overlay */}
-      {showTutorial && (
-        <TutorialOverlay
-          expressRef={expressRef}
-          sessionsRef={sessionsRef}
-          onClickCoCreate={handleCoCreateClick}
-          onClose={closeTutorial}
         />
       )}
 
@@ -336,7 +173,6 @@ export default function Home() {
 
         {/* Co-creation CTA — primary action */}
         <button
-          ref={expressRef}
           onClick={() => navigate("/co-creation")}
           className="w-full rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         >
@@ -353,7 +189,7 @@ export default function Home() {
         </button>
 
         {/* Companies list */}
-        <div ref={sessionsRef}>
+        <div>
           <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">{t("home.recent")}</h2>
 
           {isLoading ? (
