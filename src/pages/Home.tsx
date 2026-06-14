@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const FLAG: Record<string, string> = { ES: "\u{1F1EA}\u{1F1F8}", FR: "\u{1F1EB}\u{1F1F7}", IT: "\u{1F1EE}\u{1F1F9}", DE: "\u{1F1E9}\u{1F1EA}" };
+
+function emailToShortName(email: string): string {
+  const local = email.split("@")[0] ?? "";
+  const parts = local.split(".");
+  if (parts.length >= 2) return parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + " " + parts[1].charAt(0).toUpperCase() + ".";
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
 const LANG_FLAG: Record<string, string> = { en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}", it: "\u{1F1EE}\u{1F1F9}", de: "\u{1F1E9}\u{1F1EA}" };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -91,6 +98,19 @@ export default function Home() {
       return data;
     },
     enabled: !!user,
+  });
+
+  const { data: ownerEmailMap } = useQuery({
+    queryKey: ["owner_emails_home", isAdmin],
+    queryFn: async () => {
+      if (!isAdmin || !sessions?.length) return new Map<string, string>();
+      const paeIds = [...new Set((sessions as any[]).map((s: any) => s.pae_id).filter(Boolean))];
+      try {
+        const { data } = await supabase.rpc("get_user_emails", { _user_ids: paeIds });
+        return new Map<string, string>((data || []).map((r: any) => [r.user_id, r.email]));
+      } catch { return new Map<string, string>(); }
+    },
+    enabled: !!isAdmin && !!sessions?.length,
   });
 
   const companies = (() => {
@@ -203,79 +223,70 @@ export default function Home() {
                 const latest = c.sessions[0];
                 const isExpanded = expandedCompany === c.prospectId;
                 const hasHistory = c.sessions.length > 1;
+                const ownerEmail = isAdmin ? (ownerEmailMap?.get((latest as any).pae_id) ?? "") : "";
+                const ownerName = ownerEmail ? emailToShortName(ownerEmail) : "";
+                const savings = latest.total_annual_benefit_eur;
+                const roiPct = latest.roi_pct;
+                const payback = latest.payback_months;
 
                 return (
-                  <div key={c.prospectId} className="rounded-2xl bg-card border border-border overflow-hidden hover:shadow-sm transition-shadow">
+                  <div key={c.prospectId} className="rounded-xl bg-card border border-border overflow-hidden hover:border-foreground/20 hover:shadow-sm transition-all">
                     <button
                       onClick={() => navigate(`/co-creation?session=${latest.id}`)}
-                      className="w-full p-4 text-left hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                      className="w-full px-5 py-4 text-left hover:bg-muted/20 transition-colors focus-visible:outline-none"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">{FLAG[c.country] ?? "\u{1F30D}"}</span>
-                            <span className="font-semibold text-foreground truncate text-sm">
-                              {c.companyName}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            {c.seats && (
-                              <span className="text-[11px] text-muted-foreground">{t("home.seats", { count: c.seats })}</span>
-                            )}
-                            {c.sector && (
-                              <span className="text-[11px] text-muted-foreground truncate max-w-[140px]">{c.sector}</span>
-                            )}
-                          </div>
+                      {/* Top row: company + badges */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="text-lg leading-none">{FLAG[c.country] ?? "\u{1F30D}"}</span>
+                          <span className="font-bold text-foreground text-base truncate">{c.companyName}</span>
+                          {c.seats && <span className="text-xs text-muted-foreground shrink-0">{c.seats} seats</span>}
                         </div>
-                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
+                          {ownerName && (
+                            <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{ownerName}</span>
+                          )}
                           <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[latest.status] ?? "bg-gray-100 text-gray-500"}`}>
                             {t(statusI18nKey(latest.status))}
                           </span>
-                          {c.hasDocument && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-violet-500 bg-violet-50 px-1.5 py-0.5 rounded-full">
-                              <FileText className="h-2.5 w-2.5" />
-                              ROI
-                            </span>
-                          )}
                         </div>
                       </div>
 
-                      {(latest.roi_eur != null || latest.roi_pct != null) && (
-                        <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/60">
-                          {latest.total_annual_benefit_eur != null && (
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Ahorro</p>
-                              <p className="text-sm font-bold text-foreground tabular-nums">{fmtEur(latest.total_annual_benefit_eur)} €</p>
+                      {/* Metrics row */}
+                      {savings != null && savings > 0 && (
+                        <div className="flex items-end gap-6 mt-4 pt-3.5 border-t border-border/50">
+                          <div>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">Ahorro anual</p>
+                            <p className="text-xl font-extrabold text-foreground tabular-nums leading-none">{fmtEur(savings)} €</p>
+                          </div>
+                          {roiPct != null && roiPct > 0 && (
+                            <div>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">ROI</p>
+                              <p className="text-xl font-extrabold text-emerald-600 tabular-nums leading-none">+{roiPct}%</p>
                             </div>
                           )}
-                          {latest.roi_eur != null && (
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">ROI neto</p>
-                              <p className="text-sm font-bold text-foreground tabular-nums">{fmtEur(latest.roi_eur)} €</p>
+                          {payback != null && payback > 0 && (
+                            <div>
+                              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">Payback</p>
+                              <p className="text-xl font-extrabold text-foreground tabular-nums leading-none">{payback}m</p>
                             </div>
                           )}
-                          {latest.roi_pct != null && latest.roi_pct > 0 && (
-                            <div className="shrink-0">
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">ROI</p>
-                              <p className="text-sm font-bold text-emerald-600 tabular-nums">{latest.roi_pct}%</p>
-                            </div>
-                          )}
-                          {latest.payback_months != null && latest.payback_months > 0 && (
-                            <div className="shrink-0">
-                              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Payback</p>
-                              <p className="text-sm font-bold text-foreground tabular-nums">{latest.payback_months}m</p>
-                            </div>
-                          )}
+                          <div className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
+                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 ml-1" />
+                          </div>
                         </div>
                       )}
-
-                      <div className="flex items-center justify-between mt-2.5">
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
+                      {(savings == null || savings === 0) && (
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatDistanceToNow(new Date(latest.updated_at), { addSuffix: true, locale })}
+                          </div>
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
                         </div>
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
-                      </div>
+                      )}
                     </button>
 
                     {hasHistory && (
