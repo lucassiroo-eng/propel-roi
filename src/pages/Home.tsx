@@ -100,17 +100,21 @@ export default function Home() {
     enabled: !!user,
   });
 
+  const sessionPaeIds = isAdmin && sessions?.length
+    ? [...new Set((sessions as any[]).map((s: any) => s.pae_id).filter(Boolean))].sort().join(",")
+    : "";
+
   const { data: ownerEmailMap } = useQuery({
-    queryKey: ["owner_emails_home", isAdmin],
+    queryKey: ["owner_emails_home", sessionPaeIds],
     queryFn: async () => {
-      if (!isAdmin || !sessions?.length) return new Map<string, string>();
-      const paeIds = [...new Set((sessions as any[]).map((s: any) => s.pae_id).filter(Boolean))];
+      if (!sessionPaeIds) return new Map<string, string>();
+      const paeIds = sessionPaeIds.split(",");
       try {
         const { data } = await supabase.rpc("get_user_emails", { _user_ids: paeIds });
         return new Map<string, string>((data || []).map((r: any) => [r.user_id, r.email]));
       } catch { return new Map<string, string>(); }
     },
-    enabled: !!isAdmin && !!sessions?.length,
+    enabled: !!sessionPaeIds,
   });
 
   const companies = (() => {
