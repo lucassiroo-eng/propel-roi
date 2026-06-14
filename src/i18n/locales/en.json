@@ -580,5 +580,12 @@
   "feedback.send": "Send",
   "feedback.sent": "Thanks! We'll look into it.",
   "feedback.attached": "Attached to this ROI",
-  "feedback.general": "General feedback"
+  "feedback.general": "General feedback",
+  "tour.demo_label": "Guided tour",
+  "tour.demo_step0": "This is where you paste a HubSpot deal link. For the demo, click Continue.",
+  "tour.demo_step1": "Select the modules for your prospect. We pre-selected Core and Time Tracking.",
+  "tour.demo_step2": "Configure headcounts and hourly costs. These are pre-filled for the demo.",
+  "tour.demo_step3": "In a real call, you'd adjust hours per stakeholder here. Click through to see the result.",
+  "tour.demo_step4": "Here's your ROI! Download the PDF or adjust the Factorial pricing.",
+  "tour.demo_exit": "Exit tour"
 }

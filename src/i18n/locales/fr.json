@@ -580,5 +580,12 @@
   "feedback.send": "Envoyer",
   "feedback.sent": "Merci ! Nous allons examiner.",
   "feedback.attached": "Attache a ce ROI",
-  "feedback.general": "Feedback general"
+  "feedback.general": "Feedback general",
+  "tour.demo_label": "Visite guidee",
+  "tour.demo_step0": "C'est ici que vous collez le lien du deal HubSpot. Pour la demo, cliquez sur Continuer.",
+  "tour.demo_step1": "Selectionnez les modules. Nous avons pre-selectionne Core et Suivi du Temps.",
+  "tour.demo_step2": "Configurez les effectifs et couts horaires. Pre-remplis pour la demo.",
+  "tour.demo_step3": "En appel reel, vous ajusteriez les heures par partie prenante ici.",
+  "tour.demo_step4": "Voici votre ROI ! Telechargez le PDF ou ajustez le prix Factorial.",
+  "tour.demo_exit": "Quitter la visite"
 }

@@ -580,5 +580,12 @@
   "feedback.send": "Invia",
   "feedback.sent": "Grazie! Lo esamineremo.",
   "feedback.attached": "Allegato a questo ROI",
-  "feedback.general": "Feedback generale"
+  "feedback.general": "Feedback generale",
+  "tour.demo_label": "Tour guidato",
+  "tour.demo_step0": "Qui incolli il link del deal HubSpot. Per la demo, clicca Continua.",
+  "tour.demo_step1": "Seleziona i moduli. Abbiamo pre-selezionato Core e Time Tracking.",
+  "tour.demo_step2": "Configura organico e costi orari. Pre-compilati per la demo.",
+  "tour.demo_step3": "In una chiamata reale, regoleresti le ore per stakeholder qui.",
+  "tour.demo_step4": "Ecco il tuo ROI! Scarica il PDF o regola il prezzo Factorial.",
+  "tour.demo_exit": "Esci dal tour"
 }

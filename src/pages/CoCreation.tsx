@@ -139,19 +139,25 @@ export default function CoCreation() {
   }, [searchParams]);
 
   // Demo mode: pre-fill with sample data for guided tour
+  const [isDemo, setIsDemo] = useState(false);
   useEffect(() => {
     if (searchParams.get("demo") !== "true") return;
+    setIsDemo(true);
     setCompanyName("Demo Company SL");
-    setSelectedModules(["core"]);
+    setCountry("ES");
+    setSelectedModules(["core", "time_tracking"]);
     setRoiConfig(prev => ({
       ...prev,
       headcounts: { employee: 80, hr: 3, manager: 10 },
       hourly_costs: { employee: 20, hr: 30, manager: 28 },
-      hours_overrides: { core: { employee: 0.3, hr: 6, manager: 1 } },
+      hours_overrides: {
+        core: { employee: 0.3, hr: 6, manager: 1 },
+        time_tracking: { employee: 0.2, hr: 6, manager: 0.5 },
+      },
       onboardings_per_year: 20,
     }));
     setAnnualCost(15000);
-    setStep(4);
+    setStep(0);
     searchParams.delete("demo");
     setSearchParams(searchParams, { replace: true });
   }, []);
@@ -497,6 +503,22 @@ export default function CoCreation() {
           <div className="w-20" />
         </div>
       </header>
+
+      {isDemo && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-600 text-xs font-bold uppercase tracking-wider">{t("tour.demo_label", "Guided tour")}</span>
+            <span className="text-amber-700 text-xs">
+              {step === 0 && t("tour.demo_step0", "This is where you paste a HubSpot deal link. For the demo, click Continue.")}
+              {step === 1 && t("tour.demo_step1", "Select the modules for your prospect. We pre-selected Core and Time Tracking.")}
+              {step === 2 && t("tour.demo_step2", "Configure headcounts and hourly costs. These are pre-filled for the demo.")}
+              {step === 3 && t("tour.demo_step3", "In a real call, you'd adjust hours per stakeholder here. Click through to see the result.")}
+              {step === 4 && t("tour.demo_step4", "Here's your ROI! Download the PDF or adjust the Factorial pricing.")}
+            </span>
+          </div>
+          <button onClick={() => setIsDemo(false)} className="text-amber-500 hover:text-amber-700 text-xs font-medium">{t("tour.demo_exit", "Exit tour")}</button>
+        </div>
+      )}
 
       {/* ──────────── STEP 0: Import ──────────── */}
       {step === 0 && (

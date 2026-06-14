@@ -580,5 +580,12 @@
   "feedback.send": "Senden",
   "feedback.sent": "Danke! Wir schauen uns das an.",
   "feedback.attached": "An diesen ROI angehangt",
-  "feedback.general": "Allgemeines Feedback"
+  "feedback.general": "Allgemeines Feedback",
+  "tour.demo_label": "Gefuhrte Tour",
+  "tour.demo_step0": "Hier fugen Sie den HubSpot-Deal-Link ein. Fur die Demo klicken Sie auf Weiter.",
+  "tour.demo_step1": "Wahlen Sie die Module. Wir haben Core und Zeiterfassung vorausgewahlt.",
+  "tour.demo_step2": "Konfigurieren Sie Mitarbeiterzahlen und Stundenkosten. Fur die Demo vorausgefullt.",
+  "tour.demo_step3": "In einem echten Gesprach wurden Sie die Stunden pro Stakeholder hier anpassen.",
+  "tour.demo_step4": "Hier ist Ihr ROI! Laden Sie das PDF herunter oder passen Sie den Factorial-Preis an.",
+  "tour.demo_exit": "Tour beenden"
 }
