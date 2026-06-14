@@ -295,39 +295,24 @@ export default function CoCreation() {
     setFetching(true);
     setMsgs([{ text: t("express.fetching"), done: false }]);
     try {
-      const deal = await fetchDealByHubspotId(dealId);
-      if (deal) {
-        if (deal.deal_name) setDealName(deal.deal_name);
-        setMsgs([{ text: `Deal: ${deal.deal_name || dealId}`, done: true }]);
-        if (deal.atlas_id) {
-          setMsgs(prev => [...prev, { text: t("express.searching_company"), done: false }]);
-          const co = await fetchAtlasCompany(deal.atlas_id);
-          if (co?.company_name) {
-            setCompanyName(co.company_name);
-            setMsgs(prev => { const u = [...prev]; u[u.length - 1] = { text: `Empresa: ${co.company_name}`, done: true }; return u; });
-          }
-        }
-      } else {
-        setMsgs([{ text: t("express.not_found_hubspot"), done: false }]);
-        const { data: hs, error: hsErr } = await supabase.functions.invoke("hubspot-deal", { body: { deal_url: url } });
-        if (hsErr || !hs || hs.error) {
-          setMsgs([{ text: t("express.not_found"), done: true }]);
-          toast.error(t("express.not_found_toast"));
-          return;
-        }
-        if (hs.deal_name) setDealName(hs.deal_name);
-        if (hs.company_name) setCompanyName(hs.company_name);
-        const hsCountry = (hs.country ?? "").toLowerCase();
-        if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
-        else if (hsCountry.includes("ital") || hsCountry === "it") setCountry("IT");
-        else if (hsCountry.includes("german") || hsCountry.includes("deutsch") || hsCountry === "de") setCountry("DE");
-        else if (hsCountry.includes("united kingdom") || hsCountry.includes("uk") || hsCountry.includes("england")) setCountry("UK");
-        const hsSeats = parseInt(hs.employees, 10);
-        if (hsSeats > 0) {
-          setRoiConfig(prev => ({ ...prev, headcounts: { employee: Math.round(hsSeats * 0.8), hr: Math.max(1, Math.round(hsSeats * 0.05)), manager: Math.round(hsSeats * 0.15) } }));
-        }
-        setMsgs([{ text: `Deal: ${hs.deal_name || dealId}`, done: true }, ...(hs.company_name ? [{ text: `Empresa: ${hs.company_name}`, done: true }] : [])]);
+      const { data: hs, error: hsErr } = await supabase.functions.invoke("hubspot-deal", { body: { deal_url: url } });
+      if (hsErr || !hs || hs.error) {
+        setMsgs([{ text: t("express.not_found"), done: true }]);
+        toast.error(t("express.not_found_toast"));
+        return;
       }
+      if (hs.deal_name) setDealName(hs.deal_name);
+      if (hs.company_name) setCompanyName(hs.company_name);
+      const hsCountry = (hs.country ?? "").toLowerCase();
+      if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
+      else if (hsCountry.includes("ital") || hsCountry === "it") setCountry("IT");
+      else if (hsCountry.includes("german") || hsCountry.includes("deutsch") || hsCountry === "de") setCountry("DE");
+      else if (hsCountry.includes("united kingdom") || hsCountry.includes("uk") || hsCountry.includes("england")) setCountry("UK");
+      const hsSeats = parseInt(hs.employees, 10);
+      if (hsSeats > 0) {
+        setRoiConfig(prev => ({ ...prev, headcounts: { employee: Math.round(hsSeats * 0.8), hr: Math.max(1, Math.round(hsSeats * 0.05)), manager: Math.round(hsSeats * 0.15) } }));
+      }
+      setMsgs([{ text: `Deal: ${hs.deal_name || dealId}`, done: true }, ...(hs.company_name ? [{ text: `Empresa: ${hs.company_name}`, done: true }] : [])]);
       setTimeout(() => setStep(1), 800);
     } catch (err: any) {
       toast.error(err.message ?? "Error");
