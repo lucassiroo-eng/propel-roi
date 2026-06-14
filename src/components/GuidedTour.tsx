@@ -9,6 +9,7 @@ export interface TourStep {
   placement?: "top" | "bottom" | "left" | "right" | "center";
   ctaLabel?: string;          // button text (default: "Next →")
   onEnter?: () => void;       // called when this step becomes active (auto-fill, etc.)
+  scrollToTop?: boolean;      // scroll window to top before spotlighting
 }
 
 interface Props {
@@ -32,7 +33,7 @@ function useRect(id?: string) {
       } else setRect(null);
     };
     // Small delay so scrollIntoView settles
-    const t = setTimeout(update, 150);
+    const t = setTimeout(update, 300);
     window.addEventListener("scroll", update, true);
     window.addEventListener("resize", update);
     return () => {

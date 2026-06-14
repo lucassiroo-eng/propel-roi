@@ -467,30 +467,30 @@ export default function CoCreation() {
       ctaLabel: t("tour.next_step", "Next →"),
       onEnter: () => { setStep(0); },
     },
-    // 2: Modules — highlight bundle + selected modules, CTA = Continuar
+    // 2: Modules — right side, scroll to top
     {
       targetId: "tour-selected-modules",
-      placement: "left",
+      placement: "right",
       title: t("tour.t3_title", "2. Select Factorial modules"),
-      body: t("tour.t3_body", "Pick the modules your prospect needs. We\'ve pre-selected Core and Time Tracking.\n\nYou can also choose a bundle (top of the list) to automatically add a set of modules.\n\nWhen ready, click Continue."),
+      body: t("tour.t3_body", "We've pre-selected Core and Time Tracking.\n\nChoose a bundle (top left) to add multiple modules at once."),
       ctaLabel: t("tour.cta_continue", "Continue →"),
-      onEnter: () => { setStep(1); },
+      onEnter: () => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); },
     },
-    // 3: Config headcount — highlight inputs, CTA = Continue
+    // 3: Config headcount — popup above, includes hiring/year
     {
       targetId: "tour-config-headcount",
       placement: "top",
       title: t("tour.t4_title", "3. Configure the team"),
-      body: t("tour.t4_body", "Set the number of people and hourly cost for each profile.\n\nPre-filled for this demo:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n\nClick Continue when done."),
+      body: t("tour.t4_body", "Pre-filled:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n• 20 hires/year"),
       ctaLabel: t("tour.cta_continue", "Continue →"),
-      onEnter: () => { setStep(2); },
+      onEnter: () => { setStep(2); window.scrollTo({ top: 0, behavior: "smooth" }); },
     },
     // 4: Discovery — highlight hours inputs, mock data 1-2-1, CTA = Next module
     {
       targetId: "tour-discovery-inputs",
       placement: "left",
       title: t("tour.t5_title", "4. Enter hours during the call"),
-      body: t("tour.t5_body", "Ask each stakeholder: \'How many hours/month do you spend on this?\' and enter what they tell you here.\n\nWe\'ve pre-filled:\n• Employees: 1 h/mes\n• HR Admin: 2 h/alta\n• Managers: 1 h/mes\n\nClick Next module when done."),
+      body: t("tour.t5_body", "Ask: 'How many hours/month do you spend on this?' Enter what they tell you.\n\nPre-filled: 1-2-1 per module."),
       ctaLabel: t("tour.cta_next_module", "Next module →"),
       onEnter: () => {
         setStep(3);
@@ -512,7 +512,7 @@ export default function CoCreation() {
       ctaLabel: t("tour.cta_see_roi", "See ROI →"),
       onEnter: () => {
         setStep(4);
-        setAnnualCost(8000);
+        setAnnualCost(40000);
       },
     },
     // 6: PDF download — highlight buttons
@@ -520,9 +520,18 @@ export default function CoCreation() {
       targetId: "tour-pdf-buttons",
       placement: "top",
       title: t("tour.t7_title", "6. Download the branded deck"),
-      body: t("tour.t7_body", "Two options:\n\n• 1-Pager — ROI summary for the Economic Buyer (CFO, CEO)\n• Full detail — module-by-module breakdown\n\nSend the 1-pager after the call. Use the full deck in the follow-up meeting."),
-      ctaLabel: t("tour.cta_last", "Got it! Start for real →"),
+      body: t("tour.t7_body", "Two options:\n\n• 1-Pager — ROI summary for the Economic Buyer (CFO, CEO)\n• Full detail — module-by-module breakdown\n\nSend the 1-pager after the call."),
+      ctaLabel: t("tour.cta_next", "Next →"),
       onEnter: () => { setStep(4); },
+    },
+    // 7: Modjo enhance — open the section
+    {
+      targetId: "tour-modjo-section",
+      placement: "top",
+      title: t("tour.t8_title", "7. Enhance with the call recording"),
+      body: t("tour.t8_body", "After the call, search for the Modjo recording here. The AI reads the transcript and replaces generic descriptions with real quotes from the prospect.\n\n\"RRHH dedica tiempo a ausencias\" becomes:\n\"Montse dedica 3 días/mes a reconciliar ausencias en Excel antes de enviar a la gestoría\"\n\nPersonal. Hard to ignore."),
+      ctaLabel: t("tour.cta_last", "Got it! Start for real →"),
+      onEnter: () => { setStep(4); setPersonalizeOpen(true); },
     },
   ];
 
@@ -776,7 +785,8 @@ export default function CoCreation() {
                   </Select>
                 </div>
               </div>
-              <div id="tour-config-headcount" className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div id="tour-config-headcount" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
                   const m = STAKE_STYLE[key];
                   const Icon = m.icon;
@@ -802,7 +812,7 @@ export default function CoCreation() {
               </div>
 
               {/* Extra params */}
-              <div className="rounded-2xl border border-border bg-card p-5">
+              <div className="rounded-2xl border border-border bg-card p-5" id="tour-config-extra">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("express.extra_params")}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
