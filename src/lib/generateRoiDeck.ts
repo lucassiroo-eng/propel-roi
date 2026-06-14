@@ -455,16 +455,19 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .htbl tbody td{padding:10px;font-size:13px;color:${C.dark};border-bottom:1px solid ${C.border}!important;vertical-align:top;overflow:hidden}
 .htbl tbody tr:last-child td{border-bottom:none!important}
 .htbl tbody td:nth-child(4){text-align:right;vertical-align:middle}
-.sk{display:flex;align-items:center;gap:8px}
-.sk-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.sk-nm{font-size:13px;font-weight:700;color:${C.dark}}
-.ht{font-size:13px;color:${C.gray};line-height:1.45;overflow:hidden}
-.calc-block{font-size:13px;line-height:1.6;color:${C.lgray}}
-.calc-block .bold{font-weight:700;color:${C.dark}}
-.calc-block .key{color:${C.gray};font-weight:500}
-.calc-res{font-size:13px;font-weight:600;color:${C.dark};margin:2px 0;display:block}
-.sav-mon{font-size:12px;color:${C.gray};font-variant-numeric:tabular-nums;margin-bottom:2px}
-.sav-ann{font-size:20px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.sk{display:flex;align-items:center;gap:10px}
+.sk-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.sk-nm{font-size:14px;font-weight:800;color:${C.dark};letter-spacing:-.01em}
+.ht{font-size:12px;color:${C.gray};line-height:1.5;overflow:hidden}
+.calc-block{font-size:12px;line-height:1.7;color:${C.lgray}}
+.calc-step{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
+.calc-step .cl{font-size:11px;color:${C.lgray};min-width:14px}
+.calc-step .cv{font-size:13px;font-weight:700;color:${C.dark}}
+.calc-step .cm{font-size:12px;color:${C.gray}}
+.calc-res{font-size:13px;font-weight:700;color:${C.dark};margin:3px 0 1px;padding:3px 0;border-top:1px solid ${C.border};display:block}
+.calc-cost{font-size:11px;color:${C.lgray}}
+.sav-mon{font-size:12px;color:${C.gray};font-variant-numeric:tabular-nums;margin-bottom:3px}
+.sav-ann{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .htot{position:absolute;bottom:0;left:0;right:0;height:48px;background:${C.dark};display:flex;align-items:center;justify-content:space-between;padding:0 ${C.pad}}
 .htot-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4)}
 .htot-val{font-size:26px;font-weight:800;color:#fff;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
@@ -614,7 +617,12 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     return `<tr>
         <td><div class="sk"><div class="sk-ico" style="background:${ico.bg}">${ico.emoji}</div><div class="sk-nm">${stakeholderLabel(r.stakeholder, lang)}</div></div></td>
         <td><div class="ht">${escHtml(r.description)}</div></td>
-        <td><div class="calc-block"><div class="bold">${hUnit} ${t.per} ${swLbl.replace(/s$/, "")}</div><div class="key">× ${Math.round(r.count)} ${swLbl}</div><div class="calc-res">${totalLabel}</div><div>× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div></div></td>
+        <td><div class="calc-block">
+          <div class="calc-step"><span class="cv">${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es}</span> <span class="cm">${t.per} ${swLbl.replace(/s$/, "")}</span></div>
+          <div class="calc-step"><span class="cl">×</span> <span class="cv">${Math.round(r.count)}</span> <span class="cm">${swLbl}</span></div>
+          <div class="calc-res">${totalLabel}</div>
+          <div class="calc-cost">× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div>
+        </div></td>
         <td><div class="sav-mon">${monthlySav}</div><div class="sav-ann" style="color:${color}">${fmtEur(Math.round(r.annual_savings))} ${yrLabel[lang] ?? yrLabel.es}</div></td>
       </tr>`;
   }).join("\n");
