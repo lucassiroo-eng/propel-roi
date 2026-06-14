@@ -313,7 +313,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `por cada €1 invertido<br>recuperas ${v}`,
       payback_sub: m => `la inversión se recupera<br>en ${m} meses`,
       savings_vs_sub: c => `frente a ${c}/año de inversión<br>en Factorial`, savings_vs_label: "Inversión Factorial:", savings_vs_detail: "coste anual de la plataforma",
-      what_is: "Qué es", module: "Módulo", description: "Descripción", h_month: "h/mes ahorradas", savings_year: "Ahorro / año",
+      what_is: "Qué es", module: "Módulo", description: "Descripción", h_month: "Ahorro al mes", savings_year: "Ahorro / año",
       total: "Total ahorros anuales estimados", tool_label: "Herram.",
       type_employee: "Tipo de empleado", hypothesis: "Hipótesis de ahorro", assumption: "Asunción y cálculo", estimated_saving: "Ahorro estimado",
       total_annual: "Total ahorro anual",
@@ -331,7 +331,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `for every €1 invested<br>you get back ${v}`,
       payback_sub: m => `investment recovered<br>in ${m} months`,
       savings_vs_sub: c => `vs. ${c}/year investment<br>in Factorial`, savings_vs_label: "Factorial investment:", savings_vs_detail: "annual platform cost",
-      what_is: "What it is", module: "Module", description: "Description", h_month: "h/month saved", savings_year: "Savings / year",
+      what_is: "What it is", module: "Module", description: "Description", h_month: "Monthly savings", savings_year: "Savings / year",
       total: "Total estimated annual savings", tool_label: "Tool",
       type_employee: "Employee type", hypothesis: "Savings hypothesis", assumption: "Assumption & calculation", estimated_saving: "Estimated savings",
       total_annual: "Total annual savings",
@@ -349,7 +349,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `pour chaque €1 investi<br>vous récupérez ${v}`,
       payback_sub: m => `investissement récupéré<br>en ${m} mois`,
       savings_vs_sub: c => `contre ${c}/an d'investissement<br>dans Factorial`, savings_vs_label: "Investissement Factorial :", savings_vs_detail: "coût annuel de la plateforme",
-      what_is: "Description", module: "Module", description: "Description", h_month: "h/mois économisées", savings_year: "Économies / an",
+      what_is: "Description", module: "Module", description: "Description", h_month: "Économies mensuelles", savings_year: "Économies / an",
       total: "Total économies annuelles estimées", tool_label: "Outil",
       type_employee: "Type d'employé", hypothesis: "Hypothèse d'économie", assumption: "Hypothèse et calcul", estimated_saving: "Économie estimée",
       total_annual: "Total économies annuelles",
@@ -367,7 +367,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `per ogni €1 investito<br>recuperi ${v}`,
       payback_sub: m => `l'investimento si recupera<br>in ${m} mesi`,
       savings_vs_sub: c => `rispetto a ${c}/anno di investimento<br>in Factorial`, savings_vs_label: "Investimento Factorial:", savings_vs_detail: "costo annuale della piattaforma",
-      what_is: "Descrizione", module: "Modulo", description: "Descrizione", h_month: "h/mese risparmiate", savings_year: "Risparmio / anno",
+      what_is: "Descrizione", module: "Modulo", description: "Descrizione", h_month: "Risparmio mensile", savings_year: "Risparmio / anno",
       total: "Totale risparmi annuali stimati", tool_label: "Strumento",
       type_employee: "Tipo di dipendente", hypothesis: "Ipotesi di risparmio", assumption: "Assunzione e calcolo", estimated_saving: "Risparmio stimato",
       total_annual: "Totale risparmio annuale",
@@ -385,7 +385,7 @@ function getI18n(lang: string): DeckI18n {
       roi_sub: v => `für jeden investierten €1<br>erhalten Sie ${v} zurück`,
       payback_sub: m => `die Investition amortisiert sich<br>in ${m} Monaten`,
       savings_vs_sub: c => `gegenüber ${c}/Jahr Investition<br>in Factorial`, savings_vs_label: "Factorial-Investition:", savings_vs_detail: "jährliche Plattformkosten",
-      what_is: "Beschreibung", module: "Modul", description: "Beschreibung", h_month: "h/Monat eingespart", savings_year: "Einsparung / Jahr",
+      what_is: "Beschreibung", module: "Modul", description: "Beschreibung", h_month: "Monatliche Einsparung", savings_year: "Einsparung / Jahr",
       total: "Geschätzte jährliche Gesamteinsparungen", tool_label: "Tool",
       type_employee: "Mitarbeitertyp", hypothesis: "Einsparungshypothese", assumption: "Annahme und Berechnung", estimated_saving: "Geschätzte Einsparung",
       total_annual: "Jährliche Gesamteinsparung",
@@ -451,7 +451,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .htbl{position:absolute;top:120px;left:${C.pad};right:${C.pad};bottom:48px;width:calc(100% - 160px);border-collapse:collapse;table-layout:fixed}
 .htbl thead th{padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;background:${C.dark};text-align:left;white-space:nowrap;height:40px}
 .htbl thead th:last-child{text-align:right}
-.htbl thead th:nth-child(1){width:14%}.htbl thead th:nth-child(2){width:34%}.htbl thead th:nth-child(3){width:30%}.htbl thead th:nth-child(4){width:22%}
+.htbl thead th:nth-child(1){width:17%}.htbl thead th:nth-child(2){width:33%}.htbl thead th:nth-child(3){width:28%}.htbl thead th:nth-child(4){width:22%}
 .htbl tbody td{padding:14px 12px;font-size:13px;color:${C.dark};border-bottom:1px solid ${C.border}!important;vertical-align:top;overflow:hidden}
 .htbl tbody tr:last-child td{border-bottom:none!important}
 .htbl tbody td:nth-child(4){text-align:right;vertical-align:middle}
@@ -621,7 +621,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
           <div style="display:flex;align-items:flex-start;gap:12px">
             <div style="width:36px;height:36px;border-radius:10px;background:${ico.bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${ico.emoji}</div>
             <div>
-              <div style="font-size:14px;font-weight:800;color:#25253D;letter-spacing:-.01em;line-height:1.2">${stakeholderLabel(r.stakeholder, lang)}</div>
+              <div style="font-size:14px;font-weight:800;color:#25253D;letter-spacing:-.01em;line-height:1.2;white-space:nowrap">${stakeholderLabel(r.stakeholder, lang)}</div>
               <div style="font-size:10px;font-weight:600;color:#AEAEB8;margin-top:2px;text-transform:uppercase;letter-spacing:.04em">${Math.round(r.count)} ${swLbl}</div>
             </div>
           </div>
