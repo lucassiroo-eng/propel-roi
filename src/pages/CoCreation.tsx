@@ -951,6 +951,9 @@ export default function CoCreation() {
                           const style = STAKE_STYLE[sk];
                           const Icon = style.icon;
                           const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? 0;
+                          const entry = MODULE_HOURS.find(e => e.module_id === currentModule && e.stakeholder === sk);
+                          const scalesWith = entry?.scales_with ?? "employees";
+                          const hUnit = scalesWith === "onboardings" ? t("cocreation.h_hire", "h/hire") : scalesWith === "submitters" ? t("cocreation.h_submission", "h/subm.") : t("cocreation.hrs_month");
                           return (
                             <div key={sk} className="flex items-center gap-3">
                               <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '18' }}>
@@ -972,7 +975,7 @@ export default function CoCreation() {
                                     });
                                   }}
                                 />
-                                <span className="text-[10px] font-medium" style={{ color: 'oklch(60% 0.005 250)' }}>h/mes</span>
+                                <span className="text-[10px] font-medium" style={{ color: 'oklch(60% 0.005 250)' }}>{hUnit}</span>
                               </div>
                             </div>
                           );

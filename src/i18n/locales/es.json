@@ -607,5 +607,7 @@
   "tour.t9_title": "Estas listo!",
   "tour.t9_body": "El flow completo:\n\n1. Importa deal de HubSpot\n2. Selecciona modulos\n3. Configura headcount\n4. Co-crea horas en la llamada\n5. Descarga deck\n6. Mejora con transcrito de Modjo\n\n¡Explora la demo o empieza un ROI real!",
   "tour.t9_cta": "Empezar un ROI real",
-  "tour.demo_active": "datos demo cargados"
+  "tour.demo_active": "datos demo cargados",
+  "cocreation.h_hire": "h/alta",
+  "cocreation.h_submission": "h/subm."
 }
