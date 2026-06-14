@@ -449,10 +449,10 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .mhd-val{font-size:32px;font-weight:800;letter-spacing:-.03em;white-space:nowrap}
 
 .htbl{position:absolute;top:120px;left:${C.pad};right:${C.pad};bottom:48px;width:calc(100% - 160px);border-collapse:collapse;table-layout:fixed}
-.htbl thead th{padding:7px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:${C.dark};text-align:left;white-space:nowrap;height:32px}
+.htbl thead th{padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#fff;background:${C.dark};text-align:left;white-space:nowrap;height:40px}
 .htbl thead th:last-child{text-align:right}
 .htbl thead th:nth-child(1){width:14%}.htbl thead th:nth-child(2){width:34%}.htbl thead th:nth-child(3){width:30%}.htbl thead th:nth-child(4){width:22%}
-.htbl tbody td{padding:10px;font-size:13px;color:${C.dark};border-bottom:1px solid ${C.border}!important;vertical-align:top;overflow:hidden}
+.htbl tbody td{padding:14px 12px;font-size:13px;color:${C.dark};border-bottom:1px solid ${C.border}!important;vertical-align:top;overflow:hidden}
 .htbl tbody tr:last-child td{border-bottom:none!important}
 .htbl tbody td:nth-child(4){text-align:right;vertical-align:middle}
 .sk{display:flex;align-items:center;gap:10px}
@@ -614,16 +614,29 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     const moLabel: Record<string, string> = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat" };
     const yrLabel: Record<string, string> = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr" };
     const monthlySav = isAnnual ? fmtEur(Math.round(r.annual_savings / 12)) + ` ${moLabel[lang] ?? moLabel.es}` : fmtEur(Math.round(r.monthly_savings)) + ` ${moLabel[lang] ?? moLabel.es}`;
-    return `<tr>
-        <td><div class="sk"><div class="sk-ico" style="background:${ico.bg}">${ico.emoji}</div><div class="sk-nm">${stakeholderLabel(r.stakeholder, lang)}</div></div></td>
+    const skColors: Record<string, string> = { employee: "#3B82F6", hr: "#10B981", manager: "#F59E0B" };
+    const skColor = skColors[r.stakeholder] ?? "#6B7280";
+    return `<tr style="border-left:3px solid ${skColor}!important">
+        <td style="padding-left:14px!important">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <div style="width:36px;height:36px;border-radius:10px;background:${ico.bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${ico.emoji}</div>
+            <div>
+              <div style="font-size:14px;font-weight:800;color:#25253D;letter-spacing:-.01em;line-height:1.2">${stakeholderLabel(r.stakeholder, lang)}</div>
+              <div style="font-size:10px;font-weight:600;color:#AEAEB8;margin-top:2px;text-transform:uppercase;letter-spacing:.04em">${Math.round(r.count)} ${swLbl}</div>
+            </div>
+          </div>
+        </td>
         <td><div class="ht">${escHtml(r.description)}</div></td>
         <td>
-          <div style="font-size:13px;font-weight:700;color:#25253D">${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es} <span style="font-size:12px;font-weight:400;color:#6C6C7D">${t.per} ${swLbl.replace(/s$/, "")}</span></div>
-          <div style="font-size:12px;color:#6C6C7D;margin:2px 0">× ${Math.round(r.count)} ${swLbl}</div>
-          <div style="font-size:13px;font-weight:700;color:#25253D;margin:4px 0 2px;padding-top:4px;border-top:1px solid #E9E9EC">${totalLabel}</div>
+          <div style="font-size:14px;font-weight:800;color:#25253D">${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es} <span style="font-size:12px;font-weight:400;color:#6C6C7D">${t.per} ${swLbl.replace(/s$/, "")}</span></div>
+          <div style="font-size:12px;color:#6C6C7D;margin:3px 0">× ${Math.round(r.count)} ${swLbl}</div>
+          <div style="font-size:14px;font-weight:800;color:#25253D;margin:5px 0 3px;padding-top:5px;border-top:1px solid #E9E9EC">${totalLabel}</div>
           <div style="font-size:11px;color:#AEAEB8">× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div>
         </td>
-        <td><div class="sav-mon">${monthlySav}</div><div class="sav-ann" style="color:${color}">${fmtEur(Math.round(r.annual_savings))} ${yrLabel[lang] ?? yrLabel.es}</div></td>
+        <td>
+          <div style="font-size:12px;color:#6C6C7D;margin-bottom:3px">${monthlySav}</div>
+          <div style="font-size:24px;font-weight:800;letter-spacing:-.02em;color:${color};font-variant-numeric:tabular-nums">${fmtEur(Math.round(r.annual_savings))} ${yrLabel[lang] ?? yrLabel.es}</div>
+        </td>
       </tr>`;
   }).join("\n");
 
