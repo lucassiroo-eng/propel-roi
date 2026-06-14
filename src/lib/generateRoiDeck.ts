@@ -617,12 +617,12 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     return `<tr>
         <td><div class="sk"><div class="sk-ico" style="background:${ico.bg}">${ico.emoji}</div><div class="sk-nm">${stakeholderLabel(r.stakeholder, lang)}</div></div></td>
         <td><div class="ht">${escHtml(r.description)}</div></td>
-        <td><div class="calc-block">
-          <div class="calc-step"><span class="cv">${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es}</span> <span class="cm">${t.per} ${swLbl.replace(/s$/, "")}</span></div>
-          <div class="calc-step"><span class="cl">×</span> <span class="cv">${Math.round(r.count)}</span> <span class="cm">${swLbl}</span></div>
-          <div class="calc-res">${totalLabel}</div>
-          <div class="calc-cost">× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div>
-        </div></td>
+        <td>
+          <div style="font-size:13px;font-weight:700;color:#25253D">${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es} <span style="font-size:12px;font-weight:400;color:#6C6C7D">${t.per} ${swLbl.replace(/s$/, "")}</span></div>
+          <div style="font-size:12px;color:#6C6C7D;margin:2px 0">× ${Math.round(r.count)} ${swLbl}</div>
+          <div style="font-size:13px;font-weight:700;color:#25253D;margin:4px 0 2px;padding-top:4px;border-top:1px solid #E9E9EC">${totalLabel}</div>
+          <div style="font-size:11px;color:#AEAEB8">× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div>
+        </td>
         <td><div class="sav-mon">${monthlySav}</div><div class="sav-ann" style="color:${color}">${fmtEur(Math.round(r.annual_savings))} ${yrLabel[lang] ?? yrLabel.es}</div></td>
       </tr>`;
   }).join("\n");
