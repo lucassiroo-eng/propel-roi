@@ -665,11 +665,23 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   const details = buildDetails(input, data, uiLang, modLang).filter(d => d.total_annual > 0 && (d.tool_override || d.rows.length > 0));
   const totalSlides = mode === "summary" ? 2 : 2 + details.length;
 
-  let slides = coverSlide(data, t, uiLang) + "\n\n" + summarySlide(data, details, t, uiLang, totalSlides);
+  // Recalculate totals from actual rows (overrides buildRoiSlideData defaults)
+  const realTotal = details.reduce((s, d) => s + d.total_annual, 0);
+  const annualCost = input.annualCost ?? data.annual_cost ?? 0;
+  const realRoiPct = annualCost > 0 ? Math.round(((realTotal - annualCost) / annualCost) * 100) : data.roi_percent;
+  const realPayback = realTotal > 0 ? Math.max(1, Math.round((annualCost / realTotal) * 12)) : data.payback_months;
+  const correctedData: RoiSlideData = {
+    ...data,
+    total_annual_savings: Math.round(realTotal),
+    roi_percent: realRoiPct,
+    payback_months: realPayback,
+  };
+
+  let slides = coverSlide(correctedData, t, uiLang) + "\n\n" + summarySlide(correctedData, details, t, uiLang, totalSlides);
 
   if (mode === "full") {
     details.forEach((d, i) => {
-      slides += "\n\n" + moduleSlide(d, data, t, uiLang, i + 3, totalSlides);
+      slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, i + 3, totalSlides);
     });
   }
 
