@@ -39,6 +39,7 @@ import {
 } from "@/lib/generateRoiSlide";
 import { generateDeckPdf } from "@/lib/generateRoiDeck";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { GuidedTour, type TourStep } from "@/components/GuidedTour";
 import { DISCOVERY_QUESTIONS, MODULE_INFO, getLocalized, getQuestion } from "@/lib/discoveryQuestions";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
 
@@ -142,6 +143,7 @@ export default function CoCreation() {
 
   // Demo mode: pre-fill with sample data for guided tour
   const [isDemo, setIsDemo] = useState(false);
+  const [showTour, setShowTour] = useState(false);
   useEffect(() => {
     if (searchParams.get("demo") !== "true") return;
     setIsDemo(true);
@@ -162,6 +164,7 @@ export default function CoCreation() {
     setStep(0);
     searchParams.delete("demo");
     setSearchParams(searchParams, { replace: true });
+    setTimeout(() => setShowTour(true), 400);
   }, []);
 
   // Step 0: Import
@@ -469,6 +472,67 @@ export default function CoCreation() {
     );
   }
 
+  const TOUR_STEPS: TourStep[] = [
+    {
+      title: t("tour.t1_title", "Welcome to the ROI co-creator"),
+      body: t("tour.t1_body", "This guided tour walks you through a real example. We've pre-loaded a demo company with one module. You'll co-create the ROI step by step — exactly like you would in a real discovery call.\n\nLet's start!"),
+      placement: "center",
+    },
+    {
+      targetId: "tour-hubspot-input",
+      title: t("tour.t2_title", "Step 1: Import the deal"),
+      body: t("tour.t2_body", "In a real session, paste the HubSpot deal URL here. The AI will fetch the company name, sector, and communication history automatically.\n\nFor this demo, the company is already filled in. Click 'Continue' to move on."),
+      placement: "bottom",
+      spotlight: true,
+    },
+    {
+      targetId: "tour-selected-modules",
+      title: t("tour.t3_title", "Step 2: Select modules"),
+      body: t("tour.t3_body", "Choose which Factorial modules your prospect needs. For this demo, we've selected 'Absences' — one of the most common pain points.\n\nIn a real session, you'd select based on what you heard in the discovery call."),
+      placement: "bottom",
+      spotlight: true,
+    },
+    {
+      title: t("tour.t4_title", "Step 3: Configure headcount"),
+      body: t("tour.t4_body", "Set the number of employees, HR admins, and managers. These numbers drive the calculation.\n\nWe've pre-filled typical values. In a real call, ask: 'How many people are in HR? How many managers approve things?'"),
+      placement: "center",
+    },
+    {
+      targetId: "tour-discovery-step",
+      title: t("tour.t5_title", "Step 4: Co-create during the call"),
+      body: t("tour.t5_body", "This is the heart of the tool. For each module, ask the stakeholder how many hours they spend on this task per month.\n\nThe left panel shows suggested questions to ask. The right panel is where you enter the hours they tell you.\n\nTip: Ask 'How many hours per month does your HR team spend calculating leave balances?'"),
+      placement: "top",
+      spotlight: true,
+    },
+    {
+      targetId: "tour-roi-result",
+      title: t("tour.t6_title", "The ROI is calculated instantly"),
+      body: t("tour.t6_body", "As you enter hours, the ROI updates in real time. The formula: hours saved × number of people × hourly cost × 12 months = annual savings.\n\nThis is the number you'll present to the Economic Buyer. It's based entirely on data the prospect gave you."),
+      placement: "bottom",
+      spotlight: true,
+    },
+    {
+      targetId: "tour-pdf-buttons",
+      title: t("tour.t7_title", "Download the deck"),
+      body: t("tour.t7_body", "Generate a branded PDF deck:\n• 1-Pager: cover + ROI summary (for the Economic Buyer)\n• Full detail: module-by-module breakdown\n\nSend the 1-pager to the CFO/CEO. Use the full detail in your follow-up meeting."),
+      placement: "top",
+      spotlight: true,
+    },
+    {
+      targetId: "tour-modjo-section",
+      title: t("tour.t8_title", "Enhance with your call recording"),
+      body: t("tour.t8_body", "After the call, search for the recording in Modjo. The AI reads the transcript and replaces the generic descriptions with real quotes from the prospect.\n\nExample: instead of 'HR spends time on leave management', it writes 'Montse spends 3 days a month reconciling Visual Time against Excel before sending to the gestoría'.\n\nThis makes the deck feel personal and hard to ignore."),
+      placement: "top",
+      spotlight: true,
+    },
+    {
+      title: t("tour.t9_title", "You're ready!"),
+      body: t("tour.t9_body", "Now you know the full flow:\n\n1. Import deal from HubSpot\n2. Select modules\n3. Configure headcount\n4. Co-create hours during the call\n5. Download deck\n6. Enhance with Modjo transcript\n\nThe demo data is here for you to explore. Or start a new ROI with a real deal!"),
+      placement: "center",
+      action: t("tour.t9_cta", "Start a real ROI"),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <style>{`
@@ -507,20 +571,20 @@ export default function CoCreation() {
         </div>
       </header>
 
-      {isDemo && (
-        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-600 text-xs font-bold uppercase tracking-wider">{t("tour.demo_label", "Guided tour")}</span>
-            <span className="text-amber-700 text-xs">
-              {step === 0 && t("tour.demo_step0", "This is where you paste a HubSpot deal link. For the demo, click Continue.")}
-              {step === 1 && t("tour.demo_step1", "Select the modules for your prospect. We pre-selected Core and Time Tracking.")}
-              {step === 2 && t("tour.demo_step2", "Configure headcounts and hourly costs. These are pre-filled for the demo.")}
-              {step === 3 && t("tour.demo_step3", "In a real call, you'd adjust hours per stakeholder here. Click through to see the result.")}
-              {step === 4 && t("tour.demo_step4", "Here's your ROI! Download the PDF or adjust the Factorial pricing.")}
-            </span>
-          </div>
-          <button onClick={() => setIsDemo(false)} className="text-amber-500 hover:text-amber-700 text-xs font-medium">{t("tour.demo_exit", "Exit tour")}</button>
+      {isDemo && !showTour && (
+        <div className="bg-amber-50 border-b border-amber-200 px-6 py-2 flex items-center justify-between">
+          <span className="text-amber-700 text-xs font-medium">{t("tour.demo_label", "Guided tour")} — {t("tour.demo_active", "demo data pre-loaded")}</span>
+          <button onClick={() => { setIsDemo(false); setShowTour(false); }} className="text-amber-500 hover:text-amber-700 text-xs font-medium">{t("tour.demo_exit", "Exit tour")}</button>
         </div>
+      )}
+
+      {showTour && (
+        <GuidedTour
+          steps={TOUR_STEPS}
+          currentAppStep={step}
+          onClose={() => { setShowTour(false); setIsDemo(false); }}
+          onComplete={() => { setShowTour(false); setIsDemo(false); navigate("/"); }}
+        />
       )}
 
       {/* ──────────── STEP 0: Import ──────────── */}
@@ -546,7 +610,7 @@ export default function CoCreation() {
               ))}
             </div>
 
-            <div className="flex gap-2 mb-6">
+            <div id="tour-hubspot-input" className="flex gap-2 mb-6">
               <Input
                 placeholder="https://app.hubspot.com/contacts/.../deal/..."
                 value={hubspotUrl}
@@ -641,7 +705,7 @@ export default function CoCreation() {
                   </ScrollArea>
                 </div>
                 {/* Selected */}
-                <div className="flex flex-col min-h-0">
+                <div id="tour-selected-modules" className="flex flex-col min-h-0">
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-foreground">{t("express.selected_title")}</h2>
                     <span className="text-[11px] font-semibold text-foreground tabular-nums bg-foreground/10 px-2 py-0.5 rounded-full">{selectedModules.length}</span>
@@ -787,7 +851,7 @@ export default function CoCreation() {
 
         return (
         <>
-          <main className="flex-1 overflow-hidden flex flex-col" style={{ background: `linear-gradient(150deg, ${modColor}09 0%, transparent 55%)` }}>
+          <main id="tour-discovery-step" className="flex-1 overflow-hidden flex flex-col" style={{ background: `linear-gradient(150deg, ${modColor}09 0%, transparent 55%)` }}>
             <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-6 py-3 gap-3 min-h-0">
 
               {/* Progress bar */}
@@ -1077,7 +1141,7 @@ export default function CoCreation() {
             </div>
 
             {roi.cost > 0 && roi.pct > 0 && (
-              <div className="rounded-2xl bg-emerald-50 border border-emerald-200/60 p-6 text-center">
+              <div id="tour-roi-result" className="rounded-2xl bg-emerald-50 border border-emerald-200/60 p-6 text-center">
                 <p className="text-5xl font-black tabular-nums text-emerald-600 tracking-tight">{roi.pct.toFixed(0)}%</p>
                 <p className="text-sm font-semibold text-emerald-700/70 mt-1">{t("express.roi_return")}</p>
               </div>
@@ -1098,7 +1162,7 @@ export default function CoCreation() {
 
 
             {/* PDFs */}
-            <div className="grid grid-cols-2 gap-3">
+            <div id="tour-pdf-buttons" className="grid grid-cols-2 gap-3">
               <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all disabled:opacity-50 group active:scale-[0.98]">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 rounded-xl bg-foreground flex items-center justify-center shrink-0"><FileText className="h-5 w-5 text-background" /></div>
@@ -1121,7 +1185,7 @@ export default function CoCreation() {
             </div>
 
             {/* Personalize with call notes — inline */}
-            <div className="rounded-2xl border border-border bg-card overflow-hidden">
+            <div id="tour-modjo-section" className="rounded-2xl border border-border bg-card overflow-hidden">
               <button
                 onClick={() => setPersonalizeOpen(o => !o)}
                 className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
