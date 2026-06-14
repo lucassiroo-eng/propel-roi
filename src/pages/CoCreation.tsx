@@ -128,6 +128,8 @@ export default function CoCreation() {
           });
         }
         setAnnualCost(sess.factorial_annual_cost_eur ?? 0);
+        const customDescs = (sess as any).custom_descriptions;
+        if (customDescs && Object.keys(customDescs).length > 0) setEnhancedDescriptions(customDescs);
         setStep((sess as any).current_step ?? (mods.length > 0 ? 4 : 0));
       } catch {
         toast.error(t("express.session_load_error"));
@@ -399,6 +401,7 @@ export default function CoCreation() {
       roi_pct: Math.round(roi?.pct ?? 0),
       payback_months: Math.round(roi?.payback ?? 0),
       total_annual_benefit_eur: Math.round(savings),
+      ...(enhancedDescriptions ? { custom_descriptions: enhancedDescriptions as any } : {}),
     };
     try {
       if (savedSessionId.current) {
