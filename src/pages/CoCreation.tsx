@@ -458,81 +458,71 @@ export default function CoCreation() {
   }
 
   const TOUR_STEPS: TourStep[] = [
-    // 0: Welcome
-    {
-      placement: "center",
-      title: t("tour.t1_title", "Welcome to the ROI co-creator!"),
-      body: t("tour.t1_body", "We've loaded a real demo: Asotech, 80 employees, Absences module.\n\nThis tour shows you the exact flow used in a real discovery call — spotlights on each step, data auto-filled as you go.\n\nLet's go!"),
-      ctaLabel: t("tour.t1_cta", "Start tour →"),
-      onEnter: () => { setStep(0); },
-    },
-    // 1: Import step — show company filled
+    // 1: Import (no welcome) — show the HubSpot input
     {
       targetId: "tour-hubspot-input",
       placement: "bottom",
       title: t("tour.t2_title", "1. Import the HubSpot deal"),
-      body: t("tour.t2_body", "Paste the deal URL here. The AI fetches company name, contacts, and communication history automatically.\n\nWe've pre-filled 'Asotech | 80 employees'. In a real session this takes 2 seconds."),
+      body: t("tour.t2_body", "Paste the deal URL here. The AI fetches company name, contacts, and communication history automatically.\n\nFor this demo it\'s already filled in. Click Next to advance."),
+      ctaLabel: t("tour.next_step", "Next →"),
       onEnter: () => { setStep(0); },
     },
-    // 2: Modules step — show time_off selected
+    // 2: Modules — highlight bundle + selected modules, CTA = Continuar
     {
       targetId: "tour-selected-modules",
-      placement: "right",
+      placement: "left",
       title: t("tour.t3_title", "2. Select Factorial modules"),
-      body: t("tour.t3_body", "We've selected Absences — managing leave, holidays, and sick days.\n\nIn a real session: pick the modules that match the pain points you heard about. Usually Core + 2-3 modules."),
+      body: t("tour.t3_body", "Pick the modules your prospect needs. We\'ve pre-selected Core and Time Tracking.\n\nYou can also choose a bundle (top of the list) to automatically add a set of modules.\n\nWhen ready, click Continue."),
+      ctaLabel: t("tour.cta_continue", "Continue →"),
       onEnter: () => { setStep(1); },
     },
-    // 3: Config step
+    // 3: Config headcount — highlight inputs, CTA = Continue
     {
-      placement: "center",
+      targetId: "tour-config-headcount",
+      placement: "top",
       title: t("tour.t4_title", "3. Configure the team"),
-      body: t("tour.t4_body", "Pre-filled for Asotech:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n\nAsk your prospect: 'How many people are in HR? How many managers approve leave requests?'"),
+      body: t("tour.t4_body", "Set the number of people and hourly cost for each profile.\n\nPre-filled for this demo:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n\nClick Continue when done."),
+      ctaLabel: t("tour.cta_continue", "Continue →"),
       onEnter: () => { setStep(2); },
     },
-    // 4: Discovery — enter hours, highlight the input panel
+    // 4: Discovery — highlight hours inputs, mock data 1-2-1, CTA = Next module
     {
-      targetId: "tour-discovery-step",
-      placement: "right",
-      title: t("tour.t5_title", "4. Co-create hours during the call"),
-      body: t("tour.t5_body", "Ask the HR admin: 'How many hours per month do you spend calculating leave balances?'\n\nWe've entered:\n• HR admin: 6h/month\n• Managers: 0.5h/month\n\nLeft panel: suggested questions. Right panel: their answers."),
+      targetId: "tour-discovery-inputs",
+      placement: "left",
+      title: t("tour.t5_title", "4. Enter hours during the call"),
+      body: t("tour.t5_body", "Ask each stakeholder: \'How many hours/month do you spend on this?\' and enter what they tell you here.\n\nWe\'ve pre-filled:\n• Employees: 1 h/mes\n• HR Admin: 2 h/alta\n• Managers: 1 h/mes\n\nClick Next module when done."),
+      ctaLabel: t("tour.cta_next_module", "Next module →"),
       onEnter: () => {
         setStep(3);
         setRoiConfig(prev => ({
           ...prev,
-          hours_overrides: { time_off: { hr: 6, manager: 0.5 } },
+          hours_overrides: {
+            core: { employee: 1, hr: 2, manager: 1 },
+            time_tracking: { employee: 1, hr: 2, manager: 1 },
+          },
         }));
       },
     },
-    // 5: Result — ROI shown
+    // 5: Pricing — set price so ROI = ~100%, show result
     {
-      targetId: "tour-roi-result",
+      targetId: "tour-pricing-input",
       placement: "bottom",
-      title: t("tour.t6_title", "5. The ROI calculates instantly"),
-      body: t("tour.t6_body", "6h/month × 3 HR admins × €30/h × 12 = €6.480/year in leave management alone.\n\nThis number is 100% theirs — based on what Asotech told you. That's why it lands."),
-      onEnter: () => { setStep(4); },
+      title: t("tour.t6_title", "5. Add Factorial\'s price"),
+      body: t("tour.t6_body", "Enter the annual Factorial investment to calculate the real ROI.\n\nWe\'ve set €8.000/year — the ROI will show the net savings and payback period.\n\nThe ROI updates automatically as you type."),
+      ctaLabel: t("tour.cta_see_roi", "See ROI →"),
+      onEnter: () => {
+        setStep(4);
+        setAnnualCost(8000);
+      },
     },
-    // 6: PDF buttons
+    // 6: PDF download — highlight buttons
     {
       targetId: "tour-pdf-buttons",
       placement: "top",
       title: t("tour.t7_title", "6. Download the branded deck"),
-      body: t("tour.t7_body", "Two options:\n\n• 1-Pager — ROI summary for the Economic Buyer (CFO, CEO). Send this by email after the call.\n\n• Full detail — module breakdown for the follow-up meeting."),
+      body: t("tour.t7_body", "Two options:\n\n• 1-Pager — ROI summary for the Economic Buyer (CFO, CEO)\n• Full detail — module-by-module breakdown\n\nSend the 1-pager after the call. Use the full deck in the follow-up meeting."),
+      ctaLabel: t("tour.cta_last", "Got it! Start for real →"),
       onEnter: () => { setStep(4); },
-    },
-    // 7: Modjo enhance — open the section
-    {
-      targetId: "tour-modjo-section",
-      placement: "top",
-      title: t("tour.t8_title", "7. Enhance with the call recording"),
-      body: t("tour.t8_body", "After the call, search for the Modjo recording here. The AI reads the transcript and replaces generic text with real prospect quotes.\n\n'HR spends time on leave' becomes:\n'Montse dedicates 3 days/month to reconciling leave in Excel before sending to the gestoría'\n\nPersonal. Hard to ignore."),
-      onEnter: () => { setStep(4); setPersonalizeOpen(true); },
-    },
-    // 8: Done
-    {
-      placement: "center",
-      title: t("tour.t9_title", "You're ready to use this for real!"),
-      body: t("tour.t9_body", "The full flow:\n\n1. Import HubSpot deal\n2. Select modules\n3. Configure team\n4. Enter hours live on the call\n5. Download deck → send to Economic Buyer\n6. Enhance with Modjo → real quotes\n\nEvery ROI is saved and accessible anytime."),
-      ctaLabel: t("tour.t9_cta", "Start a real ROI 🚀"),
     },
   ];
 
@@ -655,7 +645,7 @@ export default function CoCreation() {
                     <span className="text-[11px] text-muted-foreground">{t("express.n_modules", { count: MODULE_CATALOG.length })}</span>
                   </div>
                   {!catSearch && validBundles.length > 0 && (
-                    <div className="mb-3">
+                    <div id="tour-bundle-selector" className="mb-3">
                       <button onClick={() => setBundlesOpen(o => !o)} className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-left hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-2">
                           <Package className="h-4 w-4 text-muted-foreground" />
@@ -786,7 +776,7 @@ export default function CoCreation() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div id="tour-config-headcount" className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {(["employee", "hr", "manager"] as Stakeholder[]).map(key => {
                   const m = STAKE_STYLE[key];
                   const Icon = m.icon;
@@ -1023,7 +1013,7 @@ export default function CoCreation() {
                         )}
                       </div>
                       {/* Inputs card */}
-                      <div className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                      <div id="tour-discovery-inputs" className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
                         {inputsCardInner}
                       </div>
                     </div>
@@ -1090,7 +1080,7 @@ export default function CoCreation() {
                         </div>
                       </div>
                       {/* Inputs card */}
-                      <div className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                      <div id="tour-discovery-inputs" className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
                         {inputsCardInner}
                       </div>
                     </div>
@@ -1126,7 +1116,7 @@ export default function CoCreation() {
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-2xl mx-auto px-5 py-8 space-y-8">
             {/* Pricing input */}
-            <div className="rounded-2xl border border-border bg-card p-5">
+            <div id="tour-pricing-input" className="rounded-2xl border border-border bg-card p-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t("cocreation.pricing_title")}</p>

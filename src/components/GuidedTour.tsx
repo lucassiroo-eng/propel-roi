@@ -18,7 +18,7 @@ interface Props {
 }
 
 const PAD = 12;
-const TIP_W = 300;
+const TIP_W = 380;
 
 function useRect(id?: string) {
   const [rect, setRect] = useState<DOMRect | null>(null);
@@ -159,18 +159,18 @@ export function GuidedTour({ steps, onClose, onComplete }: Props) {
           />
         </div>
 
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-2">
+        <div className="p-5">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{idx + 1} / {steps.length}</span>
             <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
-          <h3 className="text-sm font-bold text-foreground mb-1.5 leading-snug">{step.title}</h3>
-          <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-line">{step.body}</p>
+          <h3 className="text-base font-bold text-foreground mb-2 leading-snug">{step.title}</h3>
+          <p className="text-[13px] text-muted-foreground leading-relaxed whitespace-pre-line">{step.body}</p>
         </div>
 
-        <div className="px-4 pb-4 flex items-center justify-between">
+        <div className="px-5 pb-5 flex items-center justify-between">
           <button
             onClick={prev}
             disabled={idx === 0}
@@ -185,7 +185,7 @@ export function GuidedTour({ steps, onClose, onComplete }: Props) {
           </div>
           <button
             onClick={next}
-            className="h-7 px-3 rounded-lg bg-foreground text-background text-xs font-semibold flex items-center gap-1 hover:bg-foreground/90 transition-colors"
+            className="h-9 px-4 rounded-xl bg-foreground text-background text-sm font-semibold flex items-center gap-1.5 hover:bg-foreground/90 transition-colors"
           >
             {step.ctaLabel ?? (isLast ? "Finish" : "Next")}
             {!isLast && <ChevronRight className="h-3 w-3" />}
