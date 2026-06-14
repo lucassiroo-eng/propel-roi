@@ -48,6 +48,7 @@ interface SessionEntry {
   payback_months: number | null;
   total_annual_benefit_eur: number | null;
   updated_at: string;
+  pae_id: string;
 }
 
 interface CompanyGroup {
@@ -130,6 +131,7 @@ export default function Home() {
         roi_pct: s.roi_pct, payback_months: s.payback_months,
         total_annual_benefit_eur: s.total_annual_benefit_eur,
         updated_at: s.updated_at,
+        pae_id: s.pae_id ?? "",
       };
       if (!map.has(key)) {
         map.set(key, {
@@ -227,7 +229,7 @@ export default function Home() {
                 const latest = c.sessions[0];
                 const isExpanded = expandedCompany === c.prospectId;
                 const hasHistory = c.sessions.length > 1;
-                const ownerEmail = isAdmin ? (ownerEmailMap?.get((latest as any).pae_id) ?? "") : "";
+                const ownerEmail = isAdmin ? (ownerEmailMap?.get(latest.pae_id) ?? "") : "";
                 const ownerName = ownerEmail ? emailToShortName(ownerEmail) : "";
                 const savings = latest.total_annual_benefit_eur;
                 const roiPct = latest.roi_pct;
