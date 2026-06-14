@@ -275,6 +275,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
       totalH += th;
     }
 
+    const rowsTotal = rows.reduce((s, r) => s + r.annual_savings, 0);
     details.push({
       id: modId,
       name,
@@ -282,7 +283,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
       category_desc: catDesc,
       rows,
       total_hours: totalH,
-      total_annual: slideModule.annual_savings,
+      total_annual: rows.length > 0 ? Math.round(rowsTotal) : slideModule.annual_savings,
     });
   }
   return details;
@@ -555,7 +556,7 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
   </div>
   <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:10px;color:#AEAEB8;white-space:nowrap">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
-    <span style="font-size:10px;color:#AEAEB8;flex-shrink:0;margin-left:16px">2 / ${totalSlides}</span>
+    <span style="font-size:11px;color:#AEAEB8;flex-shrink:0;margin-left:16px;white-space:nowrap;letter-spacing:.02em">2&nbsp;/&nbsp;${totalSlides}</span>
   </div>
 </div>`;
 }
@@ -600,7 +601,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     </div>
   </div>
   <div class="htot"><span class="htot-lbl">${t.total_annual}</span><span class="htot-val">${fmtEur(detail.total_annual)}</span></div>
-  <div style="position:absolute;bottom:54px;right:80px;font-size:10px;color:#AEAEB8;white-space:nowrap">${slideNum} / ${totalSlides}</div>
+  <div style="position:absolute;bottom:56px;right:82px;font-size:11px;color:#AEAEB8;white-space:nowrap;letter-spacing:.02em">${slideNum}&nbsp;/&nbsp;${totalSlides}</div>
 </div>`;
   }
 
@@ -652,7 +653,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     <tbody>${rowsHtml}</tbody>
   </table>
   <div class="htot"><span class="htot-lbl">${t.total_annual}</span><span class="htot-val">${fmtEur(detail.total_annual)}</span></div>
-  <div style="position:absolute;bottom:54px;right:80px;font-size:10px;color:#AEAEB8;white-space:nowrap">${slideNum} / ${totalSlides}</div>
+  <div style="position:absolute;bottom:56px;right:82px;font-size:11px;color:#AEAEB8;white-space:nowrap;letter-spacing:.02em">${slideNum}&nbsp;/&nbsp;${totalSlides}</div>
 </div>`;
 }
 
