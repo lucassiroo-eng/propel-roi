@@ -95,7 +95,7 @@ export function FeedbackButton({ sessionId, page = "", step }: Props) {
         onClick={() => setOpen(o => !o)}
         className={`group h-9 rounded-full shadow-md flex items-center transition-all duration-200 ${
           open
-            ? "bg-foreground text-background pl-2.5 pr-3 gap-1.5"
+            ? "bg-amber-500 text-white pl-2.5 pr-3 gap-1.5"
             : "bg-background border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:shadow-lg pl-2.5 pr-2.5 hover:pr-3 gap-0 hover:gap-1.5"
         }`}
       >
