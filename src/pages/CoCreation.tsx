@@ -473,63 +473,81 @@ export default function CoCreation() {
   }
 
   const TOUR_STEPS: TourStep[] = [
+    // 0: Welcome
     {
-      title: t("tour.t1_title", "Welcome to the ROI co-creator"),
-      body: t("tour.t1_body", "This guided tour walks you through a real example. We've pre-loaded a demo company with one module. You'll co-create the ROI step by step — exactly like you would in a real discovery call.\n\nLet's start!"),
       placement: "center",
+      title: t("tour.t1_title", "Welcome to the ROI co-creator!"),
+      body: t("tour.t1_body", "We've loaded a real demo: Asotech, 80 employees, Absences module.\n\nThis tour shows you the exact flow used in a real discovery call — spotlights on each step, data auto-filled as you go.\n\nLet's go!"),
+      ctaLabel: t("tour.t1_cta", "Start tour →"),
+      onEnter: () => { setStep(0); },
     },
+    // 1: Import step — show company filled
     {
       targetId: "tour-hubspot-input",
-      title: t("tour.t2_title", "Step 1: Import the deal"),
-      body: t("tour.t2_body", "In a real session, paste the HubSpot deal URL here. The AI will fetch the company name, sector, and communication history automatically.\n\nFor this demo, the company is already filled in. Click 'Continue' to move on."),
       placement: "bottom",
-      spotlight: true,
+      title: t("tour.t2_title", "1. Import the HubSpot deal"),
+      body: t("tour.t2_body", "Paste the deal URL here. The AI fetches company name, contacts, and communication history automatically.\n\nWe've pre-filled 'Asotech | 80 employees'. In a real session this takes 2 seconds."),
+      onEnter: () => { setStep(0); },
     },
+    // 2: Modules step — show time_off selected
     {
       targetId: "tour-selected-modules",
-      title: t("tour.t3_title", "Step 2: Select modules"),
-      body: t("tour.t3_body", "Choose which Factorial modules your prospect needs. For this demo, we've selected 'Absences' — one of the most common pain points.\n\nIn a real session, you'd select based on what you heard in the discovery call."),
-      placement: "bottom",
-      spotlight: true,
+      placement: "right",
+      title: t("tour.t3_title", "2. Select Factorial modules"),
+      body: t("tour.t3_body", "We've selected Absences — managing leave, holidays, and sick days.\n\nIn a real session: pick the modules that match the pain points you heard about. Usually Core + 2-3 modules."),
+      onEnter: () => { setStep(1); },
     },
+    // 3: Config step
     {
-      title: t("tour.t4_title", "Step 3: Configure headcount"),
-      body: t("tour.t4_body", "Set the number of employees, HR admins, and managers. These numbers drive the calculation.\n\nWe've pre-filled typical values. In a real call, ask: 'How many people are in HR? How many managers approve things?'"),
       placement: "center",
+      title: t("tour.t4_title", "3. Configure the team"),
+      body: t("tour.t4_body", "Pre-filled for Asotech:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n\nAsk your prospect: 'How many people are in HR? How many managers approve leave requests?'"),
+      onEnter: () => { setStep(2); },
     },
+    // 4: Discovery — enter hours, highlight the input panel
     {
       targetId: "tour-discovery-step",
-      title: t("tour.t5_title", "Step 4: Co-create during the call"),
-      body: t("tour.t5_body", "This is the heart of the tool. For each module, ask the stakeholder how many hours they spend on this task per month.\n\nThe left panel shows suggested questions to ask. The right panel is where you enter the hours they tell you.\n\nTip: Ask 'How many hours per month does your HR team spend calculating leave balances?'"),
-      placement: "top",
-      spotlight: true,
+      placement: "right",
+      title: t("tour.t5_title", "4. Co-create hours during the call"),
+      body: t("tour.t5_body", "Ask the HR admin: 'How many hours per month do you spend calculating leave balances?'\n\nWe've entered:\n• HR admin: 6h/month\n• Managers: 0.5h/month\n\nLeft panel: suggested questions. Right panel: their answers."),
+      onEnter: () => {
+        setStep(3);
+        setRoiConfig(prev => ({
+          ...prev,
+          hours_overrides: { time_off: { hr: 6, manager: 0.5 } },
+        }));
+      },
     },
+    // 5: Result — ROI shown
     {
       targetId: "tour-roi-result",
-      title: t("tour.t6_title", "The ROI is calculated instantly"),
-      body: t("tour.t6_body", "As you enter hours, the ROI updates in real time. The formula: hours saved × number of people × hourly cost × 12 months = annual savings.\n\nThis is the number you'll present to the Economic Buyer. It's based entirely on data the prospect gave you."),
       placement: "bottom",
-      spotlight: true,
+      title: t("tour.t6_title", "5. The ROI calculates instantly"),
+      body: t("tour.t6_body", "6h/month × 3 HR admins × €30/h × 12 = €6.480/year in leave management alone.\n\nThis number is 100% theirs — based on what Asotech told you. That's why it lands."),
+      onEnter: () => { setStep(4); },
     },
+    // 6: PDF buttons
     {
       targetId: "tour-pdf-buttons",
-      title: t("tour.t7_title", "Download the deck"),
-      body: t("tour.t7_body", "Generate a branded PDF deck:\n• 1-Pager: cover + ROI summary (for the Economic Buyer)\n• Full detail: module-by-module breakdown\n\nSend the 1-pager to the CFO/CEO. Use the full detail in your follow-up meeting."),
       placement: "top",
-      spotlight: true,
+      title: t("tour.t7_title", "6. Download the branded deck"),
+      body: t("tour.t7_body", "Two options:\n\n• 1-Pager — ROI summary for the Economic Buyer (CFO, CEO). Send this by email after the call.\n\n• Full detail — module breakdown for the follow-up meeting."),
+      onEnter: () => { setStep(4); },
     },
+    // 7: Modjo enhance — open the section
     {
       targetId: "tour-modjo-section",
-      title: t("tour.t8_title", "Enhance with your call recording"),
-      body: t("tour.t8_body", "After the call, search for the recording in Modjo. The AI reads the transcript and replaces the generic descriptions with real quotes from the prospect.\n\nExample: instead of 'HR spends time on leave management', it writes 'Montse spends 3 days a month reconciling Visual Time against Excel before sending to the gestoría'.\n\nThis makes the deck feel personal and hard to ignore."),
       placement: "top",
-      spotlight: true,
+      title: t("tour.t8_title", "7. Enhance with the call recording"),
+      body: t("tour.t8_body", "After the call, search for the Modjo recording here. The AI reads the transcript and replaces generic text with real prospect quotes.\n\n'HR spends time on leave' becomes:\n'Montse dedicates 3 days/month to reconciling leave in Excel before sending to the gestoría'\n\nPersonal. Hard to ignore."),
+      onEnter: () => { setStep(4); setPersonalizeOpen(true); },
     },
+    // 8: Done
     {
-      title: t("tour.t9_title", "You're ready!"),
-      body: t("tour.t9_body", "Now you know the full flow:\n\n1. Import deal from HubSpot\n2. Select modules\n3. Configure headcount\n4. Co-create hours during the call\n5. Download deck\n6. Enhance with Modjo transcript\n\nThe demo data is here for you to explore. Or start a new ROI with a real deal!"),
       placement: "center",
-      action: t("tour.t9_cta", "Start a real ROI"),
+      title: t("tour.t9_title", "You're ready to use this for real!"),
+      body: t("tour.t9_body", "The full flow:\n\n1. Import HubSpot deal\n2. Select modules\n3. Configure team\n4. Enter hours live on the call\n5. Download deck → send to Economic Buyer\n6. Enhance with Modjo → real quotes\n\nEvery ROI is saved and accessible anytime."),
+      ctaLabel: t("tour.t9_cta", "Start a real ROI 🚀"),
     },
   ];
 
