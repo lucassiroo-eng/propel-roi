@@ -13,6 +13,9 @@
     <meta property="og:type" content="website" />
   </head>
   <body>
+    <script>
+      (function(){var r=window.location.search.match(/[?&]p=([^&]*)/);if(r){var p='/'+r[1],q=window.location.search.match(/[?&]q=([^&]*)/);p+=q?'?'+decodeURIComponent(q[1]):'';p+=window.location.hash;window.history.replaceState(null,'',p);}})();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
