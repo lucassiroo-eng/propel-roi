@@ -469,8 +469,8 @@ export default function CoCreation() {
     },
     // 2: Modules — right side, scroll to top
     {
-      targetId: "tour-selected-modules",
-      placement: "right",
+      targetId: "tour-modules-step",
+      placement: "bottom",
       title: t("tour.t3_title", "2. Select Factorial modules"),
       body: t("tour.t3_body", "We've pre-selected Core and Time Tracking.\n\nChoose a bundle (top left) to add multiple modules at once."),
       ctaLabel: t("tour.cta_continue", "Continue →"),
@@ -512,7 +512,7 @@ export default function CoCreation() {
       ctaLabel: t("tour.cta_see_roi", "See ROI →"),
       onEnter: () => {
         setStep(4);
-        setAnnualCost(40000);
+        setAnnualCost(20000);
       },
     },
     // 6: PDF download — highlight buttons
@@ -520,8 +520,8 @@ export default function CoCreation() {
       targetId: "tour-pdf-buttons",
       placement: "top",
       title: t("tour.t7_title", "6. Download the branded deck"),
-      body: t("tour.t7_body", "Two options:\n\n• 1-Pager — ROI summary for the Economic Buyer (CFO, CEO)\n• Full detail — module-by-module breakdown\n\nSend the 1-pager after the call."),
-      ctaLabel: t("tour.cta_next", "Next →"),
+      body: t("tour.t7_body", "Descarga el deck:\n\n• 1-Pager — Resumen ROI para el Economic Buyer\n• Detalle completo — desglose por modulo\n\nDespues, mejora las descripciones con el transcrito de Modjo para citar al prospect."),
+      ctaLabel: t("tour.cta_next", "Siguiente →"),
       onEnter: () => { setStep(4); },
     },
     // 7: Modjo enhance — open the section
@@ -645,7 +645,7 @@ export default function CoCreation() {
       {step === 1 && (
         <>
           <main className="flex-1 overflow-hidden">
-            <div className="max-w-5xl mx-auto w-full px-5 py-5 h-full flex flex-col overflow-hidden">
+            <div id="tour-modules-step" className="max-w-5xl mx-auto w-full px-5 py-5 h-full flex flex-col overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1 overflow-hidden min-h-0">
                 {/* Catalog */}
                 <div className="flex flex-col min-h-0">
@@ -812,7 +812,7 @@ export default function CoCreation() {
               </div>
 
               {/* Extra params */}
-              <div className="rounded-2xl border border-border bg-card p-5" id="tour-config-extra">
+              <div className="rounded-2xl border border-border bg-card p-5">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">{t("express.extra_params")}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -827,6 +827,7 @@ export default function CoCreation() {
                   )}
                 </div>
               </div>
+              </div>{/* end tour-config-headcount */}
             </div>
           </main>
           <footer className="sticky bottom-0 z-10 bg-background/80 backdrop-blur-xl border-t border-border/60 px-4 py-3">
