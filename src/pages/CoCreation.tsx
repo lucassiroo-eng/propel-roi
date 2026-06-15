@@ -515,12 +515,12 @@ export default function CoCreation() {
         setAnnualCost(20000);
       },
     },
-    // 6: PDF download — center so it doesn't overlap buttons
+    // 6: PDF download — top so popup is above the buttons
     {
       targetId: "tour-pdf-buttons",
-      placement: "center",
+      placement: "top",
       title: t("tour.t7_title", "6. Download the branded deck"),
-      body: t("tour.t7_body", "Descarga el deck:\n\n• 1-Pager — Resumen ROI para el Economic Buyer\n• Detalle completo — desglose por modulo\n\nDespues, mejora las descripciones con el transcrito de Modjo para citar al prospect."),
+      body: t("tour.t7_body", "• 1-Pager — Para el Economic Buyer (CFO, CEO)\n• Detalle completo — desglose modulo a modulo\n\nManda el 1-pager despues de la llamada."),
       ctaLabel: t("tour.cta_next", "Siguiente →"),
       onEnter: () => { setStep(4); },
     },
@@ -529,8 +529,8 @@ export default function CoCreation() {
       targetId: "tour-modjo-section",
       placement: "top",
       title: t("tour.t8_title", "7. Enhance with the call recording"),
-      body: t("tour.t8_body", "After the call, search for the Modjo recording here. The AI reads the transcript and replaces generic descriptions with real quotes from the prospect.\n\n\"RRHH dedica tiempo a ausencias\" becomes:\n\"Montse dedica 3 días/mes a reconciliar ausencias en Excel antes de enviar a la gestoría\"\n\nPersonal. Hard to ignore."),
-      ctaLabel: t("tour.cta_last", "Got it! Start for real →"),
+      body: t("tour.t8_body", "Busca la grabacion en Modjo. La IA reemplaza descripciones genericas por citas reales del prospect.\n\n\"RRHH dedica tiempo\" → \"Montse dedica 3 días/mes a reconciliar en Excel\""),
+      ctaLabel: t("tour.cta_last", "Empezar un ROI real →"),
       onEnter: () => { setStep(4); setPersonalizeOpen(true); },
     },
   ];
