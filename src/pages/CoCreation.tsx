@@ -467,19 +467,19 @@ export default function CoCreation() {
       ctaLabel: t("tour.next_step", "Next →"),
       onEnter: () => { setStep(0); },
     },
-    // 2: Modules — right side, scroll to top
+    // 2: Modules — target Continue button at bottom, popup above it
     {
-      targetId: "tour-modules-step",
-      placement: "bottom",
+      targetId: "tour-modules-continue-btn",
+      placement: "top",
       title: t("tour.t3_title", "2. Select Factorial modules"),
-      body: t("tour.t3_body", "We've pre-selected Core and Time Tracking.\n\nChoose a bundle (top left) to add multiple modules at once."),
+      body: t("tour.t3_body", "We've pre-selected Core and Time Tracking.\n\nChoose a bundle (top left) to add multiple modules at once.\n\nWhen ready, click Continue."),
       ctaLabel: t("tour.cta_continue", "Continue →"),
       onEnter: () => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); },
     },
-    // 3: Config headcount — popup above, includes hiring/year
+    // 3: Config headcount — popup below the highlighted section
     {
       targetId: "tour-config-headcount",
-      placement: "top",
+      placement: "bottom",
       title: t("tour.t4_title", "3. Configure the team"),
       body: t("tour.t4_body", "Pre-filled:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n• 20 hires/year"),
       ctaLabel: t("tour.cta_continue", "Continue →"),
@@ -503,10 +503,10 @@ export default function CoCreation() {
         }));
       },
     },
-    // 5: Pricing — set price so ROI = ~100%, show result
+    // 5: Pricing — popup above so it doesn't cover the input
     {
       targetId: "tour-pricing-input",
-      placement: "bottom",
+      placement: "top",
       title: t("tour.t6_title", "5. Add Factorial\'s price"),
       body: t("tour.t6_body", "Enter the annual Factorial investment to calculate the real ROI.\n\nWe\'ve set €8.000/year — the ROI will show the net savings and payback period.\n\nThe ROI updates automatically as you type."),
       ctaLabel: t("tour.cta_see_roi", "See ROI →"),
@@ -749,7 +749,7 @@ export default function CoCreation() {
                   </Button>
                 )}
               </div>
-              <Button onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90">
+              <Button id="tour-modules-continue-btn" onClick={() => setStep(2)} disabled={!selectedModules.length} className="rounded-xl bg-foreground text-background hover:bg-foreground/90">
                 {t("express.continue")} <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>
