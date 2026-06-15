@@ -459,7 +459,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;display:flex;
 .sk{display:flex;align-items:center;gap:10px}
 .sk-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
 .sk-nm{font-size:14px;font-weight:800;color:${C.dark};letter-spacing:-.01em}
-.ht{font-size:12px;color:${C.gray};line-height:1.5;overflow:hidden}
+.ht{font-size:12px;color:${C.gray};line-height:1.5}
 .calc-block{font-size:12px;line-height:1.7;color:${C.lgray}}
 .calc-step{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
 .calc-step .cl{font-size:11px;color:${C.lgray};min-width:14px}
