@@ -169,6 +169,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
     },
     time_off: {
+      employee: ["Employees request leave and check balances from their phone without going through HR"],
       hr: [
         "Auto-accrual engine replaces manual balance calculations",
         "Payroll integration syncs leave data automatically, eliminating re-entry",
@@ -408,6 +409,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
     },
     time_off: {
+      employee: ["Los empleados solicitan vacaciones y consultan su saldo desde el móvil, sin pasar por RRHH"],
       hr: [
         "Motor de acumulación automática sustituye cálculos manuales de saldos",
         "La integración con nómina sincroniza los datos de ausencias automáticamente, sin reintroducción",
@@ -647,6 +649,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       ],
     },
     time_off: {
+      employee: ["Les employés demandent des congés et consultent leurs soldes depuis leur téléphone, sans passer par les RH"],
       hr: [
         "Moteur d'accumulation automatique remplace les calculs manuels de soldes",
         "L'intégration paie synchronise les données de congés automatiquement, sans re-saisie",
@@ -877,6 +880,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       manager: ["Dashboard del team mostra approvazioni, organigramma e riporti diretti in un click", "Niente più email all'HR per organico, date contrattuali o dettagli dei dipendenti"],
     },
     time_off: {
+      employee: ["I dipendenti richiedono ferie e consultano i saldi dal telefono senza passare per le HR"],
       hr: ["Motore di maturazione automatica sostituisce i calcoli manuali dei saldi", "Integrazione con paghe sincronizza i dati di assenza automaticamente", "Regole di policy prevengono le approvazioni eccessive prima che accadano"],
       manager: ["Calendario visuale del team mostra chi è assente senza consultare fogli di calcolo", "Approva o rifiuta in un click con avvisi di conflitto di copertura"],
     },
@@ -955,6 +959,7 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       manager: ["Team-Dashboard zeigt offene Genehmigungen, Organigramm und direkte Berichte auf einen Klick", "Keine E-Mails mehr an HR für Personalstand, Vertragsdaten oder Mitarbeiterdetails"],
     },
     time_off: {
+      employee: ["Mitarbeiter beantragen Urlaub und prüfen Salden vom Handy — ohne HR-Kontakt"],
       hr: ["Automatische Saldenberechnung ersetzt manuelle Urlaubskontenverwaltung", "Lohnintegration synchronisiert Abwesenheitsdaten automatisch", "Richtlinienregeln verhindern Überzeichnungen bevor sie passieren"],
       manager: ["Visueller Teamkalender zeigt Abwesenheiten ohne Tabellenprüfung", "Ein-Klick-Genehmigung mit Konflikterkennungs-Warnungen"],
     },
