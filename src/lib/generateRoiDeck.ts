@@ -256,8 +256,8 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
 
     for (const s of ["employee", "hr", "manager"] as Stakeholder[]) {
       const entry = MODULE_HOURS.find(e => e.module_id === modId && e.stakeholder === s);
-      if (!entry || hours[s] === 0) continue;
-      const count = getCountForEntry(entry, multipliers);
+      if (hours[s] === 0) continue;
+      const count = entry ? getCountForEntry(entry, multipliers) : headcounts[s];
       const th = hours[s] * count;
       const ms = th * hourly_costs[s];
       const descArr = customDescs?.[modId]?.[s] ?? descs[modId]?.[s] ?? [];
@@ -265,7 +265,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
         stakeholder: s,
         hours_per_unit: hours[s],
         count,
-        scales_with: entry.scales_with,
+        scales_with: entry?.scales_with ?? (s === "employee" ? "employees" : s === "hr" ? "hr_ftes" : "managers"),
         total_hours: th,
         hourly_cost: hourly_costs[s],
         monthly_savings: ms,
@@ -611,7 +611,7 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     const isAnnual = r.scales_with === "onboardings";
     const hUnitLabel: Record<string, string> = { es: isAnnual ? "h/alta" : "h/mes", en: isAnnual ? "h/hire" : "h/month", fr: isAnnual ? "h/recrutement" : "h/mois", it: isAnnual ? "h/assunzione" : "h/mese", de: isAnnual ? "h/Einstellung" : "h/Monat" };
     const hUnit = `${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es}`;
-    const totalLabel = isAnnual ? `= ${Math.round(r.total_hours)} ${t.h_year_saved}` : `= ${Math.round(r.total_hours * 10) / 10} ${t.h_month_saved}`;
+    const totalLabel = isAnnual ? `= ${Math.round(r.total_hours * 12)} ${t.h_year_saved}` : `= ${Math.round(r.total_hours * 10) / 10} ${t.h_month_saved}`;
     const moLabel: Record<string, string> = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat" };
     const yrLabel: Record<string, string> = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr" };
     const monthlySav = isAnnual ? fmtEur(Math.round(r.annual_savings / 12)) + ` ${moLabel[lang] ?? moLabel.es}` : fmtEur(Math.round(r.monthly_savings)) + ` ${moLabel[lang] ?? moLabel.es}`;
@@ -623,14 +623,14 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
             <div style="width:36px;height:36px;border-radius:10px;background:${ico.bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${ico.emoji}</div>
             <div>
               <div style="font-size:14px;font-weight:800;color:#25253D;letter-spacing:-.01em;line-height:1.2;white-space:nowrap">${stakeholderLabel(r.stakeholder, lang)}</div>
-              <div style="font-size:10px;font-weight:600;color:#AEAEB8;margin-top:2px;text-transform:uppercase;letter-spacing:.04em">${Math.round(r.count)} ${swLbl}</div>
+              <div style="font-size:10px;font-weight:600;color:#AEAEB8;margin-top:2px;text-transform:uppercase;letter-spacing:.04em">${isAnnual ? Math.round(r.count * 12) : Math.round(r.count)} ${swLbl}</div>
             </div>
           </div>
         </td>
         <td><div class="ht">${escHtml(r.description)}</div></td>
         <td>
           <div style="font-size:14px;font-weight:800;color:#25253D">${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es} <span style="font-size:12px;font-weight:400;color:#6C6C7D">${t.per} ${swLbl.replace(/s$/, "")}</span></div>
-          <div style="font-size:12px;color:#6C6C7D;margin:3px 0">× ${Math.round(r.count)} ${swLbl}</div>
+          <div style="font-size:12px;color:#6C6C7D;margin:3px 0">× ${isAnnual ? Math.round(r.count * 12) : Math.round(r.count)} ${swLbl}</div>
           <div style="font-size:14px;font-weight:800;color:#25253D;margin:5px 0 3px;padding-top:5px;border-top:1px solid #E9E9EC">${totalLabel}</div>
           <div style="font-size:11px;color:#AEAEB8">× ${fmtEur(r.hourly_cost)}/h ${t.hourly_cost}</div>
         </td>

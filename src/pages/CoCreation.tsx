@@ -559,11 +559,14 @@ export default function CoCreation() {
           <div className="flex-1 flex items-center justify-center gap-1">
             {STEPS.map((label, i) => (
               <div key={label} className="flex items-center">
-                <div className="flex items-center gap-1.5 px-1">
-                  <div className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${i < step ? "bg-emerald-500 text-white" : i === step ? "bg-foreground text-background shadow-sm" : "bg-muted text-muted-foreground"}`}>
+                <div
+                  className={`flex items-center gap-1.5 px-1 ${i < step ? "cursor-pointer" : ""}`}
+                  onClick={() => { if (i < step) { if (i === 3) setDiscoveryIdx(0); setStep(i); } }}
+                >
+                  <div className={`w-6 h-6 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-300 ${i < step ? "bg-emerald-500 text-white hover:bg-emerald-600" : i === step ? "bg-foreground text-background shadow-sm" : "bg-muted text-muted-foreground"}`}>
                     {i < step ? <Check className="h-3 w-3" /> : i + 1}
                   </div>
-                  <span className={`text-xs hidden sm:inline transition-colors ${i === step ? "text-foreground font-semibold" : "text-muted-foreground"}`}>{label}</span>
+                  <span className={`text-xs hidden sm:inline transition-colors ${i === step ? "text-foreground font-semibold" : i < step ? "text-muted-foreground hover:text-foreground" : "text-muted-foreground"}`}>{label}</span>
                 </div>
                 {i < STEPS.length - 1 && <div className={`w-4 h-px hidden sm:block transition-colors ${i < step ? "bg-emerald-400" : "bg-border"}`} />}
               </div>
@@ -1260,6 +1263,14 @@ export default function CoCreation() {
 
             {/* Save */}
             <div className="flex flex-col items-center gap-3 pt-2 pb-4">
+              <Button
+                variant="outline"
+                onClick={() => { setDiscoveryIdx(0); setStep(3); }}
+                className="w-full max-w-sm h-11 rounded-xl text-sm font-medium"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                {t("express.back_to_discovery", "Volver a Discovery")}
+              </Button>
               <Button
                 onClick={async () => { setSaving(true); await saveToHistory("during_call"); setSaving(false); toast.success(t("cocreation.saved")); }}
                 disabled={saving}
