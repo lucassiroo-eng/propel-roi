@@ -467,10 +467,10 @@ export default function CoCreation() {
       ctaLabel: t("tour.next_step", "Next →"),
       onEnter: () => { setStep(0); },
     },
-    // 2: Modules — target Continue button at bottom, popup above it
+    // 2: Modules — centered popup, spotlight on Continue button
     {
       targetId: "tour-modules-continue-btn",
-      placement: "top",
+      placement: "center",
       title: t("tour.t3_title", "2. Select Factorial modules"),
       body: t("tour.t3_body", "We've pre-selected Core and Time Tracking.\n\nChoose a bundle (top left) to add multiple modules at once.\n\nWhen ready, click Continue."),
       ctaLabel: t("tour.cta_continue", "Continue →"),
@@ -481,7 +481,7 @@ export default function CoCreation() {
       targetId: "tour-config-headcount",
       placement: "bottom",
       title: t("tour.t4_title", "3. Configure the team"),
-      body: t("tour.t4_body", "Pre-filled:\n• 80 employees @ €20/h\n• 3 HR admins @ €30/h\n• 10 managers @ €28/h\n• 20 hires/year"),
+      body: t("tour.t4_body", "Headcount y coste por hora ya rellenados. Revisa y ajusta si necesitas. Haz clic en Continuar."),
       ctaLabel: t("tour.cta_continue", "Continue →"),
       onEnter: () => { setStep(2); window.scrollTo({ top: 0, behavior: "smooth" }); },
     },
@@ -503,10 +503,10 @@ export default function CoCreation() {
         }));
       },
     },
-    // 5: Pricing — popup above so it doesn't cover the input
+    // 5: Pricing — popup below so ROI result is visible above
     {
       targetId: "tour-pricing-input",
-      placement: "top",
+      placement: "bottom",
       title: t("tour.t6_title", "5. Add Factorial\'s price"),
       body: t("tour.t6_body", "Enter the annual Factorial investment to calculate the real ROI.\n\nWe\'ve set €8.000/year — the ROI will show the net savings and payback period.\n\nThe ROI updates automatically as you type."),
       ctaLabel: t("tour.cta_see_roi", "See ROI →"),
@@ -515,10 +515,10 @@ export default function CoCreation() {
         setAnnualCost(20000);
       },
     },
-    // 6: PDF download — highlight buttons
+    // 6: PDF download — center so it doesn't overlap buttons
     {
       targetId: "tour-pdf-buttons",
-      placement: "top",
+      placement: "center",
       title: t("tour.t7_title", "6. Download the branded deck"),
       body: t("tour.t7_body", "Descarga el deck:\n\n• 1-Pager — Resumen ROI para el Economic Buyer\n• Detalle completo — desglose por modulo\n\nDespues, mejora las descripciones con el transcrito de Modjo para citar al prospect."),
       ctaLabel: t("tour.cta_next", "Siguiente →"),
