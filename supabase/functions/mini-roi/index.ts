@@ -401,9 +401,12 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
     const hasTranscript = [m.source_employee, m.source_hr, m.source_manager].includes("transcript");
     const sourceNote = hasTranscript ? "basado en conversaciones" : "estimación sectorial";
 
-    const toolNote = tool
-      ? ` · reemplaza ${esc(tool.tool_name)} (~€${fmtEur(Math.round(tool.annual_cost_eur / 100) * 100)}/año estimado)`
-      : "";
+    // Tool replacement OR hours — never both
+    const assumptionLine = tool
+      ? `<p style="font-size:11px;color:#AAAACC;margin-top:6px;padding-left:24px;">Reemplaza <strong style="color:#8888AA;">${esc(tool.tool_name)}</strong> · ~€${fmtEur(Math.round(tool.annual_cost_eur / 100) * 100)}/año estimado</p>`
+      : parts.length > 0
+        ? `<p style="font-size:11px;color:#AAAACC;margin-top:6px;padding-left:24px;">${parts.map(esc).join(" · ")} — ${sourceNote}</p>`
+        : "";
 
     return `
     <div style="padding:14px 0;border-bottom:1px solid #EBEBF0;page-break-inside:avoid;">
@@ -415,7 +418,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
         <span style="font-size:16px;font-weight:800;color:#FF355E;letter-spacing:-.02em;white-space:nowrap;flex-shrink:0;">€${fmtEur(annual)}<span style="font-size:10px;font-weight:500;color:#AAAACC;">/año</span></span>
       </div>
       <p style="font-size:12.5px;color:#4A4A6A;margin-top:4px;line-height:1.55;padding-left:24px;">${esc(m.pain_description ?? m.pain_title ?? "")}</p>
-      ${parts.length > 0 ? `<p style="font-size:11px;color:#AAAACC;margin-top:6px;padding-left:24px;">${parts.map(esc).join(" · ")}${toolNote} — ${sourceNote}</p>` : ""}
+      ${assumptionLine}
     </div>`;
   }
 
