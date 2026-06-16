@@ -11,6 +11,7 @@ import { Navigate } from "react-router-dom";
 import { Loader2, ShieldCheck, History, BarChart3, TrendingUp, FileText, Users, Percent, Globe, Building2, Package, GitBranch } from "lucide-react";
 import AdminAnalytics from "@/components/settings/AdminAnalytics";
 import AdminFeedback from "@/components/settings/AdminFeedback";
+import { MiniRoiTestSpace } from "@/components/admin/MiniRoiTestSpace";
 import type { TableEditorConfig } from "@/hooks/useAdminTable";
 
 const TABLE_CONFIGS: Record<string, TableEditorConfig> = {
@@ -440,6 +441,7 @@ export default function Admin() {
 
       <main className="max-w-4xl mx-auto px-6 py-6 space-y-6">
         <AdminFeedback />
+        <MiniRoiTestSpace />
         <AdminAnalytics />
       </main>
     </div>
