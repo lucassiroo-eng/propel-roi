@@ -675,40 +675,74 @@ Deno.serve(async (req) => {
             try { controller.enqueue(enc.encode(JSON.stringify(data) + "\n")); } catch { /* closed */ }
           };
           try {
-            emit({ step: "html", status: "running", label: "Regenerando documento con módulos editados..." });
-            // Filter + reorder modules respecting selection
-            const filteredAnalysis = {
-              ...existing_analysis,
-              modules: (existing_analysis.modules ?? []).filter((m: any) => selected_modules.includes(m.id)),
-            };
-            // Add any new modules not in the original analysis
-            for (const id of selected_modules) {
-              if (!filteredAnalysis.modules.find((m: any) => m.id === id)) {
-                filteredAnalysis.modules.push({ id, pain_type: "TIEMPO", pain_title: module_notes[id] ?? `Módulo ${id}`, pain_description: module_notes[id] ?? "Estimación basada en benchmarks del sector.", hours_employee: 0.1, hours_hr: 1.0, hours_manager: 0.25, source_employee: "assumption", source_hr: "assumption", source_manager: "assumption" });
+            emit({ step: "claude", status: "running", label: "Regenerando argumentación con tus instrucciones..." });
+
+            // Build ordered module list (core first, then selected order)
+            const moduleList = selected_modules.map(id => {
+              const orig = (existing_analysis.modules ?? []).find((m: any) => m.id === id);
+              return orig ?? { id, hours_employee: 0.1, hours_hr: 1.0, hours_manager: 0.25, source_employee: "assumption", source_hr: "assumption", source_manager: "assumption" };
+            });
+            const coreIdx = moduleList.findIndex((m: any) => m.id === "core");
+            if (coreIdx > 0) moduleList.unshift(moduleList.splice(coreIdx, 1)[0]);
+
+            const moduleInstructions = moduleList.map((m: any) => {
+              const note = module_notes[m.id];
+              const isNew = !(existing_analysis.modules ?? []).find((x: any) => x.id === m.id);
+              return `- ${MODULE_LABELS[m.id] ?? m.id}${note ? `\n  INSTRUCCIÓN AE: "${note}"` : ""}${isNew ? "\n  (módulo nuevo, no había en análisis original)" : ""}`;
+            }).join("\n");
+
+            const user = `EMPRESA: ${hs_data?.company_name ?? ""}, ${hs_data?.employees ?? "?"} empleados, ${hs_data?.country ?? ""}, ${hs_data?.industry ?? ""}
+CONTEXTO: ${existing_analysis?.company_context ?? ""}
+
+Genera o actualiza la descripción de cada módulo para el one-pager ROI.
+
+REGLAS:
+1. pain_title: max 12 palabras, específico para esta empresa
+2. pain_description: 1 frase, max 20 palabras, menciona la consecuencia de negocio concreta
+3. INSTRUCCIÓN AE "precio de [tool]" o "ahorro es dejar de pagar [tool]" → añade ese módulo a tool_replacements con tool_name y annual_cost_eur estimado (precio de mercado de esa herramienta -20%)
+4. INSTRUCCIÓN AE "como [otro módulo]" → adapta el argumento al contexto de esta empresa para este módulo específico
+5. INSTRUCCIÓN AE sobre horas → ajusta hours_employee/hours_hr/hours_manager
+6. Sin INSTRUCCIÓN AE → genera descripción basada en el contexto de la empresa y benchmarks del sector
+7. NUNCA copies la instrucción del AE textualmente como pain_description
+
+MÓDULOS:
+${moduleInstructions}
+
+Módulos actuales del análisis:
+${JSON.stringify(moduleList, null, 2)}
+
+Devuelve JSON exacto:
+{
+  "modules": [{ "id": "...", "pain_type": "TIEMPO|HERRAMIENTA|DATOS|CUMPLIMIENTO|CRECIMIENTO", "pain_title": "...", "pain_description": "...", "hours_employee": 0, "hours_hr": 0, "hours_manager": 0, "source_employee": "assumption|transcript", "source_hr": "assumption|transcript", "source_manager": "assumption|transcript" }],
+  "tool_replacements": [{ "module_id": "...", "tool_name": "...", "annual_cost_eur": 0 }]
+}`;
+
+            const res = await azureFetch({
+              model: "claude-opus-4-6",
+              max_tokens: 2048,
+              system: "Eres un analista de ventas de Factorial. Genera argumentación de ROI en español. Responde SOLO con el JSON pedido, sin markdown ni comentarios.",
+              messages: [{ role: "user", content: user }],
+            }, 45000);
+
+            const filteredAnalysis = { ...existing_analysis, modules: moduleList, tool_replacements: existing_analysis.tool_replacements ?? [] };
+
+            if (res.ok) {
+              const rb = await res.json();
+              const text = rb.content?.[0]?.text ?? "";
+              const jsonMatch = text.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                try {
+                  const parsed = JSON.parse(jsonMatch[0]);
+                  if (parsed.modules) filteredAnalysis.modules = parsed.modules;
+                  if (parsed.tool_replacements?.length) filteredAnalysis.tool_replacements = parsed.tool_replacements;
+                } catch { /* keep original */ }
               }
             }
-            // If any module has a note, re-run Claude for that module's description
-            const modulesWithNotes = selected_modules.filter(id => module_notes[id]);
-            if (modulesWithNotes.length > 0) {
-              emit({ step: "claude", status: "running", label: "Actualizando argumentación con tus notas..." });
-              const notePrompt = modulesWithNotes.map(id => `- ${MODULE_LABELS[id] ?? id}: "${module_notes[id]}"`).join("\n");
-              const res = await azureFetch({
-                model: "claude-opus-4-6",
-                max_tokens: 1024,
-                system: "Eres un analista de ventas de Factorial. Actualiza las descripciones de los módulos indicados según las instrucciones del AE. Responde en español.",
-                messages: [{ role: "user", content: `Para los siguientes módulos, actualiza pain_title y pain_description respetando estas instrucciones del AE:\n${notePrompt}\n\nMódulos actuales:\n${JSON.stringify(filteredAnalysis.modules, null, 2)}\n\nDevuelve SOLO el array JSON actualizado de módulos, sin comentarios.` }],
-              }, 30000);
-              if (res.ok) {
-                const rb = await res.json();
-                const text = rb.content?.[0]?.text ?? "";
-                const jsonMatch = text.match(/\[[\s\S]*\]/);
-                if (jsonMatch) {
-                  try { filteredAnalysis.modules = JSON.parse(jsonMatch[0]); } catch { /* keep original */ }
-                }
-              }
-              emit({ step: "claude", status: "done", label: "Argumentación actualizada" });
-            }
+
+            emit({ step: "claude", status: "done", label: "Argumentación generada" });
+
             const roi = calculateRoi(hs_data, filteredAnalysis, annual_cost_override ? Number(annual_cost_override) : undefined);
+            emit({ step: "html", status: "running", label: "Generando documento..." });
             const html = buildHtml(hs_data, filteredAnalysis, roi, language);
             emit({ step: "html", status: "done", label: "Documento generado" });
             emit({ step: "result", status: "done", label: "Listo", html, roi_data: roi, analysis: filteredAnalysis, company: hs_data });
