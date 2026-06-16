@@ -1,5 +1,22 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { azureFetch } from "../_shared/azureFetch.ts";
+
+const AZURE_URL = "https://partners-bizdev-ai.services.ai.azure.com/anthropic/v1/messages";
+async function azureFetch(body: Record<string, unknown>, timeoutMs = 55000): Promise<Response> {
+  const k = Deno.env.get("AZURE_ANTHROPIC_API_KEY");
+  if (!k) throw new Error("AZURE_ANTHROPIC_API_KEY not set");
+  const h = { "x-api-key": k, "anthropic-version": "2023-06-01", "Content-Type": "application/json" };
+  for (let a = 0; a <= 2; a++) {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), timeoutMs);
+    try {
+      const r = await fetch(AZURE_URL, { method: "POST", headers: h, body: JSON.stringify(body), signal: c.signal });
+      clearTimeout(t);
+      if (r.status === 429 && a < 2) { await new Promise(x => setTimeout(x, 25000)); continue; }
+      return r;
+    } catch (e) { clearTimeout(t); if (a < 2) { await new Promise(x => setTimeout(x, 3000)); continue; } throw e; }
+  }
+  throw new Error("Azure: max retries exceeded");
+}
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -174,7 +191,7 @@ const ANALYSIS_TOOL = {
             id: { type: "string" },
             pain_type: { type: "string", enum: ["TIEMPO", "HERRAMIENTA", "DATOS", "CUMPLIMIENTO", "CRECIMIENTO"], description: "Use HERRAMIENTA only if the company explicitly mentions a specific tool to replace. Default is TIEMPO." },
             pain_title: { type: "string", description: "One sentence: the main pain this module solves" },
-            pain_description: { type: "string", description: "1 sentence only (max 20 words). Specific and direct. No direct quotes. Focus on the business consequence, not the technical description." },
+            pain_description: { type: "string", description: "1 sentence (max 25 words). Specific to this company. For the 'core' module, always mention at least one of: documentos, firma digital, contratos, or nóminas — because Core includes document management and digital signatures." },
             hours_employee: { type: "number", description: "h/mes per employee" },
             hours_hr: { type: "number", description: "h/mes for the HR admin (flat monthly)" },
             hours_manager: { type: "number", description: "h/mes per manager" },
@@ -230,7 +247,10 @@ INSTRUCCIONES:
 
 3. Horas estimadas — usa VALORES BAJOS y CONSERVADORES (empresa <100 emp):
 
-   core:          employee=0.1, hr=1.0, manager=0.25
+   core:          employee=0.2, hr=1.5, manager=0.25
+   (Core incluye portal del empleado, onboarding, documentos y firma digital.
+   Las horas de Core deben reflejar también el tiempo en gestión documental:
+   envío de contratos, firma de documentos, PRL, nóminas — todo lo que hoy va por email o papel.)
    time_off:      employee=0.1, hr=1.5, manager=0.5
    time_tracking: employee=0.2, hr=3.5, manager=0.25
    payroll:       employee=0.0, hr=2.0, manager=0.25
@@ -251,7 +271,7 @@ INSTRUCCIONES:
    - Personio: €${Math.round((hs.employees ?? 50) * 3.6 * 12)}/año
    - Excel/manual: €0 (no es tool replacement)
 
-Módulos disponibles: core, time_off, time_tracking, payroll, documents, recruitment, performance, expenses, time_planning, trainings, complaints.`;
+Módulos disponibles (usa SOLO estos IDs exactos): core, time_off, time_tracking, time_planning, payroll, compensations, recruitment, performance, expenses, trainings, complaints, engagement, benefits_standard.`;
 
   const res = await azureFetch({
     model: "claude-opus-4-6",
@@ -329,16 +349,18 @@ function calculateRoi(hs: any, analysis: any, annualCostOverride?: number): RoiR
 
 const MODULE_LABELS: Record<string, string> = {
   core: "Plataforma del Empleado / Core",
-  time_off: "Ausencias",
+  time_off: "Gestión de Ausencias",
   time_tracking: "Control Horario",
+  time_planning: "Planificación de Turnos",
   payroll: "Nómina",
-  documents: "Documentos y Firma Digital",
+  compensations: "Compensaciones",
   recruitment: "Selección de Personal",
   performance: "Evaluación del Desempeño",
-  expenses: "Gastos",
-  time_planning: "Planificación de Turnos",
+  expenses: "Gestión de Gastos",
   trainings: "Formación",
-  complaints: "Buzón de Denuncias",
+  complaints: "Canal de Denuncias",
+  engagement: "Clima Laboral",
+  benefits_standard: "Beneficios para Empleados",
 };
 
 function esc(s: string): string {
@@ -430,10 +452,11 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
 
   const modulesHeaderHtml = `
   <div style="margin-top:20px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">Módulos recomendados y ahorro estimado</div>
-      <div style="font-size:9px;color:#AAAACC;font-style:italic;">Todo el ahorro está basado en estimaciones de horas/mes por tipo de trabajador</div>
-    </div>`;
+      <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#CCCCDD;">Ahorro anual</div>
+    </div>
+    <div style="font-size:9px;color:#AAAACC;font-style:italic;margin-bottom:4px;">Todo el ahorro está basado en estimaciones de horas/mes por tipo de trabajador</div>`;
 
   const roiHtml = `
   <!-- ROI Summary -->
@@ -638,10 +661,69 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authErr } = await sb.auth.getUser();
     if (authErr || !user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: CORS });
 
-    const { deal_url, language = "es", annual_cost_override } = await req.json();
-    if (!deal_url) throw new Error("deal_url is required");
+    const body = await req.json();
+    const { mode, language = "es", annual_cost_override } = body;
 
     const enc = new TextEncoder();
+
+    // ── html_only mode: regenerate from existing analysis + module overrides ──
+    if (mode === "html_only") {
+      const { hs_data, existing_analysis, selected_modules, module_notes = {} } = body;
+      const stream = new ReadableStream({
+        async start(controller) {
+          const emit = (data: Record<string, unknown>) => {
+            try { controller.enqueue(enc.encode(JSON.stringify(data) + "\n")); } catch { /* closed */ }
+          };
+          try {
+            emit({ step: "html", status: "running", label: "Regenerando documento con módulos editados..." });
+            // Filter + reorder modules respecting selection
+            const filteredAnalysis = {
+              ...existing_analysis,
+              modules: (existing_analysis.modules ?? []).filter((m: any) => selected_modules.includes(m.id)),
+            };
+            // Add any new modules not in the original analysis
+            for (const id of selected_modules) {
+              if (!filteredAnalysis.modules.find((m: any) => m.id === id)) {
+                filteredAnalysis.modules.push({ id, pain_type: "TIEMPO", pain_title: module_notes[id] ?? `Módulo ${id}`, pain_description: module_notes[id] ?? "Estimación basada en benchmarks del sector.", hours_employee: 0.1, hours_hr: 1.0, hours_manager: 0.25, source_employee: "assumption", source_hr: "assumption", source_manager: "assumption" });
+              }
+            }
+            // If any module has a note, re-run Claude for that module's description
+            const modulesWithNotes = selected_modules.filter(id => module_notes[id]);
+            if (modulesWithNotes.length > 0) {
+              emit({ step: "claude", status: "running", label: "Actualizando argumentación con tus notas..." });
+              const notePrompt = modulesWithNotes.map(id => `- ${MODULE_LABELS[id] ?? id}: "${module_notes[id]}"`).join("\n");
+              const res = await azureFetch({
+                model: "claude-opus-4-6",
+                max_tokens: 1024,
+                system: "Eres un analista de ventas de Factorial. Actualiza las descripciones de los módulos indicados según las instrucciones del AE. Responde en español.",
+                messages: [{ role: "user", content: `Para los siguientes módulos, actualiza pain_title y pain_description respetando estas instrucciones del AE:\n${notePrompt}\n\nMódulos actuales:\n${JSON.stringify(filteredAnalysis.modules, null, 2)}\n\nDevuelve SOLO el array JSON actualizado de módulos, sin comentarios.` }],
+              }, 30000);
+              if (res.ok) {
+                const rb = await res.json();
+                const text = rb.content?.[0]?.text ?? "";
+                const jsonMatch = text.match(/\[[\s\S]*\]/);
+                if (jsonMatch) {
+                  try { filteredAnalysis.modules = JSON.parse(jsonMatch[0]); } catch { /* keep original */ }
+                }
+              }
+              emit({ step: "claude", status: "done", label: "Argumentación actualizada" });
+            }
+            const roi = calculateRoi(hs_data, filteredAnalysis, annual_cost_override ? Number(annual_cost_override) : undefined);
+            const html = buildHtml(hs_data, filteredAnalysis, roi, language);
+            emit({ step: "html", status: "done", label: "Documento generado" });
+            emit({ step: "result", status: "done", label: "Listo", html, roi_data: roi, analysis: filteredAnalysis, company: hs_data });
+          } catch (err: any) {
+            emit({ step: "error", status: "error", label: "Error", detail: err.message ?? "Error" });
+          }
+          try { controller.close(); } catch { /* */ }
+        },
+      });
+      return new Response(stream, { headers: { ...CORS, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-cache", "X-Accel-Buffering": "no" } });
+    }
+
+    const { deal_url } = body;
+    if (!deal_url) throw new Error("deal_url is required");
+
     const stream = new ReadableStream({
       async start(controller) {
         const emit = (data: Record<string, unknown>) => {
