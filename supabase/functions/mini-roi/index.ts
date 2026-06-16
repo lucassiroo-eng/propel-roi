@@ -479,7 +479,11 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   </div>
   <!-- Methodology -->
   <div style="margin-top:16px;padding:14px 18px;background:#F4F4FA;border-radius:5px;">
-    <p style="font-size:10.5px;color:#9999BB;line-height:1.7;">Las horas indicadas son estimaciones conservadoras del tiempo que Factorial libera mensualmente por tipo de trabajador (empleados, administración de RRHH y responsables). Todas las cifras son asunciones basadas en benchmarks de empresas de tamaño similar, salvo donde se indique "basado en conversaciones". Requieren validación conjunta con el cliente.</p>
+    <p style="font-size:10.5px;color:#9999BB;line-height:1.7;">
+      <strong style="color:#8888AA;">Asunciones:</strong> Las horas indicadas son estimaciones conservadoras del tiempo que Factorial libera mensualmente por tipo de trabajador. Todas las cifras son asunciones basadas en benchmarks de empresas de tamaño similar, salvo donde se indique "basado en conversaciones". Requieren validación conjunta con el cliente.
+      <br style="margin-bottom:4px;">
+      <span style="display:inline-block;margin-top:5px;">Personal asumido: <strong style="color:#8888AA;">${roi.headcounts.employee} empleados</strong> · <strong style="color:#8888AA;">${roi.headcounts.hr} admin de RRHH</strong> · <strong style="color:#8888AA;">${roi.headcounts.manager} responsables</strong> · Coste horario: <strong style="color:#8888AA;">€${roi.hourly_costs.employee}/h empleado</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.hr}/h admin</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.manager}/h responsable</strong></span>
+    </p>
   </div>
   <!-- Footer -->
   <div style="margin-top:18px;padding-top:12px;border-top:1px solid #EBEBF0;display:flex;justify-content:space-between;align-items:center;">
