@@ -262,10 +262,11 @@ export function MiniRoiTestSpace() {
               Descargar HTML
             </Button>
           </div>
-          <div className="rounded-xl border border-border overflow-hidden" style={{ height: 560 }}>
+          {/* A4 ratio preview: 210mm × 297mm = 1:1.414. At ~700px wide → ~990px tall */}
+          <div className="rounded-xl border border-border overflow-auto bg-[#E4E4EC]" style={{ maxHeight: 900 }}>
             <iframe
               srcDoc={html}
-              className="w-full h-full"
+              style={{ width: "210mm", minHeight: "297mm", display: "block", border: "none" }}
               title="Mini ROI Preview"
               sandbox="allow-same-origin"
             />
