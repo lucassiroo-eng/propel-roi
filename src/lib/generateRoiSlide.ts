@@ -640,7 +640,16 @@ function buildModuleDetails(input: RoiSlideInput, data: RoiSlideData): ModuleDet
       const totalHours = hpm * count;
       const monthly = totalHours * hourly_costs[s];
       const annual = monthly * 12;
-      const bullets = customDescs?.[modId]?.[s] ?? genericDescs[modId]?.[s] ?? [];
+      const genericFallbackBullets: Record<string, Record<string, string>> = {
+        es: { employee: "Factorial automatiza este proceso, ahorrando tiempo a cada persona del equipo.", hr: "Factorial elimina tareas manuales repetitivas del equipo de RRHH.", manager: "Factorial reduce el tiempo de gestión y seguimiento para los responsables." },
+        en: { employee: "Factorial automates this process, saving time for each team member.", hr: "Factorial eliminates repetitive manual tasks for the HR team.", manager: "Factorial reduces management and tracking time for team leads." },
+        fr: { employee: "Factorial automatise ce processus, économisant du temps à chaque membre.", hr: "Factorial élimine les tâches manuelles répétitives pour l'équipe RH.", manager: "Factorial réduit le temps de gestion pour les responsables." },
+        it: { employee: "Factorial automatizza questo processo, risparmiando tempo a ogni membro.", hr: "Factorial elimina le attività manuali ripetitive per il team HR.", manager: "Factorial riduce i tempi di gestione per i responsabili." },
+        de: { employee: "Factorial automatisiert diesen Prozess und spart jedem Teammitglied Zeit.", hr: "Factorial eliminiert repetitive manuelle Aufgaben für das HR-Team.", manager: "Factorial reduziert den Verwaltungsaufwand für Führungskräfte." },
+        pt: { employee: "Factorial automatiza este processo, poupando tempo a cada membro da equipa.", hr: "Factorial elimina tarefas manuais repetitivas para a equipa de RH.", manager: "Factorial reduz o tempo de gestão para os responsáveis." },
+      };
+      const fallbackBullet = (genericFallbackBullets[lang] ?? genericFallbackBullets.en)[s];
+      const bullets = customDescs?.[modId]?.[s] ?? genericDescs[modId]?.[s] ?? (fallbackBullet ? [fallbackBullet] : []);
       rows.push({ stakeholder: s, hours_per_person: hpm, count: Math.round(count * 100) / 100, total_hours: Math.round(totalHours * 100) / 100, hourly_cost: hourly_costs[s], monthly_savings: Math.round(monthly), annual_savings: Math.round(annual), scales_with: scalesWith, bullets });
       totalH += totalHours; totalM += monthly; totalA += annual;
     }

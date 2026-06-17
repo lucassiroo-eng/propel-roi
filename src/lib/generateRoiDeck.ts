@@ -295,6 +295,16 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
       const th = hours[s] * count;
       const ms = th * hourly_costs[s];
       const descArr = customDescs?.[modId]?.[s] ?? descs[modId]?.[s] ?? [];
+      // Generic fallback per stakeholder × language so no row is ever empty
+      const genericFallback: Record<string, Record<string, string>> = {
+        es: { employee: "Factorial automatiza este proceso, ahorrando tiempo a cada persona del equipo.", hr: "Factorial elimina tareas manuales repetitivas del equipo de RRHH.", manager: "Factorial reduce el tiempo de gestión y seguimiento para los responsables." },
+        en: { employee: "Factorial automates this process, saving time for each team member.", hr: "Factorial eliminates repetitive manual tasks for the HR team.", manager: "Factorial reduces management and tracking time for team leads." },
+        fr: { employee: "Factorial automatise ce processus, économisant du temps à chaque membre de l'équipe.", hr: "Factorial élimine les tâches manuelles répétitives pour l'équipe RH.", manager: "Factorial réduit le temps de gestion et de suivi pour les responsables." },
+        it: { employee: "Factorial automatizza questo processo, risparmiando tempo a ogni membro del team.", hr: "Factorial elimina le attività manuali ripetitive per il team HR.", manager: "Factorial riduce i tempi di gestione e monitoraggio per i responsabili." },
+        de: { employee: "Factorial automatisiert diesen Prozess und spart jedem Teammitglied Zeit.", hr: "Factorial eliminiert repetitive manuelle Aufgaben für das HR-Team.", manager: "Factorial reduziert den Verwaltungs- und Nachverfolgungsaufwand für Führungskräfte." },
+        pt: { employee: "Factorial automatiza este processo, poupando tempo a cada membro da equipa.", hr: "Factorial elimina tarefas manuais repetitivas para a equipa de RH.", manager: "Factorial reduz o tempo de gestão e acompanhamento para os responsáveis." },
+      };
+      const fallback = (genericFallback[uiLang] ?? genericFallback.en)[s] ?? "";
       rows.push({
         stakeholder: s,
         hours_per_unit: hours[s],
@@ -304,7 +314,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
         hourly_cost: hourly_costs[s],
         monthly_savings: ms,
         annual_savings: ms * 12,
-        description: descArr[0] ?? "",
+        description: descArr[0] ?? fallback,
       });
       totalH += th;
     }
