@@ -438,13 +438,13 @@ export default function MiniRoiPage() {
               <AlertTriangle className="h-7 w-7" style={{ color: "oklch(58% 0.16 60)" }} />
             </div>
             <h1 className="text-2xl font-bold tracking-tight mb-4" style={{ color: "oklch(14% 0.018 250)" }}>
-              t("mini_roi.warning_title")
+              {t("mini_roi.warning_title")}
             </h1>
             <p className="text-base leading-relaxed mb-3" style={{ color: "oklch(32% 0.012 250)" }}>
-              t("mini_roi.warning_body")
+              {t("mini_roi.warning_body")}
             </p>
             <p className="text-sm" style={{ color: "oklch(58% 0.01 250)" }}>
-              t("mini_roi.warning_note")
+              {t("mini_roi.warning_note")}
             </p>
           </div>
             <div className="flex gap-3 mt-2">
@@ -497,7 +497,7 @@ export default function MiniRoiPage() {
                 Analizar un deal
               </h1>
               <p className="text-sm" style={{ color: "oklch(54% 0.01 250)" }}>
-                t("mini_roi.input_sub")
+                {t("mini_roi.input_sub")}
               </p>
             </div>
 
@@ -573,7 +573,7 @@ export default function MiniRoiPage() {
               {/* Language selector for the document */}
               <div className="pt-2">
                 <p className="text-xs font-medium mb-2.5" style={{ color: "oklch(58% 0.01 250)" }}>
-                  t("mini_roi.doc_language")
+                  {t("mini_roi.doc_language")}
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {([["es", "🇪🇸", "ES"], ["en", "🇬🇧", "EN"], ["fr", "🇫🇷", "FR"], ["pt", "🇵🇹", "PT"], ["it", "🇮🇹", "IT"], ["de", "🇩🇪", "DE"]] as const).map(([code, flag, label]) => (
