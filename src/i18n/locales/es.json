@@ -614,5 +614,7 @@
   "tour.cta_continue": "Continuar →",
   "tour.cta_next_module": "Siguiente modulo →",
   "tour.cta_see_roi": "Ver ROI →",
-  "tour.cta_last": "Entendido! Empezar con un deal real →"
+  "tour.cta_last": "Entendido! Empezar con un deal real →",
+  "express.back_to_discovery": "Volver a Discovery",
+  "express.country_pt": "Portugal"
 }

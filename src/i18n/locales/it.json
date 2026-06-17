@@ -589,5 +589,7 @@
   "tour.demo_step4": "Ecco il tuo ROI! Scarica il PDF o regola il prezzo Factorial.",
   "tour.demo_exit": "Esci dal tour",
   "cocreation.h_hire": "h/assunzione",
-  "cocreation.h_submission": "h/subm."
+  "cocreation.h_submission": "h/subm.",
+  "express.back_to_discovery": "Torna al Discovery",
+  "express.country_pt": "Portogallo"
 }

@@ -589,5 +589,7 @@
   "tour.demo_step4": "Voici votre ROI ! Telechargez le PDF ou ajustez le prix Factorial.",
   "tour.demo_exit": "Quitter la visite",
   "cocreation.h_hire": "h/recrutement",
-  "cocreation.h_submission": "h/soum."
+  "cocreation.h_submission": "h/soum.",
+  "express.back_to_discovery": "Retour au Discovery",
+  "express.country_pt": "Portugal"
 }

@@ -174,7 +174,7 @@ export default function CoCreation() {
   const [companyName, setCompanyName] = useState("");
   const [dealName, setDealName] = useState("");
   const [hubspotDealId, setHubspotDealId] = useState<string | null>(null);
-  const langToCountry: Record<string, string> = { es: "ES", fr: "FR", it: "IT", de: "DE", en: "UK" };
+  const langToCountry: Record<string, string> = { es: "ES", fr: "FR", it: "IT", de: "DE", pt: "PT", en: "UK" };
   const [country, setCountry] = useState(langToCountry[i18n.language?.slice(0, 2)] ?? "ES");
 
   // Step 1: Modules
@@ -313,7 +313,7 @@ export default function CoCreation() {
       if (hsSeats > 0) {
         setRoiConfig(prev => ({ ...prev, headcounts: { employee: Math.round(hsSeats * 0.8), hr: Math.max(1, Math.round(hsSeats * 0.05)), manager: Math.round(hsSeats * 0.15) } }));
       }
-      setMsgs([{ text: `Deal: ${hs.deal_name || dealId}`, done: true }, ...(hs.company_name ? [{ text: `Empresa: ${hs.company_name}`, done: true }] : [])]);
+      setMsgs([{ text: `Deal: ${hs.deal_name || dealId}`, done: true }, ...(hs.company_name ? [{ text: `${t("prospect.company_name", "Company").replace(" *","")}: ${hs.company_name}`, done: true }] : [])]);
       setTimeout(() => setStep(1), 800);
     } catch (err: any) {
       toast.error(err.message ?? "Error");
@@ -888,7 +888,7 @@ export default function CoCreation() {
                       <p className="text-[9px] font-bold uppercase tracking-widest flex-1" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
                       <div className="inline-flex rounded-md border overflow-hidden" style={{ borderColor: modColor + '30' }}>
                         <button
-                          type="button" title="Horas"
+                          type="button" title={t("express.type_hours", "Hours")}
                           onClick={() => {
                             if (!isToolMode) return;
                             setRoiConfig(prev => {
@@ -903,7 +903,7 @@ export default function CoCreation() {
                           <Clock className="h-2.5 w-2.5" style={{ color: !isToolMode ? '#fff' : modColor }} />
                         </button>
                         <button
-                          type="button" title="Herramienta sustituida"
+                          type="button" title={t("express.type_tool", "Tool replaced")}
                           onClick={() => {
                             if (isToolMode) return;
                             setRoiConfig(prev => ({
@@ -923,7 +923,7 @@ export default function CoCreation() {
                         <div className="flex flex-col gap-2 py-1">
                           <input
                             type="text"
-                            placeholder="Nombre herramienta"
+                            placeholder={t("express.tool_name", "Tool name")}
                             className="h-8 px-3 text-[12px] rounded-lg border-2 bg-white focus:outline-none w-full"
                             style={{ borderColor: modColor + '40' }}
                             value={modToolOvr.tool_name}
@@ -949,7 +949,7 @@ export default function CoCreation() {
                                 }));
                               }}
                             />
-                            <span className="text-[11px] font-medium shrink-0" style={{ color: 'oklch(60% 0.005 250)' }}>€/año</span>
+                            <span className="text-[11px] font-medium shrink-0" style={{ color: 'oklch(60% 0.005 250)' }}>€/{t("cocreation.per_year", "year")}</span>
                           </div>
                         </div>
                       ) : (
@@ -1255,7 +1255,7 @@ export default function CoCreation() {
                     }
                   </Button>
                   {enhancedDescriptions && (
-                    <button onClick={() => { setEnhancedDescriptions(null); toast.success(t("express.enhance_cleared")); }} className="text-[11px] text-muted-foreground hover:text-destructive transition-colors">
+                    <button onClick={() => { setEnhancedDescriptions(null); toast.success(t("express.enhance_clear_done")); }} className="text-[11px] text-muted-foreground hover:text-destructive transition-colors">
                       {t("cocreation.clear")}
                     </button>
                   )}

@@ -614,5 +614,7 @@
   "tour.cta_continue": "Continue →",
   "tour.cta_next_module": "Next module →",
   "tour.cta_see_roi": "See ROI →",
-  "tour.cta_last": "Got it! Start for real →"
+  "tour.cta_last": "Got it! Start for real →",
+  "express.back_to_discovery": "Back to Discovery",
+  "express.country_pt": "Portugal"
 }
