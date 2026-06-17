@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, ShieldCheck, HelpCircle, X, MessageSquare } from "lucide-react";
+import { LogOut, TrendingUp, Clock, Loader2, ChevronRight, ChevronDown, BarChart3, FileText, History, ShieldCheck, HelpCircle, X, MessageSquare, Sparkles } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es, fr } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -43,6 +43,7 @@ const STATUS_COLOR: Record<string, string> = {
 interface SessionEntry {
   id: string;
   status: string;
+  flow_type: string;
   roi_eur: number | null;
   roi_pct: number | null;
   payback_months: number | null;
@@ -69,6 +70,7 @@ export default function Home() {
   const { t, i18n } = useTranslation();
   const [expandedCompany, setExpandedCompany] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("propel_onboarded"));
+  const [listOpen, setListOpen] = useState(true);
 
 
   const { data: isAdmin, isSuccess: isAdminResolved } = useQuery({
@@ -91,7 +93,7 @@ export default function Home() {
     queryFn: async () => {
       let query = supabase
         .from("roi_sessions")
-        .select("id, status, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, pae_id, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
+        .select("id, status, flow_type, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, pae_id, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
         .order("updated_at", { ascending: false });
       // Only filter by pae_id for non-admins — wait for isAdmin to resolve first
       if (!isAdmin) query = query.eq("pae_id", user!.id);
@@ -129,7 +131,7 @@ export default function Home() {
       const name = (prospect.company_name ?? "").trim().toLowerCase();
       const key = name || s.prospect_id;
       const entry: SessionEntry = {
-        id: s.id, status: s.status, roi_eur: s.roi_eur,
+        id: s.id, status: s.status, flow_type: s.flow_type ?? "co_created", roi_eur: s.roi_eur,
         roi_pct: s.roi_pct, payback_months: s.payback_months,
         total_annual_benefit_eur: s.total_annual_benefit_eur,
         updated_at: s.updated_at,
@@ -195,28 +197,49 @@ export default function Home() {
           </button>
         </div>
 
-        {/* Co-creation CTA — primary action */}
-        <button
-          onClick={() => navigate("/co-creation")}
-          className="w-full rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <div className="flex items-start justify-between">
-            <div className="w-11 h-11 rounded-xl bg-background/15 flex items-center justify-center mb-3">
-              <MessageSquare className="h-6 w-6 text-background" />
+        {/* Two CTAs */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Co-creation — primary */}
+          <button
+            onClick={() => navigate("/co-creation")}
+            className="rounded-2xl p-5 text-left bg-foreground transition-transform hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <div className="w-10 h-10 rounded-xl bg-background/15 flex items-center justify-center mb-3">
+              <MessageSquare className="h-5 w-5 text-background" />
             </div>
-          </div>
-          <p className="text-background font-bold text-lg leading-snug">{t("home.cocreate_title", "Co-crea un ROI")}</p>
-          <p className="text-background/60 text-sm mt-1 mb-3">{t("home.cocreate_sub", "Importa el deal, configura los modulos y descarga el deck")}</p>
-          <div className="flex items-center gap-1 text-background font-semibold text-sm">
-            {t("home.start", "Empezar")} <ChevronRight className="h-4 w-4" />
-          </div>
-        </button>
+            <p className="text-background font-bold text-base leading-snug">{t("home.cocreate_title", "Co-crea un ROI")}</p>
+            <p className="text-background/55 text-xs mt-1 mb-3 leading-relaxed">Con el prospect, en tiempo real</p>
+            <div className="flex items-center gap-1 text-background/80 font-semibold text-xs">
+              {t("home.start", "Empezar")} <ChevronRight className="h-3.5 w-3.5" />
+            </div>
+          </button>
 
-        {/* Companies list */}
+          {/* Assumptions ROI — secondary */}
+          <button
+            onClick={() => navigate("/mini-roi")}
+            className="rounded-2xl p-5 text-left bg-card border-2 border-border hover:border-primary/30 hover:bg-primary/5 transition-all hover:scale-[1.01] active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <p className="text-foreground font-bold text-base leading-snug">ROI basado en asunciones</p>
+            <p className="text-muted-foreground text-xs mt-1 mb-3 leading-relaxed">IA genera el análisis automáticamente</p>
+            <div className="flex items-center gap-1 text-primary font-semibold text-xs">
+              {t("home.start", "Empezar")} <ChevronRight className="h-3.5 w-3.5" />
+            </div>
+          </button>
+        </div>
+
+        {/* Companies list — collapsible */}
         <div>
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">{t("home.recent")}</h2>
-
-          {isLoading ? (
+          <button
+            onClick={() => setListOpen(o => !o)}
+            className="w-full flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3 hover:text-foreground transition-colors"
+          >
+            <span>{t("home.recent")} {companies.length > 0 && `(${companies.length})`}</span>
+            <ChevronDown className={`h-3.5 w-3.5 transition-transform ${listOpen ? "" : "-rotate-90"}`} />
+          </button>
+          {listOpen && isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
@@ -240,7 +263,10 @@ export default function Home() {
                 return (
                   <div key={c.prospectId} className="rounded-xl bg-card border border-border overflow-hidden hover:border-foreground/20 hover:shadow-sm transition-all">
                     <button
-                      onClick={() => navigate(`/co-creation?session=${latest.id}`)}
+                      onClick={() => latest.flow_type === "mini_roi"
+                        ? navigate(`/mini-roi/${latest.id}`)
+                        : navigate(`/co-creation?session=${latest.id}`)
+                      }
                       className="w-full px-5 py-4 text-left hover:bg-muted/20 transition-colors focus-visible:outline-none"
                     >
                       {/* Top row: company + badges */}
@@ -251,6 +277,9 @@ export default function Home() {
                           {c.seats && <span className="text-xs text-muted-foreground shrink-0">{c.seats} seats</span>}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
+                          {latest.flow_type === "mini_roi" && (
+                            <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-primary/10 text-primary">Asunciones</span>
+                          )}
                           {ownerName && (
                             <span className="text-[11px] font-medium text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{ownerName}</span>
                           )}

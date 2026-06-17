@@ -11,6 +11,7 @@ import Help from "@/pages/Help";
 import Admin from "@/pages/Admin";
 import Settings from "@/pages/Settings";
 import CoCreation from "@/pages/CoCreation";
+import MiniRoiPage from "@/pages/MiniRoiPage";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -62,6 +63,8 @@ const App = () => (
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
             <Route path="/express" element={<Navigate to="/co-creation" replace />} />
             <Route path="/co-creation" element={<RequireAuth><CoCreation /></RequireAuth>} />
+            <Route path="/mini-roi" element={<RequireAuth><MiniRoiPage /></RequireAuth>} />
+            <Route path="/mini-roi/:id" element={<RequireAuth><MiniRoiPage /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
