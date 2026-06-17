@@ -285,6 +285,7 @@ INSTRUCCIONES:
 4. tool_replacements: SOLO si se menciona explícitamente una herramienta a reemplazar.
    Asigna module_id al módulo de Factorial que la sustituye.
    Precios orientativos (ya incluyen -20% de descuento conservador):
+   IMPORTANTE: si el prospect mencionó un precio EXACTO (ej: "nos cuesta 4000"), usa ESE precio directamente sin aplicar descuento.
 
    HRIS / Core HR → module_id="core":
    - Bizneo HR, Sesame HR, cualquier HRIS genérico: €${Math.round((hs.employees ?? 50) * 3.2 * 12)}/año
@@ -738,7 +739,8 @@ Genera o actualiza la descripción de cada módulo para el one-pager ROI.
 REGLAS:
 1. pain_title: max 12 palabras, específico para esta empresa
 2. pain_description: 1 frase, max 20 palabras, menciona la consecuencia de negocio concreta
-3. INSTRUCCIÓN AE "precio de [tool]" o "ahorro es dejar de pagar [tool]" → añade ese módulo a tool_replacements con tool_name y annual_cost_eur estimado (precio de mercado de esa herramienta -20%)
+3. INSTRUCCIÓN AE con precio específico (ej: "Sesame les cuesta 4000", "pagan 3500 por Bizneo") → usa ESE precio exacto en annual_cost_eur, SIN aplicar ningún descuento adicional. El AE ya sabe el precio real.
+   INSTRUCCIÓN AE sin precio específico (ej: "reemplaza Sesame", "ahorro es dejar de pagar Bizneo") → estima precio de mercado con -20% de descuento conservador.
 4. INSTRUCCIÓN AE "como [otro módulo]" → adapta el argumento al contexto de esta empresa para este módulo específico
 5. INSTRUCCIÓN AE sobre horas → ajusta hours_employee/hours_hr/hours_manager
 6. Sin INSTRUCCIÓN AE → genera descripción basada en el contexto de la empresa y benchmarks del sector
