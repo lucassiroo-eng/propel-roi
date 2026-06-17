@@ -282,11 +282,23 @@ INSTRUCCIONES:
    Si hours=0, pon source="assumption".
 
 4. tool_replacements: SOLO si se menciona explícitamente una herramienta a reemplazar.
-   Precios orientativos (ya incluyen -20% de descuento):
-   - Terminales Fichem/hardware: €900/año (amortizado)
-   - Bizneo/Sesame: €${Math.round((hs.employees ?? 50) * 3.2 * 12)}/año
+   Asigna module_id al módulo de Factorial que la sustituye.
+   Precios orientativos (ya incluyen -20% de descuento conservador):
+
+   HRIS / Core HR → module_id="core":
+   - Bizneo HR, Sesame HR, cualquier HRIS genérico: €${Math.round((hs.employees ?? 50) * 3.2 * 12)}/año
    - Personio: €${Math.round((hs.employees ?? 50) * 3.6 * 12)}/año
-   - Excel/manual: €0 (no es tool replacement)
+   - ADP, SAP SuccessFactors, Workday: €${Math.round((hs.employees ?? 50) * 6.4 * 12)}/año
+
+   Control Horario → module_id="time_tracking":
+   - Terminales Fichem / hardware de fichaje: €900/año (amortizado)
+   - Software de fichaje standalone: €${Math.round((hs.employees ?? 50) * 2.4 * 12)}/año
+
+   Ausencias → module_id="time_off":
+   - Gestor de ausencias standalone: €${Math.round((hs.employees ?? 50) * 2.0 * 12)}/año
+
+   NO incluyas tool_replacement si usan Excel/papel/manual (eso es solo ahorro de tiempo)
+   NO incluyas tool_replacement si el precio no es claro del transcript
 
 Módulos disponibles (usa SOLO estos IDs exactos): core, time_off, time_tracking, time_planning, payroll, compensations, recruitment, performance, expenses, trainings, complaints, engagement, benefits_standard.`;
 
@@ -359,7 +371,7 @@ function calculateRoi(hs: any, analysis: any, annualCostOverride?: number): RoiR
   const roi_pct = annualCost > 0 ? Math.round(((totalSavings - annualCost) / annualCost) * 100) : 0;
   const payback_months = totalSavings > 0 ? Math.round((annualCost / totalSavings) * 12) : 0;
 
-  return { modules: moduleSavings, total_savings: Math.round(totalSavings), annual_cost: annualCost, roi_pct, payback_months, headcounts, hourly_costs };
+  return { modules: moduleSavings, total_savings: Math.round(totalSavings), annual_cost: annualCost, roi_pct: Math.max(0, roi_pct), payback_months, headcounts, hourly_costs };
 }
 
 // ── HTML 1-pager ──────────────────────────────────────────────────────────────
@@ -490,7 +502,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
         <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">€${fmtEur(roi.annual_cost)}</div>
         <div style="font-size:10px;color:#AAAACC;">/año</div></div>
       <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">ROI estimado</div>
-        <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">${roi.roi_pct}%</div>
+        <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">${roi.roi_pct > 0 ? roi.roi_pct + "%" : "—"}</div>
         <div style="font-size:10px;color:#AAAACC;">retorno neto</div></div>
       <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">Payback</div>
         <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">${roi.payback_months}</div>
@@ -634,7 +646,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-
       </div>
       <div>
         <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">ROI estimado</div>
-        <div style="font-size:24px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:5px;">${roi.roi_pct}%</div>
+        <div style="font-size:24px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:5px;">${roi.roi_pct > 0 ? roi.roi_pct + "%" : "—"}</div>
         <div style="font-size:11px;color:#9999BB;">retorno neto</div>
       </div>
       <div>
