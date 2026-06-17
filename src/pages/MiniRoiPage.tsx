@@ -320,39 +320,54 @@ export default function MiniRoiPage() {
         await new Promise(r => setTimeout(r, 900));
 
         const doc = iframe.contentDocument!;
-        const pages = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
-        if (pages.length === 0) throw new Error("No se encontraron páginas");
+        const body = doc.body;
+        if (!body) throw new Error("No se encontró el contenido");
+
+        // Capture the ENTIRE document as one continuous canvas — no cuts
+        const fullCanvas = await html2canvas(body, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#E4E4EC",
+          windowWidth: 794,
+          scrollX: 0,
+          scrollY: 0,
+          width: 794,
+          height: body.scrollHeight,
+        });
+
+        // Find .page elements to determine PDF pages
+        const pageEls = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
+        if (pageEls.length === 0) throw new Error("No se encontraron páginas");
 
         const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
         const A4_W_MM = 210;
         const A4_H_MM = 297;
-        const PX_PER_MM = 794 / A4_W_MM; // 96dpi ≈ 3.78 px/mm
+        const SCALE = 2;
 
-        for (let i = 0; i < pages.length; i++) {
+        for (let i = 0; i < pageEls.length; i++) {
           if (i > 0) pdf.addPage("a4", "portrait");
-          const page = pages[i];
+          const el = pageEls[i];
+          const rect = el.getBoundingClientRect();
+          const elTop = el.offsetTop;
+          const elH = el.scrollHeight;
 
-          const canvas = await html2canvas(page, {
-            scale: 3,            // high quality
-            useCORS: true,
-            logging: false,
-            backgroundColor: "#ffffff",
-            windowWidth: 794,
-            scrollX: 0,
-            scrollY: -page.getBoundingClientRect().top,
-            width: 794,
-            height: page.scrollHeight,
-          });
+          // Slice the full canvas for this page
+          const sliceCanvas = document.createElement("canvas");
+          sliceCanvas.width = fullCanvas.width;
+          sliceCanvas.height = Math.round(elH * SCALE);
+          const ctx = sliceCanvas.getContext("2d")!;
+          ctx.drawImage(fullCanvas, 0, -Math.round(elTop * SCALE));
 
-          const imgData = canvas.toDataURL("image/jpeg", 0.93);
-          // Fit to A4 — preserve aspect ratio
-          const pageHeightMm = (page.scrollHeight / PX_PER_MM);
-          const fittedH = Math.min(pageHeightMm, A4_H_MM);
+          const imgData = sliceCanvas.toDataURL("image/jpeg", 0.93);
+          // Scale to A4 — preserve ratio
+          const elHmm = (elH / 794) * A4_W_MM;
+          const fittedH = Math.min(elHmm, A4_H_MM);
           pdf.addImage(imgData, "JPEG", 0, 0, A4_W_MM, fittedH);
         }
 
         pdf.save(`ROI ${company}.pdf`);
-        toast.success(`PDF descargado: ROI ${company}.pdf`);
+        toast.success("PDF descargado");
       } finally {
         document.body.removeChild(iframe);
       }
@@ -699,8 +714,8 @@ export default function MiniRoiPage() {
       <div className="flex-1 flex min-h-0 overflow-hidden">
 
         {/* Document preview */}
-        <div className="flex-1 overflow-auto" style={{ background: "oklch(91% 0.007 250)" }}>
-          <div className="flex justify-center items-start p-8 min-h-full">
+        <div className="flex-1 overflow-auto flex flex-col" style={{ background: "oklch(91% 0.007 250)" }}>
+          <div className="flex justify-center items-start p-8 flex-1">
             {html ? (
               <iframe
                 ref={iframeRef}
@@ -726,6 +741,23 @@ export default function MiniRoiPage() {
               </div>
             )}
           </div>
+          {/* Direct download bar under preview */}
+          {html && (
+            <div className="shrink-0 flex justify-center py-3 px-8 gap-3"
+              style={{ borderTop: "1px solid oklch(86% 0.008 250)", background: "oklch(88% 0.009 250)" }}>
+              <button
+                onClick={downloadPdf}
+                disabled={downloadingPdf}
+                className="h-9 px-5 rounded-xl font-semibold text-sm flex items-center gap-2 transition-all disabled:opacity-50"
+                style={{ background: "oklch(14% 0.018 250)", color: "white" }}
+              >
+                {downloadingPdf
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generando PDF...</>
+                  : <><Download className="h-3.5 w-3.5" />Descargar PDF</>
+                }
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Control panel */}
