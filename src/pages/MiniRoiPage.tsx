@@ -284,17 +284,19 @@ export default function MiniRoiPage() {
     }
   }
 
-  // ── Download as PDF (via browser print dialog) ───────────────────────────
+  // ── Download — directly as HTML file (opens as PDF-like in browser) ──────
   function downloadPdf() {
     if (!html) return;
-    const win = window.open("", "_blank");
-    if (!win) { alert("Permite ventanas emergentes para descargar el PDF"); return; }
-    win.document.open();
-    win.document.write(html);
-    win.document.close();
-    win.addEventListener("load", () => {
-      setTimeout(() => { win.focus(); win.print(); }, 300);
-    });
+    const companySlug = (hsData?.company_name ?? "roi").toLowerCase().slice(0, 30);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `roi-${companySlug}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function markDirty() { setIsDirty(true); }
@@ -318,86 +320,43 @@ export default function MiniRoiPage() {
   // WARNING — full-screen gate, no chrome
   if (step === "warning") {
     return (
-      <div className="min-h-screen flex" style={{ background: "oklch(98.5% 0.004 250)" }}>
-        {/* Left — brand context */}
-        <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-center px-12 py-16 gap-10"
-          style={{ background: "oklch(14% 0.018 250)" }}>
-          {/* Header */}
-          <div>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-8"
-              style={{ background: "oklch(50% 0.22 15)" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <div className="min-h-screen flex items-center justify-center px-4"
+        style={{ background: "oklch(97% 0.005 250)" }}>
+        <div className="w-full max-w-lg bg-white rounded-3xl p-8 shadow-sm border border-border">
+          <div className="mb-6">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+              style={{ background: "oklch(93% 0.03 60)", border: "1px solid oklch(86% 0.06 60)" }}>
+              <AlertTriangle className="h-7 w-7" style={{ color: "oklch(58% 0.16 60)" }} />
             </div>
-            <h2 className="text-2xl font-extrabold leading-tight tracking-tight mb-3"
-              style={{ color: "oklch(97% 0.005 250)" }}>
-              ROI en minutos,<br />sin el prospect
-            </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "oklch(66% 0.008 250)" }}>
-              La IA analiza las llamadas del deal, identifica los módulos relevantes y construye el documento automáticamente.
+            <h1 className="text-2xl font-bold tracking-tight mb-4" style={{ color: "oklch(14% 0.018 250)" }}>
+              ROI basado en asunciones
+            </h1>
+            <p className="text-base leading-relaxed mb-3" style={{ color: "oklch(32% 0.012 250)" }}>
+              Crear un ROI basado en asunciones no aportará el mismo valor que co-crearlo con el prospect. Aun así puede servir para demostrar el valor de Factorial basado en el Discovery de un deal, como punto de partida antes de una llamada.
+            </p>
+            <p className="text-sm" style={{ color: "oklch(58% 0.01 250)" }}>
+              Los números generados son estimaciones conservadoras. Idealmente valídalos con el prospect.
             </p>
           </div>
-
-          {/* Steps */}
-          <div className="space-y-0">
-            {[
-              { n: "01", title: "Conecta el deal", sub: "Pega el link de HubSpot" },
-              { n: "02", title: "IA analiza las llamadas", sub: "Modjo + Claude identifican los pains" },
-              { n: "03", title: "Edita y descarga", sub: "Ajusta módulos y exporta el PDF" },
-            ].map((s, i, arr) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold"
-                    style={{ background: "oklch(22% 0.018 250)", color: "oklch(60% 0.01 250)", border: "1px solid oklch(28% 0.015 250)" }}>
-                    {s.n}
-                  </div>
-                  {i < arr.length - 1 && (
-                    <div className="w-px flex-1 my-1.5" style={{ background: "oklch(24% 0.015 250)", minHeight: 28 }} />
-                  )}
-                </div>
-                <div className="pb-6">
-                  <p className="text-sm font-semibold" style={{ color: "oklch(90% 0.006 250)" }}>{s.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "oklch(58% 0.009 250)" }}>{s.sub}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right — decision */}
-        <div className="flex-1 flex items-center justify-center px-6 py-16">
-          <div className="max-w-sm w-full">
-            <div className="mb-8">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center mb-5"
-                style={{ background: "oklch(93% 0.03 60)", border: "1px solid oklch(86% 0.06 60)" }}>
-                <AlertTriangle className="h-5 w-5" style={{ color: "oklch(58% 0.16 60)" }} />
-              </div>
-              <h1 className="text-xl font-bold tracking-tight mb-3" style={{ color: "oklch(16% 0.015 250)" }}>
-                Antes de continuar
-              </h1>
-              <p className="text-sm leading-relaxed" style={{ color: "oklch(46% 0.01 250)" }}>
-                Un ROI basado en asunciones no tiene el mismo impacto que co-crearlo con el prospect. Úsalo como punto de partida para una conversación, no como argumento definitivo.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2.5">
+            <div className="flex gap-3 mt-2">
+              <button
+                onClick={() => navigate("/")}
+                className="flex-1 h-14 rounded-2xl font-semibold text-base transition-all border-2"
+                style={{ borderColor: "oklch(88% 0.006 250)", color: "oklch(28% 0.013 250)", background: "transparent" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "oklch(96% 0.004 250)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              >
+                Cancelar
+              </button>
               <button
                 onClick={() => setStep("input")}
-                className="w-full h-11 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                className="flex-1 h-14 rounded-2xl font-semibold text-base transition-all flex items-center justify-center gap-2"
                 style={{ background: "oklch(14% 0.018 250)", color: "white" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "oklch(22% 0.018 250)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "oklch(14% 0.018 250)")}
               >
-                Entendido, continuar <ChevronRight className="h-4 w-4" />
+                Continuar <ChevronRight className="h-5 w-5" />
               </button>
-              <button
-                onClick={() => navigate("/")}
-                className="w-full h-10 rounded-xl text-sm transition-colors font-medium"
-                style={{ color: "oklch(54% 0.01 250)" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "oklch(30% 0.01 250)")}
-                onMouseLeave={e => (e.currentTarget.style.color = "oklch(54% 0.01 250)")}
-              >
-                Volver al inicio
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -556,7 +515,7 @@ export default function MiniRoiPage() {
                       isDone ? "scale-100" : isRunning ? "scale-110" : "scale-90"
                     }`} style={{
                       background: isDone ? "oklch(52% 0.18 145)" : isRunning ? "oklch(50% 0.22 15)" : "oklch(91% 0.005 250)",
-                      boxShadow: isRunning ? "0 0 0 4px oklch(50% 0.22 15 / 0.15)" : "none",
+                      boxShadow: isRunning ? "0 0 0 4px rgba(255,53,94,0.15)" : "none",
                     }}>
                       {isDone ? <Check className="h-2.5 w-2.5 text-white" /> :
                        isRunning ? <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> :
@@ -564,7 +523,7 @@ export default function MiniRoiPage() {
                     </div>
                     {!isLast && (
                       <div className="w-px flex-1 my-0.5 transition-all duration-500"
-                        style={{ background: isDone ? "oklch(52% 0.18 145 / 0.3)" : "oklch(88% 0.005 250)", minHeight: 20 }} />
+                        style={{ background: isDone ? "rgba(74,180,120,0.3)" : "oklch(88% 0.005 250)", minHeight: 20 }} />
                     )}
                   </div>
 
@@ -691,13 +650,13 @@ export default function MiniRoiPage() {
                   display: "block",
                   border: "none",
                   background: "#fff",
-                  boxShadow: "0 4px 24px oklch(0% 0 0 / 0.12), 0 1px 4px oklch(0% 0 0 / 0.08)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)",
                   borderRadius: 3,
                 }}
               />
             ) : (
               <div className="flex flex-col items-center justify-center gap-3"
-                style={{ width: "210mm", height: "297mm", background: "#fff", borderRadius: 3, boxShadow: "0 4px 24px oklch(0% 0 0 / 0.10)" }}>
+                style={{ width: "210mm", height: "297mm", background: "#fff", borderRadius: 3, boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}>
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: "oklch(72% 0.01 250)" }} />
                 <p className="text-sm font-medium" style={{ color: "oklch(60% 0.01 250)" }}>Generando...</p>
               </div>
@@ -781,8 +740,8 @@ export default function MiniRoiPage() {
                               color: "oklch(28% 0.013 250)",
                               minHeight: 32,
                             }}
-                            onFocus={e => { e.currentTarget.rows = 2; e.currentTarget.style.border = "1px solid oklch(50% 0.22 15)"; e.currentTarget.style.background = "oklch(100% 0 0)"; }}
-                            onBlur={e => { if (!e.currentTarget.value) e.currentTarget.rows = 1; e.currentTarget.style.border = `1px solid ${ov.note ? "oklch(84% 0.007 250)" : "oklch(91% 0.005 250)"}`; e.currentTarget.style.background = ov.note ? "oklch(97% 0.004 250)" : "oklch(97.5% 0.003 250)"; }}
+                            onFocus={e => { e.currentTarget.rows = 2; e.currentTarget.style.border = "1px solid #FF355E"; e.currentTarget.style.background = "#fff"; }}
+                            onBlur={e => { if (!e.currentTarget.value) { e.currentTarget.rows = 1; } e.currentTarget.style.border = "1px solid #e5e7eb"; e.currentTarget.style.background = "#f8f9fa"; }}
                           />
                         </div>
                       )}
