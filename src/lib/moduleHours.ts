@@ -951,6 +951,29 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     silae: {
       hr: ["Sincronizzazione diretta dati paghe con SILAE elimina lo scambio manuale di dati"],
     },
+    space: {
+      employee: ["Prenotazione postazione e sala dal telefono in secondi elimina la coordinazione via email", "Vista giornaliera di chi viene in ufficio — ideale per pianificare le giornate di team"],
+      hr: ["Analisi di occupazione in tempo reale sostituisce i report manuali sull'utilizzo degli spazi"],
+      manager: ["Panoramica presenze in tempo reale semplifica la pianificazione delle giornate di team"],
+    },
+    it_inventory: {
+      hr: ["Provisioning automatico di dispositivi e accessi all'assunzione elimina le checklist manuali", "Deprovisioning automatico all'uscita garantisce la conformità di sicurezza senza intervento manuale"],
+    },
+    integration_business_central: {
+      hr: ["Sincronizzazione automatica bidirezionale con Business Central elimina l'inserimento manuale dei dati tra HR ed ERP"],
+    },
+    integration_netsuite: {
+      hr: ["Sincronizzazione automatica dei dati con NetSuite elimina la riconciliazione manuale HR-finanza"],
+    },
+    integration_sage_200: {
+      hr: ["Sincronizzazione automatica dei dati paghe con Sage 200 elimina l'inserimento manuale ad ogni ciclo"],
+    },
+    integration_milena: {
+      hr: ["Trasferimento automatico dei dati paghe a Milena elimina la sincronizzazione manuale"],
+    },
+    integration_suprema_xiptic: {
+      hr: ["Sincronizzazione automatica dei dati di timbratura dai terminali Suprema elimina la riconciliazione manuale con HR"],
+    },
   },
   de: {
     core: {
@@ -1029,6 +1052,29 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
     },
     silae: {
       hr: ["Direkte Lohndatensynchronisation mit SILAE eliminiert manuellen Datenaustausch"],
+    },
+    space: {
+      employee: ["Schreibtisch- und Raumbuchung vom Handy eliminiert E-Mail-Koordination", "Tagesansicht zeigt, wer ins Büro kommt — ideal für Teamtage"],
+      hr: ["Belegungsanalysen in Echtzeit ersetzen manuelle Raumnutzungsberichte"],
+      manager: ["Echtzeit-Präsenzübersicht vereinfacht Planung von Teamtagen"],
+    },
+    it_inventory: {
+      hr: ["Automatisches Provisioning von Geräten und Zugängen beim Eintritt eliminiert manuelle Checklisten", "Automatisches Deprovisioning beim Austritt garantiert Sicherheitskonformität ohne manuellen Aufwand"],
+    },
+    integration_business_central: {
+      hr: ["Automatische bidirektionale Synchronisation mit Business Central eliminiert manuelle Dateneingabe zwischen HR und ERP"],
+    },
+    integration_netsuite: {
+      hr: ["Automatische Datensynchronisation mit NetSuite eliminiert manuelle HR-Finanz-Abstimmung"],
+    },
+    integration_sage_200: {
+      hr: ["Automatische Lohndatensynchronisation mit Sage 200 eliminiert manuelle Eingabe bei jedem Abrechnungszyklus"],
+    },
+    integration_milena: {
+      hr: ["Automatischer Lohndatentransfer zu Milena eliminiert manuelle Synchronisation"],
+    },
+    integration_suprema_xiptic: {
+      hr: ["Automatische Synchronisation der Stempelzeiterfassungsdaten von Suprema-Terminals eliminiert manuelle HR-Abstimmung"],
     },
   },
   pt: {
