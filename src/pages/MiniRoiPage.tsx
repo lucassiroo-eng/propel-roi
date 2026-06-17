@@ -109,7 +109,9 @@ export default function MiniRoiPage() {
   const { id: sessionId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // Language for the generated document — defaults to current tool language
+  const [docLang, setDocLang] = useState(() => i18n.language?.slice(0, 2) || "es");
 
   const [step, setStep] = useState<Step>(sessionId ? "result" : "warning");
   const [url, setUrl] = useState("");
@@ -213,7 +215,7 @@ export default function MiniRoiPage() {
     setError(null); setRunning(true); setStep("loading");
     try {
       await callEdge(
-        { deal_url: url.trim(), language: "es", annual_cost_override: annualCost ? Number(annualCost) : undefined },
+        { deal_url: url.trim(), language: docLang, annual_cost_override: annualCost ? Number(annualCost) : undefined },
         (event) => {
           if (event.step === "result") {
             setAnalysis(event.analysis ?? null);
@@ -254,7 +256,7 @@ export default function MiniRoiPage() {
     }
     try {
       await callEdge(
-        { mode: "html_only", hs_data: hsData, existing_analysis: analysis, selected_modules, module_notes, annual_cost_override: annualCost ? Number(annualCost) : roiData?.annual_cost, language: "es" },
+        { mode: "html_only", hs_data: hsData, existing_analysis: analysis, selected_modules, module_notes, annual_cost_override: annualCost ? Number(annualCost) : roiData?.annual_cost, language: docLang },
         (event) => {
           if (event.step === "result") {
             setHtml(event.html ?? null);
@@ -581,6 +583,30 @@ export default function MiniRoiPage() {
                 <Zap className="h-4 w-4" />
                 Analizar deal
               </button>
+
+              {/* Language selector for the document */}
+              <div className="pt-2">
+                <p className="text-xs font-medium mb-2.5" style={{ color: "oklch(58% 0.01 250)" }}>
+                  Idioma del documento
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {([["es", "🇪🇸", "ES"], ["en", "🇬🇧", "EN"], ["fr", "🇫🇷", "FR"], ["pt", "🇵🇹", "PT"], ["it", "🇮🇹", "IT"], ["de", "🇩🇪", "DE"]] as const).map(([code, flag, label]) => (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => setDocLang(code)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                      style={{
+                        background: docLang === code ? "oklch(14% 0.018 250)" : "oklch(94% 0.005 250)",
+                        color: docLang === code ? "white" : "oklch(44% 0.012 250)",
+                        border: docLang === code ? "none" : "1px solid oklch(88% 0.006 250)",
+                      }}
+                    >
+                      {flag} {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
