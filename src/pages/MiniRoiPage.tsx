@@ -307,42 +307,52 @@ export default function MiniRoiPage() {
     setDownloadingPdf(true);
     try {
       const html2canvas = await loadHtml2Canvas();
-      const company = hsData?.company_name ?? "roi";
+      const company = (hsData?.company_name ?? "ROI").trim();
 
-      // Render HTML in a hidden iframe at A4 width (794px = 210mm @ 96dpi)
+      // Hidden iframe at A4 width (794px = 210mm @ 96dpi)
       const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:1px;border:none;pointer-events:none;z-index:-1;";
+      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:4000px;border:none;pointer-events:none;z-index:-1;";
       document.body.appendChild(iframe);
 
       try {
+        // Load HTML and wait for fonts + layout
         await new Promise<void>(resolve => { iframe.onload = () => resolve(); iframe.srcdoc = html; });
-        // Wait for fonts and layout
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 900));
 
-        const pages = Array.from(iframe.contentDocument!.querySelectorAll(".page")) as HTMLElement[];
-        if (pages.length === 0) throw new Error("No pages found");
+        const doc = iframe.contentDocument!;
+        const pages = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
+        if (pages.length === 0) throw new Error("No se encontraron páginas");
 
         const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-        const A4_W = 210; const A4_H = 297;
+        const A4_W_MM = 210;
+        const A4_H_MM = 297;
+        const PX_PER_MM = 794 / A4_W_MM; // 96dpi ≈ 3.78 px/mm
 
         for (let i = 0; i < pages.length; i++) {
           if (i > 0) pdf.addPage("a4", "portrait");
           const page = pages[i];
+
           const canvas = await html2canvas(page, {
-            scale: 2,
+            scale: 3,            // high quality
             useCORS: true,
             logging: false,
             backgroundColor: "#ffffff",
             windowWidth: 794,
+            scrollX: 0,
+            scrollY: -page.getBoundingClientRect().top,
+            width: 794,
+            height: page.scrollHeight,
           });
-          const imgData = canvas.toDataURL("image/jpeg", 0.92);
-          // Scale image to fill A4
-          const canvasRatio = canvas.height / canvas.width;
-          const imgH = Math.min(A4_W * canvasRatio, A4_H);
-          pdf.addImage(imgData, "JPEG", 0, 0, A4_W, imgH);
+
+          const imgData = canvas.toDataURL("image/jpeg", 0.93);
+          // Fit to A4 — preserve aspect ratio
+          const pageHeightMm = (page.scrollHeight / PX_PER_MM);
+          const fittedH = Math.min(pageHeightMm, A4_H_MM);
+          pdf.addImage(imgData, "JPEG", 0, 0, A4_W_MM, fittedH);
         }
 
-        pdf.save(`ROI-${company}.pdf`);
+        pdf.save(`ROI ${company}.pdf`);
+        toast.success(`PDF descargado: ROI ${company}.pdf`);
       } finally {
         document.body.removeChild(iframe);
       }
@@ -866,13 +876,16 @@ export default function MiniRoiPage() {
             ) : (
               <button
                 onClick={downloadPdf}
-                disabled={!html}
-                className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                disabled={!html || downloadingPdf}
+                className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                 style={{ background: "oklch(14% 0.018 250)", color: "white" }}
-                onMouseEnter={e => { if (html) (e.currentTarget as HTMLElement).style.background = "oklch(22% 0.018 250)"; }}
+                onMouseEnter={e => { if (html && !downloadingPdf) (e.currentTarget as HTMLElement).style.background = "oklch(22% 0.018 250)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(14% 0.018 250)"; }}
               >
-                <Download className="h-3.5 w-3.5" /> Descargar PDF
+                {downloadingPdf
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generando PDF...</>
+                  : <><Download className="h-3.5 w-3.5" />Descargar PDF</>
+                }
               </button>
             )}
           </div>
