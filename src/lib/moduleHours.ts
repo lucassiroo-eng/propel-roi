@@ -1065,6 +1065,83 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       hr: ["Publicação automática em múltiplos portais de emprego elimina contacto manual com cada plataforma", "Comunicações automáticas com candidatos e atualizações de estado eliminam contacto manual", "Reduz significativamente a administração de recrutamento em cada posição aberta"],
       manager: ["Scorecards estruturados substituem avaliações ad-hoc e notas dispersas", "Visibilidade do pipeline em tempo real sem pedidos de atualização por email"],
     },
+    performance: {
+      employee: ["Autoavaliações estruturadas substituem documentos Word dispersos e emails de ida e volta", "Feedback contínuo registado na plataforma substitui conversas informais sem seguimento"],
+      hr: ["Ciclos de avaliação automatizados gerem lançamento, lembretes, conclusão e calibração", "Substitui modelos Word e Excel e elimina o seguimento manual entre ciclos"],
+      manager: ["Dashboards de desempenho em tempo real mostram o estado do ciclo sem pedir atualizações", "Visibilidade dos OKR da equipa permite coaching orientado por dados em vez de perceções subjetivas"],
+    },
+    trainings: {
+      employee: ["Catálogo de formação centralizado substitui pedidos por email ao RH", "Progresso e certificados acessíveis na app sem esperar pelo RH"],
+      hr: ["Inscrição automática em formações obrigatórias elimina coordenação manual", "Relatórios de cumprimento em tempo real substituem folhas de cálculo de seguimento"],
+      manager: ["Visibilidade do progresso formativo da equipa elimina verificações manuais de estado"],
+    },
+    compensations: {
+      hr: ["Dados salariais e de mercado centralizados eliminam consolidação manual em cada ciclo de revisão", "Fluxos de aprovação automatizados gerem aumentos e bónus sem encaminhamento manual por email"],
+      manager: ["Simulações de orçamento em tempo real substituem folhas de cálculo de impacto salarial", "Aprovações de compensação num clique com trilha de auditoria completa"],
+    },
+    engagement: {
+      hr: ["Inquéritos pulse automáticos com análise de tendências eliminam configuração manual", "Dashboards em tempo real segmentam resultados por equipa e departamento, eliminando análise manual em Excel"],
+      manager: ["Alertas de equipas em risco permitem intervenção antecipada antes de problemas de retenção"],
+    },
+    procurement: {
+      hr: ["Fluxos de aprovação digitais com encaminhamento multinível eliminam seguimento manual de compras", "Alertas de orçamento em tempo real eliminam reconciliações de fim de período"],
+      manager: ["Visibilidade do estado de todas as compras da equipa elimina pedidos de atualização por email"],
+    },
+    projects: {
+      employee: ["Registo de tempo por projeto a partir de qualquer dispositivo substitui folhas de horas em papel", "Atribuições de projeto claramente visíveis eliminam comunicação manual sobre prioridades"],
+      hr: ["Dados de custo por projeto sincronizam automaticamente com nóminas, eliminando reconciliação manual"],
+      manager: ["Dashboard de rentabilidade de projeto em tempo real substitui relatórios mensais manuais", "Alertas de desvio de orçamento eliminam surpresas de fim de projeto"],
+    },
+    headcount_planning: {
+      hr: ["Planeamento de posições centralizado elimina folhas de cálculo de headcount dispersas", "Fluxos de aprovação de contratação automatizados substituem cadeias de email entre RH e gestão"],
+      manager: ["Visibilidade em tempo real do pipeline de contratação elimina pedidos de estado por email", "Simulações de impacto orçamental de headcount substituem análises manuais em Excel"],
+    },
+    lms: {
+      employee: ["Conteúdo formativo centralizado e acessível no telemóvel elimina procura manual de materiais", "Inscrição automática em formações baseada no cargo elimina pedidos ao RH"],
+      hr: ["Seguimento de conclusão automatizado substitui folhas de cálculo de formação", "Lembretes de formação obrigatória eliminam seguimento manual de cumprimento"],
+    },
+    complaints: {
+      hr: ["Canal de denúncias digital com trilha de auditoria substitui gestão de queixas por email", "Relatórios de cumprimento automáticos eliminam documentação manual de incidentes"],
+      manager: ["Gestão estruturada de casos reduz tempo em conflitos de equipa não documentados"],
+    },
+    benefits_standard: {
+      employee: ["Portal de benefícios em autoatendimento elimina consultas ao RH sobre vantagens disponíveis", "Inscrição e alterações de benefícios geridas pelo colaborador sem intervenção do RH"],
+      hr: ["Gestão de inscrições automatizada elimina processamento manual de formulários de benefícios", "Relatórios de utilização em tempo real substituem auditorias manuais trimestrais"],
+    },
+    benefits: {
+      employee: ["Acesso imediato ao salário já ganho reduz stress financeiro entre pagamentos", "Pedidos de adiantamento geridos na app sem burocracia nem esperas"],
+      hr: ["Processo 100% digital de adiantamentos elimina gestão manual de pedidos e reconciliação"],
+    },
+    space: {
+      employee: ["Reserva de secretária e sala em segundos pelo telemóvel, sem emails de agendamento", "Visibilidade de quem está no escritório elimina coordenação manual para dias de equipa"],
+      hr: ["Análise de ocupação em tempo real substitui relatórios manuais de utilização do espaço"],
+      manager: ["Planeamento de dias de equipa simplificado com visibilidade de presença em tempo real"],
+    },
+    it_inventory: {
+      hr: ["Aprovisionamento automático de equipamento e acessos na entrada elimina listas de verificação manuais", "Desaprovisionamento automático na saída garante conformidade de segurança sem intervenção manual"],
+    },
+    one: {
+      employee: ["IA responde instantaneamente a perguntas de RH, eliminando emails e chamadas à equipa de RH", "Disponível 24/7 para consultas sobre políticas, vencimentos e benefícios sem esperar por resposta humana"],
+      hr: ["Reduz significativamente volume de consultas rotineiras, libertando tempo de RH para trabalho estratégico"],
+    },
+    integration_business_central: {
+      hr: ["Sincronização automática bidirecional com Business Central elimina introdução manual de dados entre RH e ERP"],
+    },
+    integration_netsuite: {
+      hr: ["Sincronização automática de dados RH com NetSuite elimina reconciliação manual entre sistemas"],
+    },
+    integration_sage_200: {
+      hr: ["Sincronização automática de dados de vencimentos com Sage 200 elimina introdução manual em cada ciclo"],
+    },
+    integration_milena: {
+      hr: ["Transferência automática de dados de vencimentos para Milena elimina sincronização manual"],
+    },
+    integration_suprema_xiptic: {
+      hr: ["Sincronização automática de registos de ponto dos terminais Suprema elimina reconciliação manual com RH"],
+    },
+    silae: {
+      hr: ["Sincronização automática de dados de processamento salarial com SILAE elimina introdução manual em França"],
+    },
   },
 };
 
