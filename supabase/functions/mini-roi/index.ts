@@ -245,24 +245,41 @@ INSTRUCCIONES:
 2. Para cada módulo, escribe pain_title y pain_description explicando POR QUÉ necesitan ese módulo.
    Sé específico para esta empresa. Usa pain_type apropiado.
 
-3. Horas estimadas — usa VALORES BAJOS y CONSERVADORES (empresa <100 emp):
+3. REGLAS CRÍTICAS PARA LAS HORAS — lee con atención:
 
-   core:          employee=0.2, hr=1.5, manager=0.25
-   (Core incluye portal del empleado, onboarding, documentos y firma digital.
-   Las horas de Core deben reflejar también el tiempo en gestión documental:
-   envío de contratos, firma de documentos, PRL, nóminas — todo lo que hoy va por email o papel.)
-   time_off:      employee=0.1, hr=1.5, manager=0.5
-   time_tracking: employee=0.2, hr=3.5, manager=0.25
-   payroll:       employee=0.0, hr=2.0, manager=0.25
-   documents:     employee=0.2, hr=1.0, manager=0.2
-   recruitment:   employee=0.0, hr=3.0, manager=1.0
+   REGLA 1 — CERO por defecto, no defaults:
+   Empieza con hours_employee=0, hours_hr=0, hours_manager=0 para cada módulo.
+   Solo asigna horas a un stakeholder si el transcript lo menciona EXPLÍCITAMENTE
+   como el que tiene el pain o pierde el tiempo. Si solo se menciona al HR, el
+   empleado y el manager quedan a 0. Si no se menciona nadie, todos quedan a 0.
 
-   Solo ajusta HACIA ARRIBA si el transcript tiene señal explícita muy fuerte
-   ("nos pasa todo el día", "X horas al día"). Máximo 1.5× el default.
-   Si no se menciona en el transcript, usa 0.7× el default (menos del default).
-   NUNCA superes estas caps: employee=0.5, hr=8.0, manager=1.0 h/mes.
+   REGLA 2 — Intensidad del pain determina las horas:
+   - "explicit": prospect dice "X horas al día/semana" → convierte a h/mes
+   - "strong": señales fuertes ("todo el día", "cada día", "muy manual") → usa tabla
+   - "weak": lo mencionan como problema pero sin urgencia → tabla × 0.5
+   - "none": no mencionado → 0 (no asumas nada)
 
-   source="transcript" si hay evidencia real, "assumption" si es estimación.
+   TABLA de horas para señal "strong" (punto de partida, no valor automático):
+   core:          hr=2.0, employee=0.2, manager=0.5
+   time_off:      hr=2.0, employee=0.1, manager=0.5
+   time_tracking: hr=4.0, employee=0.2, manager=0.3
+   payroll:       hr=2.0, employee=0.0, manager=0.3
+   recruitment:   hr=3.0, employee=0.0, manager=1.0
+   performance:   hr=1.5, employee=0.2, manager=0.8
+   trainings:     hr=2.0, employee=0.1, manager=0.3
+   compensations: hr=1.5, employee=0.0, manager=0.5
+   expenses:      hr=1.5, employee=0.3, manager=0.5
+   engagement:    hr=1.0, employee=0.0, manager=0.3
+   procurement:   hr=1.5, employee=0.0, manager=0.5
+
+   REGLA 3 — Contexto del sector importa:
+   - Empresa industrial/hostelería/manufactura: employees suelen ser trabajadores
+     de planta sin ordenador → hours_employee=0 salvo que digan lo contrario
+   - Empresa de servicios/tech/consultoría: employees más digitalizados → considera
+     hours_employee si el módulo afecta al trabajador (ausencias, gastos, formación)
+
+   source="transcript" si hay evidencia real, "assumption" si usas la tabla.
+   Si hours=0, pon source="assumption".
 
 4. tool_replacements: SOLO si se menciona explícitamente una herramienta a reemplazar.
    Precios orientativos (ya incluyen -20% de descuento):
