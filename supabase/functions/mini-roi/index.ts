@@ -380,21 +380,19 @@ function calculateRoi(hs: any, analysis: any, annualCostOverride?: number): RoiR
 
 // ── HTML 1-pager ──────────────────────────────────────────────────────────────
 
-const MODULE_LABELS: Record<string, string> = {
-  core: "Plataforma del Empleado / Core",
-  time_off: "Gestión de Ausencias",
-  time_tracking: "Control Horario",
-  time_planning: "Planificación de Turnos",
-  payroll: "Nómina",
-  compensations: "Compensaciones",
-  recruitment: "Selección de Personal",
-  performance: "Evaluación del Desempeño",
-  expenses: "Gestión de Gastos",
-  trainings: "Formación",
-  complaints: "Canal de Denuncias",
-  engagement: "Clima Laboral",
-  benefits_standard: "Beneficios para Empleados",
+const MODULE_LABELS_I18N: Record<string, Record<string, string>> = {
+  es: { core: "Plataforma del Empleado / Core", time_off: "Gestión de Ausencias", time_tracking: "Control Horario", time_planning: "Gestión de Turnos", payroll: "Nómina", compensations: "Compensaciones", recruitment: "Selección de Personal", performance: "Gestión de Desempeño", expenses: "Gestión de Gastos", trainings: "Formaciones", complaints: "Canal Seguro", engagement: "Engagement", benefits_standard: "Beneficios", headcount_planning: "Planificación de Plantilla", lms: "LMS", space: "Gestión de Espacios", it_inventory: "Inventario de IT", one: "Factorial One (IA)" },
+  en: { core: "Employee Platform / Core", time_off: "Time Off", time_tracking: "Time Tracking", time_planning: "Shift Management", payroll: "Payroll Connect", compensations: "Compensation", recruitment: "Recruitment", performance: "Performance", expenses: "Expenses", trainings: "Training", complaints: "Trust Channel", engagement: "Engagement", benefits_standard: "Benefits", headcount_planning: "Headcount Planning", lms: "LMS", space: "Spaces", it_inventory: "IT Inventory", one: "Factorial One (AI)" },
+  fr: { core: "Plateforme Employé / Core", time_off: "Congés", time_tracking: "Suivi du Temps", time_planning: "Gestion des Plannings", payroll: "Paie", compensations: "Rémunération", recruitment: "Recrutement", performance: "Performance", expenses: "Notes de Frais", trainings: "Formation", complaints: "Canal de Confiance", engagement: "Engagement", benefits_standard: "Avantages", headcount_planning: "Planification des Effectifs", lms: "LMS", space: "Espaces", it_inventory: "Inventaire IT", one: "Factorial One (IA)" },
+  it: { core: "Employee Platform / Core", time_off: "Gestione Assenze", time_tracking: "Controllo Orario", time_planning: "Gestione Turni", payroll: "Paghe", compensations: "Compensi", recruitment: "Ricerca e Selezione", performance: "Gestione Performance", expenses: "Spese", trainings: "Formazione", complaints: "Canale Segnalazioni", engagement: "Coinvolgimento", benefits_standard: "Benefit", headcount_planning: "Pianificazione Personale", lms: "LMS", space: "Gestione Spazi", it_inventory: "Inventario IT", one: "Factorial One (IA)" },
+  de: { core: "Mitarbeiterportal / Core", time_off: "Abwesenheiten", time_tracking: "Zeiterfassung", time_planning: "Schichtplanung", payroll: "Lohnabrechnung", compensations: "Vergütung", recruitment: "Recruitment", performance: "Performance", expenses: "Ausgaben", trainings: "Schulungen", complaints: "Hinweisgebersystem", engagement: "Engagement", benefits_standard: "Benefits", headcount_planning: "Personalplanung", lms: "LMS", space: "Raummanagement", it_inventory: "IT-Inventar", one: "Factorial One (KI)" },
+  pt: { core: "Plataforma do Colaborador / Core", time_off: "Gestão de Ausências", time_tracking: "Controlo de Tempo", time_planning: "Gestão de Turnos", payroll: "Processamento Salarial", compensations: "Compensações", recruitment: "Recrutamento", performance: "Gestão de Desempenho", expenses: "Despesas", trainings: "Formações", complaints: "Canal Seguro", engagement: "Engagement", benefits_standard: "Benefícios", headcount_planning: "Planeamento de Headcount", lms: "LMS", space: "Gestão de Espaços", it_inventory: "Inventário de TI", one: "Factorial One (IA)" },
 };
+
+function getModuleLabel(id: string, lang: string): string {
+  const labels = MODULE_LABELS_I18N[lang] ?? MODULE_LABELS_I18N.en;
+  return labels[id] ?? MODULE_LABELS_I18N.en[id] ?? id;
+}
 
 function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -406,7 +404,17 @@ function badge(source: string): string {
 }
 
 function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string {
-  const date = new Date().toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+  const dateLocale: Record<string, string> = { es: "es-ES", en: "en-GB", fr: "fr-FR", it: "it-IT", de: "de-DE", pt: "pt-PT" };
+  const date = new Date().toLocaleDateString(dateLocale[lang] ?? "es-ES", { day: "numeric", month: "long", year: "numeric" });
+  const ui: Record<string, Record<string, string>> = {
+    es: { title: L.title, confidential: L.confidential, context: "Contexto", modules_header: L.modules_header, modules_sub: L.modules_sub, savings_col: L.savings_col, roi_header: L.roi_header, total_savings: L.total_savings, investment: L.investment, roi_est: L.roi_est, payback: L.payback, net_return: L.net_return, months: L.months, methodology: L.methodology, methodology_body: "Las horas indicadas son estimaciones conservadoras del tiempo que Factorial libera mensualmente por tipo de trabajador. Todas las cifras son asunciones basadas en benchmarks de empresas de tamaño similar, salvo donde se indique \"basado en conversaciones\". Requieren validación conjunta con el cliente.", staff_assumed: "Personal asumido", employees: "empleados", hr_admin: "admin de RRHH", managers: "responsables", hourly_cost: "Coste horario", per_emp: "h empleado", per_hr: "h admin", per_mgr: "h responsable", fact_label: L.fact_label, fact_sub: L.fact_sub, replaces: "Reemplaza", estimated: "estimado" },
+    en: { title: "ESTIMATED ROI ANALYSIS", confidential: "Confidential", context: "Context", modules_header: "Recommended modules & estimated savings", modules_sub: "All savings are based on estimated hours/month by employee type", savings_col: "Annual savings", roi_header: "Estimated return on investment", total_savings: "Total savings", investment: "Investment", roi_est: "Estimated ROI", payback: L.payback, net_return: "net return", months: "months", methodology: "Methodology", methodology_body: "The hours indicated are conservative estimates of time Factorial frees up monthly by employee type. All figures are assumptions based on benchmarks from similar-sized companies, except where \"based on conversations\" is indicated. Require joint validation with the client.", staff_assumed: "Staff assumed", employees: "employees", hr_admin: "HR admins", managers: "managers", hourly_cost: "Hourly cost", per_emp: "h employee", per_hr: "h HR", per_mgr: "h manager", fact_label: L.fact_label, fact_sub: "Generated from conversations and industry benchmarks", replaces: "Replaces", estimated: "estimated" },
+    fr: { title: "ANALYSE ROI ESTIMÉE", confidential: "Confidentiel", context: "Contexte", modules_header: "Modules recommandés et économies estimées", modules_sub: "Toutes les économies sont basées sur des estimations d'heures/mois par type d'employé", savings_col: "Économies annuelles", roi_header: "Retour sur investissement estimé", total_savings: "Économies totales", investment: "Investissement", roi_est: "ROI estimé", payback: L.payback, net_return: "retour net", months: "mois", methodology: "Méthodologie", methodology_body: "Les heures indiquées sont des estimations conservatives du temps libéré par Factorial chaque mois par type d'employé. Tous les chiffres sont des hypothèses basées sur des benchmarks d'entreprises de taille similaire. Nécessitent une validation conjointe.", staff_assumed: "Personnel estimé", employees: "employés", hr_admin: "admins RH", managers: "managers", hourly_cost: "Coût horaire", per_emp: "h employé", per_hr: "h RH", per_mgr: "h manager", fact_label: L.fact_label, fact_sub: "Généré à partir de conversations et benchmarks du secteur", replaces: "Remplace", estimated: "estimé" },
+    it: { title: "ANALISI ROI STIMATA", confidential: "Riservato", context: "Contesto", modules_header: "Moduli raccomandati e risparmi stimati", modules_sub: "Tutti i risparmi sono basati su ore/mese stimate per tipo di dipendente", savings_col: "Risparmio annuale", roi_header: "Ritorno stimato sull'investimento", total_savings: "Risparmio totale", investment: "Investimento", roi_est: "ROI stimato", payback: L.payback, net_return: "ritorno netto", months: "mesi", methodology: "Metodologia", methodology_body: "Le ore indicate sono stime conservative del tempo liberato da Factorial mensilmente per tipo di dipendente. Tutte le cifre sono stime basate su benchmark di aziende di dimensioni simili. Richiedono validazione congiunta con il cliente.", staff_assumed: "Personale stimato", employees: "dipendenti", hr_admin: "admin HR", managers: "manager", hourly_cost: "Costo orario", per_emp: "h dipendente", per_hr: "h HR", per_mgr: "h manager", fact_label: L.fact_label, fact_sub: "Generato da conversazioni e benchmark del settore", replaces: "Sostituisce", estimated: "stimato" },
+    de: { title: "GESCHÄTZTE ROI-ANALYSE", confidential: "Vertraulich", context: "Kontext", modules_header: "Empfohlene Module und geschätzte Einsparungen", modules_sub: "Alle Einsparungen basieren auf geschätzten Stunden/Monat pro Mitarbeitertyp", savings_col: "Jährliche Einsparung", roi_header: "Geschätzte Kapitalrendite", total_savings: "Gesamteinsparung", investment: "Investition", roi_est: "Geschätzter ROI", payback: L.payback, net_return: "Nettorendite", months: "Monate", methodology: "Methodik", methodology_body: "Die angegebenen Stunden sind konservative Schätzungen der monatlich freigesetzten Zeit pro Mitarbeitertyp. Alle Zahlen sind Annahmen basierend auf Benchmarks ähnlicher Unternehmen. Erfordern gemeinsame Validierung.", staff_assumed: "Angenommenes Personal", employees: "Mitarbeiter", hr_admin: "HR-Admins", managers: "Manager", hourly_cost: "Stundenkosten", per_emp: "h Mitarbeiter", per_hr: "h HR", per_mgr: "h Manager", fact_label: L.fact_label, fact_sub: "Generiert aus Gesprächen und Branchenbenchmarks", replaces: "Ersetzt", estimated: "geschätzt" },
+    pt: { title: "ANÁLISE ROI ESTIMADA", confidential: L.confidential, context: "Contexto", modules_header: "Módulos recomendados e poupanças estimadas", modules_sub: "Todas as poupanças baseiam-se em horas/mês estimadas por tipo de colaborador", savings_col: "Poupança anual", roi_header: "Retorno do investimento estimado", total_savings: "Poupança total", investment: "Investimento", roi_est: L.roi_est, payback: L.payback, net_return: "retorno líquido", months: L.months, methodology: "Metodologia", methodology_body: "As horas indicadas são estimativas conservadoras do tempo libertado pelo Factorial mensalmente por tipo de colaborador. Todos os valores são estimativas baseadas em benchmarks de empresas de tamanho similar. Requerem validação conjunta.", staff_assumed: "Pessoal assumido", employees: "colaboradores", hr_admin: "admin de RH", managers: "responsáveis", hourly_cost: "Custo horário", per_emp: "h colaborador", per_hr: "h RH", per_mgr: "h responsável", fact_label: L.fact_label, fact_sub: "Gerado a partir de conversas e benchmarks do setor", replaces: "Substitui", estimated: "estimado" },
+  };
+  const L = ui[lang] ?? ui.es;
   const country = (hs.country ?? "ES").substring(0, 2).toUpperCase();
   const countryLabel: Record<string, string> = { ES: "España", FR: "Francia", DE: "Alemania", IT: "Italia", PT: "Portugal" };
 
@@ -436,7 +444,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
 
     // Tool replacement OR hours — never both
     const assumptionLine = tool
-      ? `<p style="font-size:10px;color:#AAAACC;margin-top:3px;padding-left:20px;">Reemplaza <strong style="color:#8888AA;">${esc(tool.tool_name)}</strong> · ~€${fmtEur(Math.round(tool.annual_cost_eur / 100) * 100)}/año estimado</p>`
+      ? `<p style="font-size:10px;color:#AAAACC;margin-top:3px;padding-left:20px;">${L.replaces} <strong style="color:#8888AA;">${esc(tool.tool_name)}</strong> · ~€${fmtEur(Math.round(tool.annual_cost_eur / 100) * 100)}/año ${L.estimated}</p>`
       : parts.length > 0
         ? `<p style="font-size:10px;color:#AAAACC;margin-top:3px;padding-left:20px;">${parts.map(esc).join(" · ")} — ${sourceNote}</p>`
         : "";
@@ -446,7 +454,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;">
         <div style="display:flex;align-items:baseline;gap:10px;flex:1;min-width:0;">
           <span style="font-size:10px;font-weight:800;color:#FF355E;letter-spacing:.02em;flex-shrink:0;">${num}</span>
-          <span style="font-size:13px;font-weight:800;color:#1A1A2E;">${esc(MODULE_LABELS[m.id] ?? m.id)}</span>
+          <span style="font-size:13px;font-weight:800;color:#1A1A2E;">${esc(getModuleLabel(m.id, lang))}</span>
         </div>
         <span style="font-size:14px;font-weight:800;color:#FF355E;letter-spacing:-.02em;white-space:nowrap;flex-shrink:0;">€${fmtEur(annual)}<span style="font-size:9px;font-weight:500;color:#AAAACC;">/año</span></span>
       </div>
@@ -482,7 +490,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   </div>
   <!-- Context — half size -->
   <div style="margin-top:14px;padding-bottom:12px;border-bottom:1px solid #EBEBF0;">
-    <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;margin-bottom:5px;">Contexto</div>
+    <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;margin-bottom:5px;">${L.context}</div>
     <p style="font-size:11px;line-height:1.5;color:#8888AA;">${esc(analysis.company_context ?? "")}</p>
   </div>`;
 
@@ -624,7 +632,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-
 
   <!-- Context -->
   <div style="margin-top:24px;">
-    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;padding-bottom:8px;border-bottom:1px solid #FFB8C8;">Contexto</div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;padding-bottom:8px;border-bottom:1px solid #FFB8C8;">${L.context}</div>
     <p style="font-size:13px;line-height:1.65;color:#4A4A6A;margin-top:10px;">${esc(analysis.company_context ?? "")}</p>
   </div>
 
@@ -728,7 +736,7 @@ Deno.serve(async (req) => {
             const moduleInstructions = moduleList.map((m: any) => {
               const note = module_notes[m.id];
               const isNew = !(existing_analysis.modules ?? []).find((x: any) => x.id === m.id);
-              return `- ${MODULE_LABELS[m.id] ?? m.id}${note ? `\n  INSTRUCCIÓN AE: "${note}"` : ""}${isNew ? "\n  (módulo nuevo, no había en análisis original)" : ""}`;
+              return `- ${getModuleLabel(m.id, lang)}${note ? `\n  INSTRUCCIÓN AE: "${note}"` : ""}${isNew ? "\n  (módulo nuevo, no había en análisis original)" : ""}`;
             }).join("\n");
 
             const user = `EMPRESA: ${hs_data?.company_name ?? ""}, ${hs_data?.employees ?? "?"} empleados, ${hs_data?.country ?? ""}, ${hs_data?.industry ?? ""}
@@ -831,7 +839,7 @@ Devuelve JSON exacto:
           // 4. Claude
           emit({ step: "claude", status: "running", label: "Analizando con Claude..." });
           const analysis = await analyzeWithClaude(hs, transcripts, language);
-          const moduleIds = (analysis.modules ?? []).map((m: any) => MODULE_LABELS[m.id] ?? m.id);
+          const moduleIds = (analysis.modules ?? []).map((m: any) => getModuleLabel(m.id, lang));
           emit({ step: "claude", status: "done", label: "Análisis completado", detail: `${moduleIds.join(", ")}` });
 
           // 5. ROI

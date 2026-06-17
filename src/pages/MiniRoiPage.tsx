@@ -78,21 +78,7 @@ const STEP_LABELS: Record<string, string> = {
   claude: "Claude IA", roi: "Cálculo ROI", html: "Documento",
 };
 
-const ALL_MODULES: Record<string, string> = {
-  core: "Plataforma del Empleado / Core",
-  time_off: "Gestión de Ausencias",
-  time_tracking: "Control Horario",
-  time_planning: "Planificación de Turnos",
-  payroll: "Nómina",
-  compensations: "Compensaciones",
-  recruitment: "Selección de Personal",
-  performance: "Evaluación del Desempeño",
-  expenses: "Gestión de Gastos",
-  trainings: "Formación",
-  complaints: "Canal de Denuncias",
-  engagement: "Clima Laboral",
-  benefits_standard: "Beneficios para Empleados",
-};
+import { MODULE_INFO, getLocalized } from "@/lib/discoveryQuestions";
 
 // ── Sub-components ───────────────────────────────────────────────────────────
 
@@ -146,7 +132,7 @@ export default function MiniRoiPage() {
   const stepMap = Object.fromEntries(pipelineSteps.map(s => [s.step, s]));
   const roiDone = !!stepMap["roi"] && stepMap["roi"].status === "done";
   const includedModules = Object.entries(moduleOverrides).filter(([, v]) => v.include).map(([id]) => id);
-  const addableModules = Object.keys(ALL_MODULES).filter(id => !moduleOverrides[id]);
+  const addableModules = Object.keys(MODULE_INFO).filter(id => ["core","time_off","time_tracking","time_planning","payroll","compensations","recruitment","performance","expenses","trainings","complaints","engagement","benefits_standard","headcount_planning","lms","space","it_inventory","one"].includes(id)).filter(id => !moduleOverrides[id]);
 
   // ── Load saved session ───────────────────────────────────────────────────
   useEffect(() => {
@@ -452,13 +438,13 @@ export default function MiniRoiPage() {
               <AlertTriangle className="h-7 w-7" style={{ color: "oklch(58% 0.16 60)" }} />
             </div>
             <h1 className="text-2xl font-bold tracking-tight mb-4" style={{ color: "oklch(14% 0.018 250)" }}>
-              ROI basado en asunciones
+              t("mini_roi.warning_title")
             </h1>
             <p className="text-base leading-relaxed mb-3" style={{ color: "oklch(32% 0.012 250)" }}>
-              Crear un ROI basado en asunciones no aportará el mismo valor que co-crearlo con el prospect. Aun así puede servir para demostrar el valor de Factorial basado en el Discovery de un deal, como punto de partida antes de una llamada.
+              t("mini_roi.warning_body")
             </p>
             <p className="text-sm" style={{ color: "oklch(58% 0.01 250)" }}>
-              Los números generados son estimaciones conservadoras. Idealmente valídalos con el prospect.
+              t("mini_roi.warning_note")
             </p>
           </div>
             <div className="flex gap-3 mt-2">
@@ -511,7 +497,7 @@ export default function MiniRoiPage() {
                 Analizar un deal
               </h1>
               <p className="text-sm" style={{ color: "oklch(54% 0.01 250)" }}>
-                La IA descarga las llamadas del deal y construye el ROI automáticamente
+                t("mini_roi.input_sub")
               </p>
             </div>
 
@@ -543,14 +529,14 @@ export default function MiniRoiPage() {
               {/* Price — secondary, collapsible feel */}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px" style={{ background: "oklch(91% 0.005 250)" }} />
-                <span className="text-[10px] font-medium shrink-0" style={{ color: "oklch(68% 0.008 250)" }}>opcional</span>
+                <span className="text-[10px] font-medium shrink-0" style={{ color: "oklch(68% 0.008 250)" }}>{t("mini_roi.optional")}</span>
                 <div className="flex-1 h-px" style={{ background: "oklch(91% 0.005 250)" }} />
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(54% 0.01 250)" }}>
-                    Precio Factorial (si lo sabes)
+                    {t("mini_roi.price_label")}
                   </label>
                   <div className="flex items-center gap-2">
                     <input
@@ -587,7 +573,7 @@ export default function MiniRoiPage() {
               {/* Language selector for the document */}
               <div className="pt-2">
                 <p className="text-xs font-medium mb-2.5" style={{ color: "oklch(58% 0.01 250)" }}>
-                  Idioma del documento
+                  t("mini_roi.doc_language")
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {([["es", "🇪🇸", "ES"], ["en", "🇬🇧", "EN"], ["fr", "🇫🇷", "FR"], ["pt", "🇵🇹", "PT"], ["it", "🇮🇹", "IT"], ["de", "🇩🇪", "DE"]] as const).map(([code, flag, label]) => (
@@ -696,7 +682,7 @@ export default function MiniRoiPage() {
               <p className="text-xs font-semibold" style={{ color: "oklch(45% 0.18 15)" }}>{error}</p>
               <button onClick={() => setStep("input")} className="text-xs mt-1 font-medium transition-colors"
                 style={{ color: "oklch(60% 0.01 250)" }}>
-                ← Volver a intentarlo
+                {t("mini_roi.retry")}
               </button>
             </div>
           )}
@@ -820,8 +806,8 @@ export default function MiniRoiPage() {
                 style={{ background: "oklch(14% 0.018 250)", color: "white" }}
               >
                 {downloadingPdf
-                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Generando PDF...</>
-                  : <><Download className="h-3.5 w-3.5" />Descargar PDF</>
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />{t("mini_roi.generating_pdf")}</>
+                  : <><Download className="h-3.5 w-3.5" />{t("mini_roi.download_pdf")}</>
                 }
               </button>
             </div>
@@ -836,7 +822,7 @@ export default function MiniRoiPage() {
             {/* Price section */}
             <div className="px-4 pt-4 pb-3.5" style={{ borderBottom: "1px solid oklch(92% 0.005 250)" }}>
               <p className="text-[9px] font-bold uppercase tracking-widest mb-2.5"
-                style={{ color: "oklch(58% 0.01 250)" }}>Precio Factorial</p>
+                style={{ color: "oklch(58% 0.01 250)" }}>{t("mini_roi.price_section")}</p>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
@@ -863,7 +849,7 @@ export default function MiniRoiPage() {
                   Módulos
                 </p>
                 <span className="text-[9px] tabular-nums" style={{ color: "oklch(68% 0.009 250)" }}>
-                  {includedModules.length} activos
+                  {includedModules.length} {t("mini_roi.active_count", {n: includedModules.length}).replace("{{n}}", String(includedModules.length))}
                 </span>
               </div>
 
@@ -886,14 +872,14 @@ export default function MiniRoiPage() {
                         </button>
                         <span className="text-[12px] font-semibold flex-1 leading-tight"
                           style={{ color: "oklch(20% 0.015 250)" }}>
-                          {ALL_MODULES[id] ?? id}
+                          {getLocalized(MODULE_INFO[id]?.label ?? {en: id, es: id, fr: id}, i18n.language) || id}
                         </span>
                       </div>
                       {/* Note field — always visible when included, compact */}
                       {ov.include && (
                         <div className="mt-2.5 ml-[30px]">
                           <textarea
-                            placeholder='Nota opcional (ej: "reemplaza Bizneo", "HR dedica 8h no 4h"...)'
+                            placeholder={t("mini_roi.note_placeholder")}
                             value={ov.note}
                             onChange={e => setNote(id, e.target.value)}
                             rows={ov.note ? 2 : 1}
@@ -969,8 +955,8 @@ export default function MiniRoiPage() {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(50% 0.22 15)"; }}
               >
                 {regenerating
-                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Regenerando...</>
-                  : <><RefreshCw className="h-3.5 w-3.5" />Regenerar</>
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />{t("mini_roi.regenerating")}</>
+                  : <><RefreshCw className="h-3.5 w-3.5" />{t("mini_roi.regenerate")}</>
                 }
               </button>
             ) : (

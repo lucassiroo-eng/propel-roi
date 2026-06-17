@@ -222,7 +222,7 @@ export default function Home() {
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <p className="text-foreground font-bold text-base leading-snug">ROI basado en asunciones</p>
+            <p className="text-foreground font-bold text-base leading-snug">{t("home.mini_roi_title", "ROI basado en asunciones")}</p>
             <p className="text-muted-foreground text-xs mt-1 mb-3 leading-relaxed">{t("home.mini_roi_sub", "IA genera el análisis automáticamente")}</p>
             <div className="flex items-center gap-1 text-primary font-semibold text-xs">
               {t("home.start", "Empezar")} <ChevronRight className="h-3.5 w-3.5" />
