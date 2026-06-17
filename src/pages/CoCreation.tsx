@@ -1036,10 +1036,65 @@ export default function CoCreation() {
                   );
                 }
 
+                // No image + has questions: full-height 2-col with styled info+questions left, inputs right
+                if (noImage) {
+                  return (
+                    <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
+                      {/* Left: info card + questions */}
+                      <div className="flex flex-col gap-4 min-h-0 overflow-hidden">
+                        {/* Info card */}
+                        <div className="rounded-xl flex flex-col gap-3 px-5 py-5 shrink-0" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
+                          <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
+                            {modLabel}
+                          </span>
+                          <h2 className="text-[1.2rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
+                            {modInfo ? getLocalized(modInfo.description, lang) : ""}
+                          </h2>
+                          {valueProps.length > 0 && (
+                            <ul className="space-y-1.5">
+                              {valueProps.map((vp, vi) => (
+                                <li key={vi} className="flex items-start gap-2">
+                                  <div className="w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 mt-[3px]" style={{ backgroundColor: modColor + "22" }}>
+                                    <Check className="h-2 w-2" style={{ color: modColor }} />
+                                  </div>
+                                  <p className="text-[12px] leading-snug" style={{ color: 'oklch(40% 0.01 250)' }}>{getLocalized(vp, lang)}</p>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                        {/* Questions card */}
+                        <div className="flex-1 rounded-xl overflow-hidden flex flex-col min-h-0" style={{ backgroundColor: modColor + '05', border: `1px solid ${modColor}18` }}>
+                          <div className="px-4 py-2 border-b shrink-0" style={{ borderColor: modColor + '18', backgroundColor: modColor + '0D' }}>
+                            <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: modColor }}>{t("cocreation.discovery_questions")}</p>
+                          </div>
+                          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5">
+                            {allQuestions.map(({ stakeholder: sk, question: q }, qi) => {
+                              const style = STAKE_STYLE[sk];
+                              return (
+                                <div key={qi} className="flex items-baseline gap-2">
+                                  <span className="inline-flex shrink-0 items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide" style={{ backgroundColor: style.color + '1A', color: style.color }}>
+                                    {t(STAKE_LABEL_KEY[sk])}
+                                  </span>
+                                  <p className="text-[12px] leading-snug" style={{ color: 'oklch(30% 0.015 250)' }}>{getQuestion(q, lang)}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      {/* Right: inputs card */}
+                      <div id="tour-discovery-inputs" className="rounded-2xl overflow-hidden bg-white flex flex-col" style={{ border: '1px solid rgba(0,0,0,0.08)' }}>
+                        {inputsCardInner}
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div className="flex-1 flex flex-col gap-5 min-h-0">
                     {/* TOP ROW — module info left, screenshot right */}
-                    <div className="shrink-0 grid gap-4" style={{ height: '48%', gridTemplateColumns: modImage ? '1fr 1.1fr' : '1fr' }}>
+                    <div className="shrink-0 grid gap-4" style={{ height: '48%', gridTemplateColumns: '1fr 1.1fr' }}>
                       {/* Module info */}
                       <div className="flex flex-col justify-center gap-2.5 pr-2">
                         <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
@@ -1062,16 +1117,14 @@ export default function CoCreation() {
                         )}
                       </div>
                       {/* Screenshot */}
-                      {modImage && (
-                        <div className="rounded-2xl overflow-hidden bg-white" style={{ boxShadow: '0 2px 24px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)' }}>
-                          <img
-                            src={import.meta.env.BASE_URL + modImage.replace(/^\//, '')}
-                            alt=""
-                            className="w-full h-full object-contain"
-                            onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
-                          />
-                        </div>
-                      )}
+                      <div className="rounded-2xl overflow-hidden bg-white" style={{ boxShadow: '0 2px 24px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)' }}>
+                        <img
+                          src={import.meta.env.BASE_URL + modImage!.replace(/^\//, '')}
+                          alt=""
+                          className="w-full h-full object-contain"
+                          onError={() => setImgBrokenSet(prev => new Set(prev).add(currentModule))}
+                        />
+                      </div>
                     </div>
 
                     {/* BOTTOM ROW — questions left, inputs right — grows to fill remaining space */}
