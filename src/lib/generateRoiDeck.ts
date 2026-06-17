@@ -45,6 +45,7 @@ function stakeholderLabel(s: Stakeholder, lang: string): string {
     fr: { employee: "Employés", hr: "Admin RH", manager: "Managers" },
     it: { employee: "Dipendenti", hr: "Admin HR", manager: "Manager" },
     de: { employee: "Mitarbeiter", hr: "HR-Admin", manager: "Manager" },
+    pt: { employee: "Colaboradores", hr: "Admin RH", manager: "Gestores" },
   };
   return (labels[lang] ?? labels.es)[s];
 }
@@ -166,6 +167,35 @@ const MODULE_SHORT_DESC: Record<string, Record<string, string>> = {
     documents: "Dokumentenmanagement und E-Signatur",
     headcount_planning: "Personalplanung",
     lms: "Online-Lernplattform",
+  },
+  pt: {
+    core: "Gestão centralizada de colaboradores e onboarding automático",
+    time_tracking: "Registo de ponto digital e controlo de presença",
+    time_off: "Gestão de férias, licenças e ausências",
+    time_planning: "Planeamento de turnos e escalas",
+    payroll: "Sincronização automática com o provedor de vencimentos",
+    expenses: "Captura OCR e aprovação de notas de despesas",
+    recruitment: "ATS para gestão de processos de recrutamento",
+    performance: "Avaliações de desempenho e objetivos",
+    trainings: "Gestão de formação e desenvolvimento",
+    compensations: "Revisões salariais e bandas de remuneração",
+    engagement: "Inquéritos de clima e engagement",
+    procurement: "Gestão de compras e fornecedores",
+    projects: "Acompanhamento de projetos e custos",
+    complaints: "Canal de denúncias e conformidade",
+    benefits: "Adiantamento salarial e benefícios flexíveis",
+    headcount_planning: "Planeamento de headcount",
+    lms: "Plataforma de aprendizagem online",
+    space: "Gestão de espaços e reservas",
+    it_inventory: "Inventário de TI e aprovisionamento",
+    one: "Assistente de RH com IA",
+    benefits_standard: "Benefícios e retribuição flexível",
+    integration_business_central: "Integração com Business Central",
+    integration_netsuite: "Integração com NetSuite",
+    integration_sage_200: "Integração com Sage 200",
+    integration_milena: "Integração com Milena",
+    integration_suprema_xiptic: "Integração com Suprema/Xiptic",
+    silae: "Integração com SILAE",
   },
 };
 
@@ -501,7 +531,7 @@ const ISO_USE = `<svg class="iso"><use href="#iso"/></svg>`;
 // ── Slide generators ─────────────────────────────────
 
 function coverSlide(data: RoiSlideData, t: DeckI18n, lang: string): string {
-  const empLabel: Record<string, string> = { es: "empleados", en: "employees", fr: "employés", it: "dipendenti", de: "Mitarbeiter" };
+  const empLabel: Record<string, string> = { es: "empleados", en: "employees", fr: "employés", it: "dipendenti", de: "Mitarbeiter", pt: "colaboradores" };
   const nameLen = data.company_name.length;
   const nameFontSize = nameLen > 40 ? 48 : nameLen > 28 ? 60 : 80;
   return `<div class="slide" style="background:#FF355E">
@@ -532,6 +562,7 @@ function summarySlide(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, 
     fr: `Factorial offre un retour sur investissement de <span style="color:#FF355E">${data.roi_percent}%</span><br>pour ${escHtml(data.company_name)}`,
     it: `Factorial offre un ritorno sull'investimento del <span style="color:#FF355E">${data.roi_percent}%</span><br>per ${escHtml(data.company_name)}`,
     de: `Factorial liefert eine Kapitalrendite von <span style="color:#FF355E">${data.roi_percent}%</span><br>für ${escHtml(data.company_name)}`,
+    pt: `Factorial tem um retorno sobre o investimento de <span style="color:#FF355E">${data.roi_percent}%</span><br>para ${escHtml(data.company_name)}`,
   };
 
   const moduleRows = details.map(d => {
@@ -586,11 +617,11 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
   const color = detail.color;
 
   if (detail.tool_override) {
-    const fallbackTool: Record<string, string> = { es: "herramienta actual", en: "current tool", fr: "outil actuel", it: "strumento attuale", de: "aktuelles Tool" };
+    const fallbackTool: Record<string, string> = { es: "herramienta actual", en: "current tool", fr: "outil actuel", it: "strumento attuale", de: "aktuelles Tool", pt: "ferramenta atual" };
     const toolName = detail.tool_override.tool_name || (fallbackTool[lang] ?? fallbackTool.es);
     const monthlyCost = fmtEur(Math.round(detail.total_annual / 12));
-    const moLabel = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat" }[lang] ?? "/mes";
-    const yrLabel = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr" }[lang] ?? "/año";
+    const moLabel = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat", pt: "/mês" }[lang] ?? "/mes";
+    const yrLabel = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr", pt: "/ano" }[lang] ?? "/año";
     return `<div class="slide">
   ${ISO_USE}
   <div class="brand">${escHtml(t.proposal)}</div>
@@ -630,11 +661,11 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
     const ico = STAKEHOLDER_ICONS[r.stakeholder];
     const swLbl = scalesWithLabel(r.scales_with, lang);
     const isAnnual = r.scales_with === "onboardings";
-    const hUnitLabel: Record<string, string> = { es: isAnnual ? "h/alta" : "h/mes", en: isAnnual ? "h/hire" : "h/month", fr: isAnnual ? "h/recrutement" : "h/mois", it: isAnnual ? "h/assunzione" : "h/mese", de: isAnnual ? "h/Einstellung" : "h/Monat" };
+    const hUnitLabel: Record<string, string> = { es: isAnnual ? "h/alta" : "h/mes", en: isAnnual ? "h/hire" : "h/month", fr: isAnnual ? "h/recrutement" : "h/mois", it: isAnnual ? "h/assunzione" : "h/mese", de: isAnnual ? "h/Einstellung" : "h/Monat", pt: isAnnual ? "h/contratação" : "h/mês" };
     const hUnit = `${r.hours_per_unit} ${hUnitLabel[lang] ?? hUnitLabel.es}`;
     const totalLabel = isAnnual ? `= ${Math.round(r.total_hours * 12)} ${t.h_year_saved}` : `= ${Math.round(r.total_hours * 10) / 10} ${t.h_month_saved}`;
-    const moLabel: Record<string, string> = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat" };
-    const yrLabel: Record<string, string> = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr" };
+    const moLabel: Record<string, string> = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat", pt: "/mês" };
+    const yrLabel: Record<string, string> = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr", pt: "/ano" };
     const monthlySav = isAnnual ? fmtEur(Math.round(r.annual_savings / 12)) + ` ${moLabel[lang] ?? moLabel.es}` : fmtEur(Math.round(r.monthly_savings)) + ` ${moLabel[lang] ?? moLabel.es}`;
     const skColors: Record<string, string> = { employee: "#3B82F6", hr: "#10B981", manager: "#F59E0B" };
     const skColor = skColors[r.stakeholder] ?? "#6B7280";

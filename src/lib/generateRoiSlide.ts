@@ -31,6 +31,9 @@ function fmtDate(lang: string): string {
     es: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
     en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
     fr: ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"],
+    it: ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"],
+    de: ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    pt: ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"],
   };
   const m = (months[lang] ?? months.es)[d.getMonth()];
   return `${d.getDate()} ${m} ${d.getFullYear()}`;
@@ -232,8 +235,62 @@ function getSummaryI18n(data: RoiSlideData, lang: string): Record<string, string
       addon_label: "Add-on",
       footer: `Estimation basée sur une étude du cabinet interne de Factorial, avec ${data.total_employees} utilisateurs, ${data.hr_count} administrateur${data.hr_count > 1 ? "s" : ""} RH, ${data.manager_count} managers et ${data.onboardings} recrutements par an.`,
     },
+    it: {
+      title_prefix: "ROI atteso di",
+      title_no_cost: `Risparmio stimato equivalente a ${data.total_hours} ore`,
+      subtitle_prefix: "Analisi del ritorno sull'investimento per",
+      subtitle_no_cost: "Analisi dei risparmi per",
+      col_modules: "Moduli",
+      col_hours: "Ore / mese",
+      col_savings: "Risparmio / anno",
+      total_label: "Risparmio Totale",
+      kpi_savings: "Risparmi Annuali Totali",
+      kpi_cost: "Costo Annuale Factorial",
+      kpi_roi: "ROI Annuale",
+      payback: "ritorno in",
+      months: "mesi",
+      highlights_title: "Impatto per modulo",
+      addon_label: "Add-on",
+      footer: `Stima basata sullo studio di consulenza interna di Factorial, con ${data.total_employees} utenti, ${data.hr_count} admin HR, ${data.manager_count} manager e ${data.onboardings} assunzioni all'anno.`,
+    },
+    de: {
+      title_prefix: "Erwarteter ROI von",
+      title_no_cost: `Geschätzte Einsparungen äquivalent zu ${data.total_hours} Stunden`,
+      subtitle_prefix: "ROI-Analyse für",
+      subtitle_no_cost: "Einsparungsanalyse für",
+      col_modules: "Module",
+      col_hours: "Stunden / Monat",
+      col_savings: "Einsparung / Jahr",
+      total_label: "Gesamteinsparung",
+      kpi_savings: "Gesamte jährliche Einsparungen",
+      kpi_cost: "Jährliche Factorial-Kosten",
+      kpi_roi: "Jährlicher ROI",
+      payback: "Amortisation in",
+      months: "Monaten",
+      highlights_title: "Auswirkung pro Modul",
+      addon_label: "Add-on",
+      footer: `Schätzung basierend auf der internen Beratungsstudie von Factorial mit ${data.total_employees} Nutzern, ${data.hr_count} HR-Admin${data.hr_count > 1 ? "s" : ""}, ${data.manager_count} Managern und ${data.onboardings} Einstellungen/Jahr.`,
+    },
+    pt: {
+      title_prefix: "ROI esperado de",
+      title_no_cost: `Poupança estimada equivalente a ${data.total_hours} horas`,
+      subtitle_prefix: "Análise de retorno do investimento para",
+      subtitle_no_cost: "Análise de poupança para",
+      col_modules: "Módulos",
+      col_hours: "Horas / mês",
+      col_savings: "Poupança / ano",
+      total_label: "Poupança Total",
+      kpi_savings: "Poupanças Anuais Totais",
+      kpi_cost: "Custo Anual Factorial",
+      kpi_roi: "ROI Anual",
+      payback: "retorno em",
+      months: "meses",
+      highlights_title: "Impacto por módulo",
+      addon_label: "Add-on",
+      footer: `Estimativa baseada no estudo de consultoria interna da Factorial, com ${data.total_employees} utilizadores, ${data.hr_count} admin de RH, ${data.manager_count} gestores e ${data.onboardings} contratações por ano.`,
+    },
   };
-  return i18n[lang] ?? i18n.es;
+  return i18n[lang] ?? i18n.en;
 }
 
 function buildBrandHtml(data: RoiSlideData): string {
@@ -268,7 +325,7 @@ function generateSummarySlideBody(data: RoiSlideData): string {
   const hasAddons = addonMods.length > 0;
   const groupHeaderFont = mc <= 5 ? 11 : 10;
 
-  const toolLabel: Record<string, string> = { es: "Sustituye", en: "Replaces", fr: "Remplace" };
+  const toolLabel: Record<string, string> = { es: "Sustituye", en: "Replaces", fr: "Remplace", it: "Sostituisce", de: "Ersetzt", pt: "Substitui" };
 
   const renderModRow = (m: RoiSlideModule, i: number) => {
     const color = PILL_COLORS[i % PILL_COLORS.length];
@@ -637,12 +694,18 @@ const STAKEHOLDER_LABELS: Record<string, Record<Stakeholder, string>> = {
   es: { employee: "Empleados", hr: "RRHH / Finanzas", manager: "Gerentes" },
   en: { employee: "Employees", hr: "HR / Finance", manager: "Managers" },
   fr: { employee: "Employés", hr: "RH / Finance", manager: "Managers" },
+  it: { employee: "Dipendenti", hr: "HR / Finanza", manager: "Manager" },
+  de: { employee: "Mitarbeiter", hr: "HR / Finanzen", manager: "Manager" },
+  pt: { employee: "Colaboradores", hr: "RH / Finanças", manager: "Gestores" },
 };
 
 const SCALES_WITH_LABELS: Record<string, Record<string, string>> = {
   es: { employees: "empleados", hr_ftes: "FTEs RRHH", managers: "gerentes", onboardings: "altas/mes", submitters: "personas con gastos" },
   en: { employees: "employees", hr_ftes: "HR FTEs", managers: "managers", onboardings: "hires/month", submitters: "expense submitters" },
   fr: { employees: "employés", hr_ftes: "FTEs RH", managers: "managers", onboardings: "recrutements/mois", submitters: "soumetteurs de frais" },
+  it: { employees: "dipendenti", hr_ftes: "FTE HR", managers: "manager", onboardings: "assunzioni/mese", submitters: "addetti alle spese" },
+  de: { employees: "Mitarbeiter", hr_ftes: "HR-FTEs", managers: "Manager", onboardings: "Einstellungen/Monat", submitters: "Speseneinreicher" },
+  pt: { employees: "colaboradores", hr_ftes: "FTEs RH", managers: "gestores", onboardings: "contratações/mês", submitters: "submetedores de despesas" },
 };
 
 function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang: string): string {
@@ -650,6 +713,9 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
     es: { detail_title: "Detalle del cálculo", stakeholder: "Stakeholder", h_person: "h/pers/mes", count: "Personas", total_h: "Horas totales/mes", eur_h: "€/hora", monthly: "Ahorro/mes", annual: "Ahorro/año", total: "Total módulo", pct_of_total: "del ahorro total", hours_month: "Horas/mes", benefits: "Beneficios", replaces_tool: "Sustituye herramienta", tool_cost: "Coste anual de la herramienta", tool_saving: "Ahorro por sustitución" },
     en: { detail_title: "Calculation detail", stakeholder: "Stakeholder", h_person: "h/pers/month", count: "People", total_h: "Total hours/month", eur_h: "€/hour", monthly: "Savings/month", annual: "Savings/year", total: "Module total", pct_of_total: "of total savings", hours_month: "Hours/month", benefits: "Benefits", replaces_tool: "Replaces tool", tool_cost: "Annual tool cost", tool_saving: "Savings from replacement" },
     fr: { detail_title: "Détail du calcul", stakeholder: "Partie prenante", h_person: "h/pers/mois", count: "Personnes", total_h: "Heures totales/mois", eur_h: "€/heure", monthly: "Économies/mois", annual: "Économies/an", total: "Total module", pct_of_total: "des économies totales", hours_month: "Heures/mois", benefits: "Bénéfices", replaces_tool: "Remplace l'outil", tool_cost: "Coût annuel de l'outil", tool_saving: "Économies par remplacement" },
+    it: { detail_title: "Dettaglio del calcolo", stakeholder: "Stakeholder", h_person: "h/pers/mese", count: "Persone", total_h: "Ore totali/mese", eur_h: "€/ora", monthly: "Risparmio/mese", annual: "Risparmio/anno", total: "Totale modulo", pct_of_total: "del risparmio totale", hours_month: "Ore/mese", benefits: "Benefici", replaces_tool: "Sostituisce lo strumento", tool_cost: "Costo annuale dello strumento", tool_saving: "Risparmio per sostituzione" },
+    de: { detail_title: "Berechnungsdetail", stakeholder: "Stakeholder", h_person: "h/Pers/Monat", count: "Personen", total_h: "Gesamtstunden/Monat", eur_h: "€/Stunde", monthly: "Einsparung/Monat", annual: "Einsparung/Jahr", total: "Modul gesamt", pct_of_total: "der Gesamteinsparung", hours_month: "Stunden/Monat", benefits: "Vorteile", replaces_tool: "Ersetzt Tool", tool_cost: "Jährliche Tool-Kosten", tool_saving: "Einsparung durch Ersatz" },
+    pt: { detail_title: "Detalhe do cálculo", stakeholder: "Tipo de colaborador", h_person: "h/pessoa/mês", count: "Pessoas", total_h: "Horas totais/mês", eur_h: "€/hora", monthly: "Poupança/mês", annual: "Poupança/ano", total: "Total módulo", pct_of_total: "da poupança total", hours_month: "Horas/mês", benefits: "Benefícios", replaces_tool: "Substitui ferramenta", tool_cost: "Custo anual da ferramenta", tool_saving: "Poupança por substituição" },
   };
   const t = i18n[lang] ?? i18n.es;
   const sLabels = STAKEHOLDER_LABELS[lang] ?? STAKEHOLDER_LABELS.es;
@@ -664,10 +730,14 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
       es: { subtitle: "Sustitución de herramienta", current: "Herramienta actual", cost_yr: "Coste anual", cost_mo: "Coste mensual", replacement: "Solución Factorial", included: "Incluido en la plataforma", saving: "Ahorro estimado" },
       en: { subtitle: "Tool replacement", current: "Current tool", cost_yr: "Annual cost", cost_mo: "Monthly cost", replacement: "Factorial solution", included: "Included in the platform", saving: "Estimated savings" },
       fr: { subtitle: "Remplacement d'outil", current: "Outil actuel", cost_yr: "Coût annuel", cost_mo: "Coût mensuel", replacement: "Solution Factorial", included: "Inclus dans la plateforme", saving: "Économies estimées" },
+      it: { subtitle: "Sostituzione strumento", current: "Strumento attuale", cost_yr: "Costo annuale", cost_mo: "Costo mensile", replacement: "Soluzione Factorial", included: "Incluso nella piattaforma", saving: "Risparmio stimato" },
+      de: { subtitle: "Tool-Ersatz", current: "Aktuelles Tool", cost_yr: "Jährliche Kosten", cost_mo: "Monatliche Kosten", replacement: "Factorial-Lösung", included: "In der Plattform enthalten", saving: "Geschätzte Einsparung" },
+      pt: { subtitle: "Substituição de ferramenta", current: "Ferramenta atual", cost_yr: "Custo anual", cost_mo: "Custo mensal", replacement: "Solução Factorial", included: "Incluído na plataforma", saving: "Poupança estimada" },
     };
     const tt = i18nTool[lang] ?? i18nTool.es;
 
-    const yearLabel = lang === "en" ? "year" : lang === "fr" ? "an" : "año";
+    const yearLabel: Record<string, string> = { en: "year", fr: "an", it: "anno", de: "Jahr", pt: "ano", es: "año" };
+    const yearLabelStr = yearLabel[lang] ?? "año";
 
     return `
   <div class="slide detail-slide">
@@ -714,7 +784,7 @@ function generateDetailSlideHtml(detail: ModuleDetail, data: RoiSlideData, lang:
           <div style="font-size:14px;font-weight:700;color:#6B7280;">${tt.saving}</div>
           <div style="display:flex;align-items:baseline;gap:6px;">
             <span style="font-size:28px;font-weight:800;color:#FF355E;">${fmtEur(detail.total_annual)}</span>
-            <span style="font-size:13px;font-weight:600;color:#9CA3AF;">/ ${yearLabel}</span>
+            <span style="font-size:13px;font-weight:600;color:#9CA3AF;">/ ${yearLabelStr}</span>
           </div>
         </div>
         <div style="background:#FAFAFA;border-radius:12px;padding:22px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;">
@@ -830,10 +900,11 @@ ${tableRows}
 
 function generateIndexSlide(data: RoiSlideData, details: ModuleDetail[], lang: string): string {
   const brandHtml = buildBrandHtml(data);
-  const indexTitle: Record<string, string> = { es: "Índice", en: "Contents", fr: "Sommaire" };
-  const pageLabel: Record<string, string> = { es: "Pág.", en: "Page", fr: "Page" };
-  const summaryLabel: Record<string, string> = { es: "Resumen ROI", en: "ROI Summary", fr: "Résumé ROI" };
-  const detailLabel: Record<string, string> = { es: "Detalle del cálculo", en: "Calculation detail", fr: "Détail du calcul" };
+  const indexTitle: Record<string, string> = { es: "Índice", en: "Contents", fr: "Sommaire", it: "Indice", de: "Inhaltsverzeichnis", pt: "Índice" };
+  const pageLabel: Record<string, string> = { es: "Pág.", en: "Page", fr: "Page", it: "Pag.", de: "S.", pt: "Pág." };
+  const summaryLabel: Record<string, string> = { es: "Resumen ROI", en: "ROI Summary", fr: "Résumé ROI", it: "Riepilogo ROI", de: "ROI-Zusammenfassung", pt: "Resumo ROI" };
+  const detailLabel: Record<string, string> = { es: "Detalle del cálculo", en: "Calculation detail", fr: "Détail du calcul", it: "Dettaglio del calcolo", de: "Berechnungsdetail", pt: "Detalhe do cálculo" };
+  const savingsLabel: Record<string, string> = { es: "Ahorro/año", en: "Savings/yr", fr: "Économies/an", it: "Risparmio/anno", de: "Einsparung/Jahr", pt: "Poupança/ano" };
   const tIdx = indexTitle[lang] ?? indexTitle.es;
   const tPage = pageLabel[lang] ?? pageLabel.es;
   const tSummary = summaryLabel[lang] ?? summaryLabel.es;
@@ -873,7 +944,7 @@ function generateIndexSlide(data: RoiSlideData, details: ModuleDetail[], lang: s
         <thead>
           <tr>
             <th style="text-align:left;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;">${tDetail}</th>
-            <th style="text-align:right;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;">${(lang === "en" ? "Savings/yr" : lang === "fr" ? "Économies/an" : "Ahorro/año")}</th>
+            <th style="text-align:right;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;">${savingsLabel[lang] ?? savingsLabel.es}</th>
             <th style="text-align:right;padding:0 0 12px 0;font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.1em;border-bottom:2px solid #E5E7EB;width:60px;">${tPage}</th>
           </tr>
         </thead>
