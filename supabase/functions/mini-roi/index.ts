@@ -354,12 +354,14 @@ function calculateRoi(hs: any, analysis: any, annualCostOverride?: number): RoiR
 
   let totalSavings = 0;
   const moduleSavings = (analysis.modules ?? []).map((m: any) => {
-    const monthlyTime =
-      (m.hours_employee ?? 0) * headcounts.employee * hourly_costs.employee +
-      (m.hours_hr ?? 0) * headcounts.hr * hourly_costs.hr +
-      (m.hours_manager ?? 0) * headcounts.manager * hourly_costs.manager;
     const toolReplacement = toolMap[m.id] ?? 0;
-    const annual = monthlyTime * 12 + toolReplacement;
+    // Tool replacement and hours are mutually exclusive:
+    // if a tool is being replaced, its cost IS the saving — don't add hours on top
+    const annual = toolReplacement > 0
+      ? toolReplacement
+      : ((m.hours_employee ?? 0) * headcounts.employee * hourly_costs.employee +
+         (m.hours_hr ?? 0) * headcounts.hr * hourly_costs.hr +
+         (m.hours_manager ?? 0) * headcounts.manager * hourly_costs.manager) * 12;
     totalSavings += annual;
     return { id: m.id, annual_savings: Math.round(annual), tool_replacement: toolReplacement };
   });

@@ -11,6 +11,22 @@ import {
   Check, X, Loader2, Download, Zap, Plus, RefreshCw,
   Save, AlertTriangle, ArrowLeft, ChevronRight,
 } from "lucide-react";
+import jsPDF from "jspdf";
+
+// ── html2canvas lazy loader (same pattern as generateRoiDeck.ts) ─────────────
+let h2cLoaded: Promise<any> | null = null;
+function loadHtml2Canvas(): Promise<any> {
+  if ((window as any).html2canvas) return Promise.resolve((window as any).html2canvas);
+  if (h2cLoaded) return h2cLoaded;
+  h2cLoaded = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    s.onload = () => resolve((window as any).html2canvas);
+    s.onerror = () => reject(new Error("Failed to load html2canvas"));
+    document.head.appendChild(s);
+  });
+  return h2cLoaded;
+}
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -82,6 +98,7 @@ export default function MiniRoiPage() {
   const [isDirty, setIsDirty] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(sessionId ?? null);
   const [showAddModule, setShowAddModule] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -284,19 +301,56 @@ export default function MiniRoiPage() {
     }
   }
 
-  // ── Download — directly as HTML file (opens as PDF-like in browser) ──────
-  function downloadPdf() {
+  // ── Download as PDF (html2canvas → jsPDF, A4 portrait) ───────────────────
+  async function downloadPdf() {
     if (!html) return;
-    const companySlug = (hsData?.company_name ?? "roi").toLowerCase().slice(0, 30);
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `roi-${companySlug}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setDownloadingPdf(true);
+    try {
+      const html2canvas = await loadHtml2Canvas();
+      const company = hsData?.company_name ?? "roi";
+
+      // Render HTML in a hidden iframe at A4 width (794px = 210mm @ 96dpi)
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:1px;border:none;pointer-events:none;z-index:-1;";
+      document.body.appendChild(iframe);
+
+      try {
+        await new Promise<void>(resolve => { iframe.onload = () => resolve(); iframe.srcdoc = html; });
+        // Wait for fonts and layout
+        await new Promise(r => setTimeout(r, 600));
+
+        const pages = Array.from(iframe.contentDocument!.querySelectorAll(".page")) as HTMLElement[];
+        if (pages.length === 0) throw new Error("No pages found");
+
+        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const A4_W = 210; const A4_H = 297;
+
+        for (let i = 0; i < pages.length; i++) {
+          if (i > 0) pdf.addPage("a4", "portrait");
+          const page = pages[i];
+          const canvas = await html2canvas(page, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: "#ffffff",
+            windowWidth: 794,
+          });
+          const imgData = canvas.toDataURL("image/jpeg", 0.92);
+          // Scale image to fill A4
+          const canvasRatio = canvas.height / canvas.width;
+          const imgH = Math.min(A4_W * canvasRatio, A4_H);
+          pdf.addImage(imgData, "JPEG", 0, 0, A4_W, imgH);
+        }
+
+        pdf.save(`ROI-${company}.pdf`);
+      } finally {
+        document.body.removeChild(iframe);
+      }
+    } catch (err: any) {
+      toast.error("Error generando PDF: " + (err.message ?? ""));
+    } finally {
+      setDownloadingPdf(false);
+    }
   }
 
   function markDirty() { setIsDirty(true); }
@@ -665,7 +719,7 @@ export default function MiniRoiPage() {
         </div>
 
         {/* Control panel */}
-        <div className="w-[340px] shrink-0 flex flex-col overflow-hidden"
+        <div className="w-[480px] shrink-0 flex flex-col overflow-hidden"
           style={{ borderLeft: "1px solid oklch(90% 0.006 250)", background: "oklch(99% 0.003 250)" }}>
           <div className="flex-1 overflow-y-auto">
 
