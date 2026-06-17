@@ -304,32 +304,70 @@ export default function MiniRoiPage() {
 
   // ── Render ───────────────────────────────────────────────────────────────
 
-  // WARNING step
+  // WARNING — full-screen gate, no chrome
   if (step === "warning") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <AppHeader />
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="max-w-md w-full bg-card border border-border rounded-2xl p-8 space-y-6 shadow-lg">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-amber-500" />
+      <div className="min-h-screen flex" style={{ background: "oklch(98.5% 0.004 250)" }}>
+        {/* Left — brand context */}
+        <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-between px-12 py-16"
+          style={{ background: "oklch(14% 0.018 250)", color: "oklch(96% 0.005 250)" }}>
+          <div>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-10"
+              style={{ background: "oklch(50% 0.22 15)" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <div className="space-y-2">
-              <h2 className="text-lg font-bold text-foreground">ROI basado en asunciones</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Crear un ROI basado en asunciones no aportará el mismo valor que co-crearlo con el prospect. Aun así puede servir para demostrar el valor de Factorial basado en el Discovery de un deal, como punto de partida antes de una llamada.
-              </p>
-              <p className="text-xs text-muted-foreground/70 pt-1">
-                Los números generados son estimaciones conservadoras. Idealmente valídalos con el prospect.
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight mb-4"
+              style={{ color: "oklch(97% 0.005 250)" }}>
+              ROI en minutos,<br />sin el prospect
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: "oklch(70% 0.008 250)" }}>
+              La IA analiza las llamadas del deal, identifica los módulos relevantes y construye el documento automáticamente.
+            </p>
+          </div>
+          <div className="space-y-3">
+            {["HubSpot + Modjo como fuente", "Claude selecciona módulos por pain", "One-pager listo para enviar"].map((t, i) => (
+              <div key={i} className="flex items-center gap-2.5">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "oklch(50% 0.22 15)" }} />
+                <span className="text-xs" style={{ color: "oklch(68% 0.008 250)" }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right — decision */}
+        <div className="flex-1 flex items-center justify-center px-6 py-16">
+          <div className="max-w-sm w-full">
+            <div className="mb-8">
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center mb-5"
+                style={{ background: "oklch(93% 0.03 60)", border: "1px solid oklch(86% 0.06 60)" }}>
+                <AlertTriangle className="h-5 w-5" style={{ color: "oklch(58% 0.16 60)" }} />
+              </div>
+              <h1 className="text-xl font-bold tracking-tight mb-3" style={{ color: "oklch(16% 0.015 250)" }}>
+                Antes de continuar
+              </h1>
+              <p className="text-sm leading-relaxed" style={{ color: "oklch(46% 0.01 250)" }}>
+                Un ROI basado en asunciones no tiene el mismo impacto que co-crearlo con el prospect. Úsalo como punto de partida para una conversación, no como argumento definitivo.
               </p>
             </div>
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={() => navigate("/")} className="flex-1 rounded-xl">
-                Cancelar
-              </Button>
-              <Button onClick={() => setStep("input")} className="flex-1 rounded-xl bg-foreground text-background hover:bg-foreground/90">
-                Continuar <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setStep("input")}
+                className="w-full h-11 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2"
+                style={{ background: "oklch(14% 0.018 250)", color: "white" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "oklch(22% 0.018 250)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "oklch(14% 0.018 250)")}
+              >
+                Entendido, continuar <ChevronRight className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => navigate("/")}
+                className="w-full h-10 rounded-xl text-sm transition-colors font-medium"
+                style={{ color: "oklch(54% 0.01 250)" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "oklch(30% 0.01 250)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "oklch(54% 0.01 250)")}
+              >
+                Volver al inicio
+              </button>
             </div>
           </div>
         </div>
@@ -337,54 +375,103 @@ export default function MiniRoiPage() {
     );
   }
 
-  // INPUT step
+  // INPUT — clean, focused
   if (step === "input") {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <AppHeader />
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="max-w-lg w-full space-y-6">
-            <div>
-              <button onClick={() => setStep("warning")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
-                <ArrowLeft className="h-3.5 w-3.5" /> Volver
-              </button>
-              <h1 className="text-2xl font-extrabold text-foreground">ROI basado en asunciones</h1>
-              <p className="text-sm text-muted-foreground mt-1">Pega el link del deal y deja que la IA haga el análisis</p>
+      <div className="min-h-screen flex flex-col" style={{ background: "oklch(98.5% 0.004 250)" }}>
+        {/* Slim nav */}
+        <div className="px-6 pt-5 pb-0">
+          <button
+            onClick={() => setStep("warning")}
+            className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors"
+            style={{ color: "oklch(60% 0.01 250)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "oklch(30% 0.01 250)")}
+            onMouseLeave={e => (e.currentTarget.style.color = "oklch(60% 0.01 250)")}
+          >
+            <ArrowLeft className="h-3 w-3" /> Inicio
+          </button>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-[520px]">
+            {/* Header */}
+            <div className="mb-8">
+              <h1 className="text-2xl font-extrabold tracking-tight mb-1.5" style={{ color: "oklch(14% 0.018 250)" }}>
+                Analizar un deal
+              </h1>
+              <p className="text-sm" style={{ color: "oklch(54% 0.01 250)" }}>
+                La IA descarga las llamadas del deal y construye el ROI automáticamente
+              </p>
             </div>
-            <div className="bg-card border border-border rounded-2xl p-6 space-y-5">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">HubSpot Deal URL</Label>
-                <Input
-                  placeholder="https://app-eu1.hubspot.com/contacts/4960096/record/0-3/..."
+
+            {/* Form */}
+            <div className="space-y-5">
+              <div>
+                <label className="block text-xs font-semibold mb-2 uppercase tracking-widest"
+                  style={{ color: "oklch(50% 0.01 250)" }}>
+                  HubSpot Deal URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://app-eu1.hubspot.com/contacts/.../record/0-3/..."
                   value={url}
                   onChange={e => setUrl(e.target.value)}
-                  className="font-mono text-xs h-10"
-                  onKeyDown={e => e.key === "Enter" && analyse()}
+                  onKeyDown={e => e.key === "Enter" && url.trim() && analyse()}
                   autoFocus
+                  className="w-full h-11 px-3.5 rounded-xl text-xs font-mono outline-none transition-all"
+                  style={{
+                    background: "oklch(100% 0 0)",
+                    border: "1.5px solid oklch(88% 0.006 250)",
+                    color: "oklch(20% 0.015 250)",
+                  }}
+                  onFocus={e => (e.currentTarget.style.border = "1.5px solid oklch(50% 0.22 15)")}
+                  onBlur={e => (e.currentTarget.style.border = "1.5px solid oklch(88% 0.006 250)")}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  Precio Factorial <span className="font-normal normal-case text-muted-foreground/60">(opcional — se calcula automáticamente)</span>
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    placeholder="Auto"
-                    value={annualCost}
-                    onChange={e => setAnnualCost(e.target.value)}
-                    className="h-10 w-36 text-center font-mono"
-                  />
-                  <span className="text-sm text-muted-foreground">€/año</span>
+
+              {/* Price — secondary, collapsible feel */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: "oklch(91% 0.005 250)" }} />
+                <span className="text-[10px] font-medium shrink-0" style={{ color: "oklch(68% 0.008 250)" }}>opcional</span>
+                <div className="flex-1 h-px" style={{ background: "oklch(91% 0.005 250)" }} />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium mb-1.5" style={{ color: "oklch(54% 0.01 250)" }}>
+                    Precio Factorial (si lo sabes)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      placeholder="Auto"
+                      value={annualCost}
+                      onChange={e => setAnnualCost(e.target.value)}
+                      className="w-36 h-9 px-3 rounded-lg text-sm text-center font-mono tabular-nums outline-none transition-all"
+                      style={{
+                        background: "oklch(100% 0 0)",
+                        border: "1.5px solid oklch(88% 0.006 250)",
+                        color: "oklch(20% 0.015 250)",
+                      }}
+                      onFocus={e => (e.currentTarget.style.border = "1.5px solid oklch(50% 0.22 15)")}
+                      onBlur={e => (e.currentTarget.style.border = "1.5px solid oklch(88% 0.006 250)")}
+                    />
+                    <span className="text-sm" style={{ color: "oklch(60% 0.01 250)" }}>€/año</span>
+                  </div>
                 </div>
               </div>
-              <Button
+
+              <button
                 onClick={analyse}
                 disabled={!url.trim()}
-                className="w-full h-11 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-semibold gap-2"
+                className="w-full h-12 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "oklch(14% 0.018 250)", color: "white" }}
+                onMouseEnter={e => { if (url.trim()) e.currentTarget.style.background = "oklch(22% 0.018 250)"; }}
+                onMouseLeave={e => (e.currentTarget.style.background = "oklch(14% 0.018 250)")}
               >
-                <Zap className="h-4 w-4" /> Analizar deal
-              </Button>
+                <Zap className="h-4 w-4" />
+                Analizar deal
+              </button>
             </div>
           </div>
         </div>
@@ -392,170 +479,313 @@ export default function MiniRoiPage() {
     );
   }
 
-  // LOADING step
+  // LOADING — centered timeline
   if (step === "loading") {
+    const doneCount = pipelineSteps.filter(s => s.status === "done").length;
+    const progress = (doneCount / STEP_ORDER.length) * 100;
+
     return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <AppHeader />
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="max-w-md w-full space-y-4">
-            <div className="text-center mb-6">
-              <h2 className="text-lg font-bold text-foreground">Analizando el deal...</h2>
-              <p className="text-sm text-muted-foreground mt-1">Esto puede tardar 20-30 segundos</p>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-16"
+        style={{ background: "oklch(98.5% 0.004 250)" }}>
+        <div className="w-full max-w-sm">
+          {/* Title */}
+          <div className="text-center mb-10">
+            <div className="inline-flex w-12 h-12 rounded-2xl items-center justify-center mb-4"
+              style={{ background: "oklch(14% 0.018 250)" }}>
+              <Zap className="h-5 w-5" style={{ color: "oklch(96% 0.005 250)" }} />
             </div>
-            <div className="bg-card border border-border rounded-2xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-border bg-muted/30">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Pipeline</p>
-              </div>
-              <div className="divide-y divide-border">
-                {STEP_ORDER.map(sk => {
-                  const ev = stepMap[sk];
-                  return (
-                    <div key={sk} className="flex items-start gap-3 px-4 py-3">
-                      <StepDot status={ev?.status ?? "pending"} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[11px] font-semibold ${ev?.status === "done" ? "text-foreground" : ev?.status === "running" ? "text-primary" : "text-muted-foreground/40"}`}>
-                            {STEP_LABELS[sk]}
-                          </span>
-                          {ev?.status === "running" && <span className="text-[10px] text-primary animate-pulse">{ev.label}</span>}
-                        </div>
-                        {ev?.detail && <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{ev.detail}</p>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {error && (
-              <div className="rounded-xl bg-destructive/10 border border-destructive/20 px-4 py-3">
-                <p className="text-xs font-semibold text-destructive">{error}</p>
-                <button onClick={() => setStep("input")} className="text-xs text-muted-foreground hover:text-foreground mt-1">← Volver a intentarlo</button>
-              </div>
-            )}
+            <h2 className="text-lg font-bold tracking-tight" style={{ color: "oklch(14% 0.018 250)" }}>
+              Analizando el deal
+            </h2>
+            <p className="text-sm mt-1" style={{ color: "oklch(56% 0.01 250)" }}>
+              20-30 segundos
+            </p>
           </div>
+
+          {/* Progress bar */}
+          <div className="h-1 rounded-full mb-8 overflow-hidden" style={{ background: "oklch(91% 0.005 250)" }}>
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${progress}%`, background: "oklch(50% 0.22 15)" }}
+            />
+          </div>
+
+          {/* Timeline */}
+          <div className="space-y-0">
+            {STEP_ORDER.map((sk, idx) => {
+              const ev = stepMap[sk];
+              const isDone = ev?.status === "done";
+              const isRunning = ev?.status === "running";
+              const isPending = !ev;
+              const isLast = idx === STEP_ORDER.length - 1;
+
+              return (
+                <div key={sk} className="flex gap-4">
+                  {/* Connector + dot */}
+                  <div className="flex flex-col items-center w-5 shrink-0">
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${
+                      isDone ? "scale-100" : isRunning ? "scale-110" : "scale-90"
+                    }`} style={{
+                      background: isDone ? "oklch(52% 0.18 145)" : isRunning ? "oklch(50% 0.22 15)" : "oklch(91% 0.005 250)",
+                      boxShadow: isRunning ? "0 0 0 4px oklch(50% 0.22 15 / 0.15)" : "none",
+                    }}>
+                      {isDone ? <Check className="h-2.5 w-2.5 text-white" /> :
+                       isRunning ? <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> :
+                       null}
+                    </div>
+                    {!isLast && (
+                      <div className="w-px flex-1 my-0.5 transition-all duration-500"
+                        style={{ background: isDone ? "oklch(52% 0.18 145 / 0.3)" : "oklch(88% 0.005 250)", minHeight: 20 }} />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className={`pb-5 min-w-0 transition-opacity duration-300 ${isPending ? "opacity-35" : "opacity-100"}`}>
+                    <p className={`text-sm font-semibold leading-tight ${isRunning ? "animate-pulse" : ""}`}
+                      style={{ color: isDone ? "oklch(32% 0.012 250)" : isRunning ? "oklch(50% 0.22 15)" : "oklch(60% 0.01 250)" }}>
+                      {STEP_LABELS[sk]}
+                    </p>
+                    {ev?.detail && (
+                      <p className="text-xs mt-0.5 truncate" style={{ color: "oklch(62% 0.009 250)" }}>
+                        {ev.detail}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {error && (
+            <div className="mt-6 rounded-xl px-4 py-3" style={{ background: "oklch(96% 0.02 15)", border: "1px solid oklch(88% 0.06 15)" }}>
+              <p className="text-xs font-semibold" style={{ color: "oklch(45% 0.18 15)" }}>{error}</p>
+              <button onClick={() => setStep("input")} className="text-xs mt-1 font-medium transition-colors"
+                style={{ color: "oklch(60% 0.01 250)" }}>
+                ← Volver a intentarlo
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  // RESULT step
+  // RESULT — split pane
+  const fmtK = (n: number) => n >= 1000 ? `€${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k` : `€${n}`;
+
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "oklch(98.5% 0.004 250)" }}>
       <AppHeader />
 
-      {/* Top bar */}
-      <div className="border-b border-border bg-card/80 backdrop-blur px-5 py-2.5 flex items-center justify-between shrink-0">
+      {/* Toolbar */}
+      <div className="shrink-0 px-4 h-11 flex items-center justify-between gap-4"
+        style={{ borderBottom: "1px solid oklch(90% 0.006 250)", background: "oklch(99% 0.003 250)" }}>
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => navigate("/")}
-            className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0"
+            className="h-7 w-7 rounded-lg flex items-center justify-center transition-colors shrink-0"
+            style={{ color: "oklch(60% 0.01 250)" }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(93% 0.005 250)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-3.5 w-3.5" />
           </button>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">{hsData?.company_name ?? "ROI basado en asunciones"}</p>
-            <p className="text-[11px] text-muted-foreground">
-              {hsData?.employees ? `${hsData.employees} emp` : ""}
-              {hsData?.country ? ` · ${hsData.country}` : ""}
-              {roiData?.total_savings ? ` · Ahorro: €${roiData.total_savings.toLocaleString("es-ES")}/año` : ""}
-              {roiData?.roi_pct > 0 ? ` · ROI ${roiData.roi_pct}%` : ""}
-            </p>
+          <div className="h-4 w-px" style={{ background: "oklch(88% 0.006 250)" }} />
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="text-sm font-semibold truncate" style={{ color: "oklch(18% 0.015 250)" }}>
+              {hsData?.company_name ?? "ROI"}
+            </span>
+            {hsData?.employees && (
+              <span className="text-xs shrink-0" style={{ color: "oklch(58% 0.01 250)" }}>
+                {hsData.employees} emp
+              </span>
+            )}
           </div>
+          {roiData?.total_savings > 0 && (
+            <>
+              <div className="h-4 w-px shrink-0" style={{ background: "oklch(88% 0.006 250)" }} />
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-xs font-semibold tabular-nums" style={{ color: "oklch(50% 0.22 15)" }}>
+                  {fmtK(roiData.total_savings)}/año
+                </span>
+                {roiData.roi_pct > 0 && (
+                  <span className="text-xs font-semibold tabular-nums" style={{ color: "oklch(52% 0.18 145)" }}>
+                    {roiData.roi_pct}% ROI
+                  </span>
+                )}
+              </div>
+            </>
+          )}
         </div>
+
         <div className="flex items-center gap-2 shrink-0">
-          {savedId && <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">✓ Guardado</span>}
-          <Button variant="outline" size="sm" onClick={save} disabled={saving} className="h-8 rounded-lg text-xs gap-1.5 font-semibold">
-            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            {saving ? "Guardando..." : "Guardar"}
-          </Button>
+          {savedId && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ color: "oklch(48% 0.14 145)", background: "oklch(94% 0.04 145)", border: "1px solid oklch(86% 0.06 145)" }}>
+              ✓ Guardado
+            </span>
+          )}
+          <button
+            onClick={save}
+            disabled={saving}
+            className="h-7 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            style={{
+              border: "1px solid oklch(86% 0.007 250)",
+              color: "oklch(28% 0.015 250)",
+              background: "transparent",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(95% 0.004 250)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+          >
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+            {saving ? "..." : "Guardar"}
+          </button>
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Body */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
 
-        {/* Left: A4 preview */}
-        <div className="flex-1 bg-[#DADAE4] overflow-auto">
-          <div className="flex items-start justify-center p-6 min-h-full">
+        {/* Document preview */}
+        <div className="flex-1 overflow-auto" style={{ background: "oklch(91% 0.007 250)" }}>
+          <div className="flex justify-center items-start p-8 min-h-full">
             {html ? (
               <iframe
                 srcDoc={html}
-                style={{ width: "210mm", minHeight: "297mm", display: "block", border: "none", background: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.18)", borderRadius: 2 }}
                 title="Preview"
                 sandbox="allow-same-origin"
+                style={{
+                  width: "210mm",
+                  minHeight: "297mm",
+                  display: "block",
+                  border: "none",
+                  background: "#fff",
+                  boxShadow: "0 4px 24px oklch(0% 0 0 / 0.12), 0 1px 4px oklch(0% 0 0 / 0.08)",
+                  borderRadius: 3,
+                }}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground" style={{ width: "210mm", height: "297mm" }}>
-                <Loader2 className="h-8 w-8 animate-spin opacity-40" />
-                <p className="text-sm font-medium">Generando documento...</p>
+              <div className="flex flex-col items-center justify-center gap-3"
+                style={{ width: "210mm", height: "297mm", background: "#fff", borderRadius: 3, boxShadow: "0 4px 24px oklch(0% 0 0 / 0.10)" }}>
+                <Loader2 className="h-6 w-6 animate-spin" style={{ color: "oklch(72% 0.01 250)" }} />
+                <p className="text-sm font-medium" style={{ color: "oklch(60% 0.01 250)" }}>Generando...</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right: editor panel */}
-        <div className="w-72 shrink-0 border-l border-border bg-card flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto divide-y divide-border">
+        {/* Control panel */}
+        <div className="w-[280px] shrink-0 flex flex-col overflow-hidden"
+          style={{ borderLeft: "1px solid oklch(90% 0.006 250)", background: "oklch(99% 0.003 250)" }}>
+          <div className="flex-1 overflow-y-auto">
 
-            {/* Price */}
-            <div className="px-4 py-4">
-              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-2.5">Precio Factorial</p>
+            {/* Price section */}
+            <div className="px-4 pt-4 pb-3.5" style={{ borderBottom: "1px solid oklch(92% 0.005 250)" }}>
+              <p className="text-[9px] font-bold uppercase tracking-widest mb-2.5"
+                style={{ color: "oklch(58% 0.01 250)" }}>Precio Factorial</p>
               <div className="flex items-center gap-2">
-                <Input
+                <input
                   type="number"
                   value={annualCost || (roiData?.annual_cost ? String(roiData.annual_cost) : "")}
                   onChange={e => { setAnnualCost(e.target.value); markDirty(); }}
                   placeholder={roiData?.annual_cost ? String(roiData.annual_cost) : "Auto"}
-                  className="h-9 text-center font-bold text-sm tabular-nums"
+                  className="flex-1 h-8 px-2.5 rounded-lg text-sm font-bold tabular-nums text-center outline-none transition-all"
+                  style={{
+                    background: "oklch(97% 0.003 250)",
+                    border: "1.5px solid oklch(88% 0.006 250)",
+                    color: "oklch(18% 0.015 250)",
+                  }}
+                  onFocus={e => (e.currentTarget.style.border = "1.5px solid oklch(50% 0.22 15)")}
+                  onBlur={e => (e.currentTarget.style.border = "1.5px solid oklch(88% 0.006 250)")}
                 />
-                <span className="text-xs text-muted-foreground shrink-0 font-medium">€/año</span>
+                <span className="text-xs font-medium shrink-0" style={{ color: "oklch(58% 0.01 250)" }}>€/año</span>
               </div>
             </div>
 
-            {/* Modules */}
+            {/* Modules section */}
             <div>
-              <div className="px-4 py-3">
-                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Módulos incluidos</p>
+              <div className="px-4 pt-3.5 pb-2 flex items-center justify-between">
+                <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: "oklch(58% 0.01 250)" }}>
+                  Módulos
+                </p>
+                <span className="text-[9px] tabular-nums" style={{ color: "oklch(68% 0.009 250)" }}>
+                  {includedModules.length} activos
+                </span>
               </div>
-              <div className="divide-y divide-border/60">
+
+              <div>
                 {Object.entries(moduleOverrides).map(([id, ov]) => (
-                  <div key={id} className={`px-4 py-2.5 transition-opacity ${!ov.include ? "opacity-35" : ""}`}>
-                    <div className="flex items-center gap-2.5">
-                      <button
-                        onClick={() => toggleModule(id)}
-                        className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors border ${ov.include ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30"}`}
-                      >
-                        {ov.include && <Check className="h-2.5 w-2.5 text-white" />}
-                      </button>
-                      <span className="text-[11.5px] font-semibold text-foreground flex-1 leading-tight">{ALL_MODULES[id] ?? id}</span>
-                    </div>
-                    {ov.include && (
-                      <div className="mt-2 pl-[26px]">
-                        <Textarea
-                          placeholder='Nota para Claude (ej: "ahorro = dejar de pagar Cegid"...)'
-                          value={ov.note}
-                          onChange={e => setNote(id, e.target.value)}
-                          className="text-[10.5px] min-h-[40px] resize-none bg-muted/30 border-muted/50 leading-snug placeholder:text-muted-foreground/50"
-                          rows={2}
-                        />
+                  <div key={id} style={{ borderTop: "1px solid oklch(93% 0.005 250)" }}>
+                    <div className={`px-4 py-2.5 transition-opacity ${!ov.include ? "opacity-30" : ""}`}>
+                      <div className="flex items-center gap-2.5">
+                        <button
+                          onClick={() => toggleModule(id)}
+                          className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                          style={{
+                            background: ov.include ? "oklch(52% 0.18 145)" : "transparent",
+                            border: ov.include ? "none" : "1.5px solid oklch(78% 0.01 250)",
+                          }}
+                        >
+                          {ov.include && <Check className="h-2.5 w-2.5 text-white" />}
+                        </button>
+                        <span className="text-[11px] font-semibold flex-1 leading-tight"
+                          style={{ color: "oklch(22% 0.015 250)" }}>
+                          {ALL_MODULES[id] ?? id}
+                        </span>
                       </div>
-                    )}
+                      {ov.include && (
+                        <div className="mt-2 pl-[26px]">
+                          <textarea
+                            placeholder='Nota para Claude...'
+                            value={ov.note}
+                            onChange={e => setNote(id, e.target.value)}
+                            rows={2}
+                            className="w-full text-[10px] leading-snug px-2.5 py-2 rounded-lg resize-none outline-none transition-all"
+                            style={{
+                              background: "oklch(96.5% 0.004 250)",
+                              border: "1px solid oklch(88% 0.006 250)",
+                              color: "oklch(28% 0.013 250)",
+                              minHeight: 44,
+                            }}
+                            onFocus={e => (e.currentTarget.style.border = "1px solid oklch(50% 0.22 15)")}
+                            onBlur={e => (e.currentTarget.style.border = "1px solid oklch(88% 0.006 250)")}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className="px-4 py-3">
+
+              {/* Add module */}
+              <div className="px-4 py-3" style={{ borderTop: "1px solid oklch(93% 0.005 250)" }}>
                 {showAddModule ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {addableModules.map(id => (
-                      <button key={id} onClick={() => addModule(id)} className="text-[10px] font-semibold px-2 py-1 rounded-md bg-muted/60 hover:bg-primary/10 hover:text-primary transition-colors">
-                        + {ALL_MODULES[id]}
-                      </button>
-                    ))}
-                    <button onClick={() => setShowAddModule(false)} className="text-[10px] text-muted-foreground px-1 py-1 hover:text-foreground">✕</button>
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap gap-1">
+                      {addableModules.map(id => (
+                        <button
+                          key={id}
+                          onClick={() => addModule(id)}
+                          className="text-[10px] font-medium px-2 py-1 rounded-md transition-colors"
+                          style={{ background: "oklch(94% 0.005 250)", color: "oklch(36% 0.013 250)" }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(92% 0.02 15)"; (e.currentTarget as HTMLElement).style.color = "oklch(50% 0.22 15)"; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(94% 0.005 250)"; (e.currentTarget as HTMLElement).style.color = "oklch(36% 0.013 250)"; }}
+                        >
+                          + {ALL_MODULES[id]}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={() => setShowAddModule(false)} className="text-[10px] font-medium"
+                      style={{ color: "oklch(66% 0.009 250)" }}>
+                      Cancelar
+                    </button>
                   </div>
                 ) : (
-                  <button onClick={() => setShowAddModule(true)} className="flex items-center gap-1.5 text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors">
+                  <button
+                    onClick={() => setShowAddModule(true)}
+                    className="flex items-center gap-1.5 text-[11px] font-semibold transition-colors"
+                    style={{ color: "oklch(50% 0.22 15)" }}
+                  >
                     <Plus className="h-3 w-3" /> Añadir módulo
                   </button>
                 )}
@@ -563,33 +793,40 @@ export default function MiniRoiPage() {
             </div>
 
             {error && (
-              <div className="mx-4 mt-3 mb-2 rounded-xl bg-destructive/8 border border-destructive/20 px-3 py-2">
-                <p className="text-[11px] font-semibold text-destructive">{error}</p>
+              <div className="mx-4 mb-3 rounded-xl px-3 py-2.5"
+                style={{ background: "oklch(96% 0.02 15)", border: "1px solid oklch(88% 0.06 15)" }}>
+                <p className="text-[11px] font-semibold" style={{ color: "oklch(45% 0.18 15)" }}>{error}</p>
               </div>
             )}
           </div>
 
-          {/* Bottom buttons */}
-          <div className="shrink-0 p-3 border-t border-border space-y-2 bg-card/50">
+          {/* Actions */}
+          <div className="shrink-0 p-3 space-y-2" style={{ borderTop: "1px solid oklch(91% 0.006 250)" }}>
             {isDirty ? (
-              <Button
+              <button
                 onClick={regenerate}
                 disabled={regenerating || includedModules.length === 0}
-                className="w-full h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm gap-2"
+                className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                style={{ background: "oklch(50% 0.22 15)", color: "white" }}
+                onMouseEnter={e => { if (!regenerating) (e.currentTarget as HTMLElement).style.background = "oklch(44% 0.22 15)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(50% 0.22 15)"; }}
               >
                 {regenerating
                   ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Regenerando...</>
-                  : <><RefreshCw className="h-3.5 w-3.5" />Regenerar documento</>
+                  : <><RefreshCw className="h-3.5 w-3.5" />Regenerar</>
                 }
-              </Button>
+              </button>
             ) : (
-              <Button
+              <button
                 onClick={downloadPdf}
                 disabled={!html}
-                className="w-full h-10 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-semibold text-sm gap-2"
+                className="w-full h-10 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
+                style={{ background: "oklch(14% 0.018 250)", color: "white" }}
+                onMouseEnter={e => { if (html) (e.currentTarget as HTMLElement).style.background = "oklch(22% 0.018 250)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(14% 0.018 250)"; }}
               >
                 <Download className="h-3.5 w-3.5" /> Descargar PDF
-              </Button>
+              </button>
             )}
           </div>
         </div>

@@ -208,7 +208,7 @@ export default function Home() {
               <MessageSquare className="h-5 w-5 text-background" />
             </div>
             <p className="text-background font-bold text-base leading-snug">{t("home.cocreate_title", "Co-crea un ROI")}</p>
-            <p className="text-background/55 text-xs mt-1 mb-3 leading-relaxed">Con el prospect, en tiempo real</p>
+            <p className="text-background/55 text-xs mt-1 mb-3 leading-relaxed">{t("home.cocreate_sub", "Con el prospect, en tiempo real")}</p>
             <div className="flex items-center gap-1 text-background/80 font-semibold text-xs">
               {t("home.start", "Empezar")} <ChevronRight className="h-3.5 w-3.5" />
             </div>
@@ -223,7 +223,7 @@ export default function Home() {
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <p className="text-foreground font-bold text-base leading-snug">ROI basado en asunciones</p>
-            <p className="text-muted-foreground text-xs mt-1 mb-3 leading-relaxed">IA genera el análisis automáticamente</p>
+            <p className="text-muted-foreground text-xs mt-1 mb-3 leading-relaxed">{t("home.mini_roi_sub", "IA genera el análisis automáticamente")}</p>
             <div className="flex items-center gap-1 text-primary font-semibold text-xs">
               {t("home.start", "Empezar")} <ChevronRight className="h-3.5 w-3.5" />
             </div>

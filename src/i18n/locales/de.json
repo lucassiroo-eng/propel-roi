@@ -616,5 +616,8 @@
   "tour.t8_body": "Importieren Sie einen HubSpot-Deal und erstellen Sie Ihren ersten co-created ROI.",
   "tour.t9_title": "Tour abgeschlossen!",
   "tour.t9_body": "Sie sind bereit. Importieren Sie einen Deal und legen Sie los.",
-  "tour.t9_cta": "Loslegen"
+  "tour.t9_cta": "Loslegen",
+  "home.cocreate_sub": "Mit dem Prospect, live",
+  "home.mini_roi_sub": "KI erstellt die Analyse automatisch",
+  "settings.language_pt": "Portugiesisch"
 }

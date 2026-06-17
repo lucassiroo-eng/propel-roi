@@ -335,5 +335,7 @@
   "onboarding.s4_example_label": "Exemplo",
   "onboarding.s4_example": "5 admins RH poupam 6h/mês cada a 30€/h → 5 × 6 × 30 × 12 = 10.800€/ano",
   "onboarding.s5_title": "Pronto para começar?",
-  "onboarding.s5_body": "Faz um tour guiado da ferramenta ou vai diretamente criar o teu primeiro ROI."
+  "onboarding.s5_body": "Faz um tour guiado da ferramenta ou vai diretamente criar o teu primeiro ROI.",
+  "home.cocreate_sub": "Com o prospect, em tempo real",
+  "home.mini_roi_sub": "A IA gera a análise automaticamente"
 }

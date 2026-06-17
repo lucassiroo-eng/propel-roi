@@ -14,6 +14,7 @@ const LANGUAGES = [
   { code: "en", labelKey: "settings.language_en" },
   { code: "es", labelKey: "settings.language_es" },
   { code: "fr", labelKey: "settings.language_fr" },
+  { code: "pt", labelKey: "settings.language_pt" },
   { code: "it", labelKey: "settings.language_it" },
   { code: "de", labelKey: "settings.language_de" },
 ] as const;
