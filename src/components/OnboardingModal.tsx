@@ -6,6 +6,7 @@ const LANGUAGES = [
   { code: "es", flag: "\u{1F1EA}\u{1F1F8}", label: "Español" },
   { code: "en", flag: "\u{1F1EC}\u{1F1E7}", label: "English" },
   { code: "fr", flag: "\u{1F1EB}\u{1F1F7}", label: "Français" },
+  { code: "pt", flag: "\u{1F1F5}\u{1F1F9}", label: "Português" },
   { code: "it", flag: "\u{1F1EE}\u{1F1F9}", label: "Italiano" },
   { code: "de", flag: "\u{1F1E9}\u{1F1EA}", label: "Deutsch" },
 ];
