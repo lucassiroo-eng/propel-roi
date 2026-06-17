@@ -71,7 +71,7 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem("propel_onboarded"));
 
 
-  const { data: isAdmin } = useQuery({
+  const { data: isAdmin, isSuccess: isAdminResolved } = useQuery({
     queryKey: ["user_role_home", user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -93,12 +93,14 @@ export default function Home() {
         .from("roi_sessions")
         .select("id, status, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, pae_id, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
         .order("updated_at", { ascending: false });
-      if (!isAdmin && user) query = query.eq("pae_id", user.id);
+      // Only filter by pae_id for non-admins — wait for isAdmin to resolve first
+      if (!isAdmin) query = query.eq("pae_id", user!.id);
       const { data, error } = await query;
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    // Wait for isAdmin to resolve before firing — prevents non-admins seeing all sessions
+    enabled: !!user && isAdminResolved,
   });
 
   const sessionPaeIds = isAdmin && sessions?.length
