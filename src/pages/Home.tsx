@@ -239,7 +239,7 @@ export default function Home() {
             <span>{t("home.recent")} {companies.length > 0 && `(${companies.length})`}</span>
             <ChevronDown className={`h-3.5 w-3.5 transition-transform ${listOpen ? "" : "-rotate-90"}`} />
           </button>
-          {listOpen && isLoading ? (
+          {listOpen && (isLoading ? (
             <div className="flex justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
@@ -377,7 +377,7 @@ export default function Home() {
                 );
               })}
             </div>
-          )}
+          ))}
         </div>
       </main>
       <FeedbackButton page="home" />
