@@ -143,7 +143,8 @@ export function buildRoiSlideData(input: RoiSlideInput): RoiSlideData {
   const paybackMonths = totalSavings > 0 ? Math.max(1, Math.round((annualCost / totalSavings) * 12)) : 0;
 
   const langDescs = getSavingsDescriptions(input.language);
-  const customDescs = input.customDescriptions;
+  // Custom descriptions are AI-generated in EN/ES — don't use them for other languages
+  const customDescs = (input.language === "en" || input.language === "es") ? input.customDescriptions : undefined;
   const highlights: RoiSlideHighlight[] = [...modules]
     .sort((a, b) => b.annual_savings - a.annual_savings)
     .slice(0, 3)
