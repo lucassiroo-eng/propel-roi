@@ -304,7 +304,8 @@ export default function CoCreation() {
       if (hs.deal_name) setDealName(hs.deal_name);
       if (hs.company_name) setCompanyName(hs.company_name);
       const hsCountry = (hs.country ?? "").toLowerCase();
-      if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
+      if (hsCountry.includes("spain") || hsCountry.includes("españa") || hsCountry === "es") setCountry("ES");
+      else if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
       else if (hsCountry.includes("ital") || hsCountry === "it") setCountry("IT");
       else if (hsCountry.includes("german") || hsCountry.includes("deutsch") || hsCountry === "de") setCountry("DE");
       else if (hsCountry.includes("portug") || hsCountry === "pt") setCountry("PT");
