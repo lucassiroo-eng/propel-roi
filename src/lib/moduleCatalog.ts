@@ -182,22 +182,6 @@ export const MODULE_CATALOG: ModuleDef[] = [
     ],
   },
   {
-    id: "wellhub",
-    label: "Wellhub",
-    category: "Benefits & Wellbeing",
-    color: catColor("Benefits & Wellbeing"),
-    signals: [
-      "We want wellness programs but managing vendors is too much work",
-      "Employees ask about gym memberships and we have no answer",
-      "We can't track who's using wellness benefits",
-    ],
-    savings: [
-      "Integrated wellness platform (gym, mental health) in HR portal",
-      "Single sign-on — no separate provider registration",
-      "Automated usage reporting — no manual data collection",
-    ],
-  },
-  {
     id: "complaints",
     label: "Trust Channel (Complaints/Whistleblower)",
     category: "Compliance",
@@ -371,24 +355,6 @@ export const MODULE_CATALOG: ModuleDef[] = [
     ],
   },
   {
-    id: "crm",
-    label: "CRM",
-    category: "Strategic HR",
-    color: catColor("Strategic HR"),
-    signals: [
-      "We track candidate relationships in a spreadsheet",
-      "Our alumni network is just an old email list",
-      "Referral programs are managed manually",
-      "We have no talent pool for future positions",
-    ],
-    savings: [
-      "Candidate pool management for proactive recruiting",
-      "Alumni networks with automated nurture workflows",
-      "Referral program tracking with reward automation",
-      "Talent pipeline reduces time-to-hire for future openings",
-    ],
-  },
-  {
     id: "headcount_planning",
     label: "Headcount Planning",
     category: "Strategic HR",
@@ -422,24 +388,6 @@ export const MODULE_CATALOG: ModuleDef[] = [
       "Team visibility — see who's coming each day",
       "Occupancy analytics for real estate decisions",
       "Booking rules and capacity limits enforced automatically",
-    ],
-  },
-  {
-    id: "software_management",
-    label: "Software Management",
-    category: "IT & Facilities",
-    color: catColor("IT & Facilities"),
-    signals: [
-      "We don't know how many SaaS licenses we're paying for",
-      "Tools with 50 licenses but only 10 users",
-      "Renewals catch us by surprise every year",
-      "Can't report on total software spend",
-    ],
-    savings: [
-      "SaaS license tracking with usage monitoring",
-      "Shelfware identification — flags unused licenses",
-      "Renewal reminders with renegotiation lead time",
-      "Total spend dashboards by vendor, team, category",
     ],
   },
   {

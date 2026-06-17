@@ -32,8 +32,8 @@ export interface ModuleInfo {
 
 export const MODULE_INFO: Record<string, ModuleInfo> = {
   core: {
-    label: { en: "Employee Platform / Core", es: "Plataforma del Empleado / Core", fr: "Plateforme Employé / Core", it: "Employee Platform / Core", de: "Employee Platform / Core" },
-    description: { en: "Centralize all employee data and empower your team with self-service", es: "Centraliza todos los datos de empleados y empodera a tu equipo con autoservicio", fr: "Centralisez toutes les données employés et donnez l'autonomie à votre équipe", it: "Centralizza i dati dei dipendenti e dai autonomia al team con il self-service", de: "Zentralisieren Sie Mitarbeiterdaten und stärken Sie Ihr Team mit Self-Service" },
+    label: { en: "Employee Platform / Core", es: "Portal del empleado / Core", fr: "Plateforme Employé / Core", pt: "Core", it: "Employee Platform / Core", de: "Employee Platform / Core" },
+    description: { en: "Centralize all employee data and empower your team with self-service", es: "Diseñado para hacerte la vida más fácil y gestionar tus equipos con mayor eficacia", fr: "Centralisez toutes les données employés et donnez l\'autonomie à votre équipe", pt: "Pensado para facilitar a sua vida e gerir as suas equipas de forma mais eficiente", it: "Centralizza i dati dei dipendenti e dai autonomia al team con il self-service", de: "Zentralisieren Sie Mitarbeiterdaten und stärken Sie Ihr Team mit Self-Service" },
     color: "#6B7280",
     image: "/modules/core.png",
     valueProps: [
@@ -43,8 +43,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   time_off: {
-    label: { en: "Time Off", es: "Ausencias", fr: "Congés", it: "Time Off", de: "Time Off" },
-    description: { en: "Automate leave management so your team can focus on what matters", es: "Automatiza la gestión de ausencias para que tu equipo se centre en lo importante", fr: "Automatisez la gestion des congés pour que votre équipe se concentre sur l'essentiel", it: "Automatizza la gestione assenze per concentrarsi su ciò che conta", de: "Automatisieren Sie das Abwesenheitsmanagement für das Wesentliche" },
+    label: { en: "Time Off", es: "Gestión de ausencias y vacaciones", fr: "Congés", pt: "Gestão de ausências e licenças", it: "Time Off", de: "Time Off" },
+    description: { en: "Automate leave management so your team can focus on what matters", es: "Coordina las ausencias de tu equipo sin esfuerzo con un panel unificado", fr: "Automatisez la gestion des congés pour que votre équipe se concentre sur l\'essentiel", pt: "Coordene as ausências da sua equipa com um painel unificado", it: "Automatizza la gestione assenze per concentrarsi su ciò che conta", de: "Automatisieren Sie das Abwesenheitsmanagement für das Wesentliche" },
     color: "#6B7280",
     image: "/modules/time_off.png",
     valueProps: [
@@ -54,8 +54,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   time_tracking: {
-    label: { en: "Time Tracking", es: "Control Horario", fr: "Suivi du Temps", it: "Time Tracking", de: "Time Tracking" },
-    description: { en: "Ensure labor law compliance with effortless clock-in and timesheets", es: "Cumple con la normativa laboral con fichaje y hojas de horas sin esfuerzo", fr: "Assurez la conformité légale avec un pointage et des feuilles de temps sans effort", it: "Conformità normativa con timbratura e fogli ore senza sforzo", de: "Arbeitsrechtliche Konformität mit müheloser Zeiterfassung" },
+    label: { en: "Time Tracking", es: "Control Horario", fr: "Suivi du Temps", pt: "Controlo de tempo", it: "Time Tracking", de: "Time Tracking" },
+    description: { en: "Ensure labor law compliance with effortless clock-in and timesheets", es: "Cumple con la ley, realiza una gestión precisa del tiempo y compensa las horas extra", fr: "Assurez la conformité légale avec un pointage et des feuilles de temps sans effort", pt: "Cumpra a lei com uma gestão rigorosa do tempo e compensação das horas extra", it: "Conformità normativa con timbratura e fogli ore senza sforzo", de: "Arbeitsrechtliche Konformität mit müheloser Zeiterfassung" },
     color: "#6B7280",
     image: "/modules/time_tracking.png",
     valueProps: [
@@ -65,8 +65,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   time_planning: {
-    label: { en: "Shift Management", es: "Gestión de Turnos", fr: "Gestion des Plannings", it: "Shift Management", de: "Shift Management" },
-    description: { en: "Plan shifts and rotations visually, keeping your team aligned", es: "Planifica turnos y rotaciones de forma visual, manteniendo a tu equipo alineado", fr: "Planifiez les rotations visuellement, en gardant votre équipe alignée", it: "Pianifica turni e rotazioni visivamente, mantenendo il team allineato", de: "Planen Sie Schichten visuell und halten Sie Ihr Team ausgerichtet" },
+    label: { en: "Shift Management", es: "Gestión de turnos", fr: "Gestion des Plannings", pt: "Gestão de turnos", it: "Shift Management", de: "Shift Management" },
+    description: { en: "Plan shifts and rotations visually keeping your team aligned", es: "Transforma la gestión de turnos con herramientas de planificación intuitivas y fáciles de usar", fr: "Planifiez les rotations visuellement en gardant votre équipe alignée", pt: "Transforme a gestão de turnos com ferramentas de planeamento intuitivas e fáceis de usar", it: "Pianifica turni e rotazioni visivamente mantenendo il team allineato", de: "Planen Sie Schichten visuell und halten Sie Ihr Team ausgerichtet" },
     color: "#2563EB",
     image: "/modules/time_planning.png",
     valueProps: [
@@ -75,8 +75,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   payroll: {
-    label: { en: "Payroll Connect", es: "Nóminas", fr: "Paie", it: "Payroll Connect", de: "Payroll Connect" },
-    description: { en: "Sync HR data to payroll automatically — no more manual re-entry", es: "Sincroniza los datos de RRHH con nóminas automáticamente — sin re-introducción manual", fr: "Synchronisez les données RH avec la paie automatiquement — plus de saisie manuelle", it: "Sincronizza i dati HR con le paghe automaticamente — niente più inserimento manuale", de: "Synchronisieren Sie HR-Daten automatisch mit der Lohnabrechnung" },
+    label: { en: "Payroll Connect", es: "Integración nóminas", fr: "Paie", pt: "Nóminas", it: "Payroll Connect", de: "Payroll Connect" },
+    description: { en: "Sync HR data to payroll automatically — no more manual re-entry", es: "Sincroniza los movimientos y datos creados en Factorial en tu programa de nómina", fr: "Synchronisez les données RH avec la paie automatiquement — plus de saisie manuelle", pt: "Sincronize os dados de RH com o processamento salarial automaticamente — sem reintrodução manual", it: "Sincronizza i dati HR con le paghe automaticamente — niente più inserimento manuale", de: "Synchronisieren Sie HR-Daten automatisch mit der Lohnabrechnung" },
     color: "#FB923C",
     image: "/modules/payroll.png",
     valueProps: [
@@ -85,8 +85,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   recruitment: {
-    label: { en: "Recruitment", es: "Selección", fr: "Recrutement", it: "Recruitment", de: "Recruitment" },
-    description: { en: "Attract and hire top talent with a streamlined pipeline", es: "Atrae y contrata al mejor talento con un pipeline optimizado", fr: "Attirez et recrutez les meilleurs talents avec un pipeline optimisé", it: "Attract and hire top talent with a streamlined pipeline", de: "Attract and hire top talent with a streamlined pipeline" },
+    label: { en: "Recruitment", es: "Reclutamiento", fr: "Recrutement", pt: "Recrutamento", it: "Ricerca e selezione", de: "Recruitment" },
+    description: { en: "Attract and hire top talent with a streamlined pipeline", es: "Contrata el mejor talento sin perder ni un segundo y sin salir de la plataforma", fr: "Attirez et recrutez les meilleurs talents avec un pipeline optimisé", pt: "Contrate os melhores talentos rapidamente, sem sair da plataforma", it: "Assumi i migliori talenti in pochissimo tempo, senza mai uscire dalla piattaforma", de: "Stellen Sie Top-Talente in kurzer Zeit ein ohne die Plattform zu verlassen" },
     color: "#E05C75",
     image: "/modules/recruitment.png",
     valueProps: [
@@ -95,8 +95,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   performance: {
-    label: { en: "Performance", es: "Desempeño", fr: "Performance", it: "Performance", de: "Performance" },
-    description: { en: "Drive growth with structured reviews, goals, and continuous feedback", es: "Impulsa el crecimiento con evaluaciones, objetivos y feedback continuo", fr: "Favorisez la croissance avec des évaluations, des objectifs et du feedback continu", it: "Drive growth with structured reviews, goals, and continuous feedback", de: "Drive growth with structured reviews, goals, and continuous feedback" },
+    label: { en: "Performance", es: "Gestión de Desempeño", fr: "Performance", pt: "Gestão do Desempenho", it: "Gestione delle performance", de: "Performance" },
+    description: { en: "Drive growth with structured reviews goals and continuous feedback", es: "Crea una cultura de feedback continuo y detecta el potencial de tu equipo", fr: "Favorisez la croissance avec des évaluations des objectifs et du feedback continu", pt: "Crie uma cultura de feedback contínuo e identifique o potencial da sua equipa", it: "Crea una cultura del feedback continuo e identifica il potenziale del tuo team", de: "Erschaffen Sie eine kontinuierliche Feedback-Kultur und identifizieren Sie das Potenzial Ihres Teams" },
     color: "#E05C75",
     image: "/modules/performance.png",
     valueProps: [
@@ -105,8 +105,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   expenses: {
-    label: { en: "Expenses", es: "Gastos", fr: "Notes de Frais", it: "Expenses", de: "Expenses" },
-    description: { en: "Simplify expense management from submission to reimbursement", es: "Simplifica la gestión de gastos desde la presentación hasta el reembolso", fr: "Simplifiez la gestion des frais de la soumission au remboursement", it: "Simplify expense management from submission to reimbursement", de: "Simplify expense management from submission to reimbursement" },
+    label: { en: "Expenses", es: "Gastos", fr: "Notes de Frais", pt: "Despesas", it: "Spese", de: "Ausgaben" },
+    description: { en: "Simplify expense management from submission to reimbursement", es: "Automatiza los gastos, elimina el trabajo administrativo y mantén el control", fr: "Simplifiez la gestion des frais de la soumission au remboursement", pt: "Automatize as despesas, elimine o trabalho administrativo e mantenha o controlo", it: "Automatizza le spese, elimina il lavoro amministrativo e mantieni il controllo", de: "Automatisieren Sie Ausgaben, eliminieren Sie administrative Arbeit und behalten Sie die Kontrolle" },
     color: "#14B8A6",
     image: "/modules/expenses.png",
     valueProps: [
@@ -115,8 +115,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   trainings: {
-    label: { en: "Training", es: "Formación", fr: "Formation", it: "Training", de: "Training" },
-    description: { en: "Keep your team skilled and compliant with structured training plans", es: "Mantén a tu equipo formado y en cumplimiento con planes de formación estructurados", fr: "Gardez votre équipe formée et conforme avec des plans de formation structurés", it: "Keep your team skilled and compliant with structured training plans", de: "Keep your team skilled and compliant with structured training plans" },
+    label: { en: "Training", es: "Formaciones", fr: "Formation", pt: "Formações", it: "Formazione", de: "Schulungen" },
+    description: { en: "Keep your team skilled and compliant with structured training plans", es: "Lleva el conocimiento de tu equipo al siguiente nivel con el módulo de formaciones", fr: "Gardez votre équipe formée et conforme avec des plans de formation structurés", pt: "Leve o conhecimento da sua equipa ao próximo nível com o nosso módulo de formação", it: "Porta le conoscenze del tuo team al livello successivo con il nostro modulo di formazione", de: "Bringen Sie das Wissen Ihres Teams mit unserem Modul Schulungen aufs nächste Level" },
     color: "#E05C75",
     image: "/modules/trainings.png",
     valueProps: [
@@ -125,8 +125,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   compensations: {
-    label: { en: "Compensation", es: "Compensación", fr: "Rémunération", it: "Compensation", de: "Compensation" },
-    description: { en: "Run salary reviews with data, fairness, and budget control", es: "Gestiona revisiones salariales con datos, equidad y control presupuestario", fr: "Menez les revues salariales avec données, équité et contrôle budgétaire", it: "Run salary reviews with data, fairness, and budget control", de: "Run salary reviews with data, fairness, and budget control" },
+    label: { en: "Compensation", es: "Compensación", fr: "Rémunération", pt: "Compensação", it: "Compensi", de: "Vergütung" },
+    description: { en: "Run salary reviews with data fairness and budget control", es: "Simplifica la gestión de la compensación, y evita errores en la nómina", fr: "Menez les revues salariales avec données équité y contrôle budgétaire", pt: "Simplifique a gestão de compensações e evite erros nos recibos de vencimento", it: "Semplifica la gestione dei compensi ed evita errori in busta paga", de: "Vereinfachen Sie Vergütungs-Management und verhindern Sie Gehaltsabrechnungsfehler" },
     color: "#FB923C",
     image: "/modules/compensations.png",
     valueProps: [
@@ -135,8 +135,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   engagement: {
-    label: { en: "Engagement", es: "Engagement", fr: "Engagement", it: "Engagement", de: "Engagement" },
-    description: { en: "Measure and improve team satisfaction with pulse surveys and eNPS", es: "Mide y mejora la satisfacción de tu equipo con encuestas pulse y eNPS", fr: "Mesurez et améliorez la satisfaction de votre équipe avec des enquêtes pulse et eNPS", it: "Measure and improve team satisfaction with pulse surveys and eNPS", de: "Measure and improve team satisfaction with pulse surveys and eNPS" },
+    label: { en: "Engagement", es: "Engagement", fr: "Engagement", pt: "Engagement", it: "Coinvolgimento", de: "Engagement" },
+    description: { en: "Measure and improve team satisfaction with pulse surveys and eNPS", es: "Crea y promueve un mejor entorno de trabajo para mejorar la fidelización en tus equipos", fr: "Mesurez et améliorez la satisfaction de votre équipe avec des enquêtes pulse y eNPS", pt: "Crie e promova um mejor ambiente de trabajo para melhorar a retenção das suas equipas", it: "Crea e promuovi un ambiente di lavoro migliore per migliorare la fidelizzazione dei tuoi team", de: "Schaffen und fördern Sie ein besseres Arbeitsumfeld, um die Mitarbeiterbindung in Ihren Teams zu verbessern." },
     color: "#E05C75",
     image: "/modules/engagement.png",
     valueProps: [
@@ -144,19 +144,9 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
       { en: "Anonymous feedback that drives real action", es: "Feedback anónimo que impulsa acciones reales", fr: "Feedback anonyme qui génère de vraies actions", it: "Anonymous feedback that drives real action", de: "Anonymous feedback that drives real action" },
     ],
   },
-  documents: {
-    label: { en: "Documents", es: "Documentos", fr: "Documents", it: "Documents", de: "Documents" },
-    description: { en: "Generate, sign, and store documents digitally — no more paper", es: "Genera, firma y almacena documentos digitalmente — sin más papel", fr: "Générez, signez et stockez les documents numériquement — plus de papier", it: "Generate, sign, and store documents digitally — no more paper", de: "Generate, sign, and store documents digitally — no more paper" },
-    color: "#6B7280",
-    valueProps: [
-      { en: "Auto-generate contracts and certificates from templates", es: "Genera automáticamente contratos y certificados desde plantillas", fr: "Générez automatiquement contrats et attestations depuis des modèles", it: "Auto-generate contracts and certificates from templates", de: "Auto-generate contracts and certificates from templates" },
-      { en: "Legally-binding e-signature built in", es: "Firma electrónica con validez legal integrada", fr: "Signature électronique à valeur légale intégrée", it: "Legally-binding e-signature built in", de: "Legally-binding e-signature built in" },
-      { en: "Centralize all employee documents with controlled access", es: "Centraliza todos los documentos de empleados con acceso controlado", fr: "Centralisez tous les documents employés avec accès contrôlé", it: "Centralize all employee documents with controlled access", de: "Centralize all employee documents with controlled access" },
-    ],
-  },
   procurement: {
-    label: { en: "Procurement", es: "Compras", fr: "Achats", it: "Procurement", de: "Procurement" },
-    description: { en: "Streamline purchase requests with approvals and budget tracking", es: "Optimiza las solicitudes de compra con aprobaciones y control presupuestario", fr: "Rationalisez les demandes d'achat avec approbations et suivi budgétaire", it: "Streamline purchase requests with approvals and budget tracking", de: "Streamline purchase requests with approvals and budget tracking" },
+    label: { en: "Procurement", es: "Gestión de Compras", fr: "Achats", pt: "Gestão de compras", it: "Approvvigionamento", de: "Beschaffungsmanagement" },
+    description: { en: "Streamline purchase requests with approvals and budget tracking", es: "Controla el gasto, automatiza solicitudes de compra y evita el exceso de gastos", fr: "Rationalisez les demandes d\'achat avec approbations et suivi budgétaire", pt: "Controle os gastos antes de acontecerem, automatize pedidos de compra e evite gastos excessivos", it: "Controlla le spese prima che si verifichino, automatizza le richieste d\'acquisto ed evita spese eccessive", de: "Kontrollieren Sie Ausgaben, automatisieren Sie Kaufanfragen und verhindern Sie Budgetüberschreitung" },
     color: "#14B8A6",
     image: "/modules/procurement.png",
     valueProps: [
@@ -166,8 +156,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   projects: {
-    label: { en: "Projects", es: "Proyectos", fr: "Projets", it: "Projects", de: "Projects" },
-    description: { en: "Track time by project and optimize team allocation", es: "Controla el tiempo por proyecto y optimiza la asignación del equipo", fr: "Suivez le temps par projet et optimisez l'allocation de l'équipe", it: "Track time by project and optimize team allocation", de: "Track time by project and optimize team allocation" },
+    label: { en: "Projects", es: "Gestión de Proyectos", fr: "Projets", pt: "Gestão de projetos", it: "Gestione progetti", de: "Projektmanagement" },
+    description: { en: "Track time by project and optimize team allocation", es: "Maximiza la rentabilidad de tus proyectos con una gestión ágil y conectada", fr: "Suivez le temps par projet et optimisez l\'allocation de l\'équipe", pt: "Planeie de forma mais inteligente, acompanhe custos e transforme projetos em lucro", it: "Pianifica in modo più intelligente, tieni traccia dei costi e trasforma i progetti in profitto", de: "Planen Sie smarter, tracken Sie Kosten und verwandeln Sie Projekte in Profit" },
     color: "#14B8A6",
     image: "/modules/projects.png",
     valueProps: [
@@ -177,9 +167,10 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   headcount_planning: {
-    label: { en: "Headcount Planning", es: "Planificación de Plantilla", fr: "Planification des Effectifs", it: "Headcount Planning", de: "Headcount Planning" },
-    description: { en: "Plan your workforce strategically with position management", es: "Planifica tu plantilla de forma estratégica con gestión de posiciones", fr: "Planifiez vos effectifs stratégiquement avec la gestion des postes", it: "Plan your workforce strategically with position management", de: "Plan your workforce strategically with position management" },
+    label: { en: "Headcount Planning", es: "Planificación de plantilla", fr: "Planification des Effectifs", pt: "Planeamento de headcount", it: "Pianificazione del personale", de: "Personalplanung" },
+    description: { en: "Plan your workforce strategically with position management", es: "Planifica, aprueba y haz seguimiento de cada contratación en un espacio de trabajo compartido", fr: "Planifiez vos effectifs stratégiquement avec la gestion des postes", pt: "Planeie, aprove e acompanhe cada contratação num espacio de trabajo partilhado.", it: "Pianifica, approva e monitora ogni assunzione in uno spazio di lavoro condiviso.", de: "Planen, genehmigen und verfolgen Sie jede Einstellung in einem gemeinsamen Workspace." },
     color: "#8B5CF6",
+    image: "/modules/headcount_planning.png",
     valueProps: [
       { en: "Plan your org structure with open positions and hiring forecasts", es: "Planifica tu estructura organizativa con posiciones abiertas y previsiones de contratación", fr: "Planifiez votre structure organisationnelle avec postes ouverts et prévisions de recrutement", it: "Plan your org structure with open positions and hiring forecasts", de: "Plan your org structure with open positions and hiring forecasts" },
       { en: "Align headcount with budget and business goals", es: "Alinea la plantilla con el presupuesto y los objetivos del negocio", fr: "Alignez les effectifs avec le budget et les objectifs de l'entreprise", it: "Align headcount with budget and business goals", de: "Align headcount with budget and business goals" },
@@ -187,9 +178,10 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   lms: {
-    label: { en: "LMS", es: "LMS", fr: "LMS", it: "LMS", de: "LMS" },
-    description: { en: "Create and deliver training content with built-in tracking", es: "Crea y distribuye contenido formativo con seguimiento integrado", fr: "Créez et distribuez du contenu de formation avec suivi intégré", it: "Create and deliver training content with built-in tracking", de: "Create and deliver training content with built-in tracking" },
+    label: { en: "LMS", es: "LMS", fr: "LMS", pt: "LMS", it: "LMS", de: "LMS" },
+    description: { en: "Create and deliver training content with built-in tracking", es: "Centraliza el aprendizaje, automatiza el progreso y facilita el crecimiento.", fr: "Créez et distribuez du contenu de formation avec suivi intégré", pt: "Centraliza a aprendizagem, automatiza o progresso e torna o crescimento simples.", it: "Centralizza l\'apprendimento, automatizza i progressi e semplifica la crescita.", de: "Zentralisieren Sie das Lernen, automatisieren Sie den Fortschritt und vereinfachen Sie das Wachstum." },
     color: "#E05C75",
+    image: "/modules/lms.png",
     valueProps: [
       { en: "Create, assign and track training content from one platform", es: "Crea, asigna y controla contenido formativo desde una sola plataforma", fr: "Créez, assignez et suivez le contenu de formation depuis une seule plateforme", it: "Create, assign and track training content from one platform", de: "Create, assign and track training content from one platform" },
       { en: "Automate course enrollment based on role, team or onboarding", es: "Automatiza la inscripción a cursos por rol, equipo o proceso de onboarding", fr: "Automatisez les inscriptions aux formations par rôle, équipe ou onboarding", it: "Automate course enrollment based on role, team or onboarding", de: "Automate course enrollment based on role, team or onboarding" },
@@ -197,8 +189,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   complaints: {
-    label: { en: "Trust Channel", es: "Canal de Denuncias", fr: "Canal de Confiance", it: "Trust Channel", de: "Trust Channel" },
-    description: { en: "Comply with regulations and offer an internal space to report irregularities", es: "Cumple con la normativa y ofrece un espacio interno para reportar irregularidades", fr: "Conformez-vous à la réglementation et offrez un espace interne pour signaler les irrégularités", it: "Comply with regulations and offer an internal space to report irregularities", de: "Comply with regulations and offer an internal space to report irregularities" },
+    label: { en: "Trust Channel", es: "Canal Seguro", fr: "Canal de Confiance", pt: "Canal seguro", it: "Canale di segnalazione", de: "Sichere Meldestelle" },
+    description: { en: "Comply with regulations and offer an internal space to report irregularities", es: "Cumple con la normativa y ofrece un espacio interno para reportar irregularidades", fr: "Conformez-vous à la réglementation et offrez un espace interne pour signaler les irrégularités", pt: "Cumpra a regulamentação e disponibilize un espacio interno para reportar irregularidades", it: "Rispetta le normative e offri uno spazio interno per segnalare irregolarità", de: "Halten Sie Vorschriften ein und bieten Sie Raum für den Bericht von Unregelmäßigkeiten" },
     image: "/modules/complaints.png",
     color: "#EF4444",
     valueProps: [
@@ -208,8 +200,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   benefits_standard: {
-    label: { en: "Benefits", es: "Beneficios", fr: "Avantages", it: "Benefits", de: "Benefits" },
-    description: { en: "Improve your team's experience with flexible benefits", es: "Mejora la experiencia de tu equipo con la retribución flexible", fr: "Améliorez l'expérience de votre équipe avec les avantages flexibles", it: "Improve your team's experience with flexible benefits", de: "Improve your team's experience with flexible benefits" },
+    label: { en: "Benefits", es: "Beneficios", fr: "Avantages", pt: "Benefícios", it: "Benefit", de: "Benefits" },
+    description: { en: "Improve your team\'s experience with flexible benefits", es: "Mejora la experiencia de tu equipo con la retribución flexible", fr: "Améliorez l\'expérience de votre équipe avec les avantages flexibles", pt: "Melhore a experiencia da sua equipa com benefícios flexíveis", it: "Migliora l\'esperienza del tuo team con benefit flessibili", de: "Verbessern Sie die Erfahrung Ihres Teams mit flexiblen Benefits" },
     color: "#F59E0B",
     image: "/modules/benefits_standard.png",
     valueProps: [
@@ -219,8 +211,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   benefits: {
-    label: { en: "Salary Advance", es: "Anticipo de Nómina", fr: "Avance sur Salaire", it: "Salary Advance", de: "Salary Advance" },
-    description: { en: "Give employees on-demand access to their earned salary", es: "Da a tus empleados acceso inmediato a su salario ya devengado", fr: "Donnez à vos employés un accès instantané à leur salaire déjà gagné", it: "Give employees on-demand access to their earned salary", de: "Give employees on-demand access to their earned salary" },
+    label: { en: "Salary Advance", es: "Anticipo de Nómina", fr: "Avance sur Salaire", pt: "Adiantamento de Salário", it: "Anticipo stipendio", de: "Gehaltsvorschuss" },
+    description: { en: "Give employees on-demand access to their earned salary", es: "Da a tus empleados acceso inmediato a su salario ya devengado", fr: "Donnez à vos employés un accès instantané à leur salaire déjà gagné", pt: "Dê aos colaboradores acceso imediato ao salário já ganho", it: "Consenti ai dipendenti l\'accesso immediato allo stipendio già maturato", de: "Geben Sie Mitarbeitern sofortigen Zugriff auf ihr bereits verdientes Gehalt" },
     color: "#F59E0B",
     valueProps: [
       { en: "Reduce financial stress without any impact on company cash flow", es: "Reduce el estrés financiero de tus empleados sin impactar la tesorería de la empresa", fr: "Réduisez le stress financier sans impact sur la trésorerie de l'entreprise", it: "Reduce financial stress without any impact on company cash flow", de: "Reduce financial stress without any impact on company cash flow" },
@@ -228,60 +220,33 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
       { en: "Improve employee retention and satisfaction as a key benefit", es: "Mejora la retención y satisfacción del empleado como beneficio diferencial", fr: "Améliorez la rétention et la satisfaction des employés comme avantage clé", it: "Improve employee retention and satisfaction as a key benefit", de: "Improve employee retention and satisfaction as a key benefit" },
     ],
   },
-  wellhub: {
-    label: { en: "Wellhub", es: "Wellhub", fr: "Wellhub", it: "Wellhub", de: "Wellhub" },
-    description: { en: "Give your team access to gyms, studios and wellness apps", es: "Da a tu equipo acceso a gimnasios, estudios y apps de bienestar", fr: "Donnez à votre équipe l'accès à des salles de sport, studios et applications bien-être", it: "Give your team access to gyms, studios and wellness apps", de: "Give your team access to gyms, studios and wellness apps" },
-    color: "#10B981",
-    valueProps: [
-      { en: "Access to 50,000+ gyms, studios and wellness apps worldwide", es: "Acceso a más de 50.000 gimnasios, estudios y apps de bienestar en todo el mundo", fr: "Accès à plus de 50 000 salles de sport, studios et applications bien-être dans le monde", it: "Access to 50,000+ gyms, studios and wellness apps worldwide", de: "Access to 50,000+ gyms, studios and wellness apps worldwide" },
-      { en: "Improve team wellbeing and reduce absenteeism", es: "Mejora el bienestar del equipo y reduce el absentismo", fr: "Améliorez le bien-être de l'équipe et réduisez l'absentéisme", it: "Improve team wellbeing and reduce absenteeism", de: "Improve team wellbeing and reduce absenteeism" },
-      { en: "Flexible plans that adapt to each employee's lifestyle", es: "Planes flexibles que se adaptan al estilo de vida de cada empleado", fr: "Plans flexibles adaptés au mode de vie de chaque employé", it: "Flexible plans that adapt to each employee's lifestyle", de: "Flexible plans that adapt to each employee's lifestyle" },
-    ],
-  },
   space: {
-    label: { en: "Spaces", es: "Espacios", fr: "Espaces", it: "Spaces", de: "Spaces" },
-    description: { en: "Manage office occupancy and desk booking with full visibility", es: "Gestiona la ocupación de la oficina y la reserva de puestos con total visibilidad", fr: "Gérez l'occupation du bureau et la réservation de postes avec une visibilité totale", it: "Manage office occupancy and desk booking with full visibility", de: "Manage office occupancy and desk booking with full visibility" },
+    label: { en: "Spaces", es: "Gestión de Espacios", fr: "Espaces", pt: "Gestão de espaços", it: "Gestione spazi", de: "Raummanagement" },
+    description: { en: "Manage office occupancy and desk booking with full visibility", es: "Gestiona reservas de zonas y oficinas, y saca el máximo partido a tu espacio de trabajo", fr: "Gérez l\'occupation du bureau et la réservation de postes avec une visibilité totale", pt: "Gira reservas de áreas e escritórios e tire o máximo partido do seu espacio de trabajo", it: "Gestisci le prenotazioni di aree e uffici e sfrutta al massimo il tuo spazio di lavoro", de: "Verwalten Sie Raum- und Büroreservierungen und nutzen Sie Ihren Arbeitsplatz optimal" },
     color: "#0D9488",
+    image: "/modules/space.png",
     valueProps: [
       { en: "Employees book desks and rooms from their phone in seconds", es: "Los empleados reservan puestos y salas desde el móvil en segundos", fr: "Les employés réservent postes et salles depuis leur téléphone en quelques secondes", it: "Employees book desks and rooms from their phone in seconds", de: "Employees book desks and rooms from their phone in seconds" },
       { en: "See who's coming to the office each day to plan team days", es: "Visualiza quién viene a la oficina cada día para organizar días de equipo", fr: "Visualisez qui vient au bureau chaque jour pour planifier les journées d'équipe", it: "See who's coming to the office each day to plan team days", de: "See who's coming to the office each day to plan team days" },
       { en: "Occupancy analytics to optimize real estate and reduce costs", es: "Analíticas de ocupación para optimizar el espacio y reducir costes inmobiliarios", fr: "Analyses d'occupation pour optimiser les espaces et réduire les coûts immobiliers", it: "Occupancy analytics to optimize real estate and reduce costs", de: "Occupancy analytics to optimize real estate and reduce costs" },
     ],
   },
-  software_management: {
-    label: { en: "Software Management", es: "Gestión de Software", fr: "Gestion des Logiciels", it: "Software Management", de: "Software Management" },
-    description: { en: "Track every SaaS license and eliminate shelfware across your company", es: "Controla todas las licencias SaaS y elimina el software sin usar en tu empresa", fr: "Suivez chaque licence SaaS et éliminez les logiciels inutilisés dans votre entreprise", it: "Track every SaaS license and eliminate shelfware across your company", de: "Track every SaaS license and eliminate shelfware across your company" },
-    color: "#0D9488",
-    valueProps: [
-      { en: "Full inventory of every SaaS tool and license across the company", es: "Inventario completo de todas las herramientas SaaS y licencias de la empresa", fr: "Inventaire complet de tous les outils SaaS et licences de l'entreprise", it: "Full inventory of every SaaS tool and license across the company", de: "Full inventory of every SaaS tool and license across the company" },
-      { en: "Identify unused licenses and recover costs automatically", es: "Identifica licencias sin usar y recupera costes de forma automática", fr: "Identifiez les licences inutilisées et récupérez des coûts automatiquement", it: "Identify unused licenses and recover costs automatically", de: "Identify unused licenses and recover costs automatically" },
-      { en: "Renewal alerts with lead time to renegotiate contracts", es: "Alertas de renovación con margen para renegociar contratos", fr: "Alertes de renouvellement avec délai pour renégocier les contrats", it: "Renewal alerts with lead time to renegotiate contracts", de: "Renewal alerts with lead time to renegotiate contracts" },
-    ],
-  },
   it_inventory: {
-    label: { en: "IT Inventory", es: "Inventario IT", fr: "Inventaire IT", it: "IT Inventory", de: "IT Inventory" },
-    description: { en: "Keep track of every device and automate provisioning on hire and exit", es: "Controla cada dispositivo y automatiza el aprovisionamiento en altas y bajas", fr: "Suivez chaque appareil et automatisez le provisionnement à l'entrée et à la sortie", it: "Keep track of every device and automate provisioning on hire and exit", de: "Keep track of every device and automate provisioning on hire and exit" },
+    label: { en: "IT Inventory", es: "Inventario de IT", fr: "Inventaire IT", pt: "Inventário de TI", it: "Inventario IT", de: "IT-Inventar" },
+    description: { en: "Keep track of every device and automate provisioning on hire and exit", es: "Creación, edición, asignación y baja mediante flujos estructurados", fr: "Suivez chaque appareil et automatisez le provisionnement à l\'entrée et à la sortie", pt: "Ganhe visibilidade e controlo sobre os ativos de TI", it: "Ottieni visibilità e controllo completi sugli asset IT della tua azienda", de: "Behalten Sie den Überblick über jedes Gerät und automatisieren Sie die Bereitstellung" },
     color: "#0D9488",
+    image: "/modules/it_inventory.png",
     valueProps: [
       { en: "Centralised asset register linked to each employee profile", es: "Registro centralizado de activos vinculado al perfil de cada empleado", fr: "Registre d'actifs centralisé lié au profil de chaque employé", it: "Centralised asset register linked to each employee profile", de: "Centralised asset register linked to each employee profile" },
       { en: "Auto-provision equipment and access on day one for new hires", es: "Aprovisiona equipos y accesos automáticamente el primer día para nuevas incorporaciones", fr: "Approvisionnez automatiquement équipements et accès dès le premier jour pour les nouvelles recrues", it: "Auto-provision equipment and access on day one for new hires", de: "Auto-provision equipment and access on day one for new hires" },
       { en: "Auto-deprovision on exit — no forgotten accounts or unreturned assets", es: "Desaprovisiona automáticamente en la baja — sin cuentas olvidadas ni activos sin devolver", fr: "Désapprovisionnement automatique à la sortie — aucun compte oublié ni actif non rendu", it: "Auto-deprovision on exit — no forgotten accounts or unreturned assets", de: "Auto-deprovision on exit — no forgotten accounts or unreturned assets" },
     ],
   },
-  crm: {
-    label: { en: "CRM", es: "CRM", fr: "CRM", it: "CRM", de: "CRM" },
-    description: { en: "Build and nurture your talent pipeline beyond active job openings", es: "Construye y nutre tu pipeline de talento más allá de las vacantes activas", fr: "Construisez et nourrissez votre vivier de talents au-delà des postes ouverts", it: "Build and nurture your talent pipeline beyond active job openings", de: "Build and nurture your talent pipeline beyond active job openings" },
-    color: "#8B5CF6",
-    valueProps: [
-      { en: "Build a talent pool and proactively engage future candidates", es: "Construye un banco de talento y contacta a futuros candidatos de forma proactiva", fr: "Constituez un vivier de talents et engagez proactivement les futurs candidats", it: "Build a talent pool and proactively engage future candidates", de: "Build a talent pool and proactively engage future candidates" },
-      { en: "Manage alumni networks and referral programs in one place", es: "Gestiona redes de alumni y programas de referidos en un único lugar", fr: "Gérez les réseaux d'anciens et les programmes de cooptation en un seul endroit", it: "Manage alumni networks and referral programs in one place", de: "Manage alumni networks and referral programs in one place" },
-      { en: "Reduce time-to-hire for future openings with a warm pipeline", es: "Reduce el tiempo de contratación para futuras vacantes con un pipeline templado", fr: "Réduisez le délai de recrutement pour les prochaines ouvertures grâce à un vivier activé", it: "Reduce time-to-hire for future openings with a warm pipeline", de: "Reduce time-to-hire for future openings with a warm pipeline" },
-    ],
-  },
   one: {
-    label: { en: "Factorial One (AI)", es: "Factorial One (IA)", fr: "Factorial One (IA)", it: "Factorial One (AI)", de: "Factorial One (AI)" },
-    description: { en: "Let AI answer your team's HR questions instantly, 24/7", es: "Deja que la IA responda las preguntas de RRHH de tu equipo al instante, 24/7", fr: "Laissez l'IA répondre instantanément aux questions RH de votre équipe, 24h/24", it: "Let AI answer your team's HR questions instantly, 24/7", de: "Let AI answer your team's HR questions instantly, 24/7" },
+    label: { en: "Factorial One (AI)", es: "Factorial One (IA)", fr: "Factorial One (IA)", pt: "Factorial One (IA)", it: "Factorial One (IA)", de: "Factorial One (KI)" },
+    description: { en: "Let AI answer your team\'s HR questions instantly 24/7", es: "El agente de IA que multiplica tu potencial", fr: "Laissez l\'IA répondre instantanément aux questions RH de votre équipe 24h/24", pt: "Deixe a IA responder instantaneamente às perguntas de RH da sua equipa 24/7", it: "Lascia che l\'IA risponda istantaneamente alle domande HR del tuo team 24/7", de: "Lassen Sie die KI die HR-Fragen Ihres Teams sofort und rund um die Uhr beantworten" },
     color: "#E05C75",
+    image: "/modules/one.png",
     valueProps: [
       { en: "Instant answers to HR questions: policies, balances, processes", es: "Respuestas instantáneas a preguntas de RRHH: políticas, saldos, procesos", fr: "Réponses instantanées aux questions RH : politiques, soldes, processus", it: "Instant answers to HR questions: policies, balances, processes", de: "Instant answers to HR questions: policies, balances, processes" },
       { en: "Reduce HR inbox volume by up to 40% from day one", es: "Reduce el volumen del buzón de RRHH hasta un 40% desde el primer día", fr: "Réduisez le volume de la boîte RH jusqu'à 40% dès le premier jour", it: "Reduce HR inbox volume by up to 40% from day one", de: "Reduce HR inbox volume by up to 40% from day one" },
@@ -289,8 +254,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   integration_business_central: {
-    label: { en: "Business Central", es: "Business Central", fr: "Business Central", it: "Business Central", de: "Business Central" },
-    description: { en: "Sync HR data with Microsoft Business Central automatically", es: "Sincroniza los datos de RRHH con Microsoft Business Central de forma automática", fr: "Synchronisez les données RH avec Microsoft Business Central automatiquement", it: "Sync HR data with Microsoft Business Central automatically", de: "Sync HR data with Microsoft Business Central automatically" },
+    label: { en: "Business Central", es: "Business Central", fr: "Business Central", pt: "Business Central", it: "Business Central", de: "Business Central" },
+    description: { en: "Sync HR data with Microsoft Business Central automatically", es: "Sincroniza los datos de RRHH con Microsoft Business Central de forma automática", fr: "Synchronisez les données RH avec Microsoft Business Central automatiquement", pt: "Sincronize automaticamente os dados de RH com o Microsoft Business Central", it: "Sincronizza automaticamente i dati HR con Microsoft Business Central", de: "Synchronisieren Sie HR-Daten automatisch mit Microsoft Business Central" },
     color: "#6366F1",
     valueProps: [
       { en: "Eliminate manual data entry between HR and your ERP", es: "Elimina la introducción manual de datos entre RRHH y tu ERP", fr: "Éliminez la saisie manuelle entre les RH et votre ERP", it: "Eliminate manual data entry between HR and your ERP", de: "Eliminate manual data entry between HR and your ERP" },
@@ -298,8 +263,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   integration_netsuite: {
-    label: { en: "NetSuite", es: "NetSuite", fr: "NetSuite", it: "NetSuite", de: "NetSuite" },
-    description: { en: "Connect Factorial with Oracle NetSuite for seamless HR-finance data flow", es: "Conecta Factorial con Oracle NetSuite para un flujo de datos RRHH-finanzas sin fricciones", fr: "Connectez Factorial à Oracle NetSuite pour un flux de données RH-finance sans friction", it: "Connect Factorial with Oracle NetSuite for seamless HR-finance data flow", de: "Connect Factorial with Oracle NetSuite for seamless HR-finance data flow" },
+    label: { en: "NetSuite", es: "NetSuite", fr: "NetSuite", pt: "NetSuite", it: "NetSuite", de: "NetSuite" },
+    description: { en: "Connect Factorial with Oracle NetSuite for seamless HR-finance data flow", es: "Conecta Factorial con Oracle NetSuite para un flujo de datos RRHH-finanzas sin fricciones", fr: "Connectez Factorial à Oracle NetSuite pour un flux de données RH-finance sans friction", pt: "Ligue o Factorial ao Oracle NetSuite para um flujo de dados de RH e finanças sem fricções", it: "Collega Factorial con Oracle NetSuite per un flusso di dati HR-finanza senza attriti", de: "Verbinden Sie Factorial mit Oracle NetSuite für einen reibungslosen HR-Finanz-Datenfluss" },
     color: "#6366F1",
     valueProps: [
       { en: "Employee and payroll data synced automatically with NetSuite", es: "Datos de empleados y nómina sincronizados automáticamente con NetSuite", fr: "Données employés et paie synchronisées automatiquement avec NetSuite", it: "Employee and payroll data synced automatically with NetSuite", de: "Employee and payroll data synced automatically with NetSuite" },
@@ -307,8 +272,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   integration_sage_200: {
-    label: { en: "SAGE 200", es: "SAGE 200", fr: "SAGE 200", it: "SAGE 200", de: "SAGE 200" },
-    description: { en: "Direct integration between Factorial and SAGE 200 for payroll and accounting", es: "Integración directa entre Factorial y SAGE 200 para nóminas y contabilidad", fr: "Intégration directe entre Factorial et SAGE 200 pour la paie et la comptabilité", it: "Direct integration between Factorial and SAGE 200 for payroll and accounting", de: "Direct integration between Factorial and SAGE 200 for payroll and accounting" },
+    label: { en: "SAGE 200", es: "SAGE 200", fr: "SAGE 200", pt: "SAGE 200", it: "SAGE 200", de: "SAGE 200" },
+    description: { en: "Direct integration between Factorial and SAGE 200 for payroll and accounting", es: "Integración directa entre Factorial y SAGE 200 para nóminas y contabilidad", fr: "Intégration directa entre Factorial y SAGE 200 para nóminas y contabilidad", pt: "Integração direta entre o Factorial e o SAGE 200 para recibos de vencimento e contabilidade", it: "Integrazione diretta tra Factorial e SAGE 200 per paghe e contabilità", de: "Direkte Integration zwischen Factorial und SAGE 200 für Gehaltsabrechnung und Buchhaltung" },
     color: "#6366F1",
     valueProps: [
       { en: "No more manual exports between HR and accounting", es: "Sin más exportaciones manuales entre RRHH y contabilidad", fr: "Plus d'exports manuels entre les RH et la comptabilité", it: "No more manual exports between HR and accounting", de: "No more manual exports between HR and accounting" },
@@ -316,8 +281,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   integration_milena: {
-    label: { en: "Milena", es: "Milena", fr: "Milena", it: "Milena", de: "Milena" },
-    description: { en: "Automate payroll data transfer between Factorial and Milena", es: "Automatiza la transferencia de datos de nómina entre Factorial y Milena", fr: "Automatisez le transfert de données de paie entre Factorial et Milena", it: "Automate payroll data transfer between Factorial and Milena", de: "Automate payroll data transfer between Factorial and Milena" },
+    label: { en: "Milena", es: "Milena", fr: "Milena", pt: "Milena", it: "Milena", de: "Milena" },
+    description: { en: "Automate payroll data transfer between Factorial and Milena", es: "Automatiza la transferencia de datos de nómina entre Factorial y Milena", fr: "Automatisez le transfert de données de paie entre Factorial et Milena", pt: "Automatize a transferência de dados salariais entre o Factorial e o Milena", it: "Automatizza il trasferimento dei dati paghe tra Factorial e Milena", de: "Automatisieren Sie die Übertragung von Gehaltsdaten zwischen Factorial und Milena" },
     color: "#6366F1",
     valueProps: [
       { en: "Automated payroll data sync every pay cycle", es: "Sincronización automática de datos de nómina cada ciclo", fr: "Synchronisation automatique des données de paie à chaque cycle", it: "Automated payroll data sync every pay cycle", de: "Automated payroll data sync every pay cycle" },
@@ -325,8 +290,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   integration_suprema_xiptic: {
-    label: { en: "Suprema / Xiptic", es: "Suprema / Xiptic", fr: "Suprema / Xiptic", it: "Suprema / Xiptic", de: "Suprema / Xiptic" },
-    description: { en: "Connect biometric attendance terminals directly to Factorial", es: "Conecta los terminales de fichaje biométrico directamente con Factorial", fr: "Connectez les terminaux de pointage biométrique directement à Factorial", it: "Connect biometric attendance terminals directly to Factorial", de: "Connect biometric attendance terminals directly to Factorial" },
+    label: { en: "Suprema / Xiptic", es: "Suprema / Xiptic", fr: "Suprema / Xiptic", pt: "Suprema / Xiptic", it: "Suprema / Xiptic", de: "Suprema / Xiptic" },
+    description: { en: "Connect biometric attendance terminals directly to Factorial", es: "Conecta los terminales de fichaje biométrico directamente con Factorial", fr: "Connectez les terminaux de pointage biométrique directamente à Factorial", pt: "Ligue os terminais biométricos de assiduidade diretamente ao Factorial", it: "Collega i terminali di rilevazione presenze biometrici direttamente a Factorial", de: "Verbinden Sie biometrische Zeiterfassungsterminals direkt mit Factorial" },
     color: "#6366F1",
     valueProps: [
       { en: "Clock-in data from terminals flows automatically into Factorial", es: "Los datos de fichaje de los terminales fluyen automáticamente a Factorial", fr: "Les données de pointage des terminaux arrivent automatiquement dans Factorial", it: "Clock-in data from terminals flows automatically into Factorial", de: "Clock-in data from terminals flows automatically into Factorial" },
@@ -334,8 +299,8 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     ],
   },
   silae: {
-    label: { en: "SILAE", es: "SILAE", fr: "SILAE", it: "SILAE", de: "SILAE" },
-    description: { en: "Sync Factorial with SILAE for seamless payroll processing in France", es: "Sincroniza Factorial con SILAE para una gestión de nóminas sin fricciones en Francia", fr: "Synchronisez Factorial avec SILAE pour un traitement de la paie sans friction en France", it: "Sync Factorial with SILAE for seamless payroll processing in France", de: "Sync Factorial with SILAE for seamless payroll processing in France" },
+    label: { en: "SILAE", es: "SILAE", fr: "SILAE", pt: "SILAE", it: "SILAE", de: "SILAE" },
+    description: { en: "Sync Factorial with SILAE for seamless payroll processing in France", es: "Sincroniza Factorial con SILAE para una gestión de nóminas sin fricciones en Francia", fr: "Synchronisez Factorial avec SILAE pour un traitement de la paie sans friction en France", pt: "Sincronize o Factorial com o SILAE para um processamento salarial sem fricções em França", it: "Sincronizza Factorial con SILAE per un\'elaborazione delle paghe senza attriti in Francia", de: "Synchronisieren Sie Factorial mit SILAE für eine reibungslose Lohnabrechnung in Frankreich" },
     color: "#6366F1",
     valueProps: [
       { en: "Direct payroll data sync with your SILAE provider", es: "Sincronización directa de datos de nómina con tu proveedor SILAE", fr: "Synchronisation directe des données de paie avec votre prestataire SILAE", it: "Direct payroll data sync with your SILAE provider", de: "Direct payroll data sync with your SILAE provider" },
