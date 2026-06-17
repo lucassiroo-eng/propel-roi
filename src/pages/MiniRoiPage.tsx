@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import jsPDF from "jspdf";
 
-// ── html2canvas lazy loader (same pattern as generateRoiDeck.ts) ─────────────
+// ── html2canvas lazy loader ───────────────────────────────────────────────────
 let h2cLoaded: Promise<any> | null = null;
 function loadHtml2Canvas(): Promise<any> {
   if ((window as any).html2canvas) return Promise.resolve((window as any).html2canvas);
@@ -26,6 +26,32 @@ function loadHtml2Canvas(): Promise<any> {
     document.head.appendChild(s);
   });
   return h2cLoaded;
+}
+
+// ── Inline Inter font for html2canvas (can't load external fonts) ─────────────
+let cachedInterCss: string | null = null;
+async function getInlinedInterCss(): Promise<string> {
+  if (cachedInterCss) return cachedInterCss;
+  try {
+    const cssResp = await fetch("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+    let css = await cssResp.text();
+    // Find all font URLs and replace with base64
+    const urlMatches = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)];
+    const urls = [...new Set(urlMatches.map(m => m[1]))];
+    await Promise.all(urls.map(async url => {
+      try {
+        const buf = await (await fetch(url)).arrayBuffer();
+        const bytes = new Uint8Array(buf);
+        let bin = "";
+        for (let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode(...bytes.subarray(i, i + 8192));
+        const b64 = btoa(bin);
+        const mime = url.includes(".woff2") ? "font/woff2" : "font/woff";
+        css = css.replaceAll(url, `data:${mime};base64,${b64}`);
+      } catch { /* keep URL */ }
+    }));
+    cachedInterCss = css;
+    return css;
+  } catch { return ""; }
 }
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -303,65 +329,90 @@ export default function MiniRoiPage() {
 
   // ── Download as PDF (html2canvas → jsPDF, A4 portrait) ───────────────────
   async function downloadPdf() {
-    if (!html || !iframeRef.current) return;
+    if (!html) return;
     setDownloadingPdf(true);
     try {
-      const html2canvas = await loadHtml2Canvas();
+      const [html2canvas, interCss] = await Promise.all([loadHtml2Canvas(), getInlinedInterCss()]);
       const company = (hsData?.company_name ?? "ROI").trim();
-      const doc = iframeRef.current.contentDocument;
-      if (!doc) throw new Error("Preview not ready");
 
-      const pageEls = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
-      if (pageEls.length === 0) throw new Error("No se encontraron páginas");
+      // Create a dedicated off-screen iframe for PDF rendering
+      // (don't touch the visible preview iframe — use a fresh one with inlined fonts)
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;left:0;top:0;width:794px;height:4000px;border:none;opacity:0;pointer-events:none;z-index:-9999;";
+      document.body.appendChild(iframe);
 
-      // Temporarily expand iframe to full content height for accurate rendering
-      const totalH = doc.body.scrollHeight;
-      const prevH = iframeRef.current.style.height;
-      iframeRef.current.style.height = totalH + "px";
-      await new Promise(r => setTimeout(r, 100));
+      try {
+        // Inject inlined fonts into the HTML before rendering
+        let pdfHtml = html;
+        if (interCss) {
+          pdfHtml = pdfHtml.replace(
+            /<link[^>]*fonts\.googleapis[^>]*>/g,
+            `<style>${interCss}</style>`
+          );
+        }
+        // Replace external factorial logo with text fallback (can't cross-origin in canvas)
+        pdfHtml = pdfHtml.replace(
+          /<img[^>]*factorial[^>]*logo[^>]*>/gi,
+          '<span style="font-size:17px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</span>'
+        );
 
-      // Capture entire document body as one canvas
-      const fullCanvas = await html2canvas(doc.body, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        windowWidth: 794,
-        scrollX: 0,
-        scrollY: 0,
-        width: 794,
-        height: totalH,
-      });
+        await new Promise<void>(resolve => { iframe.onload = () => resolve(); iframe.srcdoc = pdfHtml; });
+        // Wait for fonts to load
+        await iframe.contentDocument!.fonts.ready.catch(() => {});
+        await new Promise(r => setTimeout(r, 800));
 
-      // Restore iframe height
-      iframeRef.current.style.height = prevH;
+        const doc = iframe.contentDocument!;
+        const pageEls = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
+        if (pageEls.length === 0) throw new Error("No se encontraron páginas");
 
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const A4_W = 210;
-      const A4_H = 297;
-      const SCALE = 2;
+        const totalH = doc.body.scrollHeight;
+        iframe.style.height = totalH + "px";
+        await new Promise(r => setTimeout(r, 100));
 
-      for (let i = 0; i < pageEls.length; i++) {
-        if (i > 0) pdf.addPage("a4", "portrait");
-        const el = pageEls[i];
-        const elTop = el.offsetTop;
-        const elH = el.scrollHeight;
+        // Capture full document as one continuous canvas
+        const SCALE = 3;
+        const fullCanvas = await html2canvas(doc.body, {
+          scale: SCALE,
+          useCORS: true,
+          allowTaint: false,
+          logging: false,
+          backgroundColor: "#ffffff",
+          windowWidth: 794,
+          scrollX: 0,
+          scrollY: 0,
+          width: 794,
+          height: totalH,
+          imageTimeout: 5000,
+        });
 
-        // Slice just this page's content from the full canvas
-        const slice = document.createElement("canvas");
-        slice.width = fullCanvas.width;
-        slice.height = Math.round(elH * SCALE);
-        const ctx = slice.getContext("2d")!;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, slice.width, slice.height);
-        ctx.drawImage(fullCanvas, 0, -Math.round(elTop * SCALE));
+        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+        const A4_W = 210;
+        const A4_H = 297;
 
-        const elHmm = (elH / 794) * A4_W;
-        pdf.addImage(slice.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, A4_W, Math.min(elHmm, A4_H));
+        for (let i = 0; i < pageEls.length; i++) {
+          if (i > 0) pdf.addPage("a4", "portrait");
+          const el = pageEls[i];
+          const elTop = el.offsetTop;
+          const elH = el.scrollHeight;
+
+          const slice = document.createElement("canvas");
+          slice.width = fullCanvas.width;
+          slice.height = Math.round(elH * SCALE);
+          const ctx = slice.getContext("2d")!;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, slice.width, slice.height);
+          ctx.drawImage(fullCanvas, 0, -Math.round(elTop * SCALE));
+
+          const elHmm = (elH / 794) * A4_W;
+          // Use PNG for crisp text
+          pdf.addImage(slice.toDataURL("image/png"), "PNG", 0, 0, A4_W, Math.min(elHmm, A4_H));
+        }
+
+        pdf.save(`ROI ${company}.pdf`);
+        toast.success("PDF descargado");
+      } finally {
+        document.body.removeChild(iframe);
       }
-
-      pdf.save(`ROI ${company}.pdf`);
-      toast.success("PDF descargado");
     } catch (err: any) {
       toast.error("Error: " + (err.message ?? ""));
     } finally {
