@@ -364,5 +364,11 @@
   "mini_roi.note_placeholder": "Nota opcional (ex: 'substitui Bizneo', 'RH dedica 8h não 4h'...)",
   "mini_roi.retry": "← Tentar novamente",
   "mini_roi.active_count": "{{n}} ativos",
-  "home.mini_roi_title": "ROI baseado em assunções"
+  "home.mini_roi_title": "ROI baseado em assunções",
+  "mini_roi.step_hubspot": "HubSpot",
+  "mini_roi.step_modjo": "Modjo",
+  "mini_roi.step_transcripts": "Transcripts",
+  "mini_roi.step_claude": "Claude IA",
+  "mini_roi.step_roi": "Cálculo ROI",
+  "mini_roi.step_html": "Documento"
 }

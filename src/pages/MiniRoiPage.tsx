@@ -73,10 +73,6 @@ interface ModuleOverride {
 }
 
 const STEP_ORDER = ["hubspot", "modjo", "transcripts", "claude", "roi", "html"];
-const STEP_LABELS: Record<string, string> = {
-  hubspot: "HubSpot", modjo: "Modjo", transcripts: "Transcripts",
-  claude: "Claude IA", roi: "Cálculo ROI", html: "Documento",
-};
 
 import { MODULE_INFO, getLocalized } from "@/lib/discoveryQuestions";
 
@@ -128,6 +124,15 @@ export default function MiniRoiPage() {
       if (h && h > 0) iframe.style.height = h + "px";
     } catch { /* cross-origin */ }
   }
+
+  const STEP_LABELS: Record<string, string> = {
+    hubspot: t("mini_roi.step_hubspot", "HubSpot"),
+    modjo: t("mini_roi.step_modjo", "Modjo"),
+    transcripts: t("mini_roi.step_transcripts", "Transcripts"),
+    claude: t("mini_roi.step_claude", "Claude IA"),
+    roi: t("mini_roi.step_roi", "Cálculo ROI"),
+    html: t("mini_roi.step_html", "Documento"),
+  };
 
   const stepMap = Object.fromEntries(pipelineSteps.map(s => [s.step, s]));
   const roiDone = !!stepMap["roi"] && stepMap["roi"].status === "done";
@@ -616,10 +621,10 @@ export default function MiniRoiPage() {
               <Zap className="h-5 w-5" style={{ color: "oklch(96% 0.005 250)" }} />
             </div>
             <h2 className="text-lg font-bold tracking-tight" style={{ color: "oklch(14% 0.018 250)" }}>
-              Analizando el deal
+              {t("mini_roi.loading_title")}
             </h2>
             <p className="text-sm mt-1" style={{ color: "oklch(56% 0.01 250)" }}>
-              20-30 segundos
+              {t("mini_roi.loading_sub")}
             </p>
           </div>
 

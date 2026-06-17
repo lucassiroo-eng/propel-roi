@@ -646,5 +646,11 @@
   "mini_roi.note_placeholder": "Note for Claude (e.g. 'replaces Bizneo', 'HR hours are 8 not 4'...)",
   "mini_roi.retry": "← Try again",
   "mini_roi.active_count": "{{n}} active",
-  "home.mini_roi_title": "ROI based on assumptions"
+  "home.mini_roi_title": "ROI based on assumptions",
+  "mini_roi.step_hubspot": "HubSpot",
+  "mini_roi.step_modjo": "Modjo",
+  "mini_roi.step_transcripts": "Transcripts",
+  "mini_roi.step_claude": "Claude AI",
+  "mini_roi.step_roi": "ROI Calculation",
+  "mini_roi.step_html": "Document"
 }
