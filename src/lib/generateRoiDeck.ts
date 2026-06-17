@@ -56,6 +56,7 @@ function scalesWithLabel(sw: string, lang: string): string {
     fr: { employees: "employés", hr_ftes: "admins", managers: "managers", onboardings: "recrutements/an", submitters: "soumetteurs" },
     it: { employees: "dipendenti", hr_ftes: "admin", managers: "manager", onboardings: "assunzioni/anno", submitters: "submitter" },
     de: { employees: "Mitarbeiter", hr_ftes: "Admins", managers: "Manager", onboardings: "Einstellungen/Jahr", submitters: "Einreicher" },
+    pt: { employees: "colaboradores", hr_ftes: "admins", managers: "gestores", onboardings: "contratações/ano", submitters: "submetedores" },
   };
   return (labels[lang] ?? labels.es)[sw] ?? sw;
 }
@@ -178,6 +179,7 @@ function resolveLangs(country: string): { uiLang: string; modLang: string } {
   if (c === "FR") return { uiLang: "fr", modLang: "en" };
   if (c === "IT") return { uiLang: "it", modLang: "en" };
   if (c === "DE") return { uiLang: "de", modLang: "en" };
+  if (c === "PT") return { uiLang: "pt", modLang: "en" };
   return { uiLang: "en", modLang: "en" };
 }
 
@@ -397,6 +399,24 @@ function getI18n(lang: string): DeckI18n {
       ae_title: "Account Executive · Factorial",
       h_year_saved: "h/Jahr eingespart", h_month_saved: "h/Monat eingespart", per: "pro", hourly_cost: "Stundenkosten", year: "Jahr",
     },
+    pt: {
+      proposal: "Proposta ROI Factorial", cover_subtitle: "De processos manuais a uma plataforma centralizada para os seus",
+      confidential: "Confidencial",
+      annual_savings: "Poupança anual estimada", roi: "ROI anual", payback: "Payback",
+      roi_sub: v => `por cada €1 investido<br>recupera ${v}`,
+      payback_sub: m => `o investimento recupera-se<br>em ${m} meses`,
+      savings_vs_sub: c => `face a ${c}/ano de investimento<br>no Factorial`, savings_vs_label: "Investimento Factorial:", savings_vs_detail: "custo anual da plataforma",
+      what_is: "Descrição", module: "Módulo", description: "Descrição", h_month: "Poupança mensal", savings_year: "Poupança / ano",
+      total: "Total poupanças anuais estimadas", tool_label: "Ferramenta",
+      type_employee: "Tipo de colaborador", hypothesis: "Hipótese de poupança", assumption: "Estimativa e cálculo", estimated_saving: "Poupança estimada",
+      total_annual: "Total poupança anual",
+      replaces_before: "Antes", replaces_after: "Depois", replaces_current_cost: "Custo atual",
+      replaces_factorial: "Factorial", replaces_included: "Incluído no plano contratado", replaces_included_plan: "Incluído com o seu plano",
+      replaces_direct: "Poupança direta", replaces_extra: "adicional",
+      disclaimer: (e, h, m, o) => `Estimativa baseada em ${e} colaboradores · ${h} admin RH · ${m} gestores · ${o} contratações/ano`,
+      ae_title: "Account Executive · Factorial",
+      h_year_saved: "h/ano poupadas", h_month_saved: "h/mês poupadas", per: "por", hourly_cost: "custo horário", year: "ano",
+    },
   };
   return i18n[lang] ?? i18n.es;
 }
@@ -409,6 +429,7 @@ function fmtMonth(lang: string): string {
     fr: ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"],
     it: ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"],
     de: ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    pt: ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"],
   };
   return `${(m[lang] ?? m.es)[d.getMonth()]} ${d.getFullYear()}`;
 }

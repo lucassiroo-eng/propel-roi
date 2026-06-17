@@ -307,6 +307,7 @@ export default function CoCreation() {
       if (hsCountry.includes("france") || hsCountry === "fr") setCountry("FR");
       else if (hsCountry.includes("ital") || hsCountry === "it") setCountry("IT");
       else if (hsCountry.includes("german") || hsCountry.includes("deutsch") || hsCountry === "de") setCountry("DE");
+      else if (hsCountry.includes("portug") || hsCountry === "pt") setCountry("PT");
       else if (hsCountry.includes("united kingdom") || hsCountry.includes("uk") || hsCountry.includes("england")) setCountry("UK");
       const hsSeats = parseInt(hs.employees, 10);
       if (hsSeats > 0) {
@@ -604,7 +605,7 @@ export default function CoCreation() {
 
             {/* Language selector */}
             <div className="flex items-center justify-center gap-2 mb-8">
-              {([["en", "\u{1F1EC}\u{1F1E7}", "English"], ["es", "\u{1F1EA}\u{1F1F8}", "Español"], ["fr", "\u{1F1EB}\u{1F1F7}", "Français"], ["it", "\u{1F1EE}\u{1F1F9}", "Italiano"], ["de", "\u{1F1E9}\u{1F1EA}", "Deutsch"]] as const).map(([lng, flag, label]) => (
+              {([["en", "\u{1F1EC}\u{1F1E7}", "English"], ["es", "\u{1F1EA}\u{1F1F8}", "Español"], ["fr", "\u{1F1EB}\u{1F1F7}", "Français"], ["pt", "\u{1F1F5}\u{1F1F9}", "Português"], ["it", "\u{1F1EE}\u{1F1F9}", "Italiano"], ["de", "\u{1F1E9}\u{1F1EA}", "Deutsch"]] as const).map(([lng, flag, label]) => (
                 <button
                   key={lng}
                   onClick={() => { i18n.changeLanguage(lng); localStorage.setItem("propel_locale", lng); }}
@@ -781,6 +782,7 @@ export default function CoCreation() {
                     <SelectContent>
                       <SelectItem value="ES">{"\u{1F1EA}\u{1F1F8}"} {t("express.country_es")}</SelectItem>
                       <SelectItem value="FR">{"\u{1F1EB}\u{1F1F7}"} {t("express.country_fr")}</SelectItem>
+                      <SelectItem value="PT">{"\u{1F1F5}\u{1F1F9}"} {t("express.country_pt", "Portugal")}</SelectItem>
                       <SelectItem value="IT">{"\u{1F1EE}\u{1F1F9}"} {t("express.country_it")}</SelectItem>
                       <SelectItem value="DE">{"\u{1F1E9}\u{1F1EA}"} {t("express.country_de")}</SelectItem>
                       <SelectItem value="UK">{"\u{1F1EC}\u{1F1E7}"} {t("express.country_uk")}</SelectItem>

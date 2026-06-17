@@ -1031,6 +1031,41 @@ const SAVINGS_DESCRIPTIONS_I18N: Record<string, DescriptionSet> = {
       hr: ["Direkte Lohndatensynchronisation mit SILAE eliminiert manuellen Datenaustausch"],
     },
   },
+  pt: {
+    core: {
+      employee: ["Atualizações de perfil e descarregamento de documentos em self-service eliminam pedidos rotineiros ao RH", "Recibos de vencimento e certificados sempre acessíveis no telemóvel, sem esperas"],
+      hr: ["Base de dados única de colaboradores elimina folhas de cálculo duplicadas e cópia-colagem", "Fluxos de aprovação automáticos gerem alterações de dados sem encaminhamento manual", "Checklists de onboarding/offboarding executam-se automaticamente"],
+      manager: ["Painel de equipa mostra aprovações pendentes, organograma e reportes diretos num clique", "Sem necessidade de contactar o RH para headcount, datas de contrato ou dados de colaboradores"],
+    },
+    time_off: {
+      employee: ["Os colaboradores pedem férias e consultam saldos a partir do telemóvel, sem passar pelo RH"],
+      hr: ["Motor de acumulação automática substitui cálculos manuais de saldos", "A integração com vencimentos sincroniza dados de ausências automaticamente, sem reintrodução", "Regras de política impedem aprovação excessiva antes que aconteça"],
+      manager: ["Calendário visual da equipa mostra quem está ausente sem consultar folhas de cálculo", "Aprovar/rejeitar com um clique com alertas de deteção de conflitos"],
+    },
+    time_tracking: {
+      employee: ["Registo de ponto digital a partir de qualquer dispositivo substitui folhas de presença em papel", "Entradas em falta resolvem-se na app com aprovação do gestor"],
+      hr: ["Dados de tempo fluem para vencimentos automaticamente, sem conciliação semanal", "Horas extra calculadas de acordo com a legislação, sem verificações manuais", "Entradas em falta acionam lembretes automáticos"],
+      manager: ["Dashboard de presenças em tempo real substitui verificações matinais", "Alertas de anomalias (atrasos, entradas em falta) enviados automaticamente"],
+    },
+    time_planning: {
+      employee: ["Turnos futuros visíveis no telemóvel, substituindo escalas em papel e chats de grupo", "Pedidos de troca de turno geridos na app com notificação imediata ao gestor"],
+      hr: ["Turnos gerados automaticamente a partir de necessidades, regras e preferências", "Conformidade com horas extra e descanso verificada automaticamente", "Elimina completamente a criação manual semanal de escalas"],
+      manager: ["Vista de cobertura em tempo real mostra lacunas de pessoal antes de se tornarem problemas", "Trocas de turno aprovadas num clique sem telefonemas nem mensagens"],
+    },
+    payroll: {
+      hr: ["Dados de RH fluem para vencimentos automaticamente — sem reintrodução em cada ciclo", "Horas extra, ausências e variáveis sincronizam-se automaticamente, eliminando consolidação manual"],
+      manager: ["Dashboards de custos da equipa com alertas de orçamento eliminam a necessidade de relatórios manuais"],
+    },
+    expenses: {
+      employee: ["Foto do recibo e submissão em segundos, eliminando relatórios de despesas manuais", "O estado da despesa é sempre visível na app — sem necessidade de perguntar ao RH"],
+      hr: ["Validação automática de políticas elimina revisão manual de cada submissão", "Sincronização com vencimentos elimina reintrodução de dados de despesas"],
+      manager: ["Dashboards de gastos da equipa com alertas de orçamento eliminam seguimento manual"],
+    },
+    recruitment: {
+      hr: ["Publicação automática em múltiplos portais de emprego elimina contacto manual com cada plataforma", "Comunicações automáticas com candidatos e atualizações de estado eliminam contacto manual", "Reduz significativamente a administração de recrutamento em cada posição aberta"],
+      manager: ["Scorecards estruturados substituem avaliações ad-hoc e notas dispersas", "Visibilidade do pipeline em tempo real sem pedidos de atualização por email"],
+    },
+  },
 };
 
 export function getSavingsDescriptions(lang: string): Record<string, Partial<Record<Stakeholder, string[]>>> {

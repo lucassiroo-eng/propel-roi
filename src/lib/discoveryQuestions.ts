@@ -6,6 +6,7 @@ export interface LocalizedText {
   fr: string;
   it?: string;
   de?: string;
+  pt?: string;
 }
 
 export type DiscoveryQuestion = LocalizedText;
@@ -15,6 +16,7 @@ export function getLocalized(t: LocalizedText, lang: string): string {
   if (lang.startsWith("fr")) return t.fr;
   if (lang.startsWith("it")) return t.it ?? t.en;
   if (lang.startsWith("de")) return t.de ?? t.en;
+  if (lang.startsWith("pt")) return t.pt ?? t.en;
   return t.en;
 }
 
