@@ -11,7 +11,7 @@ async function azureFetch(body: Record<string, unknown>, timeoutMs = 55000): Pro
     try {
       const r = await fetch(AZURE_URL, { method: "POST", headers: h, body: JSON.stringify(body), signal: c.signal });
       clearTimeout(t);
-      if (r.status === 429 && a < 2) { await new Promise(x => setTimeout(x, 25000)); continue; }
+      if (r.status === 429 && a < 2) { await new Promise(x => setTimeout(x, 65000)); continue; }
       return r;
     } catch (e) { clearTimeout(t); if (a < 2) { await new Promise(x => setTimeout(x, 3000)); continue; } throw e; }
   }
@@ -162,7 +162,7 @@ async function fetchTranscript(callId: number, key: string): Promise<string> {
       modjoGet(key, `/calls/${callId}/transcript`),
       modjoGet(key, `/calls/${callId}/summaries`).catch(() => ({ data: [] })),
     ]);
-    const segments = (trRes.data ?? []).slice(0, 120); // limit tokens
+    const segments = (trRes.data ?? []).slice(0, 60); // limit tokens — 60 segments ≈ 3000 tokens
     const transcript = segments.map((s: any) => `${s.speaker?.name ?? "?"}: ${s.content}`).join("\n");
     const summary = (sumRes.data ?? [])[0]?.answer ?? "";
     return [summary ? `[RESUMEN]\n${summary}` : "", transcript ? `[TRANSCRIPT]\n${transcript}` : ""]
@@ -784,7 +784,7 @@ Devuelve JSON exacto:
           emit({ step: "modjo", status: "done", label: "Llamadas Modjo", detail: calls.length ? `${calls.length} llamada${calls.length !== 1 ? "s" : ""} encontrada${calls.length !== 1 ? "s" : ""}` : "Sin llamadas — usando notas HubSpot" });
 
           // 3. Transcripts
-          const topCalls = calls.slice(0, 3);
+          const topCalls = calls.slice(0, 2); // max 2 transcripts to stay under token limit
           let transcripts: string[] = [];
           if (topCalls.length > 0 && modjoKey) {
             emit({ step: "transcripts", status: "running", label: `Descargando ${topCalls.length} transcript${topCalls.length !== 1 ? "s" : ""}...` });
