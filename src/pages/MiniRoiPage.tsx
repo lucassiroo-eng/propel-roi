@@ -303,76 +303,67 @@ export default function MiniRoiPage() {
 
   // ── Download as PDF (html2canvas → jsPDF, A4 portrait) ───────────────────
   async function downloadPdf() {
-    if (!html) return;
+    if (!html || !iframeRef.current) return;
     setDownloadingPdf(true);
     try {
       const html2canvas = await loadHtml2Canvas();
       const company = (hsData?.company_name ?? "ROI").trim();
+      const doc = iframeRef.current.contentDocument;
+      if (!doc) throw new Error("Preview not ready");
 
-      // Hidden iframe at A4 width (794px = 210mm @ 96dpi)
-      const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:4000px;border:none;pointer-events:none;z-index:-1;";
-      document.body.appendChild(iframe);
+      const pageEls = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
+      if (pageEls.length === 0) throw new Error("No se encontraron páginas");
 
-      try {
-        // Load HTML and wait for fonts + layout
-        await new Promise<void>(resolve => { iframe.onload = () => resolve(); iframe.srcdoc = html; });
-        await new Promise(r => setTimeout(r, 900));
+      // Temporarily expand iframe to full content height for accurate rendering
+      const totalH = doc.body.scrollHeight;
+      const prevH = iframeRef.current.style.height;
+      iframeRef.current.style.height = totalH + "px";
+      await new Promise(r => setTimeout(r, 100));
 
-        const doc = iframe.contentDocument!;
-        const body = doc.body;
-        if (!body) throw new Error("No se encontró el contenido");
+      // Capture entire document body as one canvas
+      const fullCanvas = await html2canvas(doc.body, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        windowWidth: 794,
+        scrollX: 0,
+        scrollY: 0,
+        width: 794,
+        height: totalH,
+      });
 
-        // Capture the ENTIRE document as one continuous canvas — no cuts
-        const fullCanvas = await html2canvas(body, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: "#E4E4EC",
-          windowWidth: 794,
-          scrollX: 0,
-          scrollY: 0,
-          width: 794,
-          height: body.scrollHeight,
-        });
+      // Restore iframe height
+      iframeRef.current.style.height = prevH;
 
-        // Find .page elements to determine PDF pages
-        const pageEls = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
-        if (pageEls.length === 0) throw new Error("No se encontraron páginas");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const A4_W = 210;
+      const A4_H = 297;
+      const SCALE = 2;
 
-        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-        const A4_W_MM = 210;
-        const A4_H_MM = 297;
-        const SCALE = 2;
+      for (let i = 0; i < pageEls.length; i++) {
+        if (i > 0) pdf.addPage("a4", "portrait");
+        const el = pageEls[i];
+        const elTop = el.offsetTop;
+        const elH = el.scrollHeight;
 
-        for (let i = 0; i < pageEls.length; i++) {
-          if (i > 0) pdf.addPage("a4", "portrait");
-          const el = pageEls[i];
-          const rect = el.getBoundingClientRect();
-          const elTop = el.offsetTop;
-          const elH = el.scrollHeight;
+        // Slice just this page's content from the full canvas
+        const slice = document.createElement("canvas");
+        slice.width = fullCanvas.width;
+        slice.height = Math.round(elH * SCALE);
+        const ctx = slice.getContext("2d")!;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, slice.width, slice.height);
+        ctx.drawImage(fullCanvas, 0, -Math.round(elTop * SCALE));
 
-          // Slice the full canvas for this page
-          const sliceCanvas = document.createElement("canvas");
-          sliceCanvas.width = fullCanvas.width;
-          sliceCanvas.height = Math.round(elH * SCALE);
-          const ctx = sliceCanvas.getContext("2d")!;
-          ctx.drawImage(fullCanvas, 0, -Math.round(elTop * SCALE));
-
-          const imgData = sliceCanvas.toDataURL("image/jpeg", 0.93);
-          // Scale to A4 — preserve ratio
-          const elHmm = (elH / 794) * A4_W_MM;
-          const fittedH = Math.min(elHmm, A4_H_MM);
-          pdf.addImage(imgData, "JPEG", 0, 0, A4_W_MM, fittedH);
-        }
-
-        pdf.save(`ROI ${company}.pdf`);
-        toast.success("PDF descargado");
-      } finally {
-        document.body.removeChild(iframe);
+        const elHmm = (elH / 794) * A4_W;
+        pdf.addImage(slice.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, A4_W, Math.min(elHmm, A4_H));
       }
+
+      pdf.save(`ROI ${company}.pdf`);
+      toast.success("PDF descargado");
     } catch (err: any) {
-      toast.error("Error generando PDF: " + (err.message ?? ""));
+      toast.error("Error: " + (err.message ?? ""));
     } finally {
       setDownloadingPdf(false);
     }
