@@ -278,8 +278,9 @@ INSTRUCCIONES:
    - Empresa de servicios/tech/consultoría: employees más digitalizados → considera
      hours_employee si el módulo afecta al trabajador (ausencias, gastos, formación)
 
-   source="transcript" si hay evidencia real, "assumption" si usas la tabla.
-   Si hours=0, pon source="assumption".
+   source="transcript" SOLO si el prospect dijo un número EXACTO de horas o días (ej: "3 horas al día", "un día a la semana").
+   source="assumption" para TODO lo demás: señales cualitativas ("todo el día", "muy manual"), valores de la tabla, o inferencias.
+   Regla: si tú calculaste o estimaste las horas, aunque sea a partir de algo que dijeron, es "assumption".
 
 4. tool_replacements: SOLO si se menciona explícitamente una herramienta a reemplazar.
    Asigna module_id al módulo de Factorial que la sustituye.

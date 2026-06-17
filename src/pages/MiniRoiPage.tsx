@@ -86,6 +86,17 @@ export default function MiniRoiPage() {
   const [showAddModule, setShowAddModule] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Auto-resize iframe to its full content height
+  function onIframeLoad() {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+    try {
+      const h = iframe.contentDocument?.documentElement?.scrollHeight;
+      if (h && h > 0) iframe.style.height = h + "px";
+    } catch { /* cross-origin */ }
+  }
 
   const stepMap = Object.fromEntries(pipelineSteps.map(s => [s.step, s]));
   const roiDone = !!stepMap["roi"] && stepMap["roi"].status === "done";
@@ -651,9 +662,11 @@ export default function MiniRoiPage() {
           <div className="flex justify-center items-start p-8 min-h-full">
             {html ? (
               <iframe
+                ref={iframeRef}
                 srcDoc={html}
                 title="Preview"
                 sandbox="allow-same-origin"
+                onLoad={onIframeLoad}
                 style={{
                   width: "210mm",
                   minHeight: "297mm",
