@@ -320,26 +320,44 @@ export default function MiniRoiPage() {
     return (
       <div className="min-h-screen flex" style={{ background: "oklch(98.5% 0.004 250)" }}>
         {/* Left — brand context */}
-        <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-between px-12 py-16"
-          style={{ background: "oklch(14% 0.018 250)", color: "oklch(96% 0.005 250)" }}>
+        <div className="hidden lg:flex w-[420px] shrink-0 flex-col justify-center px-12 py-16 gap-10"
+          style={{ background: "oklch(14% 0.018 250)" }}>
+          {/* Header */}
           <div>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-10"
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-8"
               style={{ background: "oklch(50% 0.22 15)" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <h2 className="text-2xl font-extrabold leading-tight tracking-tight mb-4"
+            <h2 className="text-2xl font-extrabold leading-tight tracking-tight mb-3"
               style={{ color: "oklch(97% 0.005 250)" }}>
               ROI en minutos,<br />sin el prospect
             </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "oklch(70% 0.008 250)" }}>
+            <p className="text-sm leading-relaxed" style={{ color: "oklch(66% 0.008 250)" }}>
               La IA analiza las llamadas del deal, identifica los módulos relevantes y construye el documento automáticamente.
             </p>
           </div>
-          <div className="space-y-3">
-            {["HubSpot + Modjo como fuente", "Claude selecciona módulos por pain", "One-pager listo para enviar"].map((t, i) => (
-              <div key={i} className="flex items-center gap-2.5">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "oklch(50% 0.22 15)" }} />
-                <span className="text-xs" style={{ color: "oklch(68% 0.008 250)" }}>{t}</span>
+
+          {/* Steps */}
+          <div className="space-y-0">
+            {[
+              { n: "01", title: "Conecta el deal", sub: "Pega el link de HubSpot" },
+              { n: "02", title: "IA analiza las llamadas", sub: "Modjo + Claude identifican los pains" },
+              { n: "03", title: "Edita y descarga", sub: "Ajusta módulos y exporta el PDF" },
+            ].map((s, i, arr) => (
+              <div key={i} className="flex gap-4">
+                <div className="flex flex-col items-center">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold"
+                    style={{ background: "oklch(22% 0.018 250)", color: "oklch(60% 0.01 250)", border: "1px solid oklch(28% 0.015 250)" }}>
+                    {s.n}
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className="w-px flex-1 my-1.5" style={{ background: "oklch(24% 0.015 250)", minHeight: 28 }} />
+                  )}
+                </div>
+                <div className="pb-6">
+                  <p className="text-sm font-semibold" style={{ color: "oklch(90% 0.006 250)" }}>{s.title}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "oklch(58% 0.009 250)" }}>{s.sub}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -688,7 +706,7 @@ export default function MiniRoiPage() {
         </div>
 
         {/* Control panel */}
-        <div className="w-[280px] shrink-0 flex flex-col overflow-hidden"
+        <div className="w-[340px] shrink-0 flex flex-col overflow-hidden"
           style={{ borderLeft: "1px solid oklch(90% 0.006 250)", background: "oklch(99% 0.003 250)" }}>
           <div className="flex-1 overflow-y-auto">
 
@@ -729,39 +747,42 @@ export default function MiniRoiPage() {
               <div>
                 {Object.entries(moduleOverrides).map(([id, ov]) => (
                   <div key={id} style={{ borderTop: "1px solid oklch(93% 0.005 250)" }}>
-                    <div className={`px-4 py-2.5 transition-opacity ${!ov.include ? "opacity-30" : ""}`}>
-                      <div className="flex items-center gap-2.5">
+                    <div className={`px-4 py-3 transition-opacity ${!ov.include ? "opacity-25" : ""}`}>
+                      {/* Module row */}
+                      <div className="flex items-center gap-3">
                         <button
                           onClick={() => toggleModule(id)}
-                          className="w-4 h-4 rounded flex items-center justify-center shrink-0 transition-all"
+                          className="w-4.5 h-4.5 rounded-md flex items-center justify-center shrink-0 transition-all"
                           style={{
+                            width: 18, height: 18,
                             background: ov.include ? "oklch(52% 0.18 145)" : "transparent",
-                            border: ov.include ? "none" : "1.5px solid oklch(78% 0.01 250)",
+                            border: ov.include ? "none" : "1.5px solid oklch(76% 0.01 250)",
                           }}
                         >
                           {ov.include && <Check className="h-2.5 w-2.5 text-white" />}
                         </button>
-                        <span className="text-[11px] font-semibold flex-1 leading-tight"
-                          style={{ color: "oklch(22% 0.015 250)" }}>
+                        <span className="text-[12px] font-semibold flex-1 leading-tight"
+                          style={{ color: "oklch(20% 0.015 250)" }}>
                           {ALL_MODULES[id] ?? id}
                         </span>
                       </div>
+                      {/* Note field — always visible when included, compact */}
                       {ov.include && (
-                        <div className="mt-2 pl-[26px]">
+                        <div className="mt-2.5 ml-[30px]">
                           <textarea
-                            placeholder='Nota para Claude...'
+                            placeholder='Nota opcional (ej: "reemplaza Bizneo", "HR dedica 8h no 4h"...)'
                             value={ov.note}
                             onChange={e => setNote(id, e.target.value)}
-                            rows={2}
-                            className="w-full text-[10px] leading-snug px-2.5 py-2 rounded-lg resize-none outline-none transition-all"
+                            rows={ov.note ? 2 : 1}
+                            className="w-full text-[11px] leading-snug px-3 py-2 rounded-lg resize-none outline-none transition-all"
                             style={{
-                              background: "oklch(96.5% 0.004 250)",
-                              border: "1px solid oklch(88% 0.006 250)",
+                              background: ov.note ? "oklch(97% 0.004 250)" : "oklch(97.5% 0.003 250)",
+                              border: `1px solid ${ov.note ? "oklch(84% 0.007 250)" : "oklch(91% 0.005 250)"}`,
                               color: "oklch(28% 0.013 250)",
-                              minHeight: 44,
+                              minHeight: 32,
                             }}
-                            onFocus={e => (e.currentTarget.style.border = "1px solid oklch(50% 0.22 15)")}
-                            onBlur={e => (e.currentTarget.style.border = "1px solid oklch(88% 0.006 250)")}
+                            onFocus={e => { e.currentTarget.rows = 2; e.currentTarget.style.border = "1px solid oklch(50% 0.22 15)"; e.currentTarget.style.background = "oklch(100% 0 0)"; }}
+                            onBlur={e => { if (!e.currentTarget.value) e.currentTarget.rows = 1; e.currentTarget.style.border = `1px solid ${ov.note ? "oklch(84% 0.007 250)" : "oklch(91% 0.005 250)"}`; e.currentTarget.style.background = ov.note ? "oklch(97% 0.004 250)" : "oklch(97.5% 0.003 250)"; }}
                           />
                         </div>
                       )}
