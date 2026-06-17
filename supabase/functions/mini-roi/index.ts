@@ -737,7 +737,7 @@ Deno.serve(async (req) => {
             const moduleInstructions = moduleList.map((m: any) => {
               const note = module_notes[m.id];
               const isNew = !(existing_analysis.modules ?? []).find((x: any) => x.id === m.id);
-              return `- ${getModuleLabel(m.id, lang)}${note ? `\n  INSTRUCCIÓN AE: "${note}"` : ""}${isNew ? "\n  (módulo nuevo, no había en análisis original)" : ""}`;
+              return `- ${getModuleLabel(m.id, language)}${note ? `\n  INSTRUCCIÓN AE: "${note}"` : ""}${isNew ? "\n  (módulo nuevo, no había en análisis original)" : ""}`;
             }).join("\n");
 
             const user = `EMPRESA: ${hs_data?.company_name ?? ""}, ${hs_data?.employees ?? "?"} empleados, ${hs_data?.country ?? ""}, ${hs_data?.industry ?? ""}
@@ -840,7 +840,7 @@ Devuelve JSON exacto:
           // 4. Claude
           emit({ step: "claude", status: "running", label: "Analizando con Claude..." });
           const analysis = await analyzeWithClaude(hs, transcripts, language);
-          const moduleIds = (analysis.modules ?? []).map((m: any) => getModuleLabel(m.id, lang));
+          const moduleIds = (analysis.modules ?? []).map((m: any) => getModuleLabel(m.id, language));
           emit({ step: "claude", status: "done", label: "Análisis completado", detail: `${moduleIds.join(", ")}` });
 
           // 5. ROI
