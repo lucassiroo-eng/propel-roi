@@ -165,9 +165,11 @@ export default function MiniRoiPage() {
             setAnalysis(event.analysis ?? null);
             setHsData(event.company ?? null);
             setRoiData(event.roi_data ?? null);
+            setHtml(event.html ?? null);  // ← fix: capture the generated HTML
             const ov: Record<string, ModuleOverride> = {};
             for (const m of event.analysis?.modules ?? []) ov[m.id] = { include: true, note: "" };
             setModuleOverrides(ov);
+            setIsDirty(false);
             setStep("result");
           } else if (event.step === "error") {
             setError(event.detail ?? "Error desconocido");
@@ -271,15 +273,17 @@ export default function MiniRoiPage() {
     }
   }
 
-  // ── Download HTML ─────────────────────────────────────────────────────────
-  function download() {
+  // ── Download as PDF (via browser print dialog) ───────────────────────────
+  function downloadPdf() {
     if (!html) return;
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `mini-roi-${hsData?.company_name ?? "roi"}-${Date.now()}.html`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    const win = window.open("", "_blank");
+    if (!win) { alert("Permite ventanas emergentes para descargar el PDF"); return; }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.addEventListener("load", () => {
+      setTimeout(() => { win.focus(); win.print(); }, 300);
+    });
   }
 
   function markDirty() { setIsDirty(true); }
@@ -437,23 +441,31 @@ export default function MiniRoiPage() {
 
   // RESULT step
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       <AppHeader />
 
       {/* Top bar */}
-      <div className="border-b border-border bg-card px-6 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-3.5 w-3.5" />
+      <div className="border-b border-border bg-card/80 backdrop-blur px-5 py-2.5 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={() => navigate("/")}
+            className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
           </button>
-          <div>
-            <p className="text-sm font-bold text-foreground">{hsData?.company_name ?? "ROI basado en asunciones"}</p>
-            <p className="text-xs text-muted-foreground">{hsData?.employees ? `${hsData.employees} emp · ` : ""}{hsData?.country ?? ""}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-foreground truncate">{hsData?.company_name ?? "ROI basado en asunciones"}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {hsData?.employees ? `${hsData.employees} emp` : ""}
+              {hsData?.country ? ` · ${hsData.country}` : ""}
+              {roiData?.total_savings ? ` · Ahorro: €${roiData.total_savings.toLocaleString("es-ES")}/año` : ""}
+              {roiData?.roi_pct > 0 ? ` · ROI ${roiData.roi_pct}%` : ""}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {savedId && <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Guardado</span>}
-          <Button variant="outline" size="sm" onClick={save} disabled={saving} className="h-8 rounded-lg text-xs gap-1.5">
+        <div className="flex items-center gap-2 shrink-0">
+          {savedId && <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">✓ Guardado</span>}
+          <Button variant="outline" size="sm" onClick={save} disabled={saving} className="h-8 rounded-lg text-xs gap-1.5 font-semibold">
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
             {saving ? "Guardando..." : "Guardar"}
           </Button>
@@ -461,70 +473,70 @@ export default function MiniRoiPage() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex min-h-0">
-        {/* Left: preview */}
-        <div className="flex-1 bg-[#E4E4EC] overflow-auto p-4 flex items-start justify-center">
-          {html ? (
-            <iframe
-              srcDoc={html}
-              style={{ width: "210mm", minHeight: "297mm", display: "block", border: "none", background: "#fff", boxShadow: "0 4px 32px rgba(0,0,0,0.14)" }}
-              title="Preview"
-              sandbox="allow-same-origin"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">
-              {regenerating ? <><Loader2 className="h-5 w-5 animate-spin mr-2" />Generando...</> : "Sin preview"}
-            </div>
-          )}
+      <div className="flex-1 flex min-h-0 overflow-hidden">
+
+        {/* Left: A4 preview */}
+        <div className="flex-1 bg-[#DADAE4] overflow-auto">
+          <div className="flex items-start justify-center p-6 min-h-full">
+            {html ? (
+              <iframe
+                srcDoc={html}
+                style={{ width: "210mm", minHeight: "297mm", display: "block", border: "none", background: "#fff", boxShadow: "0 8px 40px rgba(0,0,0,0.18)", borderRadius: 2 }}
+                title="Preview"
+                sandbox="allow-same-origin"
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground" style={{ width: "210mm", height: "297mm" }}>
+                <Loader2 className="h-8 w-8 animate-spin opacity-40" />
+                <p className="text-sm font-medium">Generando documento...</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right: editor */}
-        <div className="w-80 shrink-0 border-l border-border bg-card flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
+        {/* Right: editor panel */}
+        <div className="w-72 shrink-0 border-l border-border bg-card flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto divide-y divide-border">
+
             {/* Price */}
-            <div className="px-4 py-4 border-b border-border">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Precio Factorial</p>
+            <div className="px-4 py-4">
+              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-2.5">Precio Factorial</p>
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
                   value={annualCost || (roiData?.annual_cost ? String(roiData.annual_cost) : "")}
                   onChange={e => { setAnnualCost(e.target.value); markDirty(); }}
                   placeholder={roiData?.annual_cost ? String(roiData.annual_cost) : "Auto"}
-                  className="h-8 text-center font-mono text-sm"
+                  className="h-9 text-center font-bold text-sm tabular-nums"
                 />
-                <span className="text-xs text-muted-foreground shrink-0">€/año</span>
+                <span className="text-xs text-muted-foreground shrink-0 font-medium">€/año</span>
               </div>
-              {roiData && (
-                <p className="text-[10px] text-muted-foreground mt-2">
-                  Ahorro: <strong className="text-foreground">€{roiData.total_savings?.toLocaleString("es-ES")}</strong> · ROI: <strong className="text-foreground">{roiData.roi_pct > 0 ? roiData.roi_pct + "%" : "—"}</strong>
-                </p>
-              )}
             </div>
 
             {/* Modules */}
-            <div className="border-b border-border">
-              <div className="px-4 py-3 bg-muted/20">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Módulos incluidos</p>
+            <div>
+              <div className="px-4 py-3">
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Módulos incluidos</p>
               </div>
-              <div className="divide-y divide-border">
+              <div className="divide-y divide-border/60">
                 {Object.entries(moduleOverrides).map(([id, ov]) => (
-                  <div key={id} className={`px-4 py-3 ${!ov.include ? "opacity-40" : ""}`}>
-                    <div className="flex items-center gap-2">
+                  <div key={id} className={`px-4 py-2.5 transition-opacity ${!ov.include ? "opacity-35" : ""}`}>
+                    <div className="flex items-center gap-2.5">
                       <button
                         onClick={() => toggleModule(id)}
-                        className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors ${ov.include ? "bg-emerald-500" : "border-2 border-muted"}`}
+                        className={`w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors border ${ov.include ? "bg-emerald-500 border-emerald-500" : "border-muted-foreground/30"}`}
                       >
                         {ov.include && <Check className="h-2.5 w-2.5 text-white" />}
                       </button>
-                      <span className="text-[11px] font-semibold text-foreground flex-1 leading-tight">{ALL_MODULES[id] ?? id}</span>
+                      <span className="text-[11.5px] font-semibold text-foreground flex-1 leading-tight">{ALL_MODULES[id] ?? id}</span>
                     </div>
                     {ov.include && (
-                      <div className="mt-2 pl-6">
+                      <div className="mt-2 pl-[26px]">
                         <Textarea
-                          placeholder='Nota (ej: "ahorro es dejar de pagar Cegid", "horas HR son 8 no 4"...)'
+                          placeholder='Nota para Claude (ej: "ahorro = dejar de pagar Cegid"...)'
                           value={ov.note}
                           onChange={e => setNote(id, e.target.value)}
-                          className="text-[11px] min-h-[44px] resize-none bg-muted/20"
+                          className="text-[10.5px] min-h-[40px] resize-none bg-muted/30 border-muted/50 leading-snug placeholder:text-muted-foreground/50"
                           rows={2}
                         />
                       </div>
@@ -532,19 +544,18 @@ export default function MiniRoiPage() {
                   </div>
                 ))}
               </div>
-              {/* Add module */}
-              <div className="px-4 py-3 border-t border-border">
+              <div className="px-4 py-3">
                 {showAddModule ? (
                   <div className="flex flex-wrap gap-1.5">
                     {addableModules.map(id => (
-                      <button key={id} onClick={() => addModule(id)} className="text-[10px] font-medium px-2 py-1 rounded bg-muted hover:bg-primary/10 hover:text-primary transition-colors">
+                      <button key={id} onClick={() => addModule(id)} className="text-[10px] font-semibold px-2 py-1 rounded-md bg-muted/60 hover:bg-primary/10 hover:text-primary transition-colors">
                         + {ALL_MODULES[id]}
                       </button>
                     ))}
-                    <button onClick={() => setShowAddModule(false)} className="text-[10px] text-muted-foreground px-2 py-1">cancelar</button>
+                    <button onClick={() => setShowAddModule(false)} className="text-[10px] text-muted-foreground px-1 py-1 hover:text-foreground">✕</button>
                   </div>
                 ) : (
-                  <button onClick={() => setShowAddModule(true)} className="flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:opacity-80 transition-opacity">
+                  <button onClick={() => setShowAddModule(true)} className="flex items-center gap-1.5 text-[11px] font-semibold text-primary/80 hover:text-primary transition-colors">
                     <Plus className="h-3 w-3" /> Añadir módulo
                   </button>
                 )}
@@ -552,30 +563,32 @@ export default function MiniRoiPage() {
             </div>
 
             {error && (
-              <div className="mx-4 mt-3 rounded-xl bg-destructive/10 border border-destructive/20 px-3 py-2">
+              <div className="mx-4 mt-3 mb-2 rounded-xl bg-destructive/8 border border-destructive/20 px-3 py-2">
                 <p className="text-[11px] font-semibold text-destructive">{error}</p>
               </div>
             )}
           </div>
 
-          {/* Bottom action buttons */}
-          <div className="shrink-0 p-4 border-t border-border space-y-2">
+          {/* Bottom buttons */}
+          <div className="shrink-0 p-3 border-t border-border space-y-2 bg-card/50">
             {isDirty ? (
               <Button
                 onClick={regenerate}
                 disabled={regenerating || includedModules.length === 0}
-                className="w-full h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm gap-1.5"
+                className="w-full h-10 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-sm gap-2"
               >
-                {regenerating ? <><Loader2 className="h-4 w-4 animate-spin" />Regenerando...</> : <><RefreshCw className="h-4 w-4" />Regenerar documento</>}
+                {regenerating
+                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Regenerando...</>
+                  : <><RefreshCw className="h-3.5 w-3.5" />Regenerar documento</>
+                }
               </Button>
             ) : (
               <Button
-                onClick={download}
+                onClick={downloadPdf}
                 disabled={!html}
-                variant="outline"
-                className="w-full h-10 rounded-xl font-semibold text-sm gap-1.5"
+                className="w-full h-10 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-semibold text-sm gap-2"
               >
-                <Download className="h-4 w-4" /> Descargar HTML
+                <Download className="h-3.5 w-3.5" /> Descargar PDF
               </Button>
             )}
           </div>
