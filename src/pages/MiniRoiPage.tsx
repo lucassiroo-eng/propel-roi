@@ -336,91 +336,39 @@ export default function MiniRoiPage() {
   }
 
   // ── Download as PDF (html2canvas → jsPDF, A4 portrait) ───────────────────
-  async function downloadPdf() {
+  // ── PDF via browser print — perfect font rendering, no canvas distortion ─────
+  function downloadPdf() {
     if (!html) return;
     setDownloadingPdf(true);
     try {
-      const [html2canvas, interCss] = await Promise.all([loadHtml2Canvas(), getInlinedInterCss()]);
       const company = (hsData?.company_name ?? "ROI").trim();
-
-      // Create a dedicated off-screen iframe for PDF rendering
-      // (don't touch the visible preview iframe — use a fresh one with inlined fonts)
-      const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;left:0;top:0;width:794px;height:4000px;border:none;opacity:0;pointer-events:none;z-index:-9999;";
-      document.body.appendChild(iframe);
-
-      try {
-        // Inject inlined fonts into the HTML before rendering
-        let pdfHtml = html;
-        if (interCss) {
-          pdfHtml = pdfHtml.replace(
-            /<link[^>]*fonts\.googleapis[^>]*>/g,
-            `<style>${interCss}</style>`
-          );
-        }
-        // Replace external factorial logo with text fallback (can't cross-origin in canvas)
-        pdfHtml = pdfHtml.replace(
-          /<img[^>]*factorial[^>]*logo[^>]*>/gi,
-          '<span style="font-size:17px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</span>'
-        );
-
-        await new Promise<void>(resolve => { iframe.onload = () => resolve(); iframe.srcdoc = pdfHtml; });
-        // Wait for fonts to load
-        await iframe.contentDocument!.fonts.ready.catch(() => {});
-        await new Promise(r => setTimeout(r, 800));
-
-        const doc = iframe.contentDocument!;
-        const pageEls = Array.from(doc.querySelectorAll(".page")) as HTMLElement[];
-        if (pageEls.length === 0) throw new Error("No se encontraron páginas");
-
-        const totalH = doc.body.scrollHeight;
-        iframe.style.height = totalH + "px";
-        await new Promise(r => setTimeout(r, 100));
-
-        // Capture full document as one continuous canvas
-        const SCALE = 3;
-        const fullCanvas = await html2canvas(doc.body, {
-          scale: SCALE,
-          useCORS: true,
-          allowTaint: false,
-          logging: false,
-          backgroundColor: "#ffffff",
-          windowWidth: 794,
-          scrollX: 0,
-          scrollY: 0,
-          width: 794,
-          height: totalH,
-          imageTimeout: 5000,
-        });
-
-        const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-        const A4_W = 210;
-        const A4_H = 297;
-
-        for (let i = 0; i < pageEls.length; i++) {
-          if (i > 0) pdf.addPage("a4", "portrait");
-          const el = pageEls[i];
-          const elTop = el.offsetTop;
-          const elH = el.scrollHeight;
-
-          const slice = document.createElement("canvas");
-          slice.width = fullCanvas.width;
-          slice.height = Math.round(elH * SCALE);
-          const ctx = slice.getContext("2d")!;
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, slice.width, slice.height);
-          ctx.drawImage(fullCanvas, 0, -Math.round(elTop * SCALE));
-
-          const elHmm = (elH / 794) * A4_W;
-          // Use PNG for crisp text
-          pdf.addImage(slice.toDataURL("image/png"), "PNG", 0, 0, A4_W, Math.min(elHmm, A4_H));
-        }
-
-        pdf.save(`ROI ${company}.pdf`);
-        toast.success("PDF descargado");
-      } finally {
-        document.body.removeChild(iframe);
+      // Inject print-trigger script into the HTML so the new window auto-prints
+      const printHtml = html.replace(
+        "</body>",
+        `<script>
+          window.addEventListener("load", function() {
+            setTimeout(function() {
+              document.title = "ROI ${company}";
+              window.print();
+              setTimeout(function() { window.close(); }, 1000);
+            }, 500);
+          });
+        </script></body>`
+      );
+      const blob = new Blob([printHtml], { type: "text/html;charset=utf-8" });
+      const blobUrl = URL.createObjectURL(blob);
+      const win = window.open(blobUrl, "_blank", "width=900,height=700");
+      if (!win) {
+        // Popup blocked — fallback: direct download as HTML
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = `ROI ${company}.html`;
+        a.click();
+        toast("Descarga iniciada como HTML. Abre el fichero en Chrome y usa Cmd+P → Guardar como PDF.");
+      } else {
+        toast.success("Se abrirá el diálogo de impresión — selecciona «Guardar como PDF»");
       }
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
     } catch (err: any) {
       toast.error("Error: " + (err.message ?? ""));
     } finally {
