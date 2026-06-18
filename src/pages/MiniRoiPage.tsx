@@ -11,48 +11,6 @@ import {
   Check, X, Loader2, Download, Zap, Plus, RefreshCw,
   Save, AlertTriangle, ArrowLeft, ChevronRight,
 } from "lucide-react";
-import jsPDF from "jspdf";
-
-// ── html2canvas lazy loader ───────────────────────────────────────────────────
-let h2cLoaded: Promise<any> | null = null;
-function loadHtml2Canvas(): Promise<any> {
-  if ((window as any).html2canvas) return Promise.resolve((window as any).html2canvas);
-  if (h2cLoaded) return h2cLoaded;
-  h2cLoaded = new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    s.onload = () => resolve((window as any).html2canvas);
-    s.onerror = () => reject(new Error("Failed to load html2canvas"));
-    document.head.appendChild(s);
-  });
-  return h2cLoaded;
-}
-
-// ── Inline Inter font for html2canvas (can't load external fonts) ─────────────
-let cachedInterCss: string | null = null;
-async function getInlinedInterCss(): Promise<string> {
-  if (cachedInterCss) return cachedInterCss;
-  try {
-    const cssResp = await fetch("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
-    let css = await cssResp.text();
-    // Find all font URLs and replace with base64
-    const urlMatches = [...css.matchAll(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g)];
-    const urls = [...new Set(urlMatches.map(m => m[1]))];
-    await Promise.all(urls.map(async url => {
-      try {
-        const buf = await (await fetch(url)).arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        let bin = "";
-        for (let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode(...bytes.subarray(i, i + 8192));
-        const b64 = btoa(bin);
-        const mime = url.includes(".woff2") ? "font/woff2" : "font/woff";
-        css = css.replaceAll(url, `data:${mime};base64,${b64}`);
-      } catch { /* keep URL */ }
-    }));
-    cachedInterCss = css;
-    return css;
-  } catch { return ""; }
-}
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -335,81 +293,48 @@ export default function MiniRoiPage() {
     }
   }
 
-  // ── Download as PDF — one .page div → one PDF page ───────────────────────
-  async function downloadPdf() {
+  // ── PDF via browser print — pixel-perfect quality, no URL headers/footers ──
+  // Opens about:blank window (→ no blob URL shown), @page{margin:0} hides
+  // browser-added URL/date/page-number chrome, page-break-after:always ensures
+  // exactly one print page per .page div.
+  function downloadPdf() {
     if (!html) return;
     setDownloadingPdf(true);
     try {
       const company = (hsData?.company_name ?? "ROI").trim();
 
-      // Strip ALL <link> tags from head (prevents them rendering as text in html2canvas)
-      // then inline Inter so font weights render correctly
-      const interCss = await getInlinedInterCss();
-      const htmlWithFonts = html
-        .replace(/<link[^>]*>/gi, "")
-        .replace("</head>", `<style>${interCss}</style></head>`);
+      // Inject @page{margin:0} to suppress browser URL/date/pagenumber headers,
+      // and a print-trigger script that fires after fonts + images load.
+      const printHtml = html
+        .replace("</head>", `<style>@page{margin:0;size:A4 portrait}</style></head>`)
+        .replace("</body>", `<script>
+          window.addEventListener("load", function() {
+            document.title = ${JSON.stringify("ROI " + company)};
+            // Wait for fonts
+            document.fonts.ready.then(function() {
+              setTimeout(function() { window.print(); }, 300);
+            });
+          });
+        <\/script></body>`);
 
-      // Same-origin iframe — html2canvas can access it fully
-      const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;visibility:hidden;";
-      document.body.appendChild(iframe);
-      iframe.contentDocument!.open();
-      iframe.contentDocument!.write(htmlWithFonts);
-      iframe.contentDocument!.close();
-
-      await new Promise<void>(resolve => {
-        if (iframe.contentDocument!.readyState === "complete") resolve();
-        else iframe.contentWindow!.addEventListener("load", () => resolve(), { once: true });
-      });
-      await iframe.contentDocument!.fonts.ready;
-
-      // Manually resolve broken images before html2canvas captures
-      // (onerror fires async and may not run before capture)
-      const imgs = Array.from(iframe.contentDocument!.querySelectorAll<HTMLImageElement>("img"));
-      await Promise.all(imgs.map(img => new Promise<void>(resolve => {
-        const showFallback = () => {
-          img.style.display = "none";
-          const next = img.nextElementSibling as HTMLElement | null;
-          if (next) next.style.display = "block";
-          resolve();
-        };
-        if (img.complete) { img.naturalWidth ? resolve() : showFallback(); }
-        else {
-          img.addEventListener("load", () => resolve(), { once: true });
-          img.addEventListener("error", showFallback, { once: true });
-        }
-      })));
-      await new Promise(r => setTimeout(r, 400));
-
-      const h2c = await loadHtml2Canvas();
-      // Capture each .page div separately → one PDF page each (clean pagination)
-      const pageEls = Array.from(iframe.contentDocument!.querySelectorAll<HTMLElement>(".page"));
-      if (pageEls.length === 0) pageEls.push(iframe.contentDocument!.body);
-
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pageW = 210, pageH = 297;
-
-      for (let i = 0; i < pageEls.length; i++) {
-        const el = pageEls[i];
-        const canvas = await h2c(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: "#ffffff",
-          width: 794,
-          windowWidth: 794,
-          scrollX: 0,
-          scrollY: 0,
-        });
-        if (i > 0) pdf.addPage();
-        // .page has min-height:297mm so canvas is always full A4 — just place it
-        const naturalH = (canvas.height / canvas.width) * pageW;
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, pageW, Math.min(naturalH, pageH));
+      // Open as about:blank → no blob/app URL in print header
+      const win = window.open("", "_blank", "width=900,height=700");
+      if (!win) {
+        // Popup blocked — fall back to blob download
+        const a = document.createElement("a");
+        const blob = new Blob([printHtml], { type: "text/html;charset=utf-8" });
+        a.href = URL.createObjectURL(blob);
+        a.download = `ROI ${company}.html`;
+        a.click();
+        toast("Descargado como HTML — ábrelo en Chrome y usa Cmd+P → Guardar PDF.");
+        return;
       }
-
-      document.body.removeChild(iframe);
-      pdf.save(`ROI ${company}.pdf`);
-      toast.success("PDF descargado");
+      win.document.open();
+      win.document.write(printHtml);
+      win.document.close();
+      toast.success("Se abre el diálogo de impresión — elige «Guardar como PDF»");
+      // Auto-close after a reasonable delay
+      setTimeout(() => { try { win.close(); } catch {} }, 30000);
     } catch (err: any) {
       toast.error("Error al generar PDF: " + (err.message ?? ""));
     } finally {
