@@ -155,12 +155,17 @@ export default function MiniRoiPage() {
         setRoiData(d.roi_data ?? null);
         setHtml(d.html ?? null);
         setAnnualCost(d.annual_cost ? String(d.annual_cost) : "");
-        if (d.module_overrides) setModuleOverrides(d.module_overrides);
-        else if (d.analysis?.modules) {
+        // Fix: empty object {} is truthy — check length before using module_overrides
+        const savedOverrides = d.module_overrides ?? {};
+        if (Object.keys(savedOverrides).length > 0) {
+          setModuleOverrides(savedOverrides);
+        } else if (d.analysis?.modules?.length > 0) {
           const ov: Record<string, ModuleOverride> = {};
           for (const m of d.analysis.modules) ov[m.id] = { include: true, note: "" };
           setModuleOverrides(ov);
         }
+        // If html is missing but we have analysis, mark dirty so user can regenerate
+        if (!d.html && d.analysis) setIsDirty(true);
         setStep("result");
       }
     })();
