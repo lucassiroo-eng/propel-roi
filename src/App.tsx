@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -48,6 +49,8 @@ function PublicOnly({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => (
+  <>
+  <Analytics />
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -72,6 +75,7 @@ const App = () => (
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </>
 );
 
 export default App;
