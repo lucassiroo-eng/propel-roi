@@ -95,7 +95,7 @@ export default function MiniRoiPage() {
   const stepMap = Object.fromEntries(pipelineSteps.map(s => [s.step, s]));
   const roiDone = !!stepMap["roi"] && stepMap["roi"].status === "done";
   const includedModules = Object.entries(moduleOverrides).filter(([, v]) => v.include).map(([id]) => id);
-  const addableModules = Object.keys(MODULE_INFO).filter(id => ["core","time_off","time_tracking","time_planning","payroll","compensations","recruitment","performance","expenses","trainings","complaints","engagement","benefits_standard","headcount_planning","lms","space","it_inventory","one"].includes(id)).filter(id => !moduleOverrides[id]);
+  const addableModules = Object.keys(MODULE_INFO).filter(id => !moduleOverrides[id]?.include);
 
   // ── Load saved session ───────────────────────────────────────────────────
   useEffect(() => {
