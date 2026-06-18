@@ -223,16 +223,19 @@ async function analyzeWithClaude(hs: any, transcripts: string[], lang: string): 
     ? transcripts.map((t, i) => `=== LLAMADA ${i + 1} ===\n${t}`).join("\n\n")
     : "(Sin transcripts disponibles)";
 
-  const system = `Eres un consultor experto en ROI para Factorial (HR SaaS). Redactas documentos que se presentan directamente a la empresa prospect.
+  const targetLanguage = LANG_NAMES[lang] ?? "Spanish";
+  const system = `You are an expert ROI consultant for Factorial (HR SaaS). You write documents presented directly to the prospect company.
 
-TONO DE ESCRITURA — obligatorio en todos los textos que generes:
-- Habla en segunda persona del plural (vosotros, vuestra, gestionáis...). El documento se presenta a ellos.
-- Arranca siempre desde la consecuencia que viven, no desde la funcionalidad que falta.
-- Prosa natural y fluida. Sin guiones largos (—), sin frases fragmentadas, sin "El reto:", "La oportunidad:", "El objetivo:".
-- Menciona herramientas concretas cuando las conoces (Plaza HR, Continia, SAP...).
-- Tono consultor: directo, específico, sin relleno genérico tipo "en el dinámico entorno empresarial".
+LANGUAGE: Write ALL generated text (company_context, pain_title, pain_description) in ${targetLanguage}.
 
-Sé conservador en los números: ante la duda, usa el valor más bajo.`;
+WRITING TONE — mandatory:
+- Address the company in second person in the target language.
+- Start from the consequence they experience daily, not from the missing feature.
+- Natural flowing prose. No em dashes, no fragments, no "The challenge:".
+- Mention specific tools when known (Plaza HR, Continia, SAP...).
+- Consultant tone: specific and direct, no generic filler.
+
+Be conservative: when in doubt, use the lower value.`;
 
   const user = `EMPRESA:
 - Nombre: ${hs.company_name ?? "Desconocida"}
@@ -314,7 +317,7 @@ Módulos disponibles (usa SOLO estos IDs exactos): core, time_off, time_tracking
 
   const res = await azureFetch({
     model: "claude-opus-4-6",
-    max_tokens: 1400,
+    max_tokens: 2000,
     tools: [ANALYSIS_TOOL],
     tool_choice: { type: "tool", name: "mini_roi_analysis" },
     system,
@@ -710,6 +713,16 @@ body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
+// Language name map for Claude prompts
+const LANG_NAMES: Record<string, string> = {
+  es: "Spanish",
+  en: "English",
+  fr: "French",
+  it: "Italian",
+  de: "German",
+  pt: "Portuguese",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
@@ -790,8 +803,8 @@ Devuelve JSON exacto:
 
             const res = await azureFetch({
               model: "claude-opus-4-6",
-              max_tokens: 1400,
-              system: `You are an expert ROI consultant for Factorial. Write ALL text (pain_title, pain_description) in ${langNames[language] ?? langNames.es}. Use natural prose in second person. Start from the consequence experienced, not the missing feature. ONLY return the requested JSON, no markdown or comments.`,
+              max_tokens: 2000,
+              system: `You are an expert ROI consultant for Factorial. Write ALL text (pain_title, pain_description) in ${LANG_NAMES[language] ?? "Spanish"}. Use natural prose in second person. Start from the consequence experienced, not the missing feature. ONLY return the requested JSON, no markdown or comments.`,
               messages: [{ role: "user", content: user }],
             }, 45000);
 
