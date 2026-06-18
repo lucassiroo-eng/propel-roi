@@ -362,7 +362,24 @@ export default function MiniRoiPage() {
         else iframe.contentWindow!.addEventListener("load", () => resolve(), { once: true });
       });
       await iframe.contentDocument!.fonts.ready;
-      await new Promise(r => setTimeout(r, 800));
+
+      // Manually resolve broken images before html2canvas captures
+      // (onerror fires async and may not run before capture)
+      const imgs = Array.from(iframe.contentDocument!.querySelectorAll<HTMLImageElement>("img"));
+      await Promise.all(imgs.map(img => new Promise<void>(resolve => {
+        const showFallback = () => {
+          img.style.display = "none";
+          const next = img.nextElementSibling as HTMLElement | null;
+          if (next) next.style.display = "block";
+          resolve();
+        };
+        if (img.complete) { img.naturalWidth ? resolve() : showFallback(); }
+        else {
+          img.addEventListener("load", () => resolve(), { once: true });
+          img.addEventListener("error", showFallback, { once: true });
+        }
+      })));
+      await new Promise(r => setTimeout(r, 400));
 
       const h2c = await loadHtml2Canvas();
       // Capture each .page div separately → one PDF page each (clean pagination)
@@ -385,9 +402,25 @@ export default function MiniRoiPage() {
           scrollY: 0,
         });
         if (i > 0) pdf.addPage();
-        // Scale canvas to fill A4 width, preserve aspect ratio
         const imgH = (canvas.height / canvas.width) * pageW;
-        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, Math.min(imgH, pageH));
+        if (imgH <= pageH) {
+          // Fits in one PDF page
+          pdf.addImage(canvas.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, pageW, imgH);
+        } else {
+          // Overflow: slice into multiple PDF pages
+          const pxPerMm = canvas.width / pageW;
+          const sliceHpx = Math.round(pageH * pxPerMm);
+          const slices = Math.ceil(canvas.height / sliceHpx);
+          for (let s = 0; s < slices; s++) {
+            if (s > 0) pdf.addPage();
+            const srcY = s * sliceHpx;
+            const sliceH = Math.min(sliceHpx, canvas.height - srcY);
+            const sc = document.createElement("canvas");
+            sc.width = canvas.width; sc.height = sliceH;
+            sc.getContext("2d")!.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+            pdf.addImage(sc.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, pageW, sliceH / pxPerMm);
+          }
+        }
       }
 
       document.body.removeChild(iframe);

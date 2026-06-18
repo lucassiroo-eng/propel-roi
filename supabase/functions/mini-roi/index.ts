@@ -442,7 +442,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   const coreIdx = modules.findIndex((m: any) => m.id === "core");
   if (coreIdx > 0) modules.unshift(modules.splice(coreIdx, 1)[0]);
 
-  const PAGE_SIZE = 6;
+  const PAGE_SIZE = 12;
   const totalModules = modules.length;
 
   // Build each module row — clean, no boxes
@@ -469,7 +469,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
         : "";
 
     return `
-    <div style="padding:8px 0;border-bottom:1px solid #EBEBF0;page-break-inside:avoid;">
+    <div style="padding:8px 0;border-bottom:1px solid #C8C8D8;page-break-inside:avoid;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;">
         <div style="display:flex;align-items:baseline;gap:10px;flex:1;min-width:0;">
           <span style="font-size:10px;font-weight:800;color:#FF355E;letter-spacing:.02em;flex-shrink:0;">${num}</span>
