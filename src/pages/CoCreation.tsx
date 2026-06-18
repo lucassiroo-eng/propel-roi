@@ -972,7 +972,7 @@ export default function CoCreation() {
                                   type="number" step="0.1" min="0"
                                   className="w-[54px] h-7 text-center text-[13px] font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none transition-colors"
                                   style={{ borderColor: modColor + '40' }}
-                                  value={val}
+                                  value={val || ""}
                                   onChange={e => {
                                     const v = Math.max(0, parseFloat(e.target.value) || 0);
                                     setRoiConfig(prev => {
