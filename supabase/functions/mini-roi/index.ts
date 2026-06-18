@@ -181,7 +181,7 @@ const ANALYSIS_TOOL = {
     type: "object",
     required: ["modules", "company_context"],
     properties: {
-      company_context: { type: "string", description: "2-3 sentence summary of the company situation" },
+      company_context: { type: "string", description: "2-3 sentences addressed directly to the company (second person plural: vosotros/vuestra). Start from what they live daily, not from what is missing. Natural flowing prose, no em dashes, no fragments. Mention specific tools they use and the concrete consequence of the current situation. End with what Factorial would solve for them." },
       modules: {
         type: "array",
         items: {
@@ -190,8 +190,8 @@ const ANALYSIS_TOOL = {
           properties: {
             id: { type: "string" },
             pain_type: { type: "string", enum: ["TIEMPO", "HERRAMIENTA", "DATOS", "CUMPLIMIENTO", "CRECIMIENTO"], description: "Use HERRAMIENTA only if the company explicitly mentions a specific tool to replace. Default is TIEMPO." },
-            pain_title: { type: "string", description: "One sentence: the main pain this module solves" },
-            pain_description: { type: "string", description: "1 sentence (max 25 words). Specific to this company. For the 'core' module, always mention at least one of: documentos, firma digital, contratos, or nóminas — because Core includes document management and digital signatures." },
+            pain_title: { type: "string", description: "Short title: the specific situation at this company that this module fixes (max 10 words, no generic labels)" },
+            pain_description: { type: "string", description: "1-2 sentences. Address the company directly (second person, vosotros). Start from the consequence they experience every day, not from the missing feature. Natural prose, no em dashes, no lists. Specific to their tools and context." },
             hours_employee: { type: "number", description: "h/mes per employee" },
             hours_hr: { type: "number", description: "h/mes for the HR admin (flat monthly)" },
             hours_manager: { type: "number", description: "h/mes per manager" },
@@ -223,9 +223,16 @@ async function analyzeWithClaude(hs: any, transcripts: string[], lang: string): 
     ? transcripts.map((t, i) => `=== LLAMADA ${i + 1} ===\n${t}`).join("\n\n")
     : "(Sin transcripts disponibles)";
 
-  const system = `Eres un analista de ventas experto en ROI para Factorial (HR SaaS).
-Tu tarea es analizar datos de empresa y transcripts de llamadas para producir una estimación conservadora de ROI.
-Responde SIEMPRE en español. Sé conservador: ante la duda, usa el valor más bajo.`;
+  const system = `Eres un consultor experto en ROI para Factorial (HR SaaS). Redactas documentos que se presentan directamente a la empresa prospect.
+
+TONO DE ESCRITURA — obligatorio en todos los textos que generes:
+- Habla en segunda persona del plural (vosotros, vuestra, gestionáis...). El documento se presenta a ellos.
+- Arranca siempre desde la consecuencia que viven, no desde la funcionalidad que falta.
+- Prosa natural y fluida. Sin guiones largos (—), sin frases fragmentadas, sin "El reto:", "La oportunidad:", "El objetivo:".
+- Menciona herramientas concretas cuando las conoces (Plaza HR, Continia, SAP...).
+- Tono consultor: directo, específico, sin relleno genérico tipo "en el dinámico entorno empresarial".
+
+Sé conservador en los números: ante la duda, usa el valor más bajo.`;
 
   const user = `EMPRESA:
 - Nombre: ${hs.company_name ?? "Desconocida"}
@@ -242,8 +249,9 @@ INSTRUCCIONES:
 1. Incluye SIEMPRE estos módulos: core, time_off, time_tracking.
    Añade otros SOLO si hay evidencia muy clara en los transcripts. Máximo 5 módulos.
 
-2. Para cada módulo, escribe pain_title y pain_description explicando POR QUÉ necesitan ese módulo.
-   Sé específico para esta empresa. Usa pain_type apropiado.
+2. Para cada módulo, escribe pain_title y pain_description siguiendo el tono del sistema:
+   segunda persona, consecuencia primero, herramientas concretas, prosa fluida.
+   Usa pain_type apropiado.
 
 3. REGLAS CRÍTICAS PARA LAS HORAS — lee con atención:
 
@@ -745,9 +753,15 @@ CONTEXTO: ${existing_analysis?.company_context ?? ""}
 
 Genera o actualiza la descripción de cada módulo para el one-pager ROI.
 
+TONO OBLIGATORIO (igual que en el análisis inicial):
+- Segunda persona del plural (vosotros, vuestra, gestionáis...).
+- Arranca desde la consecuencia que viven, no desde la funcionalidad que falta.
+- Prosa fluida. Sin guiones largos, sin frases fragmentadas, sin "El reto:" o "La oportunidad:".
+- Menciona herramientas concretas cuando las conoces.
+
 REGLAS:
-1. pain_title: max 12 palabras, específico para esta empresa
-2. pain_description: 1 frase, max 20 palabras, menciona la consecuencia de negocio concreta
+1. pain_title: situación concreta de esta empresa, max 10 palabras, sin etiquetas genéricas
+2. pain_description: 1-2 frases en segunda persona. Consecuencia primero, herramientas concretas, prosa natural.
 3. INSTRUCCIÓN AE con precio específico (ej: "Sesame les cuesta 4000", "pagan 3500 por Bizneo") → usa ESE precio exacto en annual_cost_eur, SIN aplicar ningún descuento adicional. El AE ya sabe el precio real.
    INSTRUCCIÓN AE sin precio específico (ej: "reemplaza Sesame", "ahorro es dejar de pagar Bizneo") → estima precio de mercado con -20% de descuento conservador.
 4. INSTRUCCIÓN AE "como [otro módulo]" → adapta el argumento al contexto de esta empresa para este módulo específico
