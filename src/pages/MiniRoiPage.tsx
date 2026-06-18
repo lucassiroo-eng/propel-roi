@@ -402,24 +402,15 @@ export default function MiniRoiPage() {
           scrollY: 0,
         });
         if (i > 0) pdf.addPage();
-        const imgH = (canvas.height / canvas.width) * pageW;
-        if (imgH <= pageH) {
-          // Fits in one PDF page
-          pdf.addImage(canvas.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, pageW, imgH);
+        const data = canvas.toDataURL("image/jpeg", 0.93);
+        const naturalH = (canvas.height / canvas.width) * pageW; // mm at A4 width
+        if (naturalH <= pageH) {
+          pdf.addImage(data, "JPEG", 0, 0, pageW, naturalH);
         } else {
-          // Overflow: slice into multiple PDF pages
-          const pxPerMm = canvas.width / pageW;
-          const sliceHpx = Math.round(pageH * pxPerMm);
-          const slices = Math.ceil(canvas.height / sliceHpx);
-          for (let s = 0; s < slices; s++) {
-            if (s > 0) pdf.addPage();
-            const srcY = s * sliceHpx;
-            const sliceH = Math.min(sliceHpx, canvas.height - srcY);
-            const sc = document.createElement("canvas");
-            sc.width = canvas.width; sc.height = sliceH;
-            sc.getContext("2d")!.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-            pdf.addImage(sc.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, pageW, sliceH / pxPerMm);
-          }
+          // Scale proportionally to fit A4 height — content stays on 1 page, slightly smaller
+          const scale = pageH / naturalH;
+          const scaledW = pageW * scale;
+          pdf.addImage(data, "JPEG", (pageW - scaledW) / 2, 0, scaledW, pageH);
         }
       }
 
