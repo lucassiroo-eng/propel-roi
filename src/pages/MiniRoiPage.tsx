@@ -153,9 +153,11 @@ export default function MiniRoiPage() {
         setHsData(d.hs_data ?? null);
         setAnalysis(d.analysis ?? null);
         setRoiData(d.roi_data ?? null);
-        setHtml(d.html ?? null);
         setAnnualCost(d.annual_cost ? String(d.annual_cost) : "");
-        // Fix: empty object {} is truthy — check length before using module_overrides
+
+        const savedHtml = d.html && d.html.length > 100 ? d.html : null;
+        setHtml(savedHtml);
+
         const savedOverrides = d.module_overrides ?? {};
         if (Object.keys(savedOverrides).length > 0) {
           setModuleOverrides(savedOverrides);
@@ -164,8 +166,16 @@ export default function MiniRoiPage() {
           for (const m of d.analysis.modules) ov[m.id] = { include: true, note: "" };
           setModuleOverrides(ov);
         }
-        // If html is missing but we have analysis, mark dirty so user can regenerate
-        if (!d.html && d.analysis) setIsDirty(true);
+
+        // Broken session: no analysis saved — go to input so user can re-run
+        if (!d.analysis && !savedHtml) {
+          setStep("input");
+          toast("Sesión incompleta — vuelve a analizar el deal.");
+          return;
+        }
+
+        // Has analysis but no HTML — mark dirty to show Regenerar
+        if (!savedHtml && d.analysis) setIsDirty(true);
         setStep("result");
       }
     })();
