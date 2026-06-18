@@ -335,28 +335,28 @@ export default function MiniRoiPage() {
     }
   }
 
-  // ── Download as PDF (html2canvas → jsPDF, A4 portrait) ───────────────────
+  // ── Download as PDF — one .page div → one PDF page ───────────────────────
   async function downloadPdf() {
     if (!html) return;
     setDownloadingPdf(true);
     try {
       const company = (hsData?.company_name ?? "ROI").trim();
 
-      // Inline Inter font weights so html2canvas renders them correctly
+      // Strip ALL <link> tags from head (prevents them rendering as text in html2canvas)
+      // then inline Inter so font weights render correctly
       const interCss = await getInlinedInterCss();
       const htmlWithFonts = html
-        .replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/gi, "")
+        .replace(/<link[^>]*>/gi, "")
         .replace("</head>", `<style>${interCss}</style></head>`);
 
-      // Write into a hidden same-origin iframe so html2canvas has full access
+      // Same-origin iframe — html2canvas can access it fully
       const iframe = document.createElement("iframe");
-      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:1px;border:none;visibility:hidden;";
+      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:1123px;border:none;visibility:hidden;";
       document.body.appendChild(iframe);
       iframe.contentDocument!.open();
       iframe.contentDocument!.write(htmlWithFonts);
       iframe.contentDocument!.close();
 
-      // Wait for load + fonts
       await new Promise<void>(resolve => {
         if (iframe.contentDocument!.readyState === "complete") resolve();
         else iframe.contentWindow!.addEventListener("load", () => resolve(), { once: true });
@@ -365,36 +365,32 @@ export default function MiniRoiPage() {
       await new Promise(r => setTimeout(r, 800));
 
       const h2c = await loadHtml2Canvas();
-      const canvas = await h2c(iframe.contentDocument!.body, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: "#ffffff",
-        width: 794,
-        windowWidth: 794,
-        scrollX: 0,
-        scrollY: 0,
-      });
-      document.body.removeChild(iframe);
+      // Capture each .page div separately → one PDF page each (clean pagination)
+      const pageEls = Array.from(iframe.contentDocument!.querySelectorAll<HTMLElement>(".page"));
+      if (pageEls.length === 0) pageEls.push(iframe.contentDocument!.body);
 
-      // Split into A4 pages
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageW = 210, pageH = 297;
-      const ratio = pageW / canvas.width;
-      const pageHeightPx = Math.round(pageH / ratio);
-      const totalPages = Math.ceil(canvas.height / pageHeightPx);
 
-      for (let page = 0; page < totalPages; page++) {
-        if (page > 0) pdf.addPage();
-        const srcY = page * pageHeightPx;
-        const sliceH = Math.min(pageHeightPx, canvas.height - srcY);
-        const slice = document.createElement("canvas");
-        slice.width = canvas.width;
-        slice.height = sliceH;
-        slice.getContext("2d")!.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-        pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, sliceH * ratio);
+      for (let i = 0; i < pageEls.length; i++) {
+        const el = pageEls[i];
+        const canvas = await h2c(el, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#ffffff",
+          width: 794,
+          windowWidth: 794,
+          scrollX: 0,
+          scrollY: 0,
+        });
+        if (i > 0) pdf.addPage();
+        // Scale canvas to fill A4 width, preserve aspect ratio
+        const imgH = (canvas.height / canvas.width) * pageW;
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, Math.min(imgH, pageH));
       }
 
+      document.body.removeChild(iframe);
       pdf.save(`ROI ${company}.pdf`);
       toast.success("PDF descargado");
     } catch (err: any) {

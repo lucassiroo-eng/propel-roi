@@ -571,7 +571,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
       <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #FF355E;">
         <img src="https://factorialhr.com/images/factorial-logo.svg" alt="Factorial" style="height:22px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:17px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</div>
         <div style="text-align:right;">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">Análisis ROI Estimado · ${esc(hs.company_name ?? "")}</div>
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.title} · ${esc(hs.company_name ?? "")}</div>
           <div style="font-size:11px;color:#9999BB;margin-top:3px;">${L.page_of.replace("{n}", String(pi + 1)).replace("{total}", String(pages.length))} · ${L.confidential}</div>
         </div>
       </div>
