@@ -402,16 +402,9 @@ export default function MiniRoiPage() {
           scrollY: 0,
         });
         if (i > 0) pdf.addPage();
-        const data = canvas.toDataURL("image/jpeg", 0.93);
-        const naturalH = (canvas.height / canvas.width) * pageW; // mm at A4 width
-        if (naturalH <= pageH) {
-          pdf.addImage(data, "JPEG", 0, 0, pageW, naturalH);
-        } else {
-          // Scale proportionally to fit A4 height — content stays on 1 page, slightly smaller
-          const scale = pageH / naturalH;
-          const scaledW = pageW * scale;
-          pdf.addImage(data, "JPEG", (pageW - scaledW) / 2, 0, scaledW, pageH);
-        }
+        // .page has min-height:297mm so canvas is always full A4 — just place it
+        const naturalH = (canvas.height / canvas.width) * pageW;
+        pdf.addImage(canvas.toDataURL("image/jpeg", 0.93), "JPEG", 0, 0, pageW, Math.min(naturalH, pageH));
       }
 
       document.body.removeChild(iframe);

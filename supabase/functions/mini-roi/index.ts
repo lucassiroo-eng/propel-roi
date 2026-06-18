@@ -442,7 +442,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   const coreIdx = modules.findIndex((m: any) => m.id === "core");
   if (coreIdx > 0) modules.unshift(modules.splice(coreIdx, 1)[0]);
 
-  const PAGE_SIZE = 12;
+  const PAGE_SIZE = 6;
   const totalModules = modules.length;
 
   // Build each module row — clean, no boxes
