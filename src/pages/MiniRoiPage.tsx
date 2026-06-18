@@ -848,7 +848,7 @@ export default function MiniRoiPage() {
                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "oklch(92% 0.02 15)"; (e.currentTarget as HTMLElement).style.color = "oklch(50% 0.22 15)"; }}
                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "oklch(94% 0.005 250)"; (e.currentTarget as HTMLElement).style.color = "oklch(36% 0.013 250)"; }}
                         >
-                          + {ALL_MODULES[id]}
+                          + {getLocalized(MODULE_INFO[id]?.label, i18n.language)}
                         </button>
                       ))}
                     </div>
