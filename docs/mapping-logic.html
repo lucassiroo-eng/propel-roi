@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propel ROI - Module Mapping Logic</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.7; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 2.2rem; color: #f8fafc; margin-bottom: 8px; }
+  h1 span { color: #818cf8; }
+  .subtitle { color: #94a3b8; font-size: 1.05rem; margin-bottom: 48px; }
+  h2 { font-size: 1.5rem; color: #f8fafc; margin: 48px 0 20px; padding-bottom: 8px; border-bottom: 2px solid #1e293b; }
+  h3 { font-size: 1.15rem; color: #c4b5fd; margin: 28px 0 12px; }
+  p, li { color: #cbd5e1; }
+  ul, ol { padding-left: 24px; margin: 12px 0; }
+  li { margin: 6px 0; }
+
+  .flow-diagram { background: #1e293b; border-radius: 12px; padding: 32px; margin: 24px 0; overflow-x: auto; }
+  .flow-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+  .flow-box { background: #334155; border: 1px solid #475569; border-radius: 8px; padding: 10px 16px; font-size: 0.9rem; white-space: nowrap; }
+  .flow-box.source { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
+  .flow-box.process { background: #3b1f5e; border-color: #8b5cf6; color: #c4b5fd; }
+  .flow-box.ai { background: #5b2140; border-color: #ec4899; color: #f9a8d4; }
+  .flow-box.output { background: #14532d; border-color: #22c55e; color: #86efac; }
+  .flow-box.db { background: #422006; border-color: #f59e0b; color: #fcd34d; }
+  .flow-arrow { color: #64748b; font-size: 1.2rem; }
+
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; margin: 16px 0; }
+  .card.warning { border-color: #f59e0b; background: #1c1507; }
+  .card.danger { border-color: #ef4444; background: #1c0707; }
+  .card.info { border-color: #3b82f6; background: #0c1929; }
+  .card.success { border-color: #22c55e; background: #052e16; }
+  .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 8px; }
+  .card.warning .card-title { color: #fbbf24; }
+  .card.danger .card-title { color: #f87171; }
+  .card.info .card-title { color: #60a5fa; }
+  .card.success .card-title { color: #4ade80; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+  th { background: #334155; color: #e2e8f0; text-align: left; padding: 10px 14px; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+  tr:nth-child(even) td { background: #1e293b; }
+  code { background: #334155; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; color: #c4b5fd; }
+  pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 0.85rem; color: #a5b4fc; margin: 12px 0; }
+
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-right: 6px; }
+  .badge.strong { background: #166534; color: #86efac; }
+  .badge.possible { background: #854d0e; color: #fde68a; }
+  .badge.high { background: #166534; color: #86efac; }
+  .badge.medium { background: #854d0e; color: #fde68a; }
+  .badge.low { background: #7f1d1d; color: #fca5a5; }
+
+  .path-header { display: flex; align-items: center; gap: 12px; margin: 32px 0 16px; }
+  .path-label { font-size: 0.8rem; font-weight: 700; padding: 4px 12px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .path-a { background: #3b82f6; color: white; }
+  .path-b { background: #8b5cf6; color: white; }
+  .path-c { background: #ec4899; color: white; }
+
+  .scoring-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .scoring-cell { background: #334155; border-radius: 8px; padding: 14px; text-align: center; }
+  .scoring-cell .label { font-size: 0.8rem; color: #94a3b8; }
+  .scoring-cell .value { font-size: 1.4rem; font-weight: 700; color: #f8fafc; margin-top: 4px; }
+
+  .limitation-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #ef4444; color: white; border-radius: 50%; font-size: 0.75rem; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
+
+  .toc { background: #1e293b; border-radius: 12px; padding: 24px 32px; margin: 24px 0; }
+  .toc a { color: #818cf8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Propel ROI <span>Module Mapping Logic</span></h1>
+<p class="subtitle">Documentacion completa del proceso de mapping: desde la entrada de datos hasta el output final. Actualizado 13 mayo 2026.</p>
+
+<div class="toc">
+  <strong style="color: #f8fafc;">Contenido</strong>
+  <ol>
+    <li><a href="#overview">Vision general: 3 caminos de analisis</a></li>
+    <li><a href="#data-entry">Entrada de datos (Airtable + HubSpot)</a></li>
+    <li><a href="#path-a">Path A: Analisis de modulos (Cloudflare Worker)</a></li>
+    <li><a href="#path-b">Path B: Mapping de pains (Supabase Edge Function)</a></li>
+    <li><a href="#path-c">Path C: Evidence Analysis de 2 pasos</a></li>
+    <li><a href="#scoring">Sistema de scoring deterministico</a></li>
+    <li><a href="#output">Output de cada path</a></li>
+    <li><a href="#limitations">Limitaciones conocidas</a></li>
+    <li><a href="#files">Mapa de archivos</a></li>
+  </ol>
+</div>
+
+<!-- ─── 1. OVERVIEW ─── -->
+<h2 id="overview">1. Vision general: 3 caminos de analisis</h2>
+
+<p>El sistema tiene <strong>3 paths independientes</strong> que analizan las notas/contenido del deal de formas diferentes:</p>
+
+<table>
+  <tr><th>Path</th><th>Que hace</th><th>Donde corre</th><th>Cuando se ejecuta</th><th>Output</th></tr>
+  <tr>
+    <td><span class="badge" style="background:#3b82f6;color:white;">A</span> Module Analysis</td>
+    <td>Mapea contenido a <strong>modulos</strong> de Factorial</td>
+    <td>Cloudflare Worker <code>/ai</code></td>
+    <td>Automatico al cargar datos en StepSetup</td>
+    <td><code>ModuleSuggestion[]</code> con confidence strong/possible</td>
+  </tr>
+  <tr>
+    <td><span class="badge" style="background:#8b5cf6;color:white;">B</span> Pain Mapping</td>
+    <td>Mapea notas a <strong>pains</strong> de la pain_library</td>
+    <td>Supabase Edge Function</td>
+    <td>Manual desde StepAiAssist o inline en Airtable fetch</td>
+    <td><code>{pain_id, rationale}[]</code></td>
+  </tr>
+  <tr>
+    <td><span class="badge" style="background:#ec4899;color:white;">C</span> Evidence Analysis</td>
+    <td>Extrae evidencia + matchea a modulos con reglas DB</td>
+    <td>Supabase Edge Function (2 llamadas a Azure)</td>
+    <td>Manual: boton "Download evidence analysis"</td>
+    <td>Excel con 4 hojas (evidence, matches, summary, meta)</td>
+  </tr>
+</table>
+
+<div class="card info">
+  <div class="card-title">Diferencia clave: Modulos vs Pains</div>
+  <p><strong>Modulos</strong> = productos de Factorial (Time Tracking, Payroll, Performance...) definidos en <code>MODULE_CATALOG</code> en el frontend.<br>
+  <strong>Pains</strong> = problemas especificos del prospect por persona (HR Director, Finance, etc.) definidos en <code>pain_library</code> en Supabase.<br>
+  Path A y C trabajan con <strong>modulos</strong>. Path B trabaja con <strong>pains</strong>. Son taxonomias diferentes usadas en pasos diferentes del wizard.</p>
+</div>
+
+<!-- ─── 2. DATA ENTRY ─── -->
+<h2 id="data-entry">2. Entrada de datos</h2>
+
+<div class="flow-diagram">
+  <p style="color:#94a3b8;margin-bottom:16px;font-weight:600;">Flujo de datos: HubSpot Deal URL &rarr; Contenido</p>
+  <div class="flow-row">
+    <div class="flow-box source">Usuario pega HubSpot Deal URL</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box process">StepSetup.tsx handleFetch()</div>
+  </div>
+  <div class="flow-row" style="margin-left: 40px;">
+    <span class="flow-arrow">&darr;</span>
+  </div>
+  <div class="flow-row">
+    <div class="flow-box" style="background:transparent;border:none;color:#64748b;">Fase 1:</div>
+    <div class="flow-box source">Cloudflare Worker /airtable</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box db">Airtable API (Deals, Emails, Calls, Companies)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box output">emails[], calls[], company_name</div>
+  </div>
+  <div class="flow-row">
+    <div class="flow-box" style="background:transparent;border:none;color:#64748b;">Fase 2:</div>
+    <div class="flow-box source">Cloudflare Worker /hubspot</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box db">HubSpot API</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box output">country, sector, seats, notes[]</div>
+  </div>
+  <div class="flow-row" style="margin-left: 40px;">
+    <span class="flow-arrow">&darr;</span>
+    <span style="color:#94a3b8;font-size:0.85rem;margin-left:8px;">Se mergean en ProspectData (Airtable gana para contenido, HubSpot para metadata)</span>
+  </div>
+</div>
+
+<h3>Contenido que se construye: <code>buildDealContent()</code></h3>
+<table>
+  <tr><th>Fuente</th><th>Prioridad</th><th>Max items</th><th>Max chars/item</th><th>Label en el content</th></tr>
+  <tr><td>Call Transcripts</td><td style="color:#4ade80;font-weight:700;">Maxima</td><td>8</td><td>4,000</td><td><code>=== CALL TRANSCRIPTS (highest priority) ===</code></td></tr>
+  <tr><td>Incoming Emails</td><td style="color:#86efac;">Alta</td><td>12</td><td>800</td><td><code>=== INCOMING EMAILS (from prospect) ===</code></td></tr>
+  <tr><td>Outgoing Emails</td><td style="color:#fde68a;">Media</td><td>8</td><td>400</td><td><code>=== OUTGOING EMAILS (from seller) ===</code></td></tr>
+  <tr><td>HubSpot Notes</td><td style="color:#fca5a5;">Baja</td><td>10</td><td>800</td><td><code>=== INTERNAL NOTES (seller's notes) ===</code></td></tr>
+</table>
+
+<div class="card warning">
+  <div class="card-title">Si no hay contenido...</div>
+  <p>Si el deal no tiene emails, calls ni notes, <code>buildDealContent()</code> devuelve string vacio. Path A lanza error "No deal content to analyze". Path C lanza "No evidence extracted". <strong>Se necesita al menos una fuente de datos.</strong></p>
+</div>
+
+<!-- ─── 3. PATH A ─── -->
+<h2 id="path-a">3. Path A: Analisis de modulos</h2>
+<div class="path-header">
+  <span class="path-label path-a">PATH A</span>
+  <span style="color:#94a3b8;">StepSetup.tsx &rarr; Cloudflare Worker /ai &rarr; Azure Claude</span>
+</div>
+
+<div class="flow-diagram">
+  <div class="flow-row">
+    <div class="flow-box process">buildDealContent(data)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box source">POST Worker /ai</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box ai">Azure Claude claude-opus-4-6 (temp=0)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box output">ModuleSuggestion[]</div>
+  </div>
+</div>
+
+<h3>System prompt (resumen)</h3>
+<ul>
+  <li>~130 lineas de instrucciones detalladas</li>
+  <li>Prioridad: calls &gt; incoming emails &gt; outgoing emails &gt; notes</li>
+  <li>Solo detectar pains del <strong>prospect</strong>, NO del seller (ignorar pitch del vendedor)</li>
+  <li>Confidence: <span class="badge strong">strong</span> = evidencia directa del cliente, <span class="badge possible">possible</span> = inferido o indirecto</li>
+  <li>Cada modulo incluye quote o <code>~parafraseo</code> si no hay cita exacta</li>
+  <li>Incluye catalogo completo de modulos via <code>buildModulePromptBlock()</code></li>
+</ul>
+
+<h3>Tool forzado: <code>recommend_modules</code></h3>
+<pre>{
+  recommendations: [{
+    module_id: string,     // ej: "time_tracking"
+    confidence: "strong" | "possible",
+    quote: string          // cita del prospect o ~parafraseo
+  }]
+}</pre>
+
+<h3>Post-procesamiento</h3>
+<ol>
+  <li>Filtra modulos con IDs invalidos (no estan en MODULE_CATALOG)</li>
+  <li>Deduplica por module_id</li>
+  <li>Solo pre-selecciona los <span class="badge strong">strong</span></li>
+  <li>Los <span class="badge possible">possible</span> se muestran pero sin check</li>
+</ol>
+
+<!-- ─── 4. PATH B ─── -->
+<h2 id="path-b">4. Path B: Pain Mapping</h2>
+<div class="path-header">
+  <span class="path-label path-b">PATH B</span>
+  <span style="color:#94a3b8;">StepAiAssist.tsx &rarr; Supabase ai-assist-pain-mapping &rarr; Azure Claude / Gemini fallback</span>
+</div>
+
+<div class="flow-diagram">
+  <div class="flow-row">
+    <div class="flow-box source">Notas manuales o HubSpot notes</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box process">supabase.functions.invoke("ai-assist-pain-mapping")</div>
+  </div>
+  <div class="flow-row" style="margin-left: 40px;">
+    <span class="flow-arrow">&darr;</span>
+  </div>
+  <div class="flow-row">
+    <div class="flow-box db">Fetch pain_library (pain_id, persona, pain_statement, trigger_phrases)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box ai">Azure Claude (tool: suggest_pains)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box output">{pain_id, rationale}[]</div>
+  </div>
+  <div class="flow-row" style="margin-left: 40px;">
+    <span style="color:#64748b;font-size:0.85rem;">Si Azure falla (429/timeout) &rarr; fallback a Gemini 2.5 Flash via Lovable Gateway</span>
+  </div>
+</div>
+
+<h3>Matching logic</h3>
+<ul>
+  <li>Usa <strong>trigger_phrases</strong> de cada pain en la pain_library como senal de matching</li>
+  <li>El AI busca frases, sintomas o situaciones en las notas que coincidan con los triggers</li>
+  <li>Solo devuelve pain_ids validos (filtrado post-AI)</li>
+  <li>Rationale en el idioma del prospect</li>
+</ul>
+
+<h3>Retry logic (Azure 429)</h3>
+<ul>
+  <li>Hasta 3 intentos</li>
+  <li>Parsea "wait N seconds" del body del 429</li>
+  <li>Espera min(N, 60) segundos entre intentos</li>
+  <li>Si Azure falla 3 veces &rarr; fallback a Gemini</li>
+</ul>
+
+<!-- ─── 5. PATH C ─── -->
+<h2 id="path-c">5. Path C: Evidence Analysis (2 pasos)</h2>
+<div class="path-header">
+  <span class="path-label path-c">PATH C</span>
+  <span style="color:#94a3b8;">StepSetup.tsx &rarr; Supabase ai-evidence-analysis &rarr; 2x Azure Claude calls</span>
+</div>
+
+<div class="flow-diagram">
+  <p style="color:#94a3b8;margin-bottom:16px;font-weight:600;">Paso 1: Extraccion de evidencia</p>
+  <div class="flow-row">
+    <div class="flow-box process">buildDealContent(data)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box ai">Azure Claude (tool: extract_evidence, 4096 tokens, 60s)</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box output">EvidenceItem[] (text, type, attribution, source)</div>
+  </div>
+
+  <p style="color:#94a3b8;margin:24px 0 16px;font-weight:600;">Paso 2: Matching con reglas de DB</p>
+  <div class="flow-row">
+    <div class="flow-box db">Fetch evidence_rules + module_evidence_profiles</div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-box output">EvidenceItem[] del Paso 1</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box ai">Azure Claude (tool: match_modules, 4096 tokens, 60s)</div>
+  </div>
+  <div class="flow-row" style="margin-left: 40px;">
+    <span class="flow-arrow">&darr;</span>
+  </div>
+  <div class="flow-row">
+    <div class="flow-box process">Scoring deterministico en codigo</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box output">ModuleMatch[] con confidence score</div>
+    <span class="flow-arrow">&rarr;</span>
+    <div class="flow-box" style="background:#1e3a5f;border-color:#3b82f6;color:#93c5fd;">Excel download (4 hojas)</div>
+  </div>
+</div>
+
+<h3>Paso 1: Tipos de evidencia</h3>
+<table>
+  <tr><th>evidence_type</th><th>Descripcion</th><th>Ejemplo</th></tr>
+  <tr><td><code>direct_quote</code></td><td>Palabras exactas del cliente describiendo un problema</td><td>"Tardamos 3 horas cada semana en cuadrar los horarios"</td></tr>
+  <tr><td><code>metric</code></td><td>Numero o medida cuantificable</td><td>"tenemos 200 empleados y 3 personas en RRHH"</td></tr>
+  <tr><td><code>situation</code></td><td>Workflow, proceso o escenario descrito</td><td>"Los managers envian las vacaciones por email"</td></tr>
+  <tr><td><code>tool_mention</code></td><td>Herramienta o sistema especifico que usan</td><td>"Estamos usando Excel para el control horario"</td></tr>
+  <tr><td><code>sentiment</code></td><td>Lenguaje emocional o frustracion</td><td>"Estamos hartos de hacer todo manual"</td></tr>
+  <tr><td><code>process_gap</code></td><td>Capacidad que falta o workaround</td><td>"No tenemos forma de medir el rendimiento"</td></tr>
+</table>
+
+<h3>Paso 1: Clasificacion de atribucion</h3>
+<table>
+  <tr><th>attribution</th><th>Cuando se usa</th><th>Multiplicador de confianza</th></tr>
+  <tr><td><code>client_verbatim</code></td><td>Cita exacta del cliente (de call o email entrante)</td><td style="color:#4ade80;font-weight:700;">1.0</td></tr>
+  <tr><td><code>client_paraphrase</code></td><td>Parafraseo cercano de lo que dijo el cliente</td><td style="color:#86efac;">0.85</td></tr>
+  <tr><td><code>pae_interpretation</code></td><td>Interpretacion del vendedor (email saliente, nota)</td><td style="color:#fde68a;">0.65</td></tr>
+  <tr><td><code>inferred</code></td><td>Inferido del contexto, no dicho explicitamente</td><td style="color:#fca5a5;">0.4</td></tr>
+</table>
+
+<h3>Paso 2: Reglas de DB</h3>
+<p>La tabla <code>evidence_rules</code> contiene ~65 reglas como:</p>
+<pre>[R12] module=time_tracking | type=direct_quote | strength=strong | pattern="control horario manual"
+[R13] module=time_tracking | type=tool_mention | strength=moderate | pattern="Excel para fichajes"
+[R14] module=time_tracking | type=process_gap  | strength=strong | pattern="no registran horas"</pre>
+
+<p>La tabla <code>module_evidence_profiles</code> define senales por modulo:</p>
+<pre>time_tracking:
+  strong_signals: ["fichaje manual", "control horario", "horas extra no registradas"]
+  moderate_signals: ["flexibilidad horaria", "turnos"]
+  anti_signals: ["ya tienen fichaje digital", "contentos con su sistema actual"]</pre>
+
+<!-- ─── 6. SCORING ─── -->
+<h2 id="scoring">6. Sistema de scoring deterministico</h2>
+
+<p>El scoring se calcula <strong>en codigo, no por la IA</strong>. Esto garantiza consistencia.</p>
+
+<h3>Formula</h3>
+<pre>confidence = max(strength_base * attribution_mult) + (num_evidence - 1) * 0.05
+// capped at 1.0</pre>
+
+<div class="scoring-grid">
+  <div class="scoring-cell">
+    <div class="label">Strong + Client Verbatim</div>
+    <div class="value" style="color:#4ade80;">0.90</div>
+  </div>
+  <div class="scoring-cell">
+    <div class="label">Strong + Paraphrase</div>
+    <div class="value" style="color:#86efac;">0.77</div>
+  </div>
+  <div class="scoring-cell">
+    <div class="label">Moderate + Verbatim</div>
+    <div class="value" style="color:#fde68a;">0.60</div>
+  </div>
+  <div class="scoring-cell">
+    <div class="label">Moderate + PAE Interp.</div>
+    <div class="value" style="color:#fbbf24;">0.39</div>
+  </div>
+  <div class="scoring-cell">
+    <div class="label">Weak + Inferred</div>
+    <div class="value" style="color:#fca5a5;">0.12</div>
+  </div>
+  <div class="scoring-cell">
+    <div class="label">Bonus por evidencia extra</div>
+    <div class="value" style="color:#c4b5fd;">+0.05</div>
+  </div>
+</div>
+
+<h3>Niveles de confianza</h3>
+<table>
+  <tr><th>Nivel</th><th>Rango</th><th>Significado</th></tr>
+  <tr><td><span class="badge high">HIGH</span></td><td>&ge; 0.70</td><td>Evidencia fuerte directa del cliente</td></tr>
+  <tr><td><span class="badge medium">MEDIUM</span></td><td>&ge; 0.40</td><td>Evidencia moderada o indirecta</td></tr>
+  <tr><td><span class="badge low">LOW</span></td><td>&lt; 0.40</td><td>Solo inferencias o interpretaciones del vendedor</td></tr>
+</table>
+
+<!-- ─── 7. OUTPUT ─── -->
+<h2 id="output">7. Output de cada path</h2>
+
+<h3>Path A: Module suggestions (lo que ve el usuario)</h3>
+<pre>{
+  module_id: "time_tracking",
+  confidence: "strong",           // o "possible"
+  quote: "Tardamos 3h semanales en cuadrar horarios"
+}</pre>
+<p>Esto se muestra en StepSetup como tarjetas de modulos. Los <span class="badge strong">strong</span> se pre-seleccionan.</p>
+
+<h3>Path B: Pain suggestions</h3>
+<pre>{
+  pain_id: "P_TT_01",
+  rationale: "El prospect menciona que no tienen control de horas"
+}</pre>
+<p>Se usa en StepAiAssist/StepPains para pre-seleccionar pains en el wizard.</p>
+
+<h3>Path C: Evidence Excel (4 hojas)</h3>
+<table>
+  <tr><th>Hoja</th><th>Columnas</th></tr>
+  <tr><td>Pass 1 - Evidence</td><td>#, Text, Type, Attribution, Source, Date</td></tr>
+  <tr><td>Pass 2 - Matches</td><td>Module, Evidence #, Rule ID, Type, Attribution, Quality, Strength</td></tr>
+  <tr><td>Summary</td><td>Module, Confidence %, Level, Evidence Count, Strongest Quote, Rationale</td></tr>
+  <tr><td>Meta</td><td>Company, Date, Model, Evidence Count, Modules Matched, Rules Used, Profiles Used</td></tr>
+</table>
+
+<!-- ─── 8. LIMITATIONS ─── -->
+<h2 id="limitations">8. Limitaciones conocidas</h2>
+
+<div class="card danger">
+  <div class="card-title"><span class="limitation-num">1</span> Contenido NO se persiste</div>
+  <p>Emails, calls y notes solo viven en React state. Si el usuario recarga la pagina, se pierden. Hay que re-fetchear del deal. Los <code>moduleSuggestions</code> y <code>selectedModules</code> SI se guardan en Supabase.</p>
+</div>
+
+<div class="card danger">
+  <div class="card-title"><span class="limitation-num">2</span> Sin contenido = sin analisis</div>
+  <p><code>buildDealContent()</code> requiere al menos emails, calls o notes. Si el deal no tiene ninguno (o el fetch fallo), los Path A y C devuelven error. <strong>No hay textarea de notas manuales en StepSetup.</strong></p>
+</div>
+
+<div class="card warning">
+  <div class="card-title"><span class="limitation-num">3</span> Truncamiento de contenido</div>
+  <p>Calls: max 4,000 chars. Incoming emails: max 800 chars. Outgoing: max 400 chars. Notes: max 800 chars. Informacion importante al final de transcripts largos se puede perder.</p>
+</div>
+
+<div class="card warning">
+  <div class="card-title"><span class="limitation-num">4</span> Pais limitado a ES/FR</div>
+  <p>El tipo de <code>country</code> solo acepta "ES" o "FR". Cualquier otro pais se mapea a null y usa ES por defecto.</p>
+</div>
+
+<div class="card warning">
+  <div class="card-title"><span class="limitation-num">5</span> Evidence analysis NO actualiza el wizard</div>
+  <p>El Path C (evidence analysis) descarga un Excel pero NO escribe los resultados de vuelta en el wizard. Es una herramienta de auditoria standalone. No influye en la seleccion de modulos.</p>
+</div>
+
+<div class="card warning">
+  <div class="card-title"><span class="limitation-num">6</span> Fallback a modelo diferente</div>
+  <p>Si Azure falla en Path B, se usa Gemini 2.5 Flash (via Lovable). Es un modelo completamente diferente que puede dar resultados de calidad distinta. Path A y C NO tienen fallback - si Azure falla, fallan.</p>
+</div>
+
+<div class="card info">
+  <div class="card-title"><span class="limitation-num">7</span> Path A sin retry automatico</div>
+  <p>El Cloudflare Worker (Path A) no tiene la logica de retry 429 visible desde el frontend. Si falla, el usuario tiene que pulsar "Reanalyze" manualmente. Los edge functions de Supabase (Path B y C) SI tienen retry.</p>
+</div>
+
+<div class="card info">
+  <div class="card-title"><span class="limitation-num">8</span> IDs de Airtable hardcodeados</div>
+  <p>Los field IDs de Airtable estan hardcodeados en <code>airtable-deal-fetch/index.ts</code>. Si cambia el schema de Airtable, el fetch devuelve campos vacios silenciosamente.</p>
+</div>
+
+<div class="card info">
+  <div class="card-title"><span class="limitation-num">9</span> HubSpot notes contienen HTML</div>
+  <p>Se limpian con regex <code>replace(/&lt;[^&gt;]*&gt;/g, "")</code> que puede fallar con HTML malformado. Podria pasar contenido con tags rotos al AI.</p>
+</div>
+
+<div class="card info">
+  <div class="card-title"><span class="limitation-num">10</span> RLS permisivo en evidence_matches</div>
+  <p>Las politicas RLS de <code>evidence_matches</code> usan <code>true</code> para INSERT y SELECT. Cualquier usuario autenticado puede leer/escribir matches de cualquier sesion.</p>
+</div>
+
+<!-- ─── 9. FILES ─── -->
+<h2 id="files">9. Mapa de archivos</h2>
+
+<table>
+  <tr><th>Archivo</th><th>Que hace</th><th>Se conecta con</th></tr>
+  <tr>
+    <td><code>src/components/wizard/StepSetup.tsx</code></td>
+    <td>Paso principal: import deal, config stakeholders, module analysis, boton evidence</td>
+    <td>Worker /airtable, /hubspot, /ai; ai-evidence-analysis; evidenceExcel.ts</td>
+  </tr>
+  <tr>
+    <td><code>src/components/wizard/StepAiAssist.tsx</code></td>
+    <td>Revision/edicion de sugerencias de pains por AI</td>
+    <td>ai-assist-pain-mapping edge function</td>
+  </tr>
+  <tr>
+    <td><code>src/components/wizard/StepPains.tsx</code></td>
+    <td>Grid de seleccion manual de pains</td>
+    <td>pain_library table</td>
+  </tr>
+  <tr>
+    <td><code>src/hooks/useWizardSession.ts</code></td>
+    <td>Estado del wizard + persistencia en Supabase</td>
+    <td>prospects table, roi_sessions table</td>
+  </tr>
+  <tr>
+    <td><code>supabase/functions/ai-evidence-analysis/</code></td>
+    <td>2-pass evidence extraction + module matching</td>
+    <td>evidence_rules, module_evidence_profiles, Azure Claude</td>
+  </tr>
+  <tr>
+    <td><code>supabase/functions/ai-assist-pain-mapping/</code></td>
+    <td>Single-pass pain mapping desde notas</td>
+    <td>pain_library, Azure Claude, Lovable AI</td>
+  </tr>
+  <tr>
+    <td><code>supabase/functions/airtable-deal-fetch/</code></td>
+    <td>Fetch datos de Airtable + pain mapping inline</td>
+    <td>Airtable API, pain_library, Azure Claude</td>
+  </tr>
+  <tr>
+    <td><code>src/lib/evidenceExcel.ts</code></td>
+    <td>Genera Excel de 4 hojas con resultados del Path C</td>
+    <td>xlsx library, MODULE_CATALOG</td>
+  </tr>
+  <tr>
+    <td><code>supabase/migrations/20260512180000_evidence_system.sql</code></td>
+    <td>Schema: evidence_rules, module_evidence_profiles, evidence_matches</td>
+    <td>pain_library, roi_sessions</td>
+  </tr>
+</table>
+
+<div style="margin-top:64px;padding-top:24px;border-top:1px solid #334155;color:#64748b;font-size:0.85rem;">
+  Generado el 13 mayo 2026 por Claude Code. Basado en el codigo fuente de propel-roi.
+</div>
+
+</div>
+</body>
+</html>

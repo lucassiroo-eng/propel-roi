@@ -6,7 +6,7 @@ export async function azureFetch(body: Record<string, unknown>, timeoutMs = 3000
   if (!apiKey) throw new Error("AZURE_ANTHROPIC_API_KEY not set");
 
   const headers = {
-    "api-key": apiKey,
+    "x-api-key": apiKey,
     "anthropic-version": "2023-06-01",
     "Content-Type": "application/json",
   };

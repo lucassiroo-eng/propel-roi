@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Propuesta ROI · Grupo Medina Retail · Factorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --coral:#FF355E;
+  --dark:#25253D;
+  --gray:#6C6C7D;
+  --lgray:#AEAEB8;
+  --border:#E9E9EC;
+  --bg:#F9F9FB;
+  --pad:80px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;border:none;outline:none}
+
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:#0c0c10;
+  width:100vw;height:100vh;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.stage{position:relative;width:1280px;height:720px;transform-origin:center}
+.slide{
+  position:absolute;inset:0;
+  width:1280px;height:720px;
+  background:var(--bg);
+  opacity:0;pointer-events:none;
+  transition:opacity .2s ease;
+  overflow:hidden;
+  box-shadow:0 20px 64px rgba(0,0,0,.5);
+}
+.slide.on{opacity:1;pointer-events:all}
+
+/* nav */
+.nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:9px;z-index:99}
+.nb{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)!important;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:background .15s;user-select:none}
+.nb:hover{background:rgba(255,255,255,.2)}
+.dots{display:flex;gap:4px;align-items:center}
+.dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);cursor:pointer;transition:all .2s}
+.dot.on{background:var(--coral);width:14px;border-radius:3px}
+
+/* shared */
+.iso{position:absolute;top:22px;right:28px;width:30px;height:30px;opacity:.65}
+.brand{position:absolute;top:26px;left:var(--pad);font-size:11px;font-weight:500;color:var(--lgray);letter-spacing:.02em}
+
+/* ════════════════════════════════════
+   SLIDE 1 — SUMMARY
+   ════════════════════════════════════ */
+.s1-title{
+  font-size:32px;font-weight:800;color:var(--dark);
+  letter-spacing:-.025em;line-height:1.1;
+}
+.s1-title span{color:var(--coral)}
+
+.kpis{
+  display:flex;
+  margin:0 var(--pad);
+  padding:14px 0 16px;
+  border-bottom:1px solid var(--border)!important;
+}
+.kpi{flex:1}
+.kpi+.kpi{border-left:1px solid var(--border)!important;padding-left:36px;margin-left:36px}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--lgray);margin-bottom:6px}
+.kpi-val{font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.kpi-sub{font-size:11px;color:var(--gray);margin-top:5px;line-height:1.4}
+
+/* Summary table */
+.btbl{width:100%;border-collapse:collapse}
+.btbl thead th{
+  padding:8px 12px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:#fff;background:var(--dark);text-align:left;
+}
+.btbl thead th:last-child{text-align:right}
+.btbl thead tr th:first-child{border-radius:4px 0 0 4px}
+.btbl thead tr th:last-child{border-radius:0 4px 4px 0}
+.btbl tbody td{padding:6px 12px;font-size:12px;color:var(--dark);border-bottom:1px solid var(--border)!important;vertical-align:middle}
+.btbl tbody td:nth-child(3){text-align:center;font-weight:600;font-variant-numeric:tabular-nums;color:var(--gray)}
+.btbl tbody td:last-child{text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.btbl tbody tr:last-child td{border-bottom:none!important}
+.btbl .btot td{font-weight:800;font-size:13px;border-top:2px solid var(--border)!important;border-bottom:none!important;padding:9px 12px;background:var(--bg)}
+.btbl .btot td:last-child{font-size:15px;color:var(--coral)}
+.mdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:middle}
+
+/* ════════════════════════════════════
+   MODULE SLIDES
+   ════════════════════════════════════ */
+.mhd{
+  position:absolute;top:48px;left:0;right:0;height:66px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--pad);
+  border-bottom:1px solid var(--border)!important;
+}
+.mhd-name{font-size:26px;font-weight:800;letter-spacing:-.025em}
+.mhd-cat{font-size:13px;color:var(--lgray);font-weight:500;margin-top:2px}
+.mhd-r{text-align:right}
+.mhd-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--lgray);margin-bottom:2px}
+.mhd-val{font-size:30px;font-weight:800;letter-spacing:-.03em}
+
+.htbl{
+  position:absolute;top:114px;left:var(--pad);right:var(--pad);bottom:48px;
+  width:calc(100% - var(--pad)*2);
+  border-collapse:collapse;table-layout:fixed;
+}
+.htbl thead th{
+  padding:7px 10px;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:#fff;background:var(--dark);text-align:left;
+  white-space:nowrap;height:32px;
+}
+.htbl thead th:last-child{text-align:right}
+.htbl thead th:nth-child(1){width:14%}
+.htbl thead th:nth-child(2){width:34%}
+.htbl thead th:nth-child(3){width:30%}
+.htbl thead th:nth-child(4){width:22%}
+.htbl tbody td{
+  padding:10px 10px;font-size:13px;color:var(--dark);
+  border-bottom:1px solid var(--border)!important;
+  vertical-align:top;overflow:hidden;
+}
+.htbl tbody tr:last-child td{border-bottom:none!important}
+.htbl tbody td:nth-child(1){width:14%}
+.htbl tbody td:nth-child(2){width:34%}
+.htbl tbody td:nth-child(3){width:30%}
+.htbl tbody td:nth-child(4){width:22%;text-align:right;vertical-align:middle}
+
+/* Stakeholder */
+.sk{display:flex;align-items:center;gap:8px}
+.sk-ico{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.sk-nm{font-size:13px;font-weight:700;color:var(--dark)}
+
+/* Hypothesis */
+.ht{font-size:13px;color:var(--gray);line-height:1.45;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Calc chain — assumption + result dark, multipliers muted, key vars semi-dark */
+.calc-block{font-size:13px;line-height:1.6;color:var(--lgray)}
+.calc-block .bold{font-weight:700;color:var(--dark)}
+.calc-block .key{color:var(--gray);font-weight:500}
+.calc-res{font-size:13px;font-weight:600;color:var(--dark);margin:2px 0;display:block}
+
+/* Tool replacement mode — use instead of calc-block when replacing a tool */
+.tool-block{font-size:13px;line-height:1.6}
+.tool-block .tool-nm{font-weight:700;color:var(--dark)}
+.tool-block .tool-cost{color:var(--lgray)}
+.tool-block .tool-res{font-weight:600;color:var(--dark);margin-top:2px}
+
+/* Savings */
+.sav-mon{font-size:12px;color:var(--gray);font-variant-numeric:tabular-nums;margin-bottom:2px}
+.sav-ann{font-size:18px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+
+/* Total bar */
+.htot{
+  position:absolute;bottom:0;left:0;right:0;height:48px;
+  background:var(--dark);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 var(--pad);
+}
+.htot-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.4)}
+.htot-val{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+/* print */
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{width:1280px;height:auto;overflow:visible;background:#fff;display:block}
+  .stage{position:static!important;transform:none!important;width:1280px;height:auto}
+  .slide{position:relative!important;display:block!important;opacity:1!important;width:1280px!important;height:720px!important;page-break-after:always;page-break-inside:avoid;break-after:page;box-shadow:none}
+  .slide:last-child{page-break-after:auto;break-after:auto}
+  .nav{display:none!important}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+<svg style="display:none">
+  <symbol id="iso" viewBox="0 0 714 714" fill="none">
+    <path d="M581.784 634.362C520.414 684.16 442.192 714 357 714C271.808 714 193.586 684.16 132.216 634.362C193.586 584.563 271.808 554.723 357 554.723C442.192 554.723 520.414 584.563 581.784 634.362Z" fill="#FF355E"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M130.258 548.192C86.681 496.565 60.415 429.85 60.415 357C60.415 193.201 193.201 60.415 357 60.415C520.799 60.415 653.585 193.201 653.585 357C653.585 429.85 627.319 496.565 583.742 548.192C598.735 557.56 613.105 567.827 626.773 578.918L632.744 583.763C683.513 522.1 714 443.11 714 357C714 159.834 554.166 0 357 0C159.834 0 0 159.834 0 357C0 443.11 30.487 522.099 81.256 583.763L87.227 578.918C100.895 567.827 115.265 557.56 130.258 548.192Z" fill="#FF355E"/>
+    <path d="M488.815 346.015C488.815 418.815 429.8 477.831 357 477.831C284.2 477.831 225.185 418.815 225.185 346.015C225.185 273.216 284.2 214.2 357 214.2C429.8 214.2 488.815 273.216 488.815 346.015Z" fill="#FF355E"/>
+  </symbol>
+</svg>
+
+
+<!-- ══════════════════════════════════════
+     S0 — COVER
+     ══════════════════════════════════════ -->
+<div class="slide on" id="s0" style="background:var(--coral)">
+  <svg style="position:absolute;top:40px;right:48px;width:52px;height:52px;opacity:.3"><use href="#iso" style="fill:#fff"/></svg>
+
+  <!-- Top label -->
+  <div style="position:absolute;top:48px;left:var(--pad);font-size:15px;color:rgba(255,255,255,.55);font-weight:400">Propuesta ROI Factorial · Junio 2026</div>
+
+  <!-- Company name — big -->
+  <div style="position:absolute;top:100px;left:var(--pad);right:160px">
+    <div style="font-size:80px;font-weight:800;color:#fff;letter-spacing:-.04em;line-height:1.0">Grupo<br>Medina Retail</div>
+  </div>
+
+  <!-- Subtitle -->
+  <div style="position:absolute;top:320px;left:var(--pad);max-width:580px">
+    <div style="font-size:20px;color:rgba(255,255,255,.6);font-weight:400;line-height:1.5">De hojas de cálculo y procesos manuales a una plataforma centralizada para tus 150 empleados.</div>
+  </div>
+
+  <!-- Bottom — AE info + line -->
+  <div style="position:absolute;bottom:40px;left:var(--pad);right:var(--pad)">
+    <div style="border-top:1px solid rgba(255,255,255,.2)!important;padding-top:14px">
+      <div style="font-size:14px;color:rgba(255,255,255,.55)">Lucas Siroo · Account Executive · Factorial</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.35);margin-top:3px">lucas.siroo@factorial.co</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S1 — RESUMEN
+     ══════════════════════════════════════ -->
+<div class="slide" id="s1">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div style="position:absolute;top:52px;left:var(--pad);right:var(--pad)">
+    <div class="s1-title">Factorial tiene un retorno de la inversión de <span>295%</span><br>para Grupo Medina Retail</div>
+  </div>
+
+  <div class="kpis" style="position:absolute;top:132px;left:0;right:0">
+    <div class="kpi">
+      <div class="kpi-lbl">Ahorro anual estimado</div>
+      <div class="kpi-val" style="color:var(--coral)">€106.720</div>
+      <div class="kpi-sub">frente a €27.000/año de inversión<br>en Factorial Business</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">ROI anual</div>
+      <div class="kpi-val" style="color:var(--dark)">295%</div>
+      <div class="kpi-sub">por cada €1 invertido<br>recuperas €3,95</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-lbl">Payback</div>
+      <div class="kpi-val" style="color:var(--dark)">3,0 m</div>
+      <div class="kpi-sub">la inversión se recupera<br>en 3 meses</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;top:278px;left:var(--pad);right:var(--pad)">
+    <table class="btbl">
+      <thead>
+        <tr>
+          <th style="width:20%">Módulo</th>
+          <th style="width:40%">Qué es</th>
+          <th style="width:16%">h/mes ahorradas</th>
+          <th style="width:24%;text-align:right">Ahorro / año</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="mdot" style="background:#6B7280"></span><strong>Core HR</strong></td><td style="color:var(--gray)">Gestión centralizada de empleados y onboarding automático</td><td>76 h</td><td>€22.800</td></tr>
+        <tr><td><span class="mdot" style="background:#6B7280"></span><strong>Control Horario</strong></td><td style="color:var(--gray)">Fichaje digital y registro de jornada laboral</td><td>66,5 h</td><td>€21.480</td></tr>
+        <tr><td><span class="mdot" style="background:#6B7280"></span><strong>Ausencias</strong></td><td style="color:var(--gray)">Gestión de vacaciones, bajas y permisos</td><td>42,5 h</td><td>€15.720</td></tr>
+        <tr><td><span class="mdot" style="background:#FB923C"></span><strong>Nóminas</strong></td><td style="color:var(--gray)">Sincronización automática con el proveedor de nómina</td><td style="font-size:11px">Herram.</td><td>€10.000</td></tr>
+        <tr><td><span class="mdot" style="background:#14B8A6"></span><strong>Gastos</strong></td><td style="color:var(--gray)">Captura OCR y aprobación de notas de gasto</td><td>100 h</td><td>€30.240</td></tr>
+        <tr><td><span class="mdot" style="background:#E05C75"></span><strong>Selección</strong></td><td style="color:var(--gray)">ATS para gestionar procesos de contratación</td><td>17,5 h</td><td>€6.480</td></tr>
+        <tr class="btot"><td colspan="2">Total ahorros anuales estimados</td><td style="text-align:center;font-weight:800">302,5 h</td><td>€106.720</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="position:absolute;bottom:14px;left:var(--pad);right:var(--pad);display:flex;justify-content:space-between">
+    <span style="font-size:11px;color:var(--lgray)">Estimación: 150 empleados · 5 admin RRHH · 25 managers · 30 altas/año · costes laborales ES. No garantiza resultados.</span>
+    <span style="font-size:11px;color:var(--lgray)">2 / 8</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S2 — CORE HR  #6B7280   3 rows
+     ══════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#6B7280">Core HR</div>
+      <div class="mhd-cat">Plataforma del empleado · Autoservicio · Onboarding automatizado</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">Ahorro anual estimado</div>
+      <div class="mhd-val" style="color:#6B7280">€22.800</div>
+    </div>
+  </div>
+
+  <table class="htbl">
+    <thead><tr>
+      <th>Tipo de empleado</th>
+      <th>Hipótesis de ahorro</th>
+      <th>Asunción y cálculo</th>
+      <th>Ahorro estimado</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#EFF6FF">👤</div><div class="sk-nm">Empleados</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Autoservicio elimina peticiones rutinarias — actualización de datos, descarga de nóminas y solicitud de certificados sin intermediarios.</div></td>
+        <td><div class="calc-block"><div class="bold">0,3 h/mes por empleado</div><div class="key">× 120 empleados</div><div class="calc-res">= 36 h/mes ahorradas</div><div>× €20/h coste horario</div></div></td>
+        <td><div class="sav-mon">€720 /mes</div><div class="sav-ann" style="color:#6B7280">€8.640 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#F0FDF4">🛡</div><div class="sk-nm">Admin RRHH</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Checklists de onboarding automáticos por cada alta. El equipo no coordina manualmente los pasos de incorporación.</div></td>
+        <td><div class="calc-block"><div class="bold">6 h/alta gestionada</div><div class="key">× 30 altas al año</div><div class="calc-res">= 180 h/año ahorradas</div><div>× €32/h coste horario</div></div></td>
+        <td><div class="sav-mon">€480 /mes</div><div class="sav-ann" style="color:#6B7280">€5.760 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#FFFBEB">💼</div><div class="sk-nm">Managers</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Panel de equipo con aprobaciones y datos en un clic. Elimina emails a RRHH para consultar información básica.</div></td>
+        <td><div class="calc-block"><div class="bold">1 h/mes por manager</div><div class="key">× 25 managers</div><div class="calc-res">= 25 h/mes ahorradas</div><div>× €28/h coste horario</div></div></td>
+        <td><div class="sav-mon">€700 /mes</div><div class="sav-ann" style="color:#6B7280">€8.400 /año</div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="htot"><span class="htot-lbl">Total ahorro anual</span><span class="htot-val">€22.800</span></div>
+  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">3 / 8</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S3 — CONTROL HORARIO  #6B7280   3 rows
+     ══════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#6B7280">Control Horario</div>
+      <div class="mhd-cat">Fichaje digital · Cumplimiento normativo · Sincronización automática con nómina</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">Ahorro anual estimado</div>
+      <div class="mhd-val" style="color:#6B7280">€21.480</div>
+    </div>
+  </div>
+
+  <table class="htbl">
+    <thead><tr><th>Tipo de empleado</th><th>Hipótesis de ahorro</th><th>Asunción y cálculo</th><th>Ahorro estimado</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#EFF6FF">👤</div><div class="sk-nm">Empleados</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Fichaje desde cualquier dispositivo sustituye los partes en papel. Los olvidos se resuelven en la app sin perseguir a nadie.</div></td>
+        <td><div class="calc-block"><div class="bold">0,2 h/mes por empleado</div><div class="key">× 120 empleados</div><div class="calc-res">= 24 h/mes ahorradas</div><div>× €20/h coste horario</div></div></td>
+        <td><div class="sav-mon">€480 /mes</div><div class="sav-ann" style="color:#6B7280">€5.760 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#F0FDF4">🛡</div><div class="sk-nm">Admin RRHH</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Datos de tiempo fluyen a nómina automáticamente — sin reconciliación manual semanal. Horas extra calculadas por normativa.</div></td>
+        <td><div class="calc-block"><div class="bold">6 h/mes por admin RRHH</div><div class="key">× 5 admins</div><div class="calc-res">= 30 h/mes ahorradas</div><div>× €32/h coste horario</div></div></td>
+        <td><div class="sav-mon">€960 /mes</div><div class="sav-ann" style="color:#6B7280">€11.520 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#FFFBEB">💼</div><div class="sk-nm">Managers</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Panel de asistencia en tiempo real sustituye el control matutino. Alertas de tardanzas llegan automáticamente.</div></td>
+        <td><div class="calc-block"><div class="bold">0,5 h/mes por manager</div><div class="key">× 25 managers</div><div class="calc-res">= 12,5 h/mes ahorradas</div><div>× €28/h coste horario</div></div></td>
+        <td><div class="sav-mon">€350 /mes</div><div class="sav-ann" style="color:#6B7280">€4.200 /año</div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="htot"><span class="htot-lbl">Total ahorro anual</span><span class="htot-val">€21.480</span></div>
+  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">4 / 8</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S4 — AUSENCIAS  #6B7280   2 rows
+     ══════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#6B7280">Ausencias</div>
+      <div class="mhd-cat">Saldos automáticos · Aprobación en un clic · Calendario de equipo en tiempo real</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">Ahorro anual estimado</div>
+      <div class="mhd-val" style="color:#6B7280">€15.720</div>
+    </div>
+  </div>
+
+  <table class="htbl">
+    <thead><tr><th>Tipo de empleado</th><th>Hipótesis de ahorro</th><th>Asunción y cálculo</th><th>Ahorro estimado</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#F0FDF4">🛡</div><div class="sk-nm">Admin RRHH</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:6">Motor de acumulación automática sustituye cálculos manuales de saldos. Integración con nómina sincroniza datos de ausencias sin re-introducción. Reglas de política previenen sobre-aprobación.</div></td>
+        <td><div class="calc-block"><div class="bold">6 h/mes por admin RRHH</div><div class="key">× 5 admins</div><div class="calc-res">= 30 h/mes ahorradas</div><div>× €32/h coste horario</div></div></td>
+        <td><div class="sav-mon">€960 /mes</div><div class="sav-ann" style="color:#6B7280">€11.520 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#FFFBEB">💼</div><div class="sk-nm">Managers</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:6">Calendario visual muestra quién está ausente sin consultar hojas de cálculo. Aprobación en un clic con detección automática de conflictos de cobertura.</div></td>
+        <td><div class="calc-block"><div class="bold">0,5 h/mes por manager</div><div class="key">× 25 managers</div><div class="calc-res">= 12,5 h/mes ahorradas</div><div>× €28/h coste horario</div></div></td>
+        <td><div class="sav-mon">€350 /mes</div><div class="sav-ann" style="color:#6B7280">€4.200 /año</div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="htot"><span class="htot-lbl">Total ahorro anual</span><span class="htot-val">€15.720</span></div>
+  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">5 / 8</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S5 — NÓMINAS  #FB923C   1 row
+     ══════════════════════════════════════ -->
+<div class="slide" id="s5">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#FB923C">Nóminas Connect</div>
+      <div class="mhd-cat">Sincronización automática · Cero re-introducción · Detección de discrepancias antes del cierre</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">Ahorro anual estimado</div>
+      <div class="mhd-val" style="color:#FB923C">€10.000</div>
+    </div>
+  </div>
+
+  <!-- Tool replacement layout — no stakeholder table -->
+  <div style="position:absolute;top:114px;left:var(--pad);right:var(--pad);bottom:48px;display:flex;flex-direction:column;justify-content:center;gap:40px">
+
+    <!-- Before → After boxes -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:48px">
+      <!-- ANTES -->
+      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid var(--border)!important;background:#fff">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--lgray);margin-bottom:12px">Antes</div>
+        <div style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:6px">Herramienta externa</div>
+        <div style="font-size:14px;color:var(--gray);margin-bottom:16px">Software de nómina independiente</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:32px;font-weight:800;color:var(--dark);letter-spacing:-.02em">€833</span>
+          <span style="font-size:14px;color:var(--lgray)">/mes</span>
+        </div>
+        <div style="font-size:13px;color:var(--lgray);margin-top:4px">€10.000 /año</div>
+      </div>
+
+      <!-- Arrow -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 24h28M30 18l6 6-6 6" stroke="var(--coral)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+
+      <!-- DESPUÉS -->
+      <div style="width:320px;padding:28px 32px;border-radius:12px;border:2px solid var(--coral)!important;background:rgba(255,53,94,.04)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--coral);margin-bottom:12px">Después</div>
+        <div style="font-size:18px;font-weight:700;color:var(--dark);margin-bottom:6px">Factorial Nóminas</div>
+        <div style="font-size:14px;color:var(--gray);margin-bottom:16px">Incluido en Factorial Business</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-size:32px;font-weight:800;color:var(--coral);letter-spacing:-.02em">€0</span>
+          <span style="font-size:14px;color:var(--lgray)">adicional</span>
+        </div>
+        <div style="font-size:13px;color:var(--lgray);margin-top:4px">incluido en el plan contratado</div>
+      </div>
+    </div>
+
+    <!-- Summary text -->
+    <div style="text-align:center;max-width:640px;margin:0 auto">
+      <div style="font-size:15px;color:var(--dark);line-height:1.6">
+        <strong>Ahorro directo: €10.000/año</strong> — coste de licencia eliminado al consolidar la nómina dentro de Factorial Business. Sync automática de horas, ausencias y gastos sin re-introducción manual.
+      </div>
+    </div>
+
+  </div>
+  <div class="htot"><span class="htot-lbl">Total ahorro anual</span><span class="htot-val">€10.000</span></div>
+  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">6 / 8</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S6 — GASTOS  #14B8A6   3 rows
+     ══════════════════════════════════════ -->
+<div class="slide" id="s6">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#14B8A6">Gastos</div>
+      <div class="mhd-cat">OCR móvil · Validación automática de política · Aprobación en un clic · Reconciliación con contabilidad</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">Ahorro anual estimado</div>
+      <div class="mhd-val" style="color:#14B8A6">€30.240</div>
+    </div>
+  </div>
+
+  <table class="htbl">
+    <thead><tr><th>Tipo de empleado</th><th>Hipótesis de ahorro</th><th>Asunción y cálculo</th><th>Ahorro estimado</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#EFF6FF">👤</div><div class="sk-nm">Empleados</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">OCR desde el móvil auto-categoriza y envía la nota al instante. Validación de política evita rechazos y ciclos de corrección.</div></td>
+        <td><div class="calc-block"><div class="bold">2 h/mes por submitter</div><div class="key">× 20 submitters</div><div class="calc-res">= 40 h/mes ahorradas</div><div>× €20/h coste horario</div></div></td>
+        <td><div class="sav-mon">€800 /mes</div><div class="sav-ann" style="color:#14B8A6">€9.600 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#F0FDF4">🛡</div><div class="sk-nm">Admin RRHH</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Conciliación automática con contabilidad. Violaciones de política señaladas antes de la aprobación — sin revisar línea a línea.</div></td>
+        <td><div class="calc-block"><div class="bold">2 h/mes por admin RRHH</div><div class="key">× 5 admins</div><div class="calc-res">= 10 h/mes ahorradas</div><div>× €32/h coste horario</div></div></td>
+        <td><div class="sav-mon">€320 /mes</div><div class="sav-ann" style="color:#14B8A6">€3.840 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#FFFBEB">💼</div><div class="sk-nm">Managers</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:4">Aprobación en un clic sobre envíos pre-validados. Dashboard de gasto con alertas de presupuesto elimina la necesidad de perseguir informes.</div></td>
+        <td><div class="calc-block"><div class="bold">2 h/mes por manager</div><div class="key">× 25 managers</div><div class="calc-res">= 50 h/mes ahorradas</div><div>× €28/h coste horario</div></div></td>
+        <td><div class="sav-mon">€1.400 /mes</div><div class="sav-ann" style="color:#14B8A6">€16.800 /año</div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="htot"><span class="htot-lbl">Total ahorro anual</span><span class="htot-val">€30.240</span></div>
+  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">7 / 8</div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     S7 — SELECCIÓN  #E05C75   2 rows
+     ══════════════════════════════════════ -->
+<div class="slide" id="s7">
+  <svg class="iso"><use href="#iso"/></svg>
+  <div class="brand">Propuesta ROI · Factorial</div>
+
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#E05C75">Selección</div>
+      <div class="mhd-cat">ATS completo · Scorecards estructurados · Analíticas de contratación · 30 procesos/año</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">Ahorro anual estimado</div>
+      <div class="mhd-val" style="color:#E05C75">€6.480</div>
+    </div>
+  </div>
+
+  <table class="htbl">
+    <thead><tr><th>Tipo de empleado</th><th>Hipótesis de ahorro</th><th>Asunción y cálculo</th><th>Ahorro estimado</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#F0FDF4">🛡</div><div class="sk-nm">Admin RRHH</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:6">ATS completo: publicación multi-portal, pipeline, agenda de entrevistas y scorecards. Comunicaciones automáticas eliminan el seguimiento por email en cada proceso.</div></td>
+        <td><div class="calc-block"><div class="bold">5 h/contratación</div><div class="key">× 30 contrataciones/año</div><div class="calc-res">= 150 h/año ahorradas</div><div>× €32/h coste horario</div></div></td>
+        <td><div class="sav-mon">€400 /mes</div><div class="sav-ann" style="color:#E05C75">€4.800 /año</div></td>
+      </tr>
+      <tr>
+        <td><div class="sk"><div class="sk-ico" style="background:#FFFBEB">💼</div><div class="sk-nm">Managers</div></div></td>
+        <td><div class="ht" style="-webkit-line-clamp:6">Scorecards estructurados sustituyen notas libres. Comparación lado a lado de candidatos acelera decisiones y reduce reuniones de alineación entre manager y RRHH.</div></td>
+        <td><div class="calc-block"><div class="bold">2 h/contratación</div><div class="key">× 30 contrataciones/año</div><div class="calc-res">= 60 h/año ahorradas</div><div>× €28/h coste horario</div></div></td>
+        <td><div class="sav-mon">€140 /mes</div><div class="sav-ann" style="color:#E05C75">€1.680 /año</div></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="htot"><span class="htot-lbl">Total ahorro anual</span><span class="htot-val">€6.480</span></div>
+  <div style="position:absolute;bottom:56px;right:var(--pad);font-size:10px;color:var(--lgray)">8 / 8</div>
+</div>
+
+</div><!-- /stage -->
+
+<div class="nav">
+  <button class="nb" onclick="go(-1)">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <button class="nb" onclick="go(1)">&#8594;</button>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const dotsEl=document.getElementById('dots');
+let cur=0;
+slides.forEach((_,i)=>{
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=()=>show(i);
+  dotsEl.appendChild(d);
+});
+function show(n){
+  slides[cur].classList.remove('on');dotsEl.children[cur].classList.remove('on');
+  cur=(n+slides.length)%slides.length;
+  slides[cur].classList.add('on');dotsEl.children[cur].classList.add('on');
+}
+function go(d){show(cur+d)}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(1)}
+  if(e.key==='ArrowLeft'){e.preventDefault();go(-1)}
+  if(e.key==='Home')show(0);if(e.key==='End')show(slides.length-1);
+});
+function scale(){
+  document.getElementById('stage').style.transform=
+    `scale(${Math.min(window.innerWidth*.96/1280,window.innerHeight*.92/720)})`;
+}
+scale();window.addEventListener('resize',scale);
+</script>
+</body>
+</html>

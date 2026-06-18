@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub Pages vs Netlify — Propel ROI Migration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#0c0c10;color:#E2E2E8;line-height:1.6;padding:40px 20px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:36px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:8px}
+h1 span{color:#FF355E}
+.sub{font-size:15px;color:#8B8B9A;margin-bottom:48px}
+h2{font-size:22px;font-weight:700;color:#fff;margin:48px 0 20px;letter-spacing:-.02em}
+h2 .num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;background:#FF355E;color:#fff;font-size:13px;font-weight:800;margin-right:10px}
+
+/* comparison */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px}
+.card{border-radius:16px;padding:28px;border:1px solid #1E1E2A}
+.card.gh{background:#141420}
+.card.nl{background:#0A2A1A;border-color:#0D3D23}
+.card h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card h3 .dot{width:10px;height:10px;border-radius:50%}
+.card.gh h3 .dot{background:#8B8B9A}
+.card.nl h3 .dot{background:#00C7B7}
+.card ul{list-style:none;font-size:13px;color:#A0A0B0}
+.card ul li{padding:6px 0;border-bottom:1px solid #1E1E2A;display:flex;align-items:flex-start;gap:8px}
+.card.nl ul li{border-color:#0D3D23}
+.card ul li:last-child{border:none}
+.card ul li .icon{flex-shrink:0;margin-top:2px}
+.yes{color:#00C7B7}
+.no{color:#FF355E}
+.warn{color:#F59E0B}
+
+/* verdict */
+.verdict{background:linear-gradient(135deg,#0A2A1A,#141420);border:1px solid #0D3D23;border-radius:16px;padding:32px;margin-bottom:48px}
+.verdict h3{font-size:18px;font-weight:700;color:#00C7B7;margin-bottom:12px}
+.verdict p{font-size:14px;color:#A0A0B0}
+.verdict strong{color:#fff}
+
+/* roadmap */
+.step{display:flex;gap:20px;margin-bottom:28px;position:relative}
+.step::before{content:'';position:absolute;left:15px;top:36px;bottom:-28px;width:2px;background:#1E1E2A}
+.step:last-child::before{display:none}
+.step .circle{width:32px;height:32px;border-radius:50%;background:#FF355E;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;z-index:1}
+.step .body{flex:1}
+.step .body h4{font-size:15px;font-weight:700;color:#fff;margin-bottom:4px}
+.step .body p{font-size:13px;color:#8B8B9A}
+.step .body code{background:#1E1E2A;color:#E2E2E8;padding:2px 6px;border-radius:4px;font-size:12px;font-family:'DM Mono',monospace}
+.step .time{font-size:11px;color:#FF355E;font-weight:600;margin-top:4px}
+
+/* limits */
+.limits{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:48px}
+.lim{background:#141420;border:1px solid #1E1E2A;border-radius:12px;padding:20px;text-align:center}
+.lim .val{font-size:28px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.lim .label{font-size:11px;color:#8B8B9A;margin-top:4px}
+.lim .note{font-size:10px;color:#555;margin-top:6px}
+
+/* config preview */
+.config{background:#141420;border:1px solid #1E1E2A;border-radius:12px;padding:24px;margin:16px 0;overflow-x:auto}
+.config pre{font-family:'DM Mono',Menlo,monospace;font-size:12px;line-height:1.7;color:#A0A0B0}
+.config pre .key{color:#00C7B7}
+.config pre .val{color:#F59E0B}
+.config pre .comment{color:#555}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>GitHub Pages <span>vs</span> Netlify</h1>
+<p class="sub">Migration assessment para Propel ROI</p>
+
+<!-- Comparison -->
+<div class="compare">
+  <div class="card gh">
+    <h3><span class="dot"></span> GitHub Pages (actual)</h3>
+    <ul>
+      <li><span class="icon no">&#10007;</span> SPA routing roto al refrescar (necesita hack 404.html)</li>
+      <li><span class="icon no">&#10007;</span> Sin deploy previews por PR</li>
+      <li><span class="icon no">&#10007;</span> Sin redirects server-side</li>
+      <li><span class="icon no">&#10007;</span> Base path obligatorio: <code>/propel-roi/</code></li>
+      <li><span class="icon no">&#10007;</span> Env vars solo via GitHub Secrets</li>
+      <li><span class="icon no">&#10007;</span> Sin rollback instantaneo</li>
+      <li><span class="icon yes">&#10003;</span> Gratis ilimitado</li>
+      <li><span class="icon yes">&#10003;</span> Zero config si ya usas GitHub</li>
+    </ul>
+  </div>
+  <div class="card nl">
+    <h3><span class="dot"></span> Netlify</h3>
+    <ul>
+      <li><span class="icon yes">&#10003;</span> SPA routing nativo (rewrites)</li>
+      <li><span class="icon yes">&#10003;</span> Deploy preview por cada PR</li>
+      <li><span class="icon yes">&#10003;</span> Redirects, headers, rewrites</li>
+      <li><span class="icon yes">&#10003;</span> Custom domain + auto SSL</li>
+      <li><span class="icon yes">&#10003;</span> Env vars en UI (no secrets)</li>
+      <li><span class="icon yes">&#10003;</span> Rollback en 1 click</li>
+      <li><span class="icon yes">&#10003;</span> Branch deploys automaticos</li>
+      <li><span class="icon warn">&#9888;</span> Free tier con limites (ver abajo)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Free tier limits -->
+<h2>Netlify Free Tier</h2>
+<div class="limits">
+  <div class="lim">
+    <div class="val">100 GB</div>
+    <div class="label">Bandwidth / mes</div>
+    <div class="note">Propel ROI usa ~2-5 GB/mes</div>
+  </div>
+  <div class="lim">
+    <div class="val">300 min</div>
+    <div class="label">Build minutes / mes</div>
+    <div class="note">~1 min por build, sobra</div>
+  </div>
+  <div class="lim">
+    <div class="val">125k</div>
+    <div class="label">Function invocations / mes</div>
+    <div class="note">No usamos Netlify Functions (Supabase Edge)</div>
+  </div>
+</div>
+
+<!-- Verdict -->
+<div class="verdict">
+  <h3>Veredicto: migrar</h3>
+  <p>
+    El pain principal es el <strong>SPA routing roto en GitHub Pages</strong> (refresh = 404) y el <strong>base path /propel-roi/</strong> que complica assets y links.
+    Netlify resuelve ambos con una linea de config. Los limites del free tier no son problema para una herramienta interna.
+    <br><br>
+    <strong>Riesgo:</strong> zero. Es un SPA estatico con Supabase backend. No hay server-side rendering ni vendor lock-in.
+    Si Netlify no convence, volver a GitHub Pages es revertir un commit.
+  </p>
+</div>
+
+<!-- Roadmap -->
+<h2>Roadmap de migracion</h2>
+
+<div class="step">
+  <div class="circle">1</div>
+  <div class="body">
+    <h4>Crear <code>netlify.toml</code></h4>
+    <p>Config de build + SPA rewrite. Un archivo en la raiz del repo:</p>
+    <div class="config"><pre><span class="key">[build]</span>
+  <span class="key">command</span> = <span class="val">"npm run build"</span>
+  <span class="key">publish</span> = <span class="val">"dist"</span>
+
+<span class="key">[[redirects]]</span>
+  <span class="key">from</span> = <span class="val">"/*"</span>
+  <span class="key">to</span> = <span class="val">"/index.html"</span>
+  <span class="key">status</span> = <span class="val">200</span>
+
+<span class="key">[build.environment]</span>
+  <span class="key">NODE_VERSION</span> = <span class="val">"20"</span></pre></div>
+    <div class="time">2 min</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="circle">2</div>
+  <div class="body">
+    <h4>Quitar <code>VITE_BASE_PATH</code></h4>
+    <p>Ya no hace falta <code>/propel-roi/</code> como base path. Netlify sirve desde la raiz <code>/</code>.</p>
+    <p>Eliminar de <code>vite.config.ts</code> el <code>base: process.env.VITE_BASE_PATH</code> o ponerlo a <code>"/"</code>.</p>
+    <div class="time">2 min</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="circle">3</div>
+  <div class="body">
+    <h4>Conectar repo en Netlify</h4>
+    <p>Netlify UI: <strong>New site > Import from GitHub > lucassiroo-eng/propel-roi</strong>. Detecta el <code>netlify.toml</code> automaticamente.</p>
+    <div class="time">3 min</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="circle">4</div>
+  <div class="body">
+    <h4>Env vars en Netlify</h4>
+    <p>En Site settings > Environment variables, anadir:</p>
+    <div class="config"><pre><span class="key">VITE_SUPABASE_URL</span> = <span class="val">https://dsmovbahvtbzxgfyndyj.supabase.co</span>
+<span class="key">VITE_SUPABASE_PUBLISHABLE_KEY</span> = <span class="val">eyJ...</span>
+<span class="key">VITE_SUPABASE_PROJECT_ID</span> = <span class="val">dsmovbahvtbzxgfyndyj</span></pre></div>
+    <div class="time">2 min</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="circle">5</div>
+  <div class="body">
+    <h4>Deploy + verificar</h4>
+    <p>Push a main > Netlify build automatico > URL tipo <code>propel-roi.netlify.app</code>. Verificar que el routing funciona al refrescar.</p>
+    <div class="time">5 min</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="circle">6</div>
+  <div class="body">
+    <h4>Custom domain (opcional)</h4>
+    <p>Si quieres <code>roi.factorial.tools</code> o similar: Netlify UI > Domain settings > Add custom domain. Auto SSL incluido.</p>
+    <div class="time">10 min</div>
+  </div>
+</div>
+
+<div class="step">
+  <div class="circle">7</div>
+  <div class="body">
+    <h4>Desactivar GitHub Pages</h4>
+    <p>Repo settings > Pages > desactivar. Borrar <code>.github/workflows/deploy.yml</code> (mantener el deploy-functions job en un workflow separado si quieres auto-deploy de edge functions).</p>
+    <div class="time">2 min</div>
+  </div>
+</div>
+
+<p style="margin-top:48px;font-size:13px;color:#555;text-align:center">Total estimado: ~25 minutos, zero downtime</p>
+
+</div>
+</body>
+</html>

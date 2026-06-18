@@ -191,7 +191,7 @@ const ANALYSIS_TOOL = {
             id: { type: "string" },
             pain_type: { type: "string", enum: ["TIEMPO", "HERRAMIENTA", "DATOS", "CUMPLIMIENTO", "CRECIMIENTO"], description: "Use HERRAMIENTA only if the company explicitly mentions a specific tool to replace. Default is TIEMPO." },
             pain_title: { type: "string", description: "Short title: the specific situation at this company that this module fixes (max 10 words, no generic labels)" },
-            pain_description: { type: "string", description: "2-3 sentences. Address the company directly (second person). Sentence 1: the specific daily consequence they experience. Sentence 2: why their current setup causes it (name the specific tool/process). Sentence 3 (optional): what this costs them in time, errors, or visibility. Natural prose, no em dashes, no lists." },
+            pain_description: { type: "string", description: "1 sentence max 25 words. Address the company directly (second person). State the specific daily consequence they experience and why it happens (name the tool/process if known). Natural prose, no em dashes." },
             hours_employee: { type: "number", description: "h/mes per employee" },
             hours_hr: { type: "number", description: "h/mes for the HR admin (flat monthly)" },
             hours_manager: { type: "number", description: "h/mes per manager" },
@@ -775,7 +775,7 @@ TONO OBLIGATORIO (igual que en el análisis inicial):
 
 REGLAS:
 1. pain_title: situación concreta de esta empresa, max 10 palabras, sin etiquetas genéricas
-2. pain_description: 2-3 frases en segunda persona. Frase 1: consecuencia diaria concreta. Frase 2: por qué su configuración actual lo provoca (herramienta o proceso específico). Frase 3 opcional: coste en tiempo, errores o visibilidad. Prosa natural.
+2. pain_description: 1 frase máx 25 palabras en segunda persona. Consecuencia diaria concreta + por qué ocurre (herramienta o proceso específico si se conoce). Prosa natural.
 3. INSTRUCCIÓN AE con precio específico (ej: "Sesame les cuesta 4000", "pagan 3500 por Bizneo") → usa ESE precio exacto en annual_cost_eur, SIN aplicar ningún descuento adicional. El AE ya sabe el precio real.
    INSTRUCCIÓN AE sin precio específico (ej: "reemplaza Sesame", "ahorro es dejar de pagar Bizneo") → estima precio de mercado con -20% de descuento conservador.
 4. INSTRUCCIÓN AE "como [otro módulo]" → adapta el argumento al contexto de esta empresa para este módulo específico

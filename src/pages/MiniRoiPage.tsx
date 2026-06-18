@@ -336,41 +336,69 @@ export default function MiniRoiPage() {
   }
 
   // ── Download as PDF (html2canvas → jsPDF, A4 portrait) ───────────────────
-  // ── PDF via browser print — perfect font rendering, no canvas distortion ─────
-  function downloadPdf() {
+  async function downloadPdf() {
     if (!html) return;
     setDownloadingPdf(true);
     try {
       const company = (hsData?.company_name ?? "ROI").trim();
-      // Inject print-trigger script into the HTML so the new window auto-prints
-      const printHtml = html.replace(
-        "</body>",
-        `<script>
-          window.addEventListener("load", function() {
-            setTimeout(function() {
-              document.title = "ROI ${company}";
-              window.print();
-              setTimeout(function() { window.close(); }, 1000);
-            }, 500);
-          });
-        </script></body>`
-      );
-      const blob = new Blob([printHtml], { type: "text/html;charset=utf-8" });
-      const blobUrl = URL.createObjectURL(blob);
-      const win = window.open(blobUrl, "_blank", "width=900,height=700");
-      if (!win) {
-        // Popup blocked — fallback: direct download as HTML
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = `ROI ${company}.html`;
-        a.click();
-        toast("Descarga iniciada como HTML. Abre el fichero en Chrome y usa Cmd+P → Guardar como PDF.");
-      } else {
-        toast.success("Se abrirá el diálogo de impresión — selecciona «Guardar como PDF»");
+
+      // Inline Inter font weights so html2canvas renders them correctly
+      const interCss = await getInlinedInterCss();
+      const htmlWithFonts = html
+        .replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/gi, "")
+        .replace("</head>", `<style>${interCss}</style></head>`);
+
+      // Write into a hidden same-origin iframe so html2canvas has full access
+      const iframe = document.createElement("iframe");
+      iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:794px;height:1px;border:none;visibility:hidden;";
+      document.body.appendChild(iframe);
+      iframe.contentDocument!.open();
+      iframe.contentDocument!.write(htmlWithFonts);
+      iframe.contentDocument!.close();
+
+      // Wait for load + fonts
+      await new Promise<void>(resolve => {
+        if (iframe.contentDocument!.readyState === "complete") resolve();
+        else iframe.contentWindow!.addEventListener("load", () => resolve(), { once: true });
+      });
+      await iframe.contentDocument!.fonts.ready;
+      await new Promise(r => setTimeout(r, 800));
+
+      const h2c = await loadHtml2Canvas();
+      const canvas = await h2c(iframe.contentDocument!.body, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        width: 794,
+        windowWidth: 794,
+        scrollX: 0,
+        scrollY: 0,
+      });
+      document.body.removeChild(iframe);
+
+      // Split into A4 pages
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageW = 210, pageH = 297;
+      const ratio = pageW / canvas.width;
+      const pageHeightPx = Math.round(pageH / ratio);
+      const totalPages = Math.ceil(canvas.height / pageHeightPx);
+
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
+        const srcY = page * pageHeightPx;
+        const sliceH = Math.min(pageHeightPx, canvas.height - srcY);
+        const slice = document.createElement("canvas");
+        slice.width = canvas.width;
+        slice.height = sliceH;
+        slice.getContext("2d")!.drawImage(canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, pageW, sliceH * ratio);
       }
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+
+      pdf.save(`ROI ${company}.pdf`);
+      toast.success("PDF descargado");
     } catch (err: any) {
-      toast.error("Error: " + (err.message ?? ""));
+      toast.error("Error al generar PDF: " + (err.message ?? ""));
     } finally {
       setDownloadingPdf(false);
     }
