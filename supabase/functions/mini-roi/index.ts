@@ -419,12 +419,12 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   const date = new Date().toLocaleDateString(dateLocale[lang] ?? "es-ES", { day: "numeric", month: "long", year: "numeric" });
   // L must be defined BEFORE ui to avoid circular reference
   const UI: Record<string, Record<string, string>> = {
-    es: { title: "ANÁLISIS ROI ESTIMADO", per_year: "/año", source_transcript: "basado en conversaciones", source_assumption: "estimación sectorial", h_per_emp: "h/mes por empleado", h_per_hr: "h/mes por admin de RRHH", h_per_mgr: "h/mes por responsable", page_of: "Hoja {n} de {total}", confidential: "Confidencial", context: "Contexto", modules_header: "Módulos recomendados y ahorro estimado", modules_sub: "Todo el ahorro está basado en estimaciones de horas/mes por tipo de trabajador", savings_col: "Ahorro anual", roi_header: "Retorno de la inversión estimado", total_savings: "Ahorro total", investment: "Inversión", roi_est: "ROI estimado", payback: "Payback", net_return: "retorno neto", months: "meses", methodology: "Metodología", methodology_body: "Las horas indicadas son estimaciones conservadoras del tiempo que Factorial libera mensualmente por tipo de trabajador. Todas las cifras son asunciones basadas en benchmarks de empresas de tamaño similar, salvo donde se indique \"basado en conversaciones\". Requieren validación conjunta con el cliente.", staff_assumed: "Personal asumido", employees: "empleados", hr_admin: "admin de RRHH", managers: "responsables", hourly_cost: "Coste horario", per_emp: "h empleado", per_hr: "h admin", per_mgr: "h responsable", fact_label: "Propel ROI · Factorial", fact_sub: "Generado a partir de conversaciones y benchmarks del sector", replaces: "Reemplaza", estimated: "estimado" },
-    en: { title: "ESTIMATED ROI ANALYSIS", per_year: "/year", source_transcript: "based on conversations", source_assumption: "sector estimate", h_per_emp: "h/month per employee", h_per_hr: "h/month per HR admin", h_per_mgr: "h/month per manager", page_of: "Page {n} of {total}", confidential: "Confidential", context: "Context", modules_header: "Recommended modules & estimated savings", modules_sub: "All savings are based on estimated hours/month by employee type", savings_col: "Annual savings", roi_header: "Estimated return on investment", total_savings: "Total savings", investment: "Investment", roi_est: "Estimated ROI", payback: "Payback", net_return: "net return", months: "months", methodology: "Methodology", methodology_body: "The hours indicated are conservative estimates of time Factorial frees up monthly by employee type. All figures are assumptions based on benchmarks from similar-sized companies, except where \"based on conversations\" is indicated. Require joint validation with the client.", staff_assumed: "Staff assumed", employees: "employees", hr_admin: "HR admins", managers: "managers", hourly_cost: "Hourly cost", per_emp: "h employee", per_hr: "h HR", per_mgr: "h manager", fact_label: "Propel ROI · Factorial", fact_sub: "Generated from conversations and industry benchmarks", replaces: "Replaces", estimated: "estimated" },
-    fr: { title: "ANALYSE ROI ESTIMÉE", per_year: "/an", source_transcript: "basé sur des conversations", source_assumption: "estimation sectorielle", h_per_emp: "h/mois par employé", h_per_hr: "h/mois par admin RH", h_per_mgr: "h/mois par manager", page_of: "Page {n} sur {total}", confidential: "Confidentiel", context: "Contexte", modules_header: "Modules recommandés et économies estimées", modules_sub: "Toutes les économies sont basées sur des estimations d'heures/mois par type d'employé", savings_col: "Économies annuelles", roi_header: "Retour sur investissement estimé", total_savings: "Économies totales", investment: "Investissement", roi_est: "ROI estimé", payback: "Payback", net_return: "retour net", months: "mois", methodology: "Méthodologie", methodology_body: "Les heures indiquées sont des estimations conservatives du temps libéré par Factorial chaque mois par type d'employé. Tous les chiffres sont des hypothèses basées sur des benchmarks d'entreprises de taille similaire. Nécessitent une validation conjointe.", staff_assumed: "Personnel estimé", employees: "employés", hr_admin: "admins RH", managers: "managers", hourly_cost: "Coût horaire", per_emp: "h employé", per_hr: "h RH", per_mgr: "h manager", fact_label: "Propel ROI · Factorial", fact_sub: "Généré à partir de conversations et benchmarks du secteur", replaces: "Remplace", estimated: "estimé" },
-    it: { title: "ANALISI ROI STIMATA", per_year: "/anno", source_transcript: "basato su conversazioni", source_assumption: "stima settoriale", h_per_emp: "h/mese per dipendente", h_per_hr: "h/mese per admin HR", h_per_mgr: "h/mese per manager", page_of: "Pagina {n} di {total}", confidential: "Riservato", context: "Contesto", modules_header: "Moduli raccomandati e risparmi stimati", modules_sub: "Tutti i risparmi sono basati su ore/mese stimate per tipo di dipendente", savings_col: "Risparmio annuale", roi_header: "Ritorno stimato sull'investimento", total_savings: "Risparmio totale", investment: "Investimento", roi_est: "ROI stimato", payback: "Payback", net_return: "ritorno netto", months: "mesi", methodology: "Metodologia", methodology_body: "Le ore indicate sono stime conservative del tempo liberato da Factorial mensilmente per tipo di dipendente. Tutte le cifre sono stime basate su benchmark di aziende di dimensioni simili. Richiedono validazione congiunta con il cliente.", staff_assumed: "Personale stimato", employees: "dipendenti", hr_admin: "admin HR", managers: "manager", hourly_cost: "Costo orario", per_emp: "h dipendente", per_hr: "h HR", per_mgr: "h manager", fact_label: "Propel ROI · Factorial", fact_sub: "Generato da conversazioni e benchmark del settore", replaces: "Sostituisce", estimated: "stimato" },
-    de: { title: "GESCHÄTZTE ROI-ANALYSE", per_year: "/Jahr", source_transcript: "basierend auf Gesprächen", source_assumption: "Branchenschätzung", h_per_emp: "h/Monat pro Mitarbeiter", h_per_hr: "h/Monat pro HR-Admin", h_per_mgr: "h/Monat pro Manager", page_of: "Seite {n} von {total}", confidential: "Vertraulich", context: "Kontext", modules_header: "Empfohlene Module und geschätzte Einsparungen", modules_sub: "Alle Einsparungen basieren auf geschätzten Stunden/Monat pro Mitarbeitertyp", savings_col: "Jährliche Einsparung", roi_header: "Geschätzte Kapitalrendite", total_savings: "Gesamteinsparung", investment: "Investition", roi_est: "Geschätzter ROI", payback: "Payback", net_return: "Nettorendite", months: "Monate", methodology: "Methodik", methodology_body: "Die angegebenen Stunden sind konservative Schätzungen der monatlich freigesetzten Zeit pro Mitarbeitertyp. Alle Zahlen sind Annahmen basierend auf Benchmarks ähnlicher Unternehmen. Erfordern gemeinsame Validierung.", staff_assumed: "Angenommenes Personal", employees: "Mitarbeiter", hr_admin: "HR-Admins", managers: "Manager", hourly_cost: "Stundenkosten", per_emp: "h Mitarbeiter", per_hr: "h HR", per_mgr: "h Manager", fact_label: "Propel ROI · Factorial", fact_sub: "Generiert aus Gesprächen und Branchenbenchmarks", replaces: "Ersetzt", estimated: "geschätzt" },
-    pt: { title: "ANÁLISE ROI ESTIMADA", per_year: "/ano", source_transcript: "baseado em conversas", source_assumption: "estimativa setorial", h_per_emp: "h/mês por colaborador", h_per_hr: "h/mês por admin de RH", h_per_mgr: "h/mês por responsável", page_of: "Página {n} de {total}", confidential: "Confidencial", context: "Contexto", modules_header: "Módulos recomendados e poupanças estimadas", modules_sub: "Todas as poupanças baseiam-se em horas/mês estimadas por tipo de colaborador", savings_col: "Poupança anual", roi_header: "Retorno do investimento estimado", total_savings: "Poupança total", investment: "Investimento", roi_est: "ROI estimado", payback: "Payback", net_return: "retorno líquido", months: "meses", methodology: "Metodologia", methodology_body: "As horas indicadas são estimativas conservadoras do tempo libertado pelo Factorial mensalmente por tipo de colaborador. Todos os valores são estimativas baseadas em benchmarks de empresas de tamanho similar. Requerem validação conjunta.", staff_assumed: "Pessoal assumido", employees: "colaboradores", hr_admin: "admin de RH", managers: "responsáveis", hourly_cost: "Custo horário", per_emp: "h colaborador", per_hr: "h RH", per_mgr: "h responsável", fact_label: "Propel ROI · Factorial", fact_sub: "Gerado a partir de conversas e benchmarks do setor", replaces: "Substitui", estimated: "estimado" },
+    es: { title: "ANÁLISIS ROI ESTIMADO", per_year: "/año", source_transcript: "basado en conversaciones", source_assumption: "estimación sectorial", h_per_emp: "h/mes por empleado", h_per_hr: "h/mes por admin de RRHH", h_per_mgr: "h/mes por responsable", page_of: "Hoja {n} de {total}", confidential: "Confidencial", context: "Contexto", modules_header: "Módulos recomendados y ahorro estimado", modules_sub: "Todo el ahorro está basado en estimaciones de horas/mes por tipo de trabajador", savings_col: "Ahorro anual", roi_header: "Retorno de la inversión estimado", total_savings: "Ahorro total", investment: "Inversión", roi_est: "ROI estimado", payback: "Payback", net_return: "retorno neto", months: "meses", methodology: "Metodología", methodology_body: "Las horas indicadas son estimaciones conservadoras del tiempo que Factorial libera mensualmente por tipo de trabajador. Todas las cifras son asunciones basadas en benchmarks de empresas de tamaño similar, salvo donde se indique \"basado en conversaciones\". Requieren validación conjunta con el cliente.", staff_assumed: "Personal asumido", employees: "empleados", hr_admin: "admin de RRHH", managers: "responsables", hourly_cost: "Coste horario", per_emp: "h empleado", per_hr: "h admin", per_mgr: "h responsable", fact_label: "Propel ROI · Factorial", fact_sub: "Generado a partir de conversaciones y benchmarks del sector", replaces: "Reemplaza", estimated: "estimado", badge_fact: "HECHO", badge_assumption: "ASUNCIÓN", method_short: "Estimaciones conservadoras basadas en conversaciones y benchmarks de empresas similares. Requieren validación conjunta con el cliente." },
+    en: { title: "ESTIMATED ROI ANALYSIS", per_year: "/year", source_transcript: "based on conversations", source_assumption: "sector estimate", h_per_emp: "h/month per employee", h_per_hr: "h/month per HR admin", h_per_mgr: "h/month per manager", page_of: "Page {n} of {total}", confidential: "Confidential", context: "Context", modules_header: "Recommended modules & estimated savings", modules_sub: "All savings are based on estimated hours/month by employee type", savings_col: "Annual savings", roi_header: "Estimated return on investment", total_savings: "Total savings", investment: "Investment", roi_est: "Estimated ROI", payback: "Payback", net_return: "net return", months: "months", methodology: "Methodology", methodology_body: "The hours indicated are conservative estimates of time Factorial frees up monthly by employee type. All figures are assumptions based on benchmarks from similar-sized companies, except where \"based on conversations\" is indicated. Require joint validation with the client.", staff_assumed: "Staff assumed", employees: "employees", hr_admin: "HR admins", managers: "managers", hourly_cost: "Hourly cost", per_emp: "h employee", per_hr: "h HR", per_mgr: "h manager", fact_label: "Propel ROI · Factorial", fact_sub: "Generated from conversations and industry benchmarks", replaces: "Replaces", estimated: "estimated", badge_fact: "FACT", badge_assumption: "ASSUMPTION", method_short: "Conservative estimates based on conversations and benchmarks from similar companies. Require joint validation with the client." },
+    fr: { title: "ANALYSE ROI ESTIMÉE", per_year: "/an", source_transcript: "basé sur des conversations", source_assumption: "estimation sectorielle", h_per_emp: "h/mois par employé", h_per_hr: "h/mois par admin RH", h_per_mgr: "h/mois par manager", page_of: "Page {n} sur {total}", confidential: "Confidentiel", context: "Contexte", modules_header: "Modules recommandés et économies estimées", modules_sub: "Toutes les économies sont basées sur des estimations d'heures/mois par type d'employé", savings_col: "Économies annuelles", roi_header: "Retour sur investissement estimé", total_savings: "Économies totales", investment: "Investissement", roi_est: "ROI estimé", payback: "Payback", net_return: "retour net", months: "mois", methodology: "Méthodologie", methodology_body: "Les heures indiquées sont des estimations conservatives du temps libéré par Factorial chaque mois par type d'employé. Tous les chiffres sont des hypothèses basées sur des benchmarks d'entreprises de taille similaire. Nécessitent une validation conjointe.", staff_assumed: "Personnel estimé", employees: "employés", hr_admin: "admins RH", managers: "managers", hourly_cost: "Coût horaire", per_emp: "h employé", per_hr: "h RH", per_mgr: "h manager", fact_label: "Propel ROI · Factorial", fact_sub: "Généré à partir de conversations et benchmarks du secteur", replaces: "Remplace", estimated: "estimé", badge_fact: "FAIT", badge_assumption: "HYPOTHÈSE", method_short: "Estimations conservatrices basées sur des conversations et des benchmarks d'entreprises similaires. Nécessitent une validation conjointe." },
+    it: { title: "ANALISI ROI STIMATA", per_year: "/anno", source_transcript: "basato su conversazioni", source_assumption: "stima settoriale", h_per_emp: "h/mese per dipendente", h_per_hr: "h/mese per admin HR", h_per_mgr: "h/mese per manager", page_of: "Pagina {n} di {total}", confidential: "Riservato", context: "Contesto", modules_header: "Moduli raccomandati e risparmi stimati", modules_sub: "Tutti i risparmi sono basati su ore/mese stimate per tipo di dipendente", savings_col: "Risparmio annuale", roi_header: "Ritorno stimato sull'investimento", total_savings: "Risparmio totale", investment: "Investimento", roi_est: "ROI stimato", payback: "Payback", net_return: "ritorno netto", months: "mesi", methodology: "Metodologia", methodology_body: "Le ore indicate sono stime conservative del tempo liberato da Factorial mensilmente per tipo di dipendente. Tutte le cifre sono stime basate su benchmark di aziende di dimensioni simili. Richiedono validazione congiunta con il cliente.", staff_assumed: "Personale stimato", employees: "dipendenti", hr_admin: "admin HR", managers: "manager", hourly_cost: "Costo orario", per_emp: "h dipendente", per_hr: "h HR", per_mgr: "h manager", fact_label: "Propel ROI · Factorial", fact_sub: "Generato da conversazioni e benchmark del settore", replaces: "Sostituisce", estimated: "stimato", badge_fact: "FATTO", badge_assumption: "STIMA", method_short: "Stime conservative basate su conversazioni e benchmark di aziende simili. Richiedono validazione congiunta con il cliente." },
+    de: { title: "GESCHÄTZTE ROI-ANALYSE", per_year: "/Jahr", source_transcript: "basierend auf Gesprächen", source_assumption: "Branchenschätzung", h_per_emp: "h/Monat pro Mitarbeiter", h_per_hr: "h/Monat pro HR-Admin", h_per_mgr: "h/Monat pro Manager", page_of: "Seite {n} von {total}", confidential: "Vertraulich", context: "Kontext", modules_header: "Empfohlene Module und geschätzte Einsparungen", modules_sub: "Alle Einsparungen basieren auf geschätzten Stunden/Monat pro Mitarbeitertyp", savings_col: "Jährliche Einsparung", roi_header: "Geschätzte Kapitalrendite", total_savings: "Gesamteinsparung", investment: "Investition", roi_est: "Geschätzter ROI", payback: "Payback", net_return: "Nettorendite", months: "Monate", methodology: "Methodik", methodology_body: "Die angegebenen Stunden sind konservative Schätzungen der monatlich freigesetzten Zeit pro Mitarbeitertyp. Alle Zahlen sind Annahmen basierend auf Benchmarks ähnlicher Unternehmen. Erfordern gemeinsame Validierung.", staff_assumed: "Angenommenes Personal", employees: "Mitarbeiter", hr_admin: "HR-Admins", managers: "Manager", hourly_cost: "Stundenkosten", per_emp: "h Mitarbeiter", per_hr: "h HR", per_mgr: "h Manager", fact_label: "Propel ROI · Factorial", fact_sub: "Generiert aus Gesprächen und Branchenbenchmarks", replaces: "Ersetzt", estimated: "geschätzt", badge_fact: "FAKT", badge_assumption: "ANNAHME", method_short: "Konservative Schätzungen basierend auf Gesprächen und Benchmarks ähnlicher Unternehmen. Erfordern gemeinsame Validierung." },
+    pt: { title: "ANÁLISE ROI ESTIMADA", per_year: "/ano", source_transcript: "baseado em conversas", source_assumption: "estimativa setorial", h_per_emp: "h/mês por colaborador", h_per_hr: "h/mês por admin de RH", h_per_mgr: "h/mês por responsável", page_of: "Página {n} de {total}", confidential: "Confidencial", context: "Contexto", modules_header: "Módulos recomendados e poupanças estimadas", modules_sub: "Todas as poupanças baseiam-se em horas/mês estimadas por tipo de colaborador", savings_col: "Poupança anual", roi_header: "Retorno do investimento estimado", total_savings: "Poupança total", investment: "Investimento", roi_est: "ROI estimado", payback: "Payback", net_return: "retorno líquido", months: "meses", methodology: "Metodologia", methodology_body: "As horas indicadas são estimativas conservadoras do tempo libertado pelo Factorial mensalmente por tipo de colaborador. Todos os valores são estimativas baseadas em benchmarks de empresas de tamanho similar. Requerem validação conjunta.", staff_assumed: "Pessoal assumido", employees: "colaboradores", hr_admin: "admin de RH", managers: "responsáveis", hourly_cost: "Custo horário", per_emp: "h colaborador", per_hr: "h RH", per_mgr: "h responsável", fact_label: "Propel ROI · Factorial", fact_sub: "Gerado a partir de conversas e benchmarks do setor", replaces: "Substitui", estimated: "estimado", badge_fact: "FACTO", badge_assumption: "ESTIMATIVA", method_short: "Estimativas conservadoras baseadas em conversas e benchmarks de empresas similares. Requerem validação conjunta com o cliente." },
   };
   const L = UI[lang] ?? UI.es;
   const country = (hs.country ?? "ES").substring(0, 2).toUpperCase();
@@ -494,8 +494,8 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #FF355E;">
     <img src="https://factorialhr.com/images/factorial-logo.svg" alt="Factorial" style="height:22px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:17px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</div>
     <div style="text-align:right;">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">Análisis ROI Estimado</div>
-      <div style="font-size:11px;color:#9999BB;margin-top:3px;">${esc(date)} · Confidencial</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.title}</div>
+      <div style="font-size:11px;color:#9999BB;margin-top:3px;">${esc(date)} · ${L.confidential}</div>
     </div>
   </div>
   <!-- Company -->
@@ -516,42 +516,42 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   const modulesHeaderHtml = `
   <div style="margin-top:16px;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">Módulos recomendados y ahorro estimado</div>
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#CCCCDD;">Ahorro anual</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.modules_header}</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#CCCCDD;">${L.savings_col}</div>
     </div>
-    <div style="font-size:9px;color:#AAAACC;font-style:italic;margin-bottom:3px;">Todo el ahorro está basado en estimaciones de horas/mes por tipo de trabajador</div>`;
+    <div style="font-size:9px;color:#AAAACC;font-style:italic;margin-bottom:3px;">${L.modules_sub}</div>`;
 
   const roiHtml = `
   <!-- ROI Summary -->
   <div style="margin-top:24px;padding:20px 24px;background:#F8F8FC;border-radius:6px;">
-    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9999BB;margin-bottom:16px;">Retorno de la inversión estimado</div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9999BB;margin-bottom:16px;">${L.roi_header}</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
-      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">Ahorro total</div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.total_savings}</div>
         <div style="font-size:22px;font-weight:800;color:#FF355E;letter-spacing:-.03em;margin-top:4px;">€${fmtEur(roi.total_savings)}</div>
-        <div style="font-size:10px;color:#AAAACC;">/año</div></div>
-      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">Inversión</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.per_year}</div></div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.investment}</div>
         <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">€${fmtEur(roi.annual_cost)}</div>
-        <div style="font-size:10px;color:#AAAACC;">/año</div></div>
-      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">ROI estimado</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.per_year}</div></div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.roi_est}</div>
         <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">${roi.roi_pct > 0 ? roi.roi_pct + "%" : "—"}</div>
-        <div style="font-size:10px;color:#AAAACC;">retorno neto</div></div>
-      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">Payback</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.net_return}</div></div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.payback}</div>
         <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:4px;">${roi.payback_months}</div>
-        <div style="font-size:10px;color:#AAAACC;">meses</div></div>
+        <div style="font-size:10px;color:#AAAACC;">${L.months}</div></div>
     </div>
   </div>
   <!-- Methodology -->
   <div style="margin-top:16px;padding:14px 18px;background:#F4F4FA;border-radius:5px;">
     <p style="font-size:10.5px;color:#9999BB;line-height:1.7;">
-      <strong style="color:#8888AA;">Asunciones:</strong> Las horas indicadas son estimaciones conservadoras del tiempo que Factorial libera mensualmente por tipo de trabajador. Todas las cifras son asunciones basadas en benchmarks de empresas de tamaño similar, salvo donde se indique "basado en conversaciones". Requieren validación conjunta con el cliente.
+      <strong style="color:#8888AA;">${L.methodology}:</strong> ${L.methodology_body}
       <br style="margin-bottom:4px;">
-      <span style="display:inline-block;margin-top:5px;">Personal asumido: <strong style="color:#8888AA;">${roi.headcounts.employee} empleados</strong> · <strong style="color:#8888AA;">${roi.headcounts.hr} admin de RRHH</strong> · <strong style="color:#8888AA;">${roi.headcounts.manager} responsables</strong> · Coste horario: <strong style="color:#8888AA;">€${roi.hourly_costs.employee}/h empleado</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.hr}/h admin</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.manager}/h responsable</strong></span>
+      <span style="display:inline-block;margin-top:5px;">${L.staff_assumed}: <strong style="color:#8888AA;">${roi.headcounts.employee} ${L.employees}</strong> · <strong style="color:#8888AA;">${roi.headcounts.hr} ${L.hr_admin}</strong> · <strong style="color:#8888AA;">${roi.headcounts.manager} ${L.managers}</strong> · ${L.hourly_cost}: <strong style="color:#8888AA;">€${roi.hourly_costs.employee}/${L.per_emp}</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.hr}/${L.per_hr}</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.manager}/${L.per_mgr}</strong></span>
     </p>
   </div>
   <!-- Footer -->
   <div style="margin-top:18px;padding-top:12px;border-top:1px solid #EBEBF0;display:flex;justify-content:space-between;align-items:center;">
-    <div style="font-size:10px;font-weight:800;color:#FF355E;">Propel ROI · Factorial</div>
-    <div style="font-size:10px;color:#CCCCDD;">Generado a partir de conversaciones y benchmarks del sector</div>
+    <div style="font-size:10px;font-weight:800;color:#FF355E;">${L.fact_label}</div>
+    <div style="font-size:10px;color:#CCCCDD;">${L.fact_sub}</div>
   </div>`;
 
   // Build pages HTML — each page is a self-contained .page div
@@ -634,8 +634,8 @@ body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-
   <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:2px solid #FF355E;">
     <div style="font-size:18px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</div>
     <div style="text-align:right;">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">Análisis ROI Estimado</div>
-      <div style="font-size:11px;color:#9999BB;margin-top:3px;">${esc(date)} · Confidencial</div>
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.title}</div>
+      <div style="font-size:11px;color:#9999BB;margin-top:3px;">${esc(date)} · ${L.confidential}</div>
     </div>
   </div>
 
@@ -657,53 +657,47 @@ body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-
 
   <!-- Modules (with integrated pains) -->
   <div style="margin-top:24px;">
-    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;padding-bottom:8px;border-bottom:1px solid #FFB8C8;">Módulos recomendados y ahorro estimado</div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;padding-bottom:8px;border-bottom:1px solid #FFB8C8;">${L.modules_header}</div>
     ${modulesHtml}
   </div>
 
   <!-- ROI Summary -->
   <div style="margin-top:28px;padding:24px 28px;background:#F8F8FC;border-radius:8px;">
-    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9999BB;margin-bottom:20px;">Retorno de la inversión estimado</div>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9999BB;margin-bottom:20px;">${L.roi_header}</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;">
       <div>
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">Ahorro total</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">${L.total_savings}</div>
         <div style="font-size:24px;font-weight:800;color:#FF355E;letter-spacing:-.03em;margin-top:5px;">€${fmtEur(roi.total_savings)}</div>
-        <div style="font-size:11px;color:#9999BB;">/año</div>
+        <div style="font-size:11px;color:#9999BB;">${L.per_year}</div>
       </div>
       <div>
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">Inversión</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">${L.investment}</div>
         <div style="font-size:24px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:5px;">€${fmtEur(roi.annual_cost)}</div>
-        <div style="font-size:11px;color:#9999BB;">/año</div>
+        <div style="font-size:11px;color:#9999BB;">${L.per_year}</div>
       </div>
       <div>
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">ROI estimado</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">${L.roi_est}</div>
         <div style="font-size:24px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:5px;">${roi.roi_pct > 0 ? roi.roi_pct + "%" : "—"}</div>
-        <div style="font-size:11px;color:#9999BB;">retorno neto</div>
+        <div style="font-size:11px;color:#9999BB;">${L.net_return}</div>
       </div>
       <div>
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">Payback</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;">${L.payback}</div>
         <div style="font-size:24px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:5px;">${roi.payback_months}</div>
-        <div style="font-size:11px;color:#9999BB;">meses</div>
+        <div style="font-size:11px;color:#9999BB;">${L.months}</div>
       </div>
     </div>
   </div>
 
   <!-- Methodology -->
   <div style="margin-top:20px;padding:18px 22px;background:#F4F4FA;border-radius:6px;">
-    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;margin-bottom:8px;">Metodología</div>
-    <p style="font-size:11px;color:#8888AA;line-height:1.7;">
-      Análisis basado en conversaciones registradas
-      <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 5px;border-radius:3px;background:#D1FAE5;color:#065F46;">HECHO</span>
-      y benchmarks de empresas de tamaño similar
-      <span style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 5px;border-radius:3px;background:#FEF3C7;color:#92400E;">ASUNCIÓN</span>.
-      Estimaciones conservadoras. Las cifras representan el orden de magnitud, no valores exactos. Requieren validación conjunta.
-    </p>
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#9999BB;margin-bottom:8px;">${L.methodology}</div>
+    <p style="font-size:11px;color:#8888AA;line-height:1.7;">${L.method_short}</p>
   </div>
 
   <!-- Footer -->
   <div style="margin-top:20px;padding-top:14px;border-top:1px solid #E8E8F0;display:flex;justify-content:space-between;align-items:center;">
-    <div style="font-size:10px;font-weight:800;color:#FF355E;">Propel ROI · Factorial</div>
-    <div style="font-size:10px;color:#AAAACC;">Generado a partir de conversaciones y benchmarks del sector</div>
+    <div style="font-size:10px;font-weight:800;color:#FF355E;">${L.fact_label}</div>
+    <div style="font-size:10px;color:#AAAACC;">${L.fact_sub}</div>
   </div>
 
 </div>
