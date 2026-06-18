@@ -469,7 +469,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
         : "";
 
     return `
-    <div style="padding:5px 0;border-bottom:1px solid #C8C8D8;page-break-inside:avoid;">
+    <div style="padding:8px 0;border-bottom:1px solid #C8C8D8;page-break-inside:avoid;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;">
         <div style="display:flex;align-items:baseline;gap:10px;flex:1;min-width:0;">
           <span style="font-size:10px;font-weight:800;color:#FF355E;letter-spacing:.02em;flex-shrink:0;">${num}</span>
@@ -491,64 +491,67 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
 
   const headerHtml = `
   <!-- Header -->
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:2px solid #FF355E;">
-    <img src="https://factorialhr.com/images/factorial-logo.svg" alt="Factorial" style="height:20px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:16px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #FF355E;">
+    <img src="https://factorialhr.com/images/factorial-logo.svg" alt="Factorial" style="height:22px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:17px;font-weight:800;color:#FF355E;letter-spacing:-.03em;">factorial</div>
     <div style="text-align:right;">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.title}</div>
-      <div style="font-size:10px;color:#9999BB;margin-top:2px;">${esc(date)} · ${L.confidential}</div>
+      <div style="font-size:11px;color:#9999BB;margin-top:3px;">${esc(date)} · ${L.confidential}</div>
     </div>
   </div>
   <!-- Company -->
-  <div style="margin-top:10px;">
-    <div style="font-size:22px;font-weight:800;color:#1A1A2E;letter-spacing:-.025em;line-height:1.1;">${esc(hs.company_name ?? hs.deal_name ?? "")}</div>
-    <div style="font-size:11px;color:#8888AA;margin-top:4px;display:flex;gap:10px;flex-wrap:wrap;">
+  <div style="margin-top:18px;">
+    <div style="font-size:27px;font-weight:800;color:#1A1A2E;letter-spacing:-.025em;line-height:1.1;">${esc(hs.company_name ?? hs.deal_name ?? "")}</div>
+    <div style="font-size:12px;color:#8888AA;margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;">
       ${hs.employees ? `<span><strong style="color:#1A1A2E;">${hs.employees}</strong> ${L.employees}</span>` : ""}
       ${hs.country ? `<span>${countryLabel(country)}</span>` : ""}
       ${hs.industry ? `<span>${esc(hs.industry)}</span>` : ""}
     </div>
   </div>
   <!-- Context -->
-  <div style="margin-top:8px;padding-bottom:8px;border-bottom:1px solid #DDDDE8;">
-    <p style="font-size:10px;line-height:1.4;color:#8888AA;">${esc(analysis.company_context ?? "")}</p>
+  <div style="margin-top:14px;padding-bottom:12px;border-bottom:1px solid #DDDDE8;">
+    <div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;margin-bottom:5px;">${L.context}</div>
+    <p style="font-size:11px;line-height:1.5;color:#8888AA;">${esc(analysis.company_context ?? "")}</p>
   </div>`;
 
   const modulesHeaderHtml = `
-  <div style="margin-top:10px;">
+  <div style="margin-top:16px;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.modules_header}</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#FF355E;">${L.modules_header}</div>
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#CCCCDD;">${L.savings_col}</div>
     </div>
-    <div style="font-size:8.5px;color:#AAAACC;font-style:italic;margin-bottom:2px;">${L.modules_sub}</div>`;
+    <div style="font-size:9px;color:#AAAACC;font-style:italic;margin-bottom:3px;">${L.modules_sub}</div>`;
 
   const roiHtml = `
   <!-- ROI Summary -->
-  <div style="margin-top:14px;padding:12px 18px;background:#F8F8FC;border-radius:6px;">
-    <div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9999BB;margin-bottom:10px;">${L.roi_header}</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
-      <div><div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.total_savings}</div>
-        <div style="font-size:19px;font-weight:800;color:#FF355E;letter-spacing:-.03em;margin-top:2px;">€${fmtEur(roi.total_savings)}</div>
-        <div style="font-size:9px;color:#AAAACC;">${L.per_year}</div></div>
-      <div><div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.investment}</div>
-        <div style="font-size:19px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:2px;">€${fmtEur(roi.annual_cost)}</div>
-        <div style="font-size:9px;color:#AAAACC;">${L.per_year}</div></div>
-      <div><div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.roi_est}</div>
-        <div style="font-size:19px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:2px;">${roi.roi_pct > 0 ? roi.roi_pct + "%" : "—"}</div>
-        <div style="font-size:9px;color:#AAAACC;">${L.net_return}</div></div>
-      <div><div style="font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.payback}</div>
-        <div style="font-size:19px;font-weight:800;color:#1A1A2E;letter-spacing:-.03em;margin-top:2px;">${roi.payback_months}</div>
-        <div style="font-size:9px;color:#AAAACC;">${L.months}</div></div>
+  <div style="margin-top:24px;padding:20px 24px;background:#F8F8FC;border-radius:6px;">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9999BB;margin-bottom:16px;">${L.roi_header}</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.total_savings}</div>
+        <div style="font-size:22px;font-weight:800;color:#FF355E;margin-top:4px;">€${fmtEur(roi.total_savings)}</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.per_year}</div></div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.investment}</div>
+        <div style="font-size:22px;font-weight:800;color:#1A1A2E;margin-top:4px;">€${fmtEur(roi.annual_cost)}</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.per_year}</div></div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.roi_est}</div>
+        <div style="font-size:22px;font-weight:800;color:#1A1A2E;margin-top:4px;">${roi.roi_pct > 0 ? roi.roi_pct + "%" : "—"}</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.net_return}</div></div>
+      <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AAAACC;">${L.payback}</div>
+        <div style="font-size:22px;font-weight:800;color:#1A1A2E;margin-top:4px;">${roi.payback_months}</div>
+        <div style="font-size:10px;color:#AAAACC;">${L.months}</div></div>
     </div>
   </div>
-  <!-- Methodology (compact single line) -->
-  <div style="margin-top:8px;padding:6px 12px;background:#F4F4FA;border-radius:4px;">
-    <p style="font-size:9px;color:#AAAACC;line-height:1.5;">
-      <strong style="color:#9999BB;">${L.methodology}:</strong> ${L.method_short} · ${L.staff_assumed}: ${roi.headcounts.employee} ${L.employees} · ${roi.headcounts.hr} ${L.hr_admin} · ${roi.headcounts.manager} ${L.managers} · €${roi.hourly_costs.employee}/${L.per_emp} · €${roi.hourly_costs.hr}/${L.per_hr} · €${roi.hourly_costs.manager}/${L.per_mgr}
+  <!-- Methodology -->
+  <div style="margin-top:16px;padding:14px 18px;background:#F4F4FA;border-radius:5px;">
+    <p style="font-size:10.5px;color:#9999BB;line-height:1.7;">
+      <strong style="color:#8888AA;">${L.methodology}:</strong> ${L.methodology_body}
+      <br style="margin-bottom:4px;">
+      <span style="display:inline-block;margin-top:5px;">${L.staff_assumed}: <strong style="color:#8888AA;">${roi.headcounts.employee} ${L.employees}</strong> · <strong style="color:#8888AA;">${roi.headcounts.hr} ${L.hr_admin}</strong> · <strong style="color:#8888AA;">${roi.headcounts.manager} ${L.managers}</strong> · ${L.hourly_cost}: <strong style="color:#8888AA;">€${roi.hourly_costs.employee}/${L.per_emp}</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.hr}/${L.per_hr}</strong> · <strong style="color:#8888AA;">€${roi.hourly_costs.manager}/${L.per_mgr}</strong></span>
     </p>
   </div>
   <!-- Footer -->
-  <div style="margin-top:10px;padding-top:8px;border-top:1px solid #DDDDE8;display:flex;justify-content:space-between;align-items:center;">
-    <div style="font-size:9px;font-weight:800;color:#FF355E;">${L.fact_label}</div>
-    <div style="font-size:9px;color:#CCCCDD;">${L.fact_sub}</div>
+  <div style="margin-top:18px;padding-top:12px;border-top:1px solid #DDDDE8;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:10px;font-weight:800;color:#FF355E;">${L.fact_label}</div>
+    <div style="font-size:10px;color:#CCCCDD;">${L.fact_sub}</div>
   </div>`;
 
   // Build pages HTML — each page is a self-contained .page div
@@ -592,10 +595,10 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { background: #E4E4EC; min-height: 100%; }
 body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.page { width: 210mm; min-height: 297mm; margin: 24px auto; background: #fff; padding: 10mm 14mm 11mm; box-shadow: 0 4px 32px rgba(0,0,0,.14); }
+.page { width: 210mm; min-height: 297mm; margin: 24px auto; background: #fff; padding: 16mm 18mm 18mm; box-shadow: 0 4px 32px rgba(0,0,0,.14); }
 @media print {
   html { background: #fff; }
-  .page { margin: 0; box-shadow: none; width: 100%; padding: 10mm 14mm 11mm; page-break-after: always; }
+  .page { margin: 0; box-shadow: none; width: 100%; padding: 14mm 18mm; page-break-after: always; }
   .page:last-child { page-break-after: avoid; }
 }
 </style>
