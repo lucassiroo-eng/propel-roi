@@ -1,10 +1,11 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Settings, ShieldCheck, BarChart3, LogOut } from "lucide-react";
+import { Home, Settings, ShieldCheck, BarChart3, LogOut, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { isXLUser } from "@/lib/xlSpace";
 
 const LANG_FLAG: Record<string, string> = {
   en: "\u{1F1EC}\u{1F1E7}", es: "\u{1F1EA}\u{1F1F8}", fr: "\u{1F1EB}\u{1F1F7}",
@@ -35,6 +36,7 @@ export function AppHeader() {
 
   const links = [
     { path: "/", label: t("nav.home"), icon: Home },
+    ...(isXLUser(user?.email) ? [{ path: "/xl-space", label: "XL Space", icon: Zap }] : []),
     ...(isAdmin ? [{ path: "/admin", label: t("nav.admin"), icon: ShieldCheck }] : []),
     { path: "/settings", label: t("nav.settings"), icon: Settings },
   ];

@@ -1,5 +1,8 @@
 import { Analytics } from "@vercel/analytics/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import XLSpace from "@/pages/XLSpace";
+import XLCoCreation from "@/pages/XLCoCreation";
+import { isXLUser } from "@/lib/xlSpace";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,6 +22,15 @@ import { Loader2 } from "lucide-react";
 const queryClient = new QueryClient();
 
 const isPreview = window.location.hostname.includes("id-preview--") || window.location.hostname.includes("lovableproject.com") || window.location.hostname === "localhost";
+
+function RequireXL({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (isPreview) return <>{children}</>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isXLUser(user.email)) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -68,6 +80,8 @@ const App = () => (
             <Route path="/co-creation" element={<RequireAuth><CoCreation /></RequireAuth>} />
             <Route path="/mini-roi" element={<RequireAuth><MiniRoiPage /></RequireAuth>} />
             <Route path="/mini-roi/:id" element={<RequireAuth><MiniRoiPage /></RequireAuth>} />
+            <Route path="/xl-space" element={<RequireXL><XLSpace /></RequireXL>} />
+            <Route path="/xl-co-creation" element={<RequireXL><XLCoCreation /></RequireXL>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
