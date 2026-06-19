@@ -92,13 +92,15 @@ function emailToShortName(email: string): string {
 interface PipelineItem {
   id: string;
   company_name: string;
-  flow_type: 'express' | 'co_created' | null;
+  flow_type: 'express' | 'co_created' | 'mini_roi' | null;
   status: string;
   roi_pct: number;
   roi_eur: number;
   hubspot_deal_url: string | null;
   updated_at: string;
   pae_name: string;
+  pae_email: string;
+  country: string;
 }
 
 const COLORS = [
@@ -131,6 +133,9 @@ export default function AdminAnalytics() {
   const [dealStages, setDealStages] = useState<Record<string, { stage: string; closeDate: string | null; checking: boolean }>>({});
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalSelected, setModalSelected] = useState<Set<string>>(new Set());
+  const [filterCountry, setFilterCountry] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
+  const [filterUser, setFilterUser] = useState<string>("");
   const [tableOpen, setTableOpen] = useState(true);
   const [syncingAll, setSyncingAll] = useState(false);
   const [showDealModal, setShowDealModal] = useState(false);
@@ -170,11 +175,11 @@ export default function AdminAnalytics() {
     const prospectIds = [...new Set(sessions.map((s) => s.prospect_id).filter(Boolean))];
     const { data: prospects } = await supabase
       .from("prospects")
-      .select("id, company_name, hubspot_deal_url")
+      .select("id, company_name, hubspot_deal_url, country")
       .in("id", prospectIds);
 
-    const prospectMap = new Map<string, { company_name: string; hubspot_deal_url: string | null }>(
-      (prospects ?? []).map((p) => [p.id, { company_name: p.company_name, hubspot_deal_url: p.hubspot_deal_url ?? null }])
+    const prospectMap = new Map<string, { company_name: string; hubspot_deal_url: string | null; country: string }>(
+      (prospects ?? []).map((p) => [p.id, { company_name: p.company_name, hubspot_deal_url: p.hubspot_deal_url ?? null, country: p.country ?? "" }])
     );
 
     const paeIds = [...new Set(sessions.map((s) => s.pae_id).filter(Boolean))];
@@ -187,13 +192,15 @@ export default function AdminAnalytics() {
     const items: PipelineItem[] = sessions.map((s) => ({
       id: s.id,
       company_name: prospectMap.get(s.prospect_id)?.company_name ?? "—",
-      flow_type: (s.flow_type as 'express' | 'co_created' | null) ?? null,
+      flow_type: (s.flow_type as 'express' | 'co_created' | 'mini_roi' | null) ?? null,
       status: s.status ?? "",
       roi_pct: s.roi_pct ?? 0,
       roi_eur: s.roi_eur ?? 0,
       hubspot_deal_url: prospectMap.get(s.prospect_id)?.hubspot_deal_url ?? null,
       updated_at: s.updated_at ?? s.created_at ?? "",
       pae_name: emailToShortName(emailMap.get(s.pae_id) ?? ""),
+      pae_email: emailMap.get(s.pae_id) ?? "",
+      country: prospectMap.get(s.prospect_id)?.country ?? "",
     }));
 
     setPipelineGenerated(
@@ -636,47 +643,128 @@ export default function AdminAnalytics() {
       </Card>
 
       {/* Add ROIs modal */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
-        <DialogContent className="max-w-md">
+      <Dialog open={showAddModal} onOpenChange={(o) => { setShowAddModal(o); if (!o) { setFilterCountry(""); setFilterType(""); setFilterUser(""); } }}>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle className="text-sm font-semibold">Añadir ROIs enviados</DialogTitle>
           </DialogHeader>
-          <div className="space-y-1 max-h-72 overflow-y-auto -mx-1 px-1">
-            {pipelineGeneratedByCompany.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">No hay ROIs pendientes de envío</p>
-            ) : (
-              pipelineGeneratedByCompany.map((item) => {
-                const checked = modalSelected.has(item.id);
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setModalSelected(prev => {
-                      const next = new Set(prev);
-                      if (next.has(item.id)) next.delete(item.id); else next.add(item.id);
-                      return next;
-                    })}
-                    className={cn("w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted/40", checked && "bg-primary/5")}
-                  >
-                    {checked
-                      ? <CheckSquare className="h-4 w-4 text-primary shrink-0" />
-                      : <Square className="h-4 w-4 text-muted-foreground shrink-0" />}
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium text-foreground truncate block">{item.company_name}</span>
-                      <span className="text-[10px] text-muted-foreground">{item.updated_at ? new Date(item.updated_at).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }) : ""}</span>
-                    </div>
-                    {item.flow_type === "co_created" ? (
-                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>Co-creado</span>
-                    ) : item.flow_type === "express" ? (
-                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>Express</span>
-                    ) : null}
-                    {item.roi_pct > 0 && (
-                      <span className="text-xs font-bold tabular-nums shrink-0" style={{ color: "oklch(48% 0.16 145)" }}>+{item.roi_pct}%</span>
+
+          {/* Filter pills */}
+          {(() => {
+            const allItems = pipelineGeneratedByCompany;
+            const countries = [...new Set(allItems.map(i => i.country).filter(Boolean))].sort();
+            const types = [...new Set(allItems.map(i => i.flow_type).filter(Boolean))] as string[];
+            const users = [...new Set(allItems.map(i => i.pae_email).filter(Boolean))].sort();
+            const typeLabel = (t: string) => t === "co_created" ? "Co-creado" : t === "mini_roi" ? "Asunciones" : t === "express" ? "Express" : t;
+
+            const filtered = allItems
+              .filter(i => !filterCountry || i.country === filterCountry)
+              .filter(i => !filterType || i.flow_type === filterType)
+              .filter(i => !filterUser || i.pae_email === filterUser)
+              .sort((a, b) => b.updated_at.localeCompare(a.updated_at));
+
+            const pill = (label: string, active: boolean, onClick: () => void) => (
+              <button
+                key={label}
+                onClick={onClick}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold transition-colors border",
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                )}
+              >
+                {label}
+              </button>
+            );
+
+            return (
+              <>
+                {(countries.length > 1 || types.length > 1 || users.length > 1) && (
+                  <div className="flex flex-wrap gap-1.5 pb-2 border-b border-border/40">
+                    {countries.length > 1 && (
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mr-0.5">País</span>
+                        {countries.map(c => pill(c, filterCountry === c, () => setFilterCountry(prev => prev === c ? "" : c)))}
+                      </div>
                     )}
-                  </button>
-                );
-              })
-            )}
-          </div>
+                    {types.length > 1 && (
+                      <div className="flex items-center gap-1 flex-wrap ml-2">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mr-0.5">Tipo</span>
+                        {types.map(t => pill(typeLabel(t), filterType === t, () => setFilterType(prev => prev === t ? "" : t)))}
+                      </div>
+                    )}
+                    {users.length > 1 && (
+                      <div className="flex items-center gap-1 flex-wrap ml-2">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mr-0.5">AE</span>
+                        {users.map(u => pill(emailToShortName(u), filterUser === u, () => setFilterUser(prev => prev === u ? "" : u)))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-0.5 max-h-[480px] overflow-y-auto -mx-1 px-1">
+                  {filtered.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">No hay ROIs con estos filtros</p>
+                  ) : (
+                    filtered.map((item) => {
+                      const checked = modalSelected.has(item.id);
+                      const typeLabel2 = item.flow_type === "co_created" ? "Co-creado" : item.flow_type === "mini_roi" ? "Asunciones" : item.flow_type === "express" ? "Express" : null;
+                      const typeColor = item.flow_type === "co_created"
+                        ? { bg: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }
+                        : item.flow_type === "mini_roi"
+                        ? { bg: "oklch(94% 0.04 145)", color: "oklch(38% 0.14 145)" }
+                        : { bg: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" };
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setModalSelected(prev => {
+                            const next = new Set(prev);
+                            if (next.has(item.id)) next.delete(item.id); else next.add(item.id);
+                            return next;
+                          })}
+                          className={cn("w-full flex items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted/40", checked && "bg-primary/5 ring-1 ring-primary/20")}
+                        >
+                          {checked
+                            ? <CheckSquare className="h-4 w-4 text-primary shrink-0" />
+                            : <Square className="h-4 w-4 text-muted-foreground shrink-0" />}
+
+                          {/* Company + date */}
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm font-semibold text-foreground truncate block">{item.company_name}</span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {item.updated_at ? new Date(item.updated_at).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                            </span>
+                          </div>
+
+                          {/* Country */}
+                          {item.country && (
+                            <span className="text-[11px] font-semibold text-muted-foreground shrink-0 w-7 text-center">{item.country}</span>
+                          )}
+
+                          {/* Flow type badge */}
+                          {typeLabel2 && (
+                            <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0" style={{ backgroundColor: typeColor.bg, color: typeColor.color }}>{typeLabel2}</span>
+                          )}
+
+                          {/* ROI % */}
+                          {item.roi_pct > 0 && (
+                            <span className="text-xs font-bold tabular-nums shrink-0 w-12 text-right" style={{ color: "oklch(48% 0.16 145)" }}>+{item.roi_pct}%</span>
+                          )}
+
+                          {/* User */}
+                          {item.pae_email && (
+                            <span className="text-[10px] font-medium text-muted-foreground shrink-0 max-w-[80px] truncate" title={item.pae_email}>{item.pae_name}</span>
+                          )}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            );
+          })()}
+
           <div className="flex items-center justify-between pt-2 border-t border-border/50">
             <span className="text-xs text-muted-foreground">{modalSelected.size} seleccionados</span>
             <div className="flex gap-2">
@@ -689,7 +777,7 @@ export default function AdminAnalytics() {
                 className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {movingToSent ? <RefreshCw className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                Aceptar
+                Añadir a pipeline
               </button>
             </div>
           </div>
