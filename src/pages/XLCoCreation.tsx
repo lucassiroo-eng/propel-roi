@@ -1239,22 +1239,33 @@ export default function XLCoCreation() {
             {/* Edit presentation — XL */}
             <button
               onClick={() => setShowPresEditor(true)}
-              className="w-full rounded-2xl border-2 border-violet-200 bg-violet-50 hover:bg-violet-100 hover:border-violet-400 p-4 text-left transition-all group active:scale-[0.99]"
+              className="w-full rounded-2xl p-4 text-left transition-all group active:scale-[0.99] relative overflow-hidden"
+              style={{ background: "oklch(16% 0.025 290)", border: "1px solid oklch(24% 0.03 290)" }}
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
-                  <Eye className="h-5 w-5 text-white" />
+              {/* Subtle gradient accent */}
+              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ background: "radial-gradient(ellipse at 80% 50%, oklch(55% 0.22 290), transparent 70%)" }} />
+              <div className="relative flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "oklch(55% 0.22 290)" }}>
+                  <Eye className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-violet-900">Editar presentación</p>
-                  <p className="text-xs text-violet-600 mt-0.5">Preview del deck, slides de producto, argumentaciones, Modjo</p>
+                  <p className="text-[13px] font-bold" style={{ color: "oklch(90% 0.04 290)" }}>Editar presentación</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: "oklch(60% 0.04 290)" }}>Preview · slides · argumentos · Modjo</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-violet-400 group-hover:text-violet-600 transition-colors" />
+                <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" style={{ color: "oklch(55% 0.22 290)" }} />
               </div>
               {(enhancedDescriptions || hiddenSlideIds.size > 0) && (
-                <div className="flex gap-2 mt-2 ml-13">
-                  {enhancedDescriptions && <span className="text-[10px] font-bold text-violet-600 bg-violet-200 px-2 py-0.5 rounded-full flex items-center gap-1"><Sparkles className="h-2.5 w-2.5" /> Mejorado con Modjo</span>}
-                  {hiddenSlideIds.size > 0 && <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{hiddenSlideIds.size} slides ocultas</span>}
+                <div className="relative flex gap-2 mt-3 pl-12">
+                  {enhancedDescriptions && (
+                    <span className="text-[10px] font-semibold flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ color: "oklch(75% 0.15 290)", background: "oklch(22% 0.04 290)" }}>
+                      <Sparkles className="h-2.5 w-2.5" /> Modjo activo
+                    </span>
+                  )}
+                  {hiddenSlideIds.size > 0 && (
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ color: "oklch(72% 0.14 60)", background: "oklch(22% 0.04 60)" }}>
+                      {hiddenSlideIds.size} slides ocultas
+                    </span>
+                  )}
                 </div>
               )}
             </button>

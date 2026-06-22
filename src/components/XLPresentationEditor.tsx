@@ -1,18 +1,33 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { X, ChevronLeft, ChevronRight, Loader2, Search, Sparkles, Check, Eye, EyeOff, Edit3, RefreshCw } from "lucide-react";
-import { generateDeckHtml, type XLDeckOptions } from "@/lib/generateRoiDeck";
+import { useState, useEffect, useRef, useMemo, useCallback, forwardRef } from "react";
+import { X, Loader2, Search, Sparkles, Check, Eye, EyeOff, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { generateDeckHtml, generateDeckPdf, type XLDeckOptions } from "@/lib/generateRoiDeck";
+import { buildRoiSlideData } from "@/lib/generateRoiSlide";
 import { getSavingsDescriptions } from "@/lib/moduleHours";
 import { MODULE_INFO, getLocalized } from "@/lib/discoveryQuestions";
 import type { RoiSlideData, RoiSlideInput } from "@/lib/generateRoiSlide";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
-interface ModjoCall {
-  callId: number;
-  title: string;
-  date: string;
-  duration: number;
-}
+// ── Tokens (warm-slate dark — not blue-grey) ──────────────────────────────
+const T = {
+  bg:       "#0E0E13",
+  surface:  "#15151D",
+  panel:    "#12121A",
+  border:   "#252530",
+  borderHi: "#36364A",
+  text:     "#E4E4F0",
+  muted:    "#62627A",
+  faint:    "#2E2E3E",
+  violet:   "#7C3AED",
+  violetLo: "#1E1430",
+  coral:    "#FF355E",
+} as const;
+
+// ── Slide geometry in deck coordinate space ───────────────────────────────
+// body { padding: 40px 0; gap: 40px }  .slide { height: 720px }
+// Slide 0: scrollTop = 0, Slide N: scrollTop = N * 760
+function slideScrollTop(n: number): number { return n * 760; }
+
+interface ModjoCall { callId: number; title: string; date: string; duration: number; }
 
 interface Props {
   roi: RoiSlideData;
@@ -36,354 +51,574 @@ interface Props {
 
 type Tab = "slides" | "args" | "modjo";
 
-export function XLPresentationEditor({
-  roi, input, enhancedDescriptions, hiddenSlideIds, modjoCalls,
-  selectedCallIds, modjoSearch, searchingCalls, personalizing,
-  onModjoSearch, onSearchCalls, onToggleCallId, onPersonalize,
-  onClearEnhanced, onSaveDescriptions, onHiddenChange, onClose,
-}: Props) {
+export function XLPresentationEditor(props: Props) {
+  const {
+    roi, input, enhancedDescriptions, hiddenSlideIds, modjoCalls,
+    selectedCallIds, modjoSearch, searchingCalls, personalizing,
+    onModjoSearch, onSearchCalls, onToggleCallId, onPersonalize,
+    onClearEnhanced, onSaveDescriptions, onHiddenChange, onClose,
+  } = props;
+
   const [tab, setTab] = useState<Tab>("slides");
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [totalSlides, setTotalSlides] = useState(3);
   const [localHidden, setLocalHidden] = useState<Set<string>>(new Set(hiddenSlideIds));
   const [editedDescs, setEditedDescs] = useState<Record<string, Record<string, string>>>({});
-  const [totalSlides, setTotalSlides] = useState(3);
+  const [downloading, setDownloading] = useState<"summary" | "full" | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-
   const lang = (input.language ?? "es").slice(0, 2);
 
-  // Build deck HTML with current options
+  // Build merged deck HTML
   const deckHtml = useMemo(() => {
     const mergedDescs = mergeDescriptions(enhancedDescriptions, editedDescs);
-    const inp = { ...input, customDescriptions: mergedDescs || undefined };
-    return generateDeckHtml(roi, inp, "full", { hiddenSlideIds: localHidden });
+    return generateDeckHtml(roi, { ...input, customDescriptions: mergedDescs || undefined }, "full", { hiddenSlideIds: localHidden });
   }, [roi, input, enhancedDescriptions, editedDescs, localHidden]);
 
-  // Extract tool modules (product slides that can be hidden)
-  const toolModuleIds = useMemo(() => {
-    return (roi.modules ?? []).filter((m: any) => m.tool_override).map((m: any) => m.id) as string[];
-  }, [roi]);
-
-  // Count total slides from the HTML
+  // Count slides in rendered HTML
   useEffect(() => {
-    const matches = deckHtml.match(/class="slide"/g);
-    if (matches) setTotalSlides(matches.length);
+    const n = (deckHtml.match(/class="slide"/g) ?? []).length;
+    if (n) { setTotalSlides(n); setSlideIdx(i => Math.min(i, n - 1)); }
   }, [deckHtml]);
 
-  // Load deck into iframe
+  // Write deck HTML into iframe
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    const doc = iframe.contentDocument;
+    const doc = iframeRef.current?.contentDocument;
     if (!doc) return;
-    doc.open();
-    doc.write(deckHtml);
-    doc.close();
-  }, [deckHtml]);
+    doc.open(); doc.write(deckHtml); doc.close();
+    // After write, scroll to current slide
+    setTimeout(() => scrollToSlide(slideIdx), 150);
+  }, [deckHtml]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  function toggleHidden(id: string) {
-    setLocalHidden(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+  // Scroll iframe to the right slide
+  const scrollToSlide = useCallback((idx: number) => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.scrollTo({ top: slideScrollTop(idx), behavior: "smooth" });
+  }, []);
+
+  function goSlide(delta: number) {
+    setSlideIdx(i => {
+      const next = Math.max(0, Math.min(totalSlides - 1, i + delta));
+      scrollToSlide(next);
       return next;
     });
   }
 
-  function applyHidden() {
-    onHiddenChange(new Set(localHidden));
+  // Keyboard navigation
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") goSlide(1);
+      if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   goSlide(-1);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, totalSlides]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tool modules — can have their product slides hidden
+  const toolModuleIds = useMemo(
+    () => (roi.modules ?? []).filter((m: any) => m.tool_override).map((m: any) => m.id as string),
+    [roi]
+  );
+
+  function toggleHidden(id: string) {
+    setLocalHidden(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }
+  function applyHidden() { onHiddenChange(new Set(localHidden)); }
+
+  // Editable argumentations
+  const moduleArgs = useMemo(() => {
+    const baseLang = (lang === "es" || lang === "en") ? lang : "es";
+    const base = getSavingsDescriptions(baseLang);
+    return (input.configModules ?? []).map(id => {
+      const info = MODULE_INFO[id];
+      const name = info ? getLocalized(info.label, lang) : id;
+      const stakes = (["employee", "hr", "manager"] as const).map(s => {
+        const enh   = enhancedDescriptions?.[id]?.[s]?.[0] ?? null;
+        const edited = editedDescs[id]?.[s] ?? null;
+        const def   = base[id]?.[s]?.[0] ?? "";
+        return { s, value: edited ?? enh ?? def, isEnhanced: !!enh && !edited, isEdited: !!edited };
+      }).filter(r => r.value);
+      return { id, name, stakes };
+    }).filter(m => m.stakes.length > 0);
+  }, [input.configModules, lang, enhancedDescriptions, editedDescs]);
+
+  function setDesc(modId: string, stake: string, val: string) {
+    setEditedDescs(prev => ({ ...prev, [modId]: { ...(prev[modId] ?? {}), [stake]: val } }));
   }
 
-  function saveEditedDescs() {
+  function saveDescs() {
     const merged = mergeDescriptions(enhancedDescriptions, editedDescs);
     if (merged) onSaveDescriptions(merged);
   }
 
-  // Per-module argument editors — load current descriptions
-  const moduleArgs = useMemo(() => {
-    const baseLang = lang === "es" || lang === "en" ? lang : "es";
-    const baseDescs = getSavingsDescriptions(baseLang);
-    const modules = input.configModules ?? [];
-    return modules.map(id => {
-      const info = MODULE_INFO[id];
-      const name = info ? getLocalized(info.label, lang) : id;
-      const stakeholders: Array<"employee" | "hr" | "manager"> = ["employee", "hr", "manager"];
-      const rows = stakeholders.map(s => {
-        const enhanced = enhancedDescriptions?.[id]?.[s]?.[0] ?? null;
-        const edited = editedDescs[id]?.[s] ?? null;
-        const base = baseDescs[id]?.[s]?.[0] ?? "";
-        return { stakeholder: s, value: edited ?? enhanced ?? base, isEnhanced: !!enhanced && !edited, isEdited: !!edited };
-      }).filter(r => r.value);
-      return { id, name, rows };
-    }).filter(m => m.rows.length > 0);
-  }, [input.configModules, lang, enhancedDescriptions, editedDescs]);
+  const hasDescEdits = Object.keys(editedDescs).length > 0;
+  const hiddenChanged = !setsEqual(localHidden, hiddenSlideIds);
 
-  const STAKE_LABEL: Record<string, string> = { employee: "Empleados", hr: "Admin RRHH", manager: "Managers" };
+  async function download(mode: "summary" | "full") {
+    setDownloading(mode);
+    try {
+      const mergedDescs = mergeDescriptions(enhancedDescriptions, editedDescs);
+      const inp = { ...input, customDescriptions: mergedDescs || undefined };
+      const data = buildRoiSlideData(inp);
+      await generateDeckPdf(data, inp, mode, { hiddenSlideIds: localHidden });
+    } finally { setDownloading(null); }
+  }
+
   const STAKE_COLOR: Record<string, string> = { employee: "#3B82F6", hr: "#10B981", manager: "#F59E0B" };
+  const STAKE_LABEL: Record<string, string> = { employee: "Empleados", hr: "Admin RRHH", manager: "Managers" };
 
   return (
-    <div className="fixed inset-0 z-50 flex" style={{ background: "oklch(14% 0.01 250)" }}>
-      {/* Left: slide preview */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Preview header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{ borderColor: "oklch(22% 0.01 250)", background: "oklch(16% 0.01 250)" }}>
-          <span className="text-sm font-semibold text-white/80">Preview del deck</span>
+    <div
+      className="fixed inset-0 z-[60] flex"
+      style={{ background: T.bg }}
+      onKeyDown={e => e.stopPropagation()}
+    >
+      {/* ── LEFT: Slide preview ─────────────────────────────── */}
+      <div className="flex flex-col flex-1 min-w-0" style={{ background: T.bg }}>
+
+        {/* Top bar */}
+        <div
+          className="flex items-center justify-between px-6 shrink-0"
+          style={{ height: 52, borderBottom: `1px solid ${T.border}`, background: T.surface }}
+        >
           <div className="flex items-center gap-3">
-            <span className="text-xs text-white/40">{totalSlides} slides</span>
-            <button onClick={onClose} className="h-8 w-8 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors">
-              <X className="h-4 w-4" />
+            <div className="w-2 h-2 rounded-full" style={{ background: T.coral }} />
+            <span className="text-[13px] font-semibold" style={{ color: T.text }}>Editor de presentación</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-medium tabular-nums" style={{ color: T.muted }}>
+              {slideIdx + 1} / {totalSlides}
+            </span>
+            <button
+              onClick={onClose}
+              className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
+              style={{ color: T.muted }}
+              onMouseEnter={e => (e.currentTarget.style.background = T.faint)}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            >
+              <X size={16} />
             </button>
           </div>
         </div>
 
-        {/* Iframe */}
-        <div className="flex-1 flex items-center justify-center p-6 overflow-hidden" style={{ background: "oklch(12% 0.008 250)" }}>
-          <div className="w-full" style={{ maxWidth: "min(100%, calc((100vh - 120px) * 16/9))" }}>
-            <div style={{ paddingBottom: "56.25%", position: "relative" }}>
-              <iframe
-                ref={iframeRef}
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none", borderRadius: 8, transform: "scale(1)", transformOrigin: "top left" }}
-                sandbox="allow-same-origin"
-                title="Deck preview"
-              />
+        {/* Slide stage */}
+        <div
+          className="flex-1 flex flex-col items-center justify-center relative"
+          style={{ background: T.bg, padding: "28px 32px" }}
+        >
+          {/* Slide frame */}
+          <div className="w-full" style={{ maxWidth: "min(100%, calc((100vh - 160px) * 16/9))" }}>
+            <div className="relative" style={{ paddingBottom: "56.25%", borderRadius: 8, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,.55)" }}>
+              <IframeScaled ref={iframeRef} />
             </div>
+          </div>
+
+          {/* Nav arrows */}
+          <div className="flex items-center gap-4 mt-5">
+            <button
+              onClick={() => goSlide(-1)}
+              disabled={slideIdx === 0}
+              className="flex items-center justify-center w-9 h-9 rounded-full transition-all disabled:opacity-25"
+              style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.text }}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            {/* Slide dots */}
+            <div className="flex items-center gap-1.5">
+              {Array.from({ length: totalSlides }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setSlideIdx(i); scrollToSlide(i); }}
+                  className="rounded-full transition-all"
+                  style={{
+                    width: i === slideIdx ? 20 : 6,
+                    height: 6,
+                    background: i === slideIdx ? T.coral : T.border,
+                  }}
+                />
+              ))}
+            </div>
+            <button
+              onClick={() => goSlide(1)}
+              disabled={slideIdx === totalSlides - 1}
+              className="flex items-center justify-center w-9 h-9 rounded-full transition-all disabled:opacity-25"
+              style={{ background: T.surface, border: `1px solid ${T.border}`, color: T.text }}
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
         </div>
 
-        <div className="shrink-0 flex items-center justify-center gap-2 py-3" style={{ background: "oklch(16% 0.01 250)" }}>
-          <span className="text-xs text-white/30">Usa Cmd+P desde el PDF para imprimir todas las slides</span>
+        {/* Download bar */}
+        <div
+          className="shrink-0 flex items-center gap-3 px-6 py-3"
+          style={{ borderTop: `1px solid ${T.border}`, background: T.surface }}
+        >
+          <span className="text-[11px] font-medium mr-2" style={{ color: T.muted }}>Descargar deck</span>
+          {(["summary", "full"] as const).map(mode => (
+            <button
+              key={mode}
+              onClick={() => download(mode)}
+              disabled={!!downloading}
+              className="flex items-center gap-1.5 rounded-lg px-3 h-8 text-xs font-semibold transition-all disabled:opacity-40"
+              style={{ background: T.faint, color: T.text, border: `1px solid ${T.border}` }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = T.borderHi)}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = T.border)}
+            >
+              {downloading === mode
+                ? <Loader2 size={12} className="animate-spin" />
+                : <Download size={12} />}
+              {mode === "summary" ? "1-Pager" : "Completo"}
+            </button>
+          ))}
+          <span className="text-[10px] ml-auto" style={{ color: T.muted }}>← → para navegar · Esc para cerrar</span>
         </div>
       </div>
 
-      {/* Right: controls panel */}
-      <div className="w-96 flex flex-col border-l shrink-0" style={{ borderColor: "oklch(22% 0.01 250)", background: "oklch(17% 0.01 250)" }}>
-        {/* Tabs */}
-        <div className="flex border-b shrink-0" style={{ borderColor: "oklch(22% 0.01 250)" }}>
+      {/* ── RIGHT: Controls ─────────────────────────────────── */}
+      <div
+        className="flex flex-col shrink-0"
+        style={{ width: 380, background: T.panel, borderLeft: `1px solid ${T.border}` }}
+      >
+        {/* Tab bar */}
+        <div
+          className="flex shrink-0"
+          style={{ borderBottom: `1px solid ${T.border}`, height: 48 }}
+        >
           {([
-            { id: "slides", label: "Slides" },
-            { id: "args", label: "Argumentaciones" },
-            { id: "modjo", label: "Modjo" },
-          ] as { id: Tab; label: string }[]).map(t => (
+            { id: "slides" as Tab, label: "Slides" },
+            { id: "args"   as Tab, label: "Argumentos" },
+            { id: "modjo"  as Tab, label: "Modjo" },
+          ]).map(({ id, label }) => (
             <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={cn(
-                "flex-1 py-3 text-xs font-semibold transition-colors",
-                tab === t.id
-                  ? "text-white border-b-2 border-violet-400"
-                  : "text-white/40 hover:text-white/70"
-              )}
+              key={id}
+              onClick={() => setTab(id)}
+              className="flex-1 text-xs font-semibold transition-colors relative"
+              style={{ color: tab === id ? T.text : T.muted }}
             >
-              {t.label}
+              {label}
+              {tab === id && (
+                <span
+                  className="absolute bottom-0 left-4 right-4 h-[2px] rounded-full"
+                  style={{ background: T.coral }}
+                />
+              )}
             </button>
           ))}
         </div>
 
         {/* Tab content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto" style={{ padding: "20px 16px" }}>
 
           {/* ── SLIDES TAB ── */}
           {tab === "slides" && (
-            <div className="space-y-3">
-              <div>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Slides fijas</p>
-                {["Cover", "Resumen ejecutivo (KPIs + desglose)", "Lista de módulos"].map((name, i) => (
-                  <div key={i} className="flex items-center gap-3 py-2 px-3 rounded-lg" style={{ background: "oklch(20% 0.01 250)" }}>
-                    <div className="w-5 h-5 rounded flex items-center justify-center bg-violet-500/20">
-                      <Check className="h-3 w-3 text-violet-400" />
-                    </div>
-                    <span className="text-xs text-white/70">{name}</span>
-                    <span className="ml-auto text-[10px] text-white/30">#{i + 1}</span>
-                  </div>
-                ))}
-              </div>
+            <div>
+              {/* Fixed slides */}
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: T.muted }}>Slides fijas</p>
+              {["Portada", "KPIs y desglose de ahorro", "Lista de módulos"].map((name, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 mb-1"
+                  style={{ background: T.faint }}
+                >
+                  <Check size={13} style={{ color: T.muted, flexShrink: 0 }} />
+                  <span className="text-[12px]" style={{ color: T.muted }}>{name}</span>
+                  <span className="ml-auto text-[10px]" style={{ color: T.muted }}>#{i + 1}</span>
+                </div>
+              ))}
 
+              {/* Tool slides */}
               {toolModuleIds.length > 0 && (
-                <div>
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 mt-4">Slides de producto (herramientas)</p>
-                  <p className="text-[10px] text-white/30 mb-3">Activa/desactiva slides de detalle para cada herramienta que Factorial reemplaza</p>
+                <>
+                  <div className="flex items-baseline gap-2 mt-5 mb-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.muted }}>Slides de producto</p>
+                    <span className="text-[10px]" style={{ color: T.muted }}>· herramientas reemplazadas</span>
+                  </div>
                   {toolModuleIds.map(id => {
                     const info = MODULE_INFO[id];
                     const name = info ? getLocalized(info.label, lang) : id;
-                    const isHidden = localHidden.has(id);
+                    const on = !localHidden.has(id);
                     return (
                       <button
                         key={id}
                         onClick={() => toggleHidden(id)}
-                        className="w-full flex items-center gap-3 py-2.5 px-3 rounded-lg mb-1.5 transition-colors"
-                        style={{ background: isHidden ? "oklch(20% 0.01 250)" : "oklch(22% 0.03 280)" }}
+                        className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 mb-1 text-left transition-all"
+                        style={{
+                          background: on ? "#1C1C2E" : T.faint,
+                          border: `1px solid ${on ? "#2E2E48" : T.border}`,
+                        }}
                       >
-                        <div className={cn("w-5 h-5 rounded border-2 flex items-center justify-center transition-colors", isHidden ? "border-white/20" : "border-violet-400 bg-violet-500")}>
-                          {!isHidden && <Check className="h-3 w-3 text-white" />}
+                        <div
+                          className="flex items-center justify-center w-4 h-4 rounded transition-colors flex-shrink-0"
+                          style={{
+                            background: on ? T.violet : "transparent",
+                            border: `1.5px solid ${on ? T.violet : T.borderHi}`,
+                          }}
+                        >
+                          {on && <Check size={9} style={{ color: "#fff" }} />}
                         </div>
-                        <span className={cn("text-xs transition-colors", isHidden ? "text-white/30 line-through" : "text-white/80")}>{name}</span>
-                        {isHidden ? <EyeOff className="ml-auto h-3.5 w-3.5 text-white/20" /> : <Eye className="ml-auto h-3.5 w-3.5 text-violet-400" />}
+                        <span className="text-[12px] flex-1 min-w-0 truncate" style={{ color: on ? T.text : T.muted }}>
+                          {name}
+                        </span>
+                        {on
+                          ? <Eye size={12} style={{ color: T.violet, flexShrink: 0 }} />
+                          : <EyeOff size={12} style={{ color: T.muted, flexShrink: 0 }} />}
                       </button>
                     );
                   })}
-                  <Button
-                    size="sm"
-                    onClick={applyHidden}
-                    className="w-full mt-2 h-9 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-lg"
-                  >
-                    Aplicar cambios de slides
-                  </Button>
-                </div>
+
+                  {hiddenChanged && (
+                    <button
+                      onClick={applyHidden}
+                      className="w-full mt-3 h-9 rounded-lg text-xs font-semibold transition-colors"
+                      style={{ background: T.violet, color: "#fff" }}
+                    >
+                      Aplicar cambios de slides
+                    </button>
+                  )}
+                </>
               )}
 
               {toolModuleIds.length === 0 && (
-                <p className="text-xs text-white/30 text-center py-4">No hay slides de herramientas en este deck</p>
+                <p className="text-[11px] text-center mt-6" style={{ color: T.muted }}>
+                  Este deck no tiene slides de herramientas
+                </p>
               )}
             </div>
           )}
 
-          {/* ── ARGUMENTACIONES TAB ── */}
+          {/* ── ARGS TAB ── */}
           {tab === "args" && (
-            <div className="space-y-4">
-              {moduleArgs.map(mod => (
-                <div key={mod.id} className="rounded-xl overflow-hidden" style={{ border: "1px solid oklch(24% 0.01 250)" }}>
-                  <div className="px-3 py-2" style={{ background: "oklch(20% 0.01 250)" }}>
-                    <span className="text-xs font-bold text-white/80">{mod.name}</span>
+            <div>
+              {moduleArgs.map((mod, mi) => (
+                <div
+                  key={mod.id}
+                  className="mb-4 rounded-xl overflow-hidden"
+                  style={{ border: `1px solid ${T.border}` }}
+                >
+                  <div
+                    className="px-3 py-2"
+                    style={{ background: T.faint, borderBottom: `1px solid ${T.border}` }}
+                  >
+                    <span className="text-[11px] font-bold" style={{ color: T.text }}>{mod.name}</span>
                   </div>
-                  <div className="divide-y" style={{ borderColor: "oklch(22% 0.01 250)" }}>
-                    {mod.rows.map(row => (
-                      <div key={row.stakeholder} className="p-3 space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
-                            style={{ color: STAKE_COLOR[row.stakeholder], background: STAKE_COLOR[row.stakeholder] + "20" }}>
-                            {STAKE_LABEL[row.stakeholder] ?? row.stakeholder}
+                  {mod.stakes.map(({ s, value, isEnhanced, isEdited }) => (
+                    <div
+                      key={s}
+                      className="p-3"
+                      style={{ borderBottom: `1px solid ${T.border}` }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span
+                          className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                          style={{ color: STAKE_COLOR[s], background: STAKE_COLOR[s] + "18" }}
+                        >
+                          {STAKE_LABEL[s]}
+                        </span>
+                        {isEnhanced && !isEdited && (
+                          <span className="text-[9px] font-semibold flex items-center gap-0.5" style={{ color: T.violet }}>
+                            <Sparkles size={9} /> Modjo
                           </span>
-                          {row.isEnhanced && <span className="text-[9px] text-violet-400 font-semibold">✨ Modjo</span>}
-                          {row.isEdited && <span className="text-[9px] text-amber-400 font-semibold">✏ Editado</span>}
-                        </div>
-                        <textarea
-                          value={row.value}
-                          onChange={e => setEditedDescs(prev => ({
-                            ...prev,
-                            [mod.id]: { ...(prev[mod.id] ?? {}), [row.stakeholder]: e.target.value }
-                          }))}
-                          className="w-full text-xs rounded-lg p-2 resize-none leading-relaxed"
-                          rows={3}
-                          style={{ background: "oklch(20% 0.01 250)", color: "oklch(80% 0.008 250)", border: "1px solid oklch(26% 0.01 250)", outline: "none" }}
-                        />
+                        )}
+                        {isEdited && (
+                          <span className="text-[9px] font-semibold" style={{ color: "#F59E0B" }}>✏ Editado</span>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                      <textarea
+                        value={value}
+                        onChange={e => setDesc(mod.id, s, e.target.value)}
+                        rows={3}
+                        className="w-full text-[11px] leading-relaxed rounded-lg resize-none outline-none p-2"
+                        style={{
+                          background: T.bg,
+                          color: T.text,
+                          border: `1px solid ${isEdited ? "#F59E0B40" : T.border}`,
+                          caretColor: T.text,
+                        }}
+                      />
+                    </div>
+                  ))}
                 </div>
               ))}
-              {Object.keys(editedDescs).length > 0 && (
-                <Button
-                  onClick={saveEditedDescs}
-                  className="w-full h-10 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-lg"
+
+              {hasDescEdits && (
+                <button
+                  onClick={saveDescs}
+                  className="w-full h-10 rounded-xl text-xs font-semibold mt-1 transition-colors"
+                  style={{ background: T.violet, color: "#fff" }}
                 >
-                  <Check className="h-4 w-4 mr-1.5" /> Guardar argumentaciones
-                </Button>
-              )}
-              {enhancedDescriptions && (
-                <button onClick={onClearEnhanced} className="w-full text-xs text-white/30 hover:text-red-400 transition-colors py-1">
-                  Limpiar mejoras de Modjo
+                  <Check size={13} style={{ display: "inline", marginRight: 6 }} />
+                  Guardar argumentaciones
                 </button>
+              )}
+
+              {enhancedDescriptions && (
+                <button
+                  onClick={onClearEnhanced}
+                  className="w-full mt-2 text-[11px] py-2 transition-colors"
+                  style={{ color: T.muted }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "#EF4444")}
+                  onMouseLeave={e => (e.currentTarget.style.color = T.muted)}
+                >
+                  Borrar mejoras de Modjo
+                </button>
+              )}
+
+              {moduleArgs.length === 0 && (
+                <p className="text-[11px] text-center mt-6" style={{ color: T.muted }}>No hay módulos con argumentaciones</p>
               )}
             </div>
           )}
 
           {/* ── MODJO TAB ── */}
           {tab === "modjo" && (
-            <div className="space-y-3">
-              <p className="text-xs text-white/50 leading-relaxed">
-                Selecciona una o varias llamadas. La IA reemplaza las descripciones genéricas por citas reales del prospect.
+            <div>
+              <p className="text-[11px] leading-relaxed mb-4" style={{ color: T.muted }}>
+                Selecciona una o varias llamadas. La IA sustituye las descripciones genéricas por citas reales del prospect.
               </p>
-              <div className="flex gap-2">
+
+              {/* Search */}
+              <div className="flex gap-2 mb-3">
                 <input
-                  placeholder="Buscar por empresa o deal..."
                   value={modjoSearch}
                   onChange={e => onModjoSearch(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !searchingCalls && onSearchCalls()}
-                  className="flex-1 h-9 px-3 rounded-lg text-xs"
-                  style={{ background: "oklch(20% 0.01 250)", color: "oklch(85% 0.008 250)", border: "1px solid oklch(26% 0.01 250)", outline: "none" }}
+                  placeholder="Empresa o deal..."
+                  className="flex-1 h-9 px-3 text-xs rounded-lg outline-none"
+                  style={{ background: T.bg, color: T.text, border: `1px solid ${T.border}`, caretColor: T.text }}
                 />
                 <button
                   onClick={onSearchCalls}
                   disabled={searchingCalls}
-                  className="h-9 px-3 rounded-lg text-xs font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                  className="h-9 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-opacity disabled:opacity-40"
+                  style={{ background: T.violet, color: "#fff" }}
                 >
-                  {searchingCalls ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+                  {searchingCalls ? <Loader2 size={13} className="animate-spin" /> : <Search size={13} />}
                   Buscar
                 </button>
               </div>
 
+              {/* Call list */}
               {modjoCalls.length > 0 && (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 mb-3">
                   {modjoCalls.map(call => {
-                    const isSelected = selectedCallIds.has(call.callId);
-                    const dateStr = call.date ? new Date(call.date).toLocaleDateString() : "";
+                    const on = selectedCallIds.has(call.callId);
+                    const dateStr = call.date ? new Date(call.date).toLocaleDateString("es-ES", { day: "numeric", month: "short" }) : "";
                     const mins = Math.round(call.duration / 60);
                     return (
                       <button
                         key={call.callId}
                         onClick={() => onToggleCallId(call.callId)}
-                        className="w-full rounded-lg p-3 text-left transition-all"
-                        style={{ background: isSelected ? "oklch(25% 0.04 280)" : "oklch(20% 0.01 250)", border: `1px solid ${isSelected ? "oklch(50% 0.2 280)" : "oklch(24% 0.01 250)"}` }}
+                        className="w-full flex items-start gap-2.5 rounded-lg p-2.5 text-left transition-all"
+                        style={{
+                          background: on ? T.violetLo : T.faint,
+                          border: `1px solid ${on ? T.violet + "60" : T.border}`,
+                        }}
                       >
-                        <div className="flex items-start gap-2">
-                          <div className={cn("mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors", isSelected ? "border-violet-400 bg-violet-500" : "border-white/20")}>
-                            {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-white/80 truncate">{call.title}</p>
-                            <div className="flex items-center gap-2 mt-1 text-white/30 text-[10px]">
-                              {dateStr && <span>{dateStr}</span>}
-                              {mins > 0 && <span>{mins} min</span>}
-                            </div>
+                        <div
+                          className="mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-colors"
+                          style={{ background: on ? T.violet : "transparent", border: `1.5px solid ${on ? T.violet : T.borderHi}` }}
+                        >
+                          {on && <Check size={9} style={{ color: "#fff" }} />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] font-semibold truncate" style={{ color: T.text }}>{call.title}</p>
+                          <div className="flex gap-2 mt-0.5 text-[10px]" style={{ color: T.muted }}>
+                            {dateStr && <span>{dateStr}</span>}
+                            {mins > 0 && <span>{mins} min</span>}
                           </div>
                         </div>
                       </button>
                     );
                   })}
                   {selectedCallIds.size > 1 && (
-                    <p className="text-[10px] text-violet-400 font-medium px-1">{selectedCallIds.size} llamadas — los transcripts se combinarán</p>
+                    <p className="text-[10px] pt-1 pl-1" style={{ color: T.violet }}>
+                      {selectedCallIds.size} llamadas · los transcripts se combinarán
+                    </p>
                   )}
                 </div>
               )}
 
-              <Button
+              {modjoCalls.length === 0 && (
+                <p className="text-[11px] text-center py-6" style={{ color: T.muted }}>
+                  Busca un deal para ver las llamadas disponibles
+                </p>
+              )}
+
+              <button
                 onClick={onPersonalize}
                 disabled={selectedCallIds.size === 0 || personalizing}
-                className="w-full h-10 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-lg"
+                className="w-full h-10 rounded-xl text-[12px] font-semibold flex items-center justify-center gap-2 transition-opacity disabled:opacity-35"
+                style={{ background: T.violet, color: "#fff" }}
               >
                 {personalizing
-                  ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Mejorando con IA...</>
-                  : <><Sparkles className="h-4 w-4 mr-1.5" /> Mejorar argumentaciones con Modjo</>
-                }
-              </Button>
+                  ? <><Loader2 size={14} className="animate-spin" /> Mejorando con IA...</>
+                  : <><Sparkles size={14} /> Mejorar argumentaciones</>}
+              </button>
             </div>
           )}
-        </div>
-
-        {/* Bottom close */}
-        <div className="shrink-0 p-4 border-t" style={{ borderColor: "oklch(22% 0.01 250)" }}>
-          <button
-            onClick={onClose}
-            className="w-full h-10 rounded-xl text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            Cerrar editor
-          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// Merge enhanced descriptions with manually edited ones
+// ── Scaled iframe for 1280×720 deck ──────────────────
+const IframeScaled = forwardRef<HTMLIFrameElement, {}>((_, ref) => {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => {
+      setScale(el.clientWidth / 1280);
+    });
+    obs.observe(el);
+    setScale(el.clientWidth / 1280);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div ref={wrapRef} style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      <iframe
+        ref={ref}
+        title="Slide preview"
+        sandbox="allow-same-origin allow-scripts"
+        scrolling="no"
+        style={{
+          position: "absolute", top: 0, left: 0,
+          width: 1280, height: 720, border: "none",
+          transformOrigin: "top left",
+          transform: `scale(${scale})`,
+          pointerEvents: "none",
+        }}
+      />
+    </div>
+  );
+});
+IframeScaled.displayName = "IframeScaled";
+
+// ── Helpers ───────────────────────────────────────────
+
 function mergeDescriptions(
   enhanced: Record<string, any> | null,
   edited: Record<string, Record<string, string>>
 ): Record<string, any> | null {
   if (!enhanced && Object.keys(edited).length === 0) return null;
-  const base = { ...(enhanced ?? {}) };
-  for (const [modId, stakes] of Object.entries(edited)) {
-    for (const [stake, val] of Object.entries(stakes)) {
-      if (!base[modId]) base[modId] = {};
-      base[modId][stake] = [val];
+  const out = { ...(enhanced ?? {}) };
+  for (const [id, stakes] of Object.entries(edited)) {
+    for (const [s, val] of Object.entries(stakes)) {
+      if (!out[id]) out[id] = {};
+      out[id][s] = [val];
     }
   }
-  return base;
+  return out;
+}
+
+function setsEqual(a: Set<string>, b: Set<string>): boolean {
+  if (a.size !== b.size) return false;
+  for (const x of a) if (!b.has(x)) return false;
+  return true;
 }
