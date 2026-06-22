@@ -770,18 +770,18 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
   };
 
   const toolRows = toolDetails.map(d => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #E9E9EC!important">
-      <div style="min-width:0;flex:1">
-        <div style="font-size:13px;font-weight:800;color:#25253D;margin-bottom:3px">${escHtml(d.tool_override!.tool_name)}</div>
-        <div style="display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden">
-          <span style="font-size:10px;color:#AEAEB8;flex-shrink:0">${xl.replaces}:</span>
+    <div style="display:grid;grid-template-columns:1fr auto;align-items:start;gap:12px;padding:8px 0;border-bottom:1px solid #EBEBF0!important">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#25253D;line-height:1.25;margin-bottom:3px">${escHtml(d.tool_override!.tool_name)}</div>
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <span style="font-size:10px;color:#AEAEB8">${xl.replaces}:</span>
           <span style="width:5px;height:5px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span>
-          <span style="font-size:11px;color:#6C6C7D;overflow:hidden;text-overflow:ellipsis">${escHtml(d.name)}</span>
+          <span style="font-size:11px;color:#6C6C7D;line-height:1.4">${escHtml(d.name)}</span>
         </div>
       </div>
-      <div style="text-align:right;flex-shrink:0;margin-left:16px">
-        <div style="font-size:15px;font-weight:800;color:#FF355E">${fmtEur(d.total_annual)}<span style="font-size:10px;font-weight:500;color:#AEAEB8">${yrLabel}</span></div>
-        <div style="font-size:10px;color:#AEAEB8">${fmtEur(Math.round(d.total_annual / 12))}${moLabel}</div>
+      <div style="text-align:right">
+        <div style="font-size:14px;font-weight:800;color:#FF355E;white-space:nowrap">${fmtEur(d.total_annual)}<span style="font-size:9px;font-weight:500;color:#AEAEB8">${yrLabel}</span></div>
+        <div style="font-size:10px;color:#AEAEB8;white-space:nowrap">${fmtEur(Math.round(d.total_annual / 12))}${moLabel}</div>
       </div>
     </div>`).join("");
 
@@ -821,15 +821,15 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
       const desc = (stakeDesc[lang] ?? stakeDesc.es)[s]?.(String(hStr)) ?? "";
       const lbl = (stakeLabels[lang] ?? stakeLabels.es)[s];
       return `
-    <div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #E9E9EC!important">
-      <div style="width:36px;height:36px;border-radius:10px;background:${stakeColors[s]}18;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${stakeIcons[s]}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:800;color:#25253D;margin-bottom:2px">${lbl}</div>
-        <div style="font-size:11px;color:#6C6C7D;line-height:1.4">${desc}</div>
+    <div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #EBEBF0!important">
+      <div style="width:32px;height:32px;border-radius:9px;background:${stakeColors[s]}15;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${stakeIcons[s]}</div>
+      <div style="min-width:0">
+        <div style="font-size:12px;font-weight:800;color:#25253D;margin-bottom:1px">${lbl}</div>
+        <div style="font-size:10.5px;color:#6C6C7D;line-height:1.4">${desc}</div>
       </div>
-      <div style="text-align:right;flex-shrink:0;margin-left:8px">
-        <div style="font-size:18px;font-weight:800;color:#25253D;letter-spacing:-.02em">${fmtEur(Math.round(totalAnnual))}</div>
-        <div style="font-size:10px;color:#AEAEB8">${hStr} ${xl.saved_month}</div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:17px;font-weight:800;color:#25253D;letter-spacing:-.02em;white-space:nowrap">${fmtEur(Math.round(totalAnnual))}</div>
+        <div style="font-size:9px;color:#AEAEB8;white-space:nowrap">${hStr} ${xl.saved_month}</div>
       </div>
     </div>`;
     }).join("");
@@ -849,18 +849,24 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
     <div class="kpi"><div class="kpi-lbl">${t.roi}</div><div class="kpi-val" style="color:#25253D">${data.roi_percent}%</div><div class="kpi-sub">${t.roi_sub("€" + roiPer1)}</div></div>
     <div class="kpi"><div class="kpi-lbl">${t.payback}</div><div class="kpi-val" style="color:#25253D">${data.payback_months} m</div><div class="kpi-sub">${t.payback_sub(String(data.payback_months))}</div></div>
   </div>
-  <div style="position:absolute;top:290px;left:80px;right:80px;bottom:32px;display:flex;gap:32px">
+  <div style="position:absolute;top:290px;left:80px;right:80px;bottom:30px;display:flex;gap:0">
     ${toolDetails.length > 0 ? `
-    <div style="flex:1;min-width:0">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AEAEB8;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #E9E9EC!important">${xl.tools}</div>
+    <div style="flex:1;min-width:0;padding-right:24px;${showRight ? "border-right:1px solid #EBEBF0" : ""}">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#AEAEB8;margin-bottom:8px">${xl.tools}</div>
       <div>${toolRows}</div>
-      ${toolDetails.length > 0 ? `<div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #E9E9EC!important"><span style="font-size:11px;font-weight:700;color:#6C6C7D">${xl.total_tools}</span><span style="font-size:14px;font-weight:800;color:#FF355E">${fmtEur(toolTotal)}</span></div>` : ""}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:2px solid #E9E9EC!important">
+        <span style="font-size:11px;font-weight:700;color:#6C6C7D;white-space:nowrap">${xl.total_tools}</span>
+        <span style="font-size:16px;font-weight:800;color:#FF355E;white-space:nowrap">${fmtEur(toolTotal)}</span>
+      </div>
     </div>` : ""}
     ${showRight ? `
-    <div style="flex:1;min-width:0">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AEAEB8;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #E9E9EC!important">${xl.hours}</div>
+    <div style="flex:1;min-width:0;${toolDetails.length > 0 ? "padding-left:24px" : ""}">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#AEAEB8;margin-bottom:8px">${xl.hours}</div>
       <div>${hourRows}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid #E9E9EC!important"><span style="font-size:11px;font-weight:700;color:#6C6C7D;white-space:nowrap">${xl.total_hours}: ${Math.round(totalH * 10) / 10} ${xl.saved_month}</span><span style="font-size:14px;font-weight:800;color:#25253D;flex-shrink:0;margin-left:12px">${fmtEur(hourTotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:2px solid #E9E9EC!important">
+        <span style="font-size:11px;font-weight:700;color:#6C6C7D;white-space:nowrap">${xl.total_hours}: ${Math.round(totalH * 10) / 10} ${xl.saved_month}</span>
+        <span style="font-size:16px;font-weight:800;color:#25253D;white-space:nowrap;margin-left:8px">${fmtEur(hourTotal)}</span>
+      </div>
     </div>` : ""}
   </div>
   <div style="position:absolute;bottom:14px;right:80px;font-size:11px;color:#AEAEB8;white-space:nowrap;letter-spacing:.02em">2&nbsp;/&nbsp;${totalSlides}</div>
