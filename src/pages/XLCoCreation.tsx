@@ -1287,7 +1287,13 @@ export default function XLCoCreation() {
                 <span className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
                   {dlPdf === "detail" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} {t("express.download_pdf")}
                 </span>
-                {enhancedDescriptions && <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold text-violet-600 bg-violet-100 px-2 py-0.5 rounded-full"><Sparkles className="h-3 w-3" /> {t("express.enhance_badge")}</span>}
+                {/* Editado badge — shown when deck has been customised in the editor */}
+                {(enhancedDescriptions || hiddenSlideIds.size > 0) && (
+                  <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "oklch(96% 0.025 290)", color: "oklch(40% 0.18 290)", border: "1px solid oklch(82% 0.08 290)" }}>
+                    <Sparkles className="h-2.5 w-2.5" /> editado
+                  </span>
+                )}
               </button>
             </div>
 

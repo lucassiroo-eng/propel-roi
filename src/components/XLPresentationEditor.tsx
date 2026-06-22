@@ -559,6 +559,38 @@ export function XLPresentationEditor(props: Props) {
             </div>
           )}
         </div>
+
+        {/* Save footer */}
+        <div
+          className="shrink-0 p-4 space-y-2"
+          style={{ borderTop: `1px solid ${T.border}` }}
+        >
+          <button
+            onClick={() => {
+              // Save all local edits to parent, then close
+              const merged = mergeDescriptions(enhancedDescriptions, editedDescs);
+              if (merged) onSaveDescriptions(merged);
+              if (!setsEqual(localHidden, hiddenSlideIds)) onHiddenChange(new Set(localHidden));
+              onClose();
+            }}
+            className="w-full h-10 rounded-xl text-[13px] font-bold transition-colors flex items-center justify-center gap-2"
+            style={{ background: T.coral, color: "#fff" }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "0.9")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+          >
+            <Check size={15} />
+            Guardar versión
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full h-8 rounded-xl text-[11px] font-medium transition-colors"
+            style={{ color: T.muted }}
+            onMouseEnter={e => (e.currentTarget.style.color = T.text)}
+            onMouseLeave={e => (e.currentTarget.style.color = T.muted)}
+          >
+            Cerrar sin guardar
+          </button>
+        </div>
       </div>
     </div>
   );
