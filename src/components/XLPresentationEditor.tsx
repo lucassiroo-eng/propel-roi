@@ -132,22 +132,23 @@ export function XLPresentationEditor(props: Props) {
   }
   function applyHidden() { onHiddenChange(new Set(localHidden)); }
 
-  // Editable argumentations
+  // Editable argumentations — only hour-based modules (tool-override use a different slide format)
   const moduleArgs = useMemo(() => {
-    const baseLang = (lang === "es" || lang === "en") ? lang : "es";
-    const base = getSavingsDescriptions(baseLang);
-    return (input.configModules ?? []).map(id => {
-      const info = MODULE_INFO[id];
-      const name = info ? getLocalized(info.label, lang) : id;
-      const stakes = (["employee", "hr", "manager"] as const).map(s => {
-        const enh   = enhancedDescriptions?.[id]?.[s]?.[0] ?? null;
-        const edited = editedDescs[id]?.[s] ?? null;
-        const def   = base[id]?.[s]?.[0] ?? "";
-        return { s, value: edited ?? enh ?? def, isEnhanced: !!enh && !edited, isEdited: !!edited };
-      }).filter(r => r.value);
-      return { id, name, stakes };
-    }).filter(m => m.stakes.length > 0);
-  }, [input.configModules, lang, enhancedDescriptions, editedDescs]);
+    const base = getSavingsDescriptions(lang === "es" || lang === "en" ? lang : "es");
+    return (input.configModules ?? [])
+      .filter(id => !toolModuleIds.includes(id)) // tool slides don't use stakeholder descriptions
+      .map(id => {
+        const info = MODULE_INFO[id];
+        const name = info ? getLocalized(info.label, lang) : id;
+        const stakes = (["employee", "hr", "manager"] as const).map(s => {
+          const enh    = enhancedDescriptions?.[id]?.[s]?.[0] ?? null;
+          const edited = editedDescs[id]?.[s] ?? null;
+          const def    = base[id]?.[s]?.[0] ?? "";
+          return { s, value: edited ?? enh ?? def, isEnhanced: !!enh && !edited, isEdited: !!edited };
+        }).filter(r => r.value);
+        return { id, name, stakes };
+      }).filter(m => m.stakes.length > 0);
+  }, [input.configModules, lang, enhancedDescriptions, editedDescs, toolModuleIds]);
 
   function setDesc(modId: string, stake: string, val: string) {
     setEditedDescs(prev => ({ ...prev, [modId]: { ...(prev[modId] ?? {}), [stake]: val } }));

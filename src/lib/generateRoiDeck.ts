@@ -273,7 +273,7 @@ function buildDetails(input: RoiSlideInput, data: RoiSlideData, uiLang: string, 
   const descs = getSavingsDescriptions(uiLang);
   // Custom descriptions are AI-generated in EN/ES from Modjo transcripts.
   // For other languages use the localized descriptions instead.
-  const customDescs = (uiLang === "en" || uiLang === "es") ? input.customDescriptions : undefined;
+  const customDescs = input.customDescriptions;
 
   const details: ModuleDetail[] = [];
 
