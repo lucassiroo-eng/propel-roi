@@ -39,6 +39,7 @@ import {
 } from "@/lib/generateRoiSlide";
 import { generateDeckPdf } from "@/lib/generateRoiDeck";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { XLPresentationEditor } from "@/components/XLPresentationEditor";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
 import { DISCOVERY_QUESTIONS, MODULE_INFO, getLocalized, getQuestion } from "@/lib/discoveryQuestions";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
@@ -203,10 +204,12 @@ export default function XLCoCreation() {
   const [modjoSearch, setModjoSearch] = useState("");
   const [modjoCalls, setModjoCalls] = useState<ModjoCall[]>([]);
   const [searchingCalls, setSearchingCalls] = useState(false);
-  const [selectedCall, setSelectedCall] = useState<ModjoCall | null>(null);
+  const [selectedCallIds, setSelectedCallIds] = useState<Set<number>>(new Set());
   const [personalizing, setPersonalizing] = useState(false);
   const [personalizeOpen, setPersonalizeOpen] = useState(false);
   const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>> | null>(null);
+  const [showPresEditor, setShowPresEditor] = useState(false);
+  const [hiddenSlideIds, setHiddenSlideIds] = useState<Set<string>>(new Set());
 
   // Bundles
   const { data: bundles } = useQuery({
@@ -343,25 +346,31 @@ export default function XLCoCreation() {
     } finally { setSearchingCalls(false); }
   }
 
-  async function handlePersonalize() {
-    if (!selectedCall) return;
+  async function handlePersonalize(callIds?: Set<number>, targetModules?: string[]) {
+    const ids = callIds ?? selectedCallIds;
+    if (ids.size === 0) return;
     setPersonalizing(true);
     try {
-      const { data: transcriptData, error: tErr } = await supabase.functions.invoke("modjo-calls", {
-        body: { mode: "transcript", callId: selectedCall.callId },
-      });
-      if (tErr) throw tErr;
-      if (!transcriptData?.transcript) throw new Error("No transcript");
+      const callsToUse = modjoCalls.filter(c => ids.has(c.callId));
+      // Fetch all transcripts in parallel
+      const transcripts = await Promise.all(callsToUse.map(async (call) => {
+        const { data, error } = await supabase.functions.invoke("modjo-calls", {
+          body: { mode: "transcript", callId: call.callId },
+        });
+        if (error) throw error;
+        return data?.transcript ?? "";
+      }));
+      const combinedTranscript = transcripts.filter(Boolean).join("\n\n---\n\n");
+      if (!combinedTranscript) throw new Error("No transcripts");
 
       const lang = (i18n.language ?? "en").slice(0, 2);
       const { data, error } = await supabase.functions.invoke("ai-enhance-roi-detail", {
-        body: { transcript: transcriptData.transcript, modules: selectedModules, language: lang },
+        body: { transcript: combinedTranscript, modules: targetModules ?? selectedModules, language: lang },
       });
       if (error) throw error;
       if (!data?.descriptions) throw new Error(data?.error ?? "No descriptions");
       setEnhancedDescriptions(data.descriptions);
       toast.success(t("cocreation.personalized"));
-      setStep(4);
     } catch (err: any) {
       console.error("Personalize error:", err);
       toast.error(err.message ?? "Error");
@@ -433,7 +442,7 @@ export default function XLCoCreation() {
         ...(type === "detail" && enhancedDescriptions ? { customDescriptions: enhancedDescriptions } : {}),
       };
       const data = buildRoiSlideData(input);
-      await generateDeckPdf(data, input, type === "summary" ? "summary" : "full");
+      await generateDeckPdf(data, input, type === "summary" ? "summary" : "full", { hiddenSlideIds });
       toast.success(t("express.pdf_downloaded"));
     } catch (err: any) { toast.error(err.message ?? "Error"); }
     finally { setDlPdf(null); }
@@ -1227,6 +1236,29 @@ export default function XLCoCreation() {
             </div>
 
 
+            {/* Edit presentation — XL */}
+            <button
+              onClick={() => setShowPresEditor(true)}
+              className="w-full rounded-2xl border-2 border-violet-200 bg-violet-50 hover:bg-violet-100 hover:border-violet-400 p-4 text-left transition-all group active:scale-[0.99]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
+                  <Eye className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-violet-900">Editar presentación</p>
+                  <p className="text-xs text-violet-600 mt-0.5">Preview del deck, slides de producto, argumentaciones, Modjo</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-violet-400 group-hover:text-violet-600 transition-colors" />
+              </div>
+              {(enhancedDescriptions || hiddenSlideIds.size > 0) && (
+                <div className="flex gap-2 mt-2 ml-13">
+                  {enhancedDescriptions && <span className="text-[10px] font-bold text-violet-600 bg-violet-200 px-2 py-0.5 rounded-full flex items-center gap-1"><Sparkles className="h-2.5 w-2.5" /> Mejorado con Modjo</span>}
+                  {hiddenSlideIds.size > 0 && <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">{hiddenSlideIds.size} slides ocultas</span>}
+                </div>
+              )}
+            </button>
+
             {/* PDFs */}
             <div id="tour-pdf-buttons" className="grid grid-cols-2 gap-3">
               <button onClick={() => downloadPdf("summary")} disabled={!!dlPdf} className="rounded-2xl border border-border bg-card p-5 text-left hover:border-foreground/20 hover:shadow-sm transition-all disabled:opacity-50 group active:scale-[0.98]">
@@ -1281,25 +1313,36 @@ export default function XLCoCreation() {
                   {modjoCalls.length > 0 && (
                     <div className="space-y-2">
                       {modjoCalls.map(call => {
-                        const isSelected = selectedCall?.callId === call.callId;
+                        const isSelected = selectedCallIds.has(call.callId);
                         const dateStr = call.date ? new Date(call.date).toLocaleDateString() : "";
                         const mins = Math.round(call.duration / 60);
                         return (
-                          <button key={call.callId} onClick={() => setSelectedCall(isSelected ? null : call)} className={`w-full rounded-lg border p-3 text-left transition-all text-xs ${isSelected ? "border-violet-400 bg-violet-50" : "border-border hover:border-foreground/20"}`}>
-                            <p className="font-semibold text-foreground truncate">{call.title}</p>
-                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                              {dateStr && <span>{dateStr}</span>}
-                              {mins > 0 && <span>{mins} min</span>}
+                          <button key={call.callId} onClick={() => setSelectedCallIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(call.callId)) next.delete(call.callId); else next.add(call.callId);
+                            return next;
+                          })} className={`w-full rounded-lg border p-3 text-left transition-all text-xs ${isSelected ? "border-violet-400 bg-violet-50" : "border-border hover:border-foreground/20"}`}>
+                            <div className="flex items-start gap-2">
+                              <div className={`mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? "border-violet-500 bg-violet-500" : "border-muted-foreground/40"}`}>
+                                {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-foreground truncate">{call.title}</p>
+                                <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                                  {dateStr && <span>{dateStr}</span>}
+                                  {mins > 0 && <span>{mins} min</span>}
+                                </div>
+                              </div>
                             </div>
-                            {isSelected && <Check className="h-4 w-4 text-violet-600 float-right -mt-8" />}
                           </button>
                         );
                       })}
+                      {selectedCallIds.size > 1 && <p className="text-[10px] text-violet-600 font-medium">{selectedCallIds.size} llamadas seleccionadas — los transcripts se combinarán</p>}
                     </div>
                   )}
                   <Button
-                    onClick={handlePersonalize}
-                    disabled={!selectedCall || personalizing}
+                    onClick={() => handlePersonalize()}
+                    disabled={selectedCallIds.size === 0 || personalizing}
                     size="sm"
                     className="w-full h-10 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold"
                   >
@@ -1340,6 +1383,44 @@ export default function XLCoCreation() {
         </main>
       )}
       <FeedbackButton sessionId={savedSessionId.current} page="co-creation" step={step} />
+
+      {showPresEditor && roi && (
+        <XLPresentationEditor
+          roi={buildRoiSlideData({
+            companyName: companyName || dealName || "Company",
+            country, language: (i18n.language ?? "es").slice(0, 2),
+            configModules: selectedModules,
+            bundleName: selectedBundle?.bundle_name ?? "Factorial",
+            bundleModules: selectedBundle ? [...(new Set([...Array.from(new Set(selectedModules))]))] : selectedModules,
+            roiConfig: coCreationRoiConfig(), annualCost,
+            customDescriptions: enhancedDescriptions ?? undefined,
+          })}
+          input={{
+            companyName: companyName || dealName || "Company",
+            country, language: (i18n.language ?? "es").slice(0, 2),
+            configModules: selectedModules,
+            bundleName: selectedBundle?.bundle_name ?? "Factorial",
+            bundleModules: selectedBundle ? [...(new Set(selectedModules))] : selectedModules,
+            roiConfig: coCreationRoiConfig(), annualCost,
+            customDescriptions: enhancedDescriptions ?? undefined,
+          }}
+          enhancedDescriptions={enhancedDescriptions}
+          hiddenSlideIds={hiddenSlideIds}
+          modjoCalls={modjoCalls}
+          selectedCallIds={selectedCallIds}
+          modjoSearch={modjoSearch}
+          searchingCalls={searchingCalls}
+          personalizing={personalizing}
+          onModjoSearch={(q) => { setModjoSearch(q); }}
+          onSearchCalls={searchModjoCalls}
+          onToggleCallId={(id) => setSelectedCallIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; })}
+          onPersonalize={() => handlePersonalize()}
+          onClearEnhanced={() => setEnhancedDescriptions(null)}
+          onSaveDescriptions={(descs) => setEnhancedDescriptions(descs)}
+          onHiddenChange={setHiddenSlideIds}
+          onClose={() => setShowPresEditor(false)}
+        />
+      )}
     </div>
   );
 }

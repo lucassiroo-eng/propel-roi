@@ -737,13 +737,169 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
 </div>`;
 }
 
+// ── XL Slides (split slide 2 into 2+3) ──────────────
+
+function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number): string {
+  const rawPer1 = data.annual_cost > 0 ? data.total_annual_savings / data.annual_cost : 0;
+  const roiPer1 = rawPer1.toFixed(2).replace(".", ",");
+  const toolDetails = details.filter(d => d.tool_override);
+  const hourDetails = details.filter(d => !d.tool_override);
+  const totalH = hourDetails.reduce((s, d) => s + d.total_hours, 0);
+  const toolTotal = toolDetails.reduce((s, d) => s + d.total_annual, 0);
+  const hourTotal = hourDetails.reduce((s, d) => s + d.total_annual, 0);
+
+  const xl18n: Record<string, { tools: string; hours: string; replaces: string; total_tools: string; total_hours: string; saved_month: string }> = {
+    es: { tools: "Ahorro por herramientas reemplazadas", hours: "Ahorro por automatización de horas", replaces: "Reemplaza", total_tools: "Total herramientas", total_hours: "Total horas ahorradas", saved_month: "h/mes" },
+    en: { tools: "Tool replacement savings", hours: "Hours automation savings", replaces: "Replaces", total_tools: "Total tools", total_hours: "Total hours saved", saved_month: "h/month" },
+    fr: { tools: "Économies sur outils remplacés", hours: "Économies par automatisation des heures", replaces: "Remplace", total_tools: "Total outils", total_hours: "Total heures économisées", saved_month: "h/mois" },
+    it: { tools: "Risparmio su strumenti sostituiti", hours: "Risparmio per automazione ore", replaces: "Sostituisce", total_tools: "Totale strumenti", total_hours: "Totale ore risparmiate", saved_month: "h/mese" },
+    de: { tools: "Einsparung durch ersetzte Tools", hours: "Einsparung durch Stundenautomatisierung", replaces: "Ersetzt", total_tools: "Gesamt Tools", total_hours: "Gesamte eingesparte Stunden", saved_month: "h/Monat" },
+    pt: { tools: "Poupança por ferramentas substituídas", hours: "Poupança por automatização de horas", replaces: "Substitui", total_tools: "Total ferramentas", total_hours: "Total horas poupadas", saved_month: "h/mês" },
+  };
+  const xl = xl18n[lang] ?? xl18n.es;
+  const moLabel = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat", pt: "/mês" }[lang] ?? "/mes";
+  const yrLabel = { es: "/año", en: "/year", fr: "/an", it: "/anno", de: "/Jahr", pt: "/ano" }[lang] ?? "/año";
+
+  const titleTemplates: Record<string, string> = {
+    es: `Factorial tiene un retorno de la inversión de <span style="color:#FF355E">${data.roi_percent}%</span><br>para ${escHtml(data.company_name)}`,
+    en: `Factorial delivers a <span style="color:#FF355E">${data.roi_percent}%</span> return on investment<br>for ${escHtml(data.company_name)}`,
+    fr: `Factorial offre un retour sur investissement de <span style="color:#FF355E">${data.roi_percent}%</span><br>pour ${escHtml(data.company_name)}`,
+    it: `Factorial offre un ritorno sull'investimento del <span style="color:#FF355E">${data.roi_percent}%</span><br>per ${escHtml(data.company_name)}`,
+    de: `Factorial liefert eine Kapitalrendite von <span style="color:#FF355E">${data.roi_percent}%</span><br>für ${escHtml(data.company_name)}`,
+    pt: `Factorial tem um retorno sobre o investimento de <span style="color:#FF355E">${data.roi_percent}%</span><br>para ${escHtml(data.company_name)}`,
+  };
+
+  const toolRows = toolDetails.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #E9E9EC!important">
+      <div style="min-width:0;flex:1">
+        <div style="font-size:10px;color:#AEAEB8;margin-bottom:2px">${xl.replaces}: <strong style="color:#6C6C7D">${escHtml(d.tool_override!.tool_name)}</strong></div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span><span style="font-size:13px;font-weight:700;color:#25253D">${escHtml(d.name)}</span></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;margin-left:16px">
+        <div style="font-size:15px;font-weight:800;color:#FF355E">${fmtEur(d.total_annual)}<span style="font-size:10px;font-weight:500;color:#AEAEB8">${yrLabel}</span></div>
+        <div style="font-size:10px;color:#AEAEB8">${fmtEur(Math.round(d.total_annual / 12))}${moLabel}</div>
+      </div>
+    </div>`).join("");
+
+  const hourRows = hourDetails.map(d => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E9E9EC!important">
+      <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
+        <span style="width:6px;height:6px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span>
+        <span style="font-size:12px;font-weight:600;color:#25253D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(d.name)}</span>
+      </div>
+      <div style="display:flex;gap:20px;align-items:center;flex-shrink:0;margin-left:12px">
+        <span style="font-size:11px;color:#6C6C7D;white-space:nowrap">${Math.round(d.total_hours * 10) / 10} ${xl.saved_month}</span>
+        <span style="font-size:13px;font-weight:700;color:#25253D;white-space:nowrap">${fmtEur(d.total_annual)}</span>
+      </div>
+    </div>`).join("");
+
+  const showBothSections = toolDetails.length > 0 && hourDetails.length > 0;
+  const leftWidth = showBothSections ? "48%" : "100%";
+  const showRight = hourDetails.length > 0;
+
+  return `<div class="slide" id="s1">
+  ${ISO_USE}
+  <div class="brand">${escHtml(t.proposal)}</div>
+  <div style="position:absolute;top:52px;left:80px;right:80px">
+    <div style="font-size:32px;font-weight:800;color:#25253D;letter-spacing:-.025em;line-height:1.1">${titleTemplates[lang] ?? titleTemplates.es}</div>
+  </div>
+  <div class="kpis" style="position:absolute;top:132px;left:0;right:0">
+    <div class="kpi"><div class="kpi-lbl">${t.annual_savings}</div><div class="kpi-val" style="color:#FF355E">${fmtEur(data.total_annual_savings)}</div><div style="font-size:14px;font-weight:700;color:#25253D;margin-top:8px">${t.savings_vs_label} ${fmtEur(data.annual_cost)}/${t.year}</div><div class="kpi-sub">${t.savings_vs_detail}</div></div>
+    <div class="kpi"><div class="kpi-lbl">${t.roi}</div><div class="kpi-val" style="color:#25253D">${data.roi_percent}%</div><div class="kpi-sub">${t.roi_sub("€" + roiPer1)}</div></div>
+    <div class="kpi"><div class="kpi-lbl">${t.payback}</div><div class="kpi-val" style="color:#25253D">${data.payback_months} m</div><div class="kpi-sub">${t.payback_sub(String(data.payback_months))}</div></div>
+  </div>
+  <div style="position:absolute;top:290px;left:80px;right:80px;bottom:32px;display:flex;gap:32px">
+    ${toolDetails.length > 0 ? `
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AEAEB8;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #E9E9EC!important">${xl.tools}</div>
+      <div>${toolRows}</div>
+      ${toolDetails.length > 0 ? `<div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #E9E9EC!important"><span style="font-size:11px;font-weight:700;color:#6C6C7D">${xl.total_tools}</span><span style="font-size:14px;font-weight:800;color:#FF355E">${fmtEur(toolTotal)}</span></div>` : ""}
+    </div>` : ""}
+    ${showRight ? `
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AEAEB8;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #E9E9EC!important">${xl.hours}</div>
+      <div>${hourRows}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #E9E9EC!important"><span style="font-size:11px;font-weight:700;color:#6C6C7D">${xl.total_hours}: ${Math.round(totalH * 10) / 10} ${xl.saved_month}</span><span style="font-size:14px;font-weight:800;color:#25253D">${fmtEur(hourTotal)}</span></div>
+    </div>` : ""}
+  </div>
+  <div style="position:absolute;bottom:14px;right:80px;font-size:11px;color:#AEAEB8;white-space:nowrap;letter-spacing:.02em">2&nbsp;/&nbsp;${totalSlides}</div>
+</div>`;
+}
+
+function xlModuleListSlide3(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number): string {
+  const totalH = details.filter(d => !d.tool_override).reduce((s, d) => s + d.total_hours, 0);
+
+  const xl18nTitle: Record<string, string> = {
+    es: "Detalle de ahorro por módulo", en: "Savings detail by module",
+    fr: "Détail des économies par module", it: "Dettaglio risparmio per modulo",
+    de: "Einsparungsdetail nach Modul", pt: "Detalhe de poupança por módulo",
+  };
+
+  const fontSize = details.length > 9 ? "10px" : details.length > 7 ? "11px" : "12px";
+  const rowPad = details.length > 9 ? "5px 10px" : details.length > 7 ? "6px 12px" : "7px 12px";
+
+  const moduleRows = details.map(d => {
+    const hCol = d.tool_override
+      ? `<td style="font-size:10px;color:#6C6C7D;padding:${rowPad}">${escHtml(d.tool_override.tool_name || t.tool_label)}</td>`
+      : `<td style="text-align:center;font-weight:600;color:#6C6C7D;padding:${rowPad}">${Math.round(d.total_hours * 10) / 10} h</td>`;
+    const desc = getModuleDesc(d.id, lang) || d.category_desc || d.name;
+    return `<tr>
+      <td style="padding:${rowPad}"><span class="mdot" style="background:${d.color}"></span><strong style="font-size:${fontSize}">${escHtml(d.name)}</strong></td>
+      <td style="color:#6C6C7D;font-size:${fontSize};padding:${rowPad}">${escHtml(desc)}</td>
+      ${hCol}
+      <td style="text-align:right;font-weight:700;font-size:${details.length > 9 ? '11px' : '13px'};padding:${rowPad}">${fmtEur(d.total_annual)}</td>
+    </tr>`;
+  }).join("\n");
+
+  return `<div class="slide">
+  ${ISO_USE}
+  <div class="brand">${escHtml(t.proposal)}</div>
+  <div style="position:absolute;top:30px;left:80px;right:80px">
+    <div style="font-size:18px;font-weight:800;color:#25253D;letter-spacing:-.02em">${xl18nTitle[lang] ?? xl18nTitle.es}</div>
+    <div style="font-size:11px;color:#AEAEB8;margin-top:3px">${escHtml(data.company_name)}</div>
+  </div>
+  <div style="position:absolute;top:90px;left:80px;right:80px;bottom:56px;overflow:hidden">
+    <table class="btbl" style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="width:22%">${t.module}</th>
+        <th style="width:40%">${t.what_is}</th>
+        <th style="width:14%;text-align:center">${t.h_month}</th>
+        <th style="width:24%;text-align:right">${t.savings_year}</th>
+      </tr></thead>
+      <tbody>
+        ${moduleRows}
+        <tr class="btot">
+          <td colspan="2">${t.total}</td>
+          <td style="text-align:center;font-weight:800">${Math.round(totalH * 10) / 10} h</td>
+          <td>${fmtEur(data.total_annual_savings)}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="position:absolute;bottom:14px;left:80px;right:80px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:10px;color:#AEAEB8">${t.disclaimer(data.total_employees, data.hr_count, data.manager_count, data.onboardings)}</span>
+    <span style="font-size:11px;color:#AEAEB8;letter-spacing:.02em">3&nbsp;/&nbsp;${totalSlides}</span>
+  </div>
+</div>`;
+}
+
 // ── Public API ───────────────────────────────────────
 
-export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full"): string {
+export interface XLDeckOptions {
+  hiddenSlideIds?: Set<string>;
+}
+
+export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full", xlOptions?: XLDeckOptions): string {
   const { uiLang, modLang } = resolveLangs(input.country);
   const t = getI18n(uiLang);
   const details = buildDetails(input, data, uiLang, modLang).filter(d => d.total_annual > 0 && (d.tool_override || d.rows.length > 0));
-  const totalSlides = mode === "summary" ? 2 : 2 + details.length;
+  const isXL = !!xlOptions;
+  const visibleDetails = isXL && xlOptions?.hiddenSlideIds?.size
+    ? details.filter(d => !xlOptions.hiddenSlideIds!.has(d.id))
+    : details;
+  const totalSlides = isXL
+    ? (mode === "summary" ? 3 : 3 + visibleDetails.filter(d => d.tool_override).length)
+    : (mode === "summary" ? 2 : 2 + details.length);
 
   // Recalculate totals from actual rows (overrides buildRoiSlideData defaults)
   const realTotal = details.reduce((s, d) => s + d.total_annual, 0);
@@ -757,12 +913,25 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
     payback_months: realPayback,
   };
 
-  let slides = coverSlide(correctedData, t, uiLang) + "\n\n" + summarySlide(correctedData, details, t, uiLang, totalSlides);
-
-  if (mode === "full") {
-    details.forEach((d, i) => {
-      slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, i + 3, totalSlides);
-    });
+  let slides: string;
+  if (isXL) {
+    slides = coverSlide(correctedData, t, uiLang)
+      + "\n\n" + xlSummarySlide2(correctedData, visibleDetails, t, uiLang, totalSlides)
+      + "\n\n" + xlModuleListSlide3(correctedData, visibleDetails, t, uiLang, totalSlides);
+    if (mode === "full") {
+      // Only tool-replacement modules get a product detail slide in XL mode
+      const toolSlides = visibleDetails.filter(d => d.tool_override);
+      toolSlides.forEach((d, i) => {
+        slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, i + 4, totalSlides);
+      });
+    }
+  } else {
+    slides = coverSlide(correctedData, t, uiLang) + "\n\n" + summarySlide(correctedData, details, t, uiLang, totalSlides);
+    if (mode === "full") {
+      details.forEach((d, i) => {
+        slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, i + 3, totalSlides);
+      });
+    }
   }
 
   return `<!DOCTYPE html>
@@ -840,10 +1009,10 @@ async function waitForFonts(iframe: HTMLIFrameElement): Promise<void> {
   await new Promise(r => setTimeout(r, 100));
 }
 
-export async function generateDeckPdf(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full"): Promise<void> {
+export async function generateDeckPdf(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full", xlOptions?: XLDeckOptions): Promise<void> {
   const [html2canvas, fontCss] = await Promise.all([loadHtml2Canvas(), getInlineFontCss()]);
 
-  const html = generateDeckHtml(data, input, mode);
+  const html = generateDeckHtml(data, input, mode, xlOptions);
 
   const iframe = document.createElement("iframe");
   iframe.style.cssText = "position:fixed;left:-9999px;top:0;width:1280px;height:720px;border:none;pointer-events:none;z-index:-1;";
