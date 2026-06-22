@@ -203,7 +203,7 @@ export default function CoCreation() {
   const [modjoSearch, setModjoSearch] = useState("");
   const [modjoCalls, setModjoCalls] = useState<ModjoCall[]>([]);
   const [searchingCalls, setSearchingCalls] = useState(false);
-  const [selectedCall, setSelectedCall] = useState<ModjoCall | null>(null);
+  const [selectedCallIds, setSelectedCallIds] = useState<Set<number>>(new Set());
   const [personalizing, setPersonalizing] = useState(false);
   const [personalizeOpen, setPersonalizeOpen] = useState(false);
   const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>> | null>(null);
@@ -344,18 +344,23 @@ export default function CoCreation() {
   }
 
   async function handlePersonalize() {
-    if (!selectedCall) return;
+    if (selectedCallIds.size === 0) return;
     setPersonalizing(true);
     try {
-      const { data: transcriptData, error: tErr } = await supabase.functions.invoke("modjo-calls", {
-        body: { mode: "transcript", callId: selectedCall.callId },
-      });
-      if (tErr) throw tErr;
-      if (!transcriptData?.transcript) throw new Error("No transcript");
+      const callsToUse = modjoCalls.filter(c => selectedCallIds.has(c.callId));
+      const transcripts = await Promise.all(callsToUse.map(async call => {
+        const { data, error } = await supabase.functions.invoke("modjo-calls", {
+          body: { mode: "transcript", callId: call.callId },
+        });
+        if (error) throw error;
+        return data?.transcript ?? "";
+      }));
+      const combinedTranscript = transcripts.filter(Boolean).join("\n\n---\n\n");
+      if (!combinedTranscript) throw new Error("No transcript");
 
       const lang = (i18n.language ?? "en").slice(0, 2);
       const { data, error } = await supabase.functions.invoke("ai-enhance-roi-detail", {
-        body: { transcript: transcriptData.transcript, modules: selectedModules, language: lang },
+        body: { transcript: combinedTranscript, modules: selectedModules, language: lang },
       });
       if (error) throw error;
       if (!data?.descriptions) throw new Error(data?.error ?? "No descriptions");
@@ -1281,25 +1286,42 @@ export default function CoCreation() {
                   {modjoCalls.length > 0 && (
                     <div className="space-y-2">
                       {modjoCalls.map(call => {
-                        const isSelected = selectedCall?.callId === call.callId;
+                        const isSelected = selectedCallIds.has(call.callId);
                         const dateStr = call.date ? new Date(call.date).toLocaleDateString() : "";
                         const mins = Math.round(call.duration / 60);
                         return (
-                          <button key={call.callId} onClick={() => setSelectedCall(isSelected ? null : call)} className={`w-full rounded-lg border p-3 text-left transition-all text-xs ${isSelected ? "border-violet-400 bg-violet-50" : "border-border hover:border-foreground/20"}`}>
-                            <p className="font-semibold text-foreground truncate">{call.title}</p>
-                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                              {dateStr && <span>{dateStr}</span>}
-                              {mins > 0 && <span>{mins} min</span>}
+                          <button
+                            key={call.callId}
+                            onClick={() => setSelectedCallIds(prev => {
+                              const next = new Set(prev);
+                              if (next.has(call.callId)) next.delete(call.callId); else next.add(call.callId);
+                              return next;
+                            })}
+                            className={`w-full rounded-lg border p-3 text-left transition-all text-xs ${isSelected ? "border-violet-400 bg-violet-50" : "border-border hover:border-foreground/20"}`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div className={`mt-0.5 w-4 h-4 rounded border-2 flex-shrink-0 flex items-center justify-center ${isSelected ? "border-violet-500 bg-violet-500" : "border-muted-foreground/40"}`}>
+                                {isSelected && <Check className="h-2.5 w-2.5 text-white" />}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-foreground truncate">{call.title}</p>
+                                <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                                  {dateStr && <span>{dateStr}</span>}
+                                  {mins > 0 && <span>{mins} min</span>}
+                                </div>
+                              </div>
                             </div>
-                            {isSelected && <Check className="h-4 w-4 text-violet-600 float-right -mt-8" />}
                           </button>
                         );
                       })}
+                      {selectedCallIds.size > 1 && (
+                        <p className="text-[10px] text-violet-600 font-medium">{selectedCallIds.size} llamadas — los transcripts se combinarán</p>
+                      )}
                     </div>
                   )}
                   <Button
                     onClick={handlePersonalize}
-                    disabled={!selectedCall || personalizing}
+                    disabled={selectedCallIds.size === 0 || personalizing}
                     size="sm"
                     className="w-full h-10 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold"
                   >
