@@ -749,12 +749,12 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
   const hourTotal = hourDetails.reduce((s, d) => s + d.total_annual, 0);
 
   const xl18n: Record<string, { tools: string; hours: string; replaces: string; total_tools: string; total_hours: string; saved_month: string }> = {
-    es: { tools: "Ahorro por herramientas reemplazadas", hours: "Ahorro por automatización de horas", replaces: "Reemplaza", total_tools: "Total herramientas", total_hours: "Total horas ahorradas", saved_month: "h/mes" },
-    en: { tools: "Tool replacement savings", hours: "Hours automation savings", replaces: "Replaces", total_tools: "Total tools", total_hours: "Total hours saved", saved_month: "h/month" },
-    fr: { tools: "Économies sur outils remplacés", hours: "Économies par automatisation des heures", replaces: "Remplace", total_tools: "Total outils", total_hours: "Total heures économisées", saved_month: "h/mois" },
-    it: { tools: "Risparmio su strumenti sostituiti", hours: "Risparmio per automazione ore", replaces: "Sostituisce", total_tools: "Totale strumenti", total_hours: "Totale ore risparmiate", saved_month: "h/mese" },
-    de: { tools: "Einsparung durch ersetzte Tools", hours: "Einsparung durch Stundenautomatisierung", replaces: "Ersetzt", total_tools: "Gesamt Tools", total_hours: "Gesamte eingesparte Stunden", saved_month: "h/Monat" },
-    pt: { tools: "Poupança por ferramentas substituídas", hours: "Poupança por automatização de horas", replaces: "Substitui", total_tools: "Total ferramentas", total_hours: "Total horas poupadas", saved_month: "h/mês" },
+    es: { tools: "Ahorro por herramientas reemplazadas", hours: "Ahorro por automatización de horas", replaces: "Reemplazado por", total_tools: "Total herramientas", total_hours: "Total horas ahorradas", saved_month: "h/mes" },
+    en: { tools: "Tool replacement savings", hours: "Hours automation savings", replaces: "Replaced by", total_tools: "Total tools", total_hours: "Total hours saved", saved_month: "h/month" },
+    fr: { tools: "Économies sur outils remplacés", hours: "Économies par automatisation des heures", replaces: "Remplacé par", total_tools: "Total outils", total_hours: "Total heures économisées", saved_month: "h/mois" },
+    it: { tools: "Risparmio su strumenti sostituiti", hours: "Risparmio per automazione ore", replaces: "Sostituito da", total_tools: "Totale strumenti", total_hours: "Totale ore risparmiate", saved_month: "h/mese" },
+    de: { tools: "Einsparung durch ersetzte Tools", hours: "Einsparung durch Stundenautomatisierung", replaces: "Ersetzt durch", total_tools: "Gesamt Tools", total_hours: "Gesamte eingesparte Stunden", saved_month: "h/Monat" },
+    pt: { tools: "Poupança por ferramentas substituídas", hours: "Poupança por automatização de horas", replaces: "Substituído por", total_tools: "Total ferramentas", total_hours: "Total horas poupadas", saved_month: "h/mês" },
   };
   const xl = xl18n[lang] ?? xl18n.es;
   const moLabel = { es: "/mes", en: "/mo", fr: "/mois", it: "/mese", de: "/Monat", pt: "/mês" }[lang] ?? "/mes";
@@ -773,10 +773,10 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
     <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #E9E9EC!important">
       <div style="min-width:0;flex:1">
         <div style="font-size:13px;font-weight:800;color:#25253D;margin-bottom:3px">${escHtml(d.tool_override!.tool_name)}</div>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-size:10px;color:#AEAEB8">${xl.replaces}:</span>
+        <div style="display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden">
+          <span style="font-size:10px;color:#AEAEB8;flex-shrink:0">${xl.replaces}:</span>
           <span style="width:5px;height:5px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span>
-          <span style="font-size:11px;color:#6C6C7D">${escHtml(d.name)}</span>
+          <span style="font-size:11px;color:#6C6C7D;overflow:hidden;text-overflow:ellipsis">${escHtml(d.name)}</span>
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;margin-left:16px">
@@ -802,13 +802,13 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
     de: { employee: "Mitarbeiter", hr: "HR-Admin", manager: "Manager" },
     pt: { employee: "Colaboradores", hr: "Admin RH", manager: "Gestores" },
   };
-  const stakeDesc: Record<string, Record<string, (h: string, eur: string, yrL: string) => string>> = {
-    es: { employee: (h, eur, y) => `Ahorran ${h} ${xl.saved_month} en gestiones · ${eur}${y}`, hr: (h, eur, y) => `Reducen ${h} ${xl.saved_month} de carga administrativa · ${eur}${y}`, manager: (h, eur, y) => `Recuperan ${h} ${xl.saved_month} en seguimiento y aprobaciones · ${eur}${y}` },
-    en: { employee: (h, eur, y) => `Save ${h} ${xl.saved_month} on admin tasks · ${eur}${y}`, hr: (h, eur, y) => `Reduce ${h} ${xl.saved_month} of manual workload · ${eur}${y}`, manager: (h, eur, y) => `Recover ${h} ${xl.saved_month} on tracking & approvals · ${eur}${y}` },
-    fr: { employee: (h, eur, y) => `Économisent ${h} ${xl.saved_month} sur les tâches admin · ${eur}${y}`, hr: (h, eur, y) => `Réduisent ${h} ${xl.saved_month} de charge administrative · ${eur}${y}`, manager: (h, eur, y) => `Récupèrent ${h} ${xl.saved_month} sur le suivi et les approbations · ${eur}${y}` },
-    it: { employee: (h, eur, y) => `Risparmiano ${h} ${xl.saved_month} su task admin · ${eur}${y}`, hr: (h, eur, y) => `Riducono ${h} ${xl.saved_month} di carico manuale · ${eur}${y}`, manager: (h, eur, y) => `Recuperano ${h} ${xl.saved_month} su tracking e approvazioni · ${eur}${y}` },
-    de: { employee: (h, eur, y) => `Sparen ${h} ${xl.saved_month} bei Admin-Aufgaben · ${eur}${y}`, hr: (h, eur, y) => `Reduzieren ${h} ${xl.saved_month} manuelle Arbeit · ${eur}${y}`, manager: (h, eur, y) => `Gewinnen ${h} ${xl.saved_month} bei Tracking & Genehmigungen · ${eur}${y}` },
-    pt: { employee: (h, eur, y) => `Poupam ${h} ${xl.saved_month} em tarefas admin · ${eur}${y}`, hr: (h, eur, y) => `Reduzem ${h} ${xl.saved_month} de carga manual · ${eur}${y}`, manager: (h, eur, y) => `Recuperam ${h} ${xl.saved_month} em seguimento e aprovações · ${eur}${y}` },
+  const stakeDesc: Record<string, Record<string, (h: string) => string>> = {
+    es: { employee: h => `Ahorran ${h} ${xl.saved_month} en gestiones de RRHH`, hr: h => `Reducen ${h} ${xl.saved_month} de carga administrativa`, manager: h => `Recuperan ${h} ${xl.saved_month} en seguimiento y aprobaciones` },
+    en: { employee: h => `Save ${h} ${xl.saved_month} on HR admin tasks`, hr: h => `Reduce ${h} ${xl.saved_month} of manual workload`, manager: h => `Recover ${h} ${xl.saved_month} on tracking & approvals` },
+    fr: { employee: h => `Économisent ${h} ${xl.saved_month} sur les tâches admin`, hr: h => `Réduisent ${h} ${xl.saved_month} de charge administrative`, manager: h => `Récupèrent ${h} ${xl.saved_month} sur le suivi et les approbations` },
+    it: { employee: h => `Risparmiano ${h} ${xl.saved_month} su task admin`, hr: h => `Riducono ${h} ${xl.saved_month} di carico manuale`, manager: h => `Recuperano ${h} ${xl.saved_month} su tracking e approvazioni` },
+    de: { employee: h => `Sparen ${h} ${xl.saved_month} bei Admin-Aufgaben`, hr: h => `Reduzieren ${h} ${xl.saved_month} manuelle Arbeit`, manager: h => `Gewinnen ${h} ${xl.saved_month} bei Tracking & Genehmigungen` },
+    pt: { employee: h => `Poupam ${h} ${xl.saved_month} em tarefas admin`, hr: h => `Reduzem ${h} ${xl.saved_month} de carga manual`, manager: h => `Recuperam ${h} ${xl.saved_month} em seguimento e aprovações` },
   };
   const stakeColors: Record<string, string> = { employee: "#3B82F6", hr: "#10B981", manager: "#F59E0B" };
   const stakeIcons: Record<string, string> = { employee: "👤", hr: "🛡", manager: "💼" };
@@ -818,8 +818,7 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
     .map(s => {
       const { totalH, totalAnnual } = stakeAgg[s];
       const hStr = Math.round(totalH * 10) / 10;
-      const eurStr = fmtEur(Math.round(totalAnnual));
-      const desc = (stakeDesc[lang] ?? stakeDesc.es)[s]?.(String(hStr), eurStr, yrLabel) ?? "";
+      const desc = (stakeDesc[lang] ?? stakeDesc.es)[s]?.(String(hStr)) ?? "";
       const lbl = (stakeLabels[lang] ?? stakeLabels.es)[s];
       return `
     <div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #E9E9EC!important">
@@ -861,7 +860,7 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
     <div style="flex:1;min-width:0">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#AEAEB8;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #E9E9EC!important">${xl.hours}</div>
       <div>${hourRows}</div>
-      <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1px solid #E9E9EC!important"><span style="font-size:11px;font-weight:700;color:#6C6C7D">${xl.total_hours}: ${Math.round(totalH * 10) / 10} ${xl.saved_month}</span><span style="font-size:14px;font-weight:800;color:#25253D">${fmtEur(hourTotal)}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid #E9E9EC!important"><span style="font-size:11px;font-weight:700;color:#6C6C7D;white-space:nowrap">${xl.total_hours}: ${Math.round(totalH * 10) / 10} ${xl.saved_month}</span><span style="font-size:14px;font-weight:800;color:#25253D;flex-shrink:0;margin-left:12px">${fmtEur(hourTotal)}</span></div>
     </div>` : ""}
   </div>
   <div style="position:absolute;bottom:14px;right:80px;font-size:11px;color:#AEAEB8;white-space:nowrap;letter-spacing:.02em">2&nbsp;/&nbsp;${totalSlides}</div>
