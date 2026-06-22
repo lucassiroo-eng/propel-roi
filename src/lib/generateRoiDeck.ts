@@ -772,8 +772,12 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
   const toolRows = toolDetails.map(d => `
     <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #E9E9EC!important">
       <div style="min-width:0;flex:1">
-        <div style="font-size:10px;color:#AEAEB8;margin-bottom:2px">${xl.replaces}: <strong style="color:#6C6C7D">${escHtml(d.tool_override!.tool_name)}</strong></div>
-        <div style="display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span><span style="font-size:13px;font-weight:700;color:#25253D">${escHtml(d.name)}</span></div>
+        <div style="font-size:13px;font-weight:800;color:#25253D;margin-bottom:3px">${escHtml(d.tool_override!.tool_name)}</div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:10px;color:#AEAEB8">${xl.replaces}:</span>
+          <span style="width:5px;height:5px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span>
+          <span style="font-size:11px;color:#6C6C7D">${escHtml(d.name)}</span>
+        </div>
       </div>
       <div style="text-align:right;flex-shrink:0;margin-left:16px">
         <div style="font-size:15px;font-weight:800;color:#FF355E">${fmtEur(d.total_annual)}<span style="font-size:10px;font-weight:500;color:#AEAEB8">${yrLabel}</span></div>
