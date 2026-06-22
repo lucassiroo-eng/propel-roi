@@ -781,17 +781,55 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
       </div>
     </div>`).join("");
 
-  const hourRows = hourDetails.map(d => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E9E9EC!important">
-      <div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1">
-        <span style="width:6px;height:6px;border-radius:50%;background:${d.color};flex-shrink:0;display:inline-block"></span>
-        <span style="font-size:12px;font-weight:600;color:#25253D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(d.name)}</span>
+  // Aggregate hours and savings by stakeholder across all hour modules
+  const stakeAgg: Record<string, { totalH: number; totalAnnual: number }> = {};
+  for (const d of hourDetails) {
+    for (const r of d.rows) {
+      if (!stakeAgg[r.stakeholder]) stakeAgg[r.stakeholder] = { totalH: 0, totalAnnual: 0 };
+      stakeAgg[r.stakeholder].totalH += r.total_hours;
+      stakeAgg[r.stakeholder].totalAnnual += r.annual_savings;
+    }
+  }
+  const stakeLabels: Record<string, Record<string, string>> = {
+    es: { employee: "Empleados", hr: "Admin RRHH", manager: "Managers" },
+    en: { employee: "Employees", hr: "HR Admin", manager: "Managers" },
+    fr: { employee: "Employés", hr: "Admin RH", manager: "Managers" },
+    it: { employee: "Dipendenti", hr: "Admin HR", manager: "Manager" },
+    de: { employee: "Mitarbeiter", hr: "HR-Admin", manager: "Manager" },
+    pt: { employee: "Colaboradores", hr: "Admin RH", manager: "Gestores" },
+  };
+  const stakeDesc: Record<string, Record<string, (h: string, eur: string, yrL: string) => string>> = {
+    es: { employee: (h, eur, y) => `Ahorran ${h} ${xl.saved_month} en gestiones · ${eur}${y}`, hr: (h, eur, y) => `Reducen ${h} ${xl.saved_month} de carga administrativa · ${eur}${y}`, manager: (h, eur, y) => `Recuperan ${h} ${xl.saved_month} en seguimiento y aprobaciones · ${eur}${y}` },
+    en: { employee: (h, eur, y) => `Save ${h} ${xl.saved_month} on admin tasks · ${eur}${y}`, hr: (h, eur, y) => `Reduce ${h} ${xl.saved_month} of manual workload · ${eur}${y}`, manager: (h, eur, y) => `Recover ${h} ${xl.saved_month} on tracking & approvals · ${eur}${y}` },
+    fr: { employee: (h, eur, y) => `Économisent ${h} ${xl.saved_month} sur les tâches admin · ${eur}${y}`, hr: (h, eur, y) => `Réduisent ${h} ${xl.saved_month} de charge administrative · ${eur}${y}`, manager: (h, eur, y) => `Récupèrent ${h} ${xl.saved_month} sur le suivi et les approbations · ${eur}${y}` },
+    it: { employee: (h, eur, y) => `Risparmiano ${h} ${xl.saved_month} su task admin · ${eur}${y}`, hr: (h, eur, y) => `Riducono ${h} ${xl.saved_month} di carico manuale · ${eur}${y}`, manager: (h, eur, y) => `Recuperano ${h} ${xl.saved_month} su tracking e approvazioni · ${eur}${y}` },
+    de: { employee: (h, eur, y) => `Sparen ${h} ${xl.saved_month} bei Admin-Aufgaben · ${eur}${y}`, hr: (h, eur, y) => `Reduzieren ${h} ${xl.saved_month} manuelle Arbeit · ${eur}${y}`, manager: (h, eur, y) => `Gewinnen ${h} ${xl.saved_month} bei Tracking & Genehmigungen · ${eur}${y}` },
+    pt: { employee: (h, eur, y) => `Poupam ${h} ${xl.saved_month} em tarefas admin · ${eur}${y}`, hr: (h, eur, y) => `Reduzem ${h} ${xl.saved_month} de carga manual · ${eur}${y}`, manager: (h, eur, y) => `Recuperam ${h} ${xl.saved_month} em seguimento e aprovações · ${eur}${y}` },
+  };
+  const stakeColors: Record<string, string> = { employee: "#3B82F6", hr: "#10B981", manager: "#F59E0B" };
+  const stakeIcons: Record<string, string> = { employee: "👤", hr: "🛡", manager: "💼" };
+
+  const hourRows = (["employee", "hr", "manager"] as const)
+    .filter(s => stakeAgg[s]?.totalH > 0)
+    .map(s => {
+      const { totalH, totalAnnual } = stakeAgg[s];
+      const hStr = Math.round(totalH * 10) / 10;
+      const eurStr = fmtEur(Math.round(totalAnnual));
+      const desc = (stakeDesc[lang] ?? stakeDesc.es)[s]?.(String(hStr), eurStr, yrLabel) ?? "";
+      const lbl = (stakeLabels[lang] ?? stakeLabels.es)[s];
+      return `
+    <div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #E9E9EC!important">
+      <div style="width:36px;height:36px;border-radius:10px;background:${stakeColors[s]}18;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${stakeIcons[s]}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:800;color:#25253D;margin-bottom:2px">${lbl}</div>
+        <div style="font-size:11px;color:#6C6C7D;line-height:1.4">${desc}</div>
       </div>
-      <div style="display:flex;gap:20px;align-items:center;flex-shrink:0;margin-left:12px">
-        <span style="font-size:11px;color:#6C6C7D;white-space:nowrap">${Math.round(d.total_hours * 10) / 10} ${xl.saved_month}</span>
-        <span style="font-size:13px;font-weight:700;color:#25253D;white-space:nowrap">${fmtEur(d.total_annual)}</span>
+      <div style="text-align:right;flex-shrink:0;margin-left:8px">
+        <div style="font-size:18px;font-weight:800;color:#25253D;letter-spacing:-.02em">${fmtEur(Math.round(totalAnnual))}</div>
+        <div style="font-size:10px;color:#AEAEB8">${hStr} ${xl.saved_month}</div>
       </div>
-    </div>`).join("");
+    </div>`;
+    }).join("");
 
   const showBothSections = toolDetails.length > 0 && hourDetails.length > 0;
   const leftWidth = showBothSections ? "48%" : "100%";
@@ -854,11 +892,17 @@ function xlModuleListSlide3(data: RoiSlideData, details: ModuleDetail[], t: Deck
   return `<div class="slide">
   ${ISO_USE}
   <div class="brand">${escHtml(t.proposal)}</div>
-  <div style="position:absolute;top:30px;left:80px;right:80px">
-    <div style="font-size:18px;font-weight:800;color:#25253D;letter-spacing:-.02em">${xl18nTitle[lang] ?? xl18nTitle.es}</div>
-    <div style="font-size:11px;color:#AEAEB8;margin-top:3px">${escHtml(data.company_name)}</div>
+  <div class="mhd">
+    <div>
+      <div class="mhd-name" style="color:#25253D">${xl18nTitle[lang] ?? xl18nTitle.es}</div>
+      <div class="mhd-cat">${escHtml(data.company_name)}</div>
+    </div>
+    <div class="mhd-r">
+      <div class="mhd-lbl">${t.total_annual}</div>
+      <div class="mhd-val" style="color:#FF355E">${fmtEur(data.total_annual_savings)}</div>
+    </div>
   </div>
-  <div style="position:absolute;top:90px;left:80px;right:80px;bottom:56px;overflow:hidden">
+  <div style="position:absolute;top:120px;left:80px;right:80px;bottom:56px;overflow:hidden">
     <table class="btbl" style="width:100%;border-collapse:collapse">
       <thead><tr>
         <th style="width:22%">${t.module}</th>

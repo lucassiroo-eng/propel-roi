@@ -1239,30 +1239,28 @@ export default function XLCoCreation() {
             {/* Edit presentation — XL */}
             <button
               onClick={() => setShowPresEditor(true)}
-              className="w-full rounded-2xl p-4 text-left transition-all group active:scale-[0.99] relative overflow-hidden"
-              style={{ background: "oklch(16% 0.025 290)", border: "1px solid oklch(24% 0.03 290)" }}
+              className="w-full rounded-2xl p-4 text-left transition-all group active:scale-[0.99] hover:shadow-md"
+              style={{ background: "oklch(96% 0.025 290)", border: "1.5px solid oklch(80% 0.1 290)" }}
             >
-              {/* Subtle gradient accent */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ background: "radial-gradient(ellipse at 80% 50%, oklch(55% 0.22 290), transparent 70%)" }} />
-              <div className="relative flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "oklch(55% 0.22 290)" }}>
                   <Eye className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold" style={{ color: "oklch(90% 0.04 290)" }}>Editar presentación</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: "oklch(60% 0.04 290)" }}>Preview · slides · argumentos · Modjo</p>
+                  <p className="text-[13px] font-bold" style={{ color: "oklch(30% 0.15 290)" }}>Editar presentación</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: "oklch(50% 0.08 290)" }}>Preview del deck · slides · argumentos · Modjo</p>
                 </div>
                 <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5" style={{ color: "oklch(55% 0.22 290)" }} />
               </div>
               {(enhancedDescriptions || hiddenSlideIds.size > 0) && (
-                <div className="relative flex gap-2 mt-3 pl-12">
+                <div className="flex gap-2 mt-2.5 pl-12">
                   {enhancedDescriptions && (
-                    <span className="text-[10px] font-semibold flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ color: "oklch(75% 0.15 290)", background: "oklch(22% 0.04 290)" }}>
+                    <span className="text-[10px] font-semibold flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ color: "oklch(40% 0.18 290)", background: "oklch(88% 0.08 290)" }}>
                       <Sparkles className="h-2.5 w-2.5" /> Modjo activo
                     </span>
                   )}
                   {hiddenSlideIds.size > 0 && (
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ color: "oklch(72% 0.14 60)", background: "oklch(22% 0.04 60)" }}>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ color: "oklch(45% 0.14 65)", background: "oklch(92% 0.08 65)" }}>
                       {hiddenSlideIds.size} slides ocultas
                     </span>
                   )}
