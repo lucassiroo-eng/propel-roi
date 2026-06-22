@@ -23,7 +23,8 @@ CREATE POLICY own_sessions_select ON roi_sessions
         'andre.reis@factorial.co',
         'juan.ruiz@factorial.co',
         'lorena.tapia@factorial.co',
-        'gerard.ghneim@factorial.co'
+        'gerard.ghneim@factorial.co',
+        'factorial.partners@factorial.co'
       ])
     )
   );
