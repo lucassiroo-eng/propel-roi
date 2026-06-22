@@ -941,11 +941,10 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   const t = getI18n(uiLang);
   const details = buildDetails(input, data, uiLang, modLang).filter(d => d.total_annual > 0 && (d.tool_override || d.rows.length > 0));
   const isXL = !!xlOptions;
-  const visibleDetails = isXL && xlOptions?.hiddenSlideIds?.size
-    ? details.filter(d => !xlOptions.hiddenSlideIds!.has(d.id))
-    : details;
+  // In XL mode: hour slides always shown; tool slides can be hidden via hiddenSlideIds
+  const hideToolSlides = isXL && (xlOptions?.hiddenSlideIds?.size ?? 0) > 0;
   const totalSlides = isXL
-    ? (mode === "summary" ? 3 : 3 + visibleDetails.filter(d => d.tool_override).length)
+    ? (mode === "summary" ? 3 : 3 + details.filter(d => !d.tool_override).length + (hideToolSlides ? 0 : details.filter(d => d.tool_override).length))
     : (mode === "summary" ? 2 : 2 + details.length);
 
   // Recalculate totals from actual rows (overrides buildRoiSlideData defaults)
@@ -963,14 +962,21 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   let slides: string;
   if (isXL) {
     slides = coverSlide(correctedData, t, uiLang)
-      + "\n\n" + xlSummarySlide2(correctedData, visibleDetails, t, uiLang, totalSlides)
-      + "\n\n" + xlModuleListSlide3(correctedData, visibleDetails, t, uiLang, totalSlides);
+      + "\n\n" + xlSummarySlide2(correctedData, details, t, uiLang, totalSlides)
+      + "\n\n" + xlModuleListSlide3(correctedData, details, t, uiLang, totalSlides);
     if (mode === "full") {
-      // Only tool-replacement modules get a product detail slide in XL mode
-      const toolSlides = visibleDetails.filter(d => d.tool_override);
-      toolSlides.forEach((d, i) => {
+      // Hour-based modules: ALWAYS included (detailed stakeholder slides)
+      const hourSlides = details.filter(d => !d.tool_override);
+      hourSlides.forEach((d, i) => {
         slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, i + 4, totalSlides);
       });
+      // Tool replacement slides: optional, hidden when hiddenSlideIds has any entries
+      if (!hideToolSlides) {
+        const toolSlides = details.filter(d => d.tool_override);
+        toolSlides.forEach((d, i) => {
+          slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, hourSlides.length + i + 4, totalSlides);
+        });
+      }
     }
   } else {
     slides = coverSlide(correctedData, t, uiLang) + "\n\n" + summarySlide(correctedData, details, t, uiLang, totalSlides);

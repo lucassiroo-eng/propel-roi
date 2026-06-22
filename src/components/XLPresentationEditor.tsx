@@ -115,14 +115,20 @@ export function XLPresentationEditor(props: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, totalSlides]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tool modules — can have their product slides hidden
+  // Tool module IDs — their detail slides can be toggled as a group
   const toolModuleIds = useMemo(
     () => (roi.modules ?? []).filter((m: any) => m.tool_override).map((m: any) => m.id as string),
     [roi]
   );
+  // Tool slides are hidden when localHidden has ANY entry (all-or-nothing)
+  const toolSlidesHidden = localHidden.size > 0;
 
-  function toggleHidden(id: string) {
-    setLocalHidden(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  function toggleAllToolSlides() {
+    if (toolSlidesHidden) {
+      setLocalHidden(new Set()); // show all
+    } else {
+      setLocalHidden(new Set(toolModuleIds)); // hide all
+    }
   }
   function applyHidden() { onHiddenChange(new Set(localHidden)); }
 
@@ -328,61 +334,71 @@ export function XLPresentationEditor(props: Props) {
                 </div>
               ))}
 
-              {/* Tool slides */}
-              {toolModuleIds.length > 0 && (
-                <>
-                  <div className="flex items-baseline gap-2 mt-5 mb-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.muted }}>Slides de producto</p>
-                    <span className="text-[10px]" style={{ color: T.muted }}>· herramientas reemplazadas</span>
-                  </div>
-                  {toolModuleIds.map(id => {
-                    const info = MODULE_INFO[id];
-                    const name = info ? getLocalized(info.label, lang) : id;
-                    const on = !localHidden.has(id);
-                    return (
-                      <button
-                        key={id}
-                        onClick={() => toggleHidden(id)}
-                        className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 mb-1 text-left transition-all"
-                        style={{
-                          background: on ? "#1C1C2E" : T.faint,
-                          border: `1px solid ${on ? "#2E2E48" : T.border}`,
-                        }}
-                      >
-                        <div
-                          className="flex items-center justify-center w-4 h-4 rounded transition-colors flex-shrink-0"
-                          style={{
-                            background: on ? T.violet : "transparent",
-                            border: `1.5px solid ${on ? T.violet : T.borderHi}`,
-                          }}
-                        >
-                          {on && <Check size={9} style={{ color: "#fff" }} />}
-                        </div>
-                        <span className="text-[12px] flex-1 min-w-0 truncate" style={{ color: on ? T.text : T.muted }}>
-                          {name}
-                        </span>
-                        {on
-                          ? <Eye size={12} style={{ color: T.violet, flexShrink: 0 }} />
-                          : <EyeOff size={12} style={{ color: T.muted, flexShrink: 0 }} />}
-                      </button>
-                    );
-                  })}
+              {/* Hour slides — always included, listed for info */}
+              <div className="mt-5 mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.muted }}>Slides de argumentación de horas</p>
+                <p className="text-[10px] mb-3" style={{ color: T.muted }}>Siempre incluidas. Detalle por stakeholder para cada módulo de horas.</p>
+                {(roi.modules ?? []).filter((m: any) => !m.tool_override && m.annual_savings > 0).map((m: any) => {
+                  const info = MODULE_INFO[m.id];
+                  const name = info ? getLocalized(info.label, lang) : m.id;
+                  return (
+                    <div key={m.id} className="flex items-center gap-2.5 rounded-lg px-3 py-2 mb-1" style={{ background: T.faint }}>
+                      <Check size={12} style={{ color: T.violet, flexShrink: 0 }} />
+                      <span className="text-[12px] truncate" style={{ color: T.text }}>{name}</span>
+                      <Eye size={11} style={{ color: T.violet, flexShrink: 0, marginLeft: "auto" }} />
+                    </div>
+                  );
+                })}
+              </div>
 
+              {/* Tool slides — single on/off toggle */}
+              {toolModuleIds.length > 0 && (
+                <div className="mt-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: T.muted }}>Slides de herramientas reemplazadas</p>
+                  <button
+                    onClick={toggleAllToolSlides}
+                    className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-all"
+                    style={{
+                      background: toolSlidesHidden ? T.faint : "#1C1C2E",
+                      border: `1px solid ${toolSlidesHidden ? T.border : "#2E2E48"}`,
+                    }}
+                  >
+                    <div
+                      className="flex items-center justify-center w-5 h-5 rounded-md transition-colors flex-shrink-0"
+                      style={{
+                        background: toolSlidesHidden ? "transparent" : T.violet,
+                        border: `1.5px solid ${toolSlidesHidden ? T.borderHi : T.violet}`,
+                      }}
+                    >
+                      {!toolSlidesHidden && <Check size={11} style={{ color: "#fff" }} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[12px] font-semibold block" style={{ color: toolSlidesHidden ? T.muted : T.text }}>
+                        {toolSlidesHidden ? "Slides de herramientas ocultas" : "Slides de herramientas incluidas"}
+                      </span>
+                      <span className="text-[10px]" style={{ color: T.muted }}>
+                        {toolModuleIds.length} slides · clic para {toolSlidesHidden ? "mostrar" : "ocultar"}
+                      </span>
+                    </div>
+                    {toolSlidesHidden
+                      ? <EyeOff size={14} style={{ color: T.muted, flexShrink: 0 }} />
+                      : <Eye size={14} style={{ color: T.violet, flexShrink: 0 }} />}
+                  </button>
                   {hiddenChanged && (
                     <button
                       onClick={applyHidden}
-                      className="w-full mt-3 h-9 rounded-lg text-xs font-semibold transition-colors"
+                      className="w-full mt-2 h-9 rounded-lg text-xs font-semibold transition-colors"
                       style={{ background: T.violet, color: "#fff" }}
                     >
-                      Aplicar cambios de slides
+                      Aplicar
                     </button>
                   )}
-                </>
+                </div>
               )}
 
               {toolModuleIds.length === 0 && (
-                <p className="text-[11px] text-center mt-6" style={{ color: T.muted }}>
-                  Este deck no tiene slides de herramientas
+                <p className="text-[11px] text-center mt-4" style={{ color: T.muted }}>
+                  No hay herramientas reemplazadas en este deck
                 </p>
               )}
             </div>
