@@ -8,7 +8,7 @@ CREATE POLICY own_sessions_select ON roi_sessions
   FOR SELECT
   TO authenticated
   USING (
-    pae_id = auth.uid()
+    pae_id = auth.uid()::text
     OR EXISTS (
       SELECT 1 FROM user_roles
       WHERE user_id = auth.uid()
@@ -35,7 +35,7 @@ CREATE POLICY own_prospects_select ON prospects
     EXISTS (
       SELECT 1 FROM roi_sessions
       WHERE roi_sessions.prospect_id = prospects.id
-        AND roi_sessions.pae_id = auth.uid()
+        AND roi_sessions.pae_id = auth.uid()::text
     )
     OR EXISTS (
       SELECT 1 FROM user_roles
