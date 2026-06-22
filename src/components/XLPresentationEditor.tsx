@@ -80,13 +80,15 @@ export function XLPresentationEditor(props: Props) {
     if (n) { setTotalSlides(n); setSlideIdx(i => Math.min(i, n - 1)); }
   }, [deckHtml]);
 
-  // Write deck HTML into iframe
+  // Write deck HTML into iframe — debounced 250ms so editing doesn't flicker on every keystroke
   useEffect(() => {
-    const doc = iframeRef.current?.contentDocument;
-    if (!doc) return;
-    doc.open(); doc.write(deckHtml); doc.close();
-    // After write, scroll to current slide
-    setTimeout(() => scrollToSlide(slideIdx), 150);
+    const timer = setTimeout(() => {
+      const doc = iframeRef.current?.contentDocument;
+      if (!doc) return;
+      doc.open(); doc.write(deckHtml); doc.close();
+      setTimeout(() => scrollToSlide(slideIdx), 120);
+    }, 250);
+    return () => clearTimeout(timer);
   }, [deckHtml]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Scroll iframe to the right slide
@@ -149,6 +151,26 @@ export function XLPresentationEditor(props: Props) {
         return { id, name, stakes };
       }).filter(m => m.stakes.length > 0);
   }, [input.configModules, lang, enhancedDescriptions, editedDescs, toolModuleIds]);
+
+  // Map module id → slide index (0-based) in XL mode:
+  // 0=cover, 1=kpis, 2=list, 3+=hour slides, then tool slides
+  const moduleSlideIndex = useMemo(() => {
+    const map: Record<string, number> = {};
+    const hourIds = (input.configModules ?? []).filter(id => !toolModuleIds.includes(id));
+    hourIds.forEach((id, i) => { map[id] = 3 + i; });
+    if (!toolSlidesHidden) {
+      toolModuleIds.forEach((id, i) => { map[id] = 3 + hourIds.length + i; });
+    }
+    return map;
+  }, [input.configModules, toolModuleIds, toolSlidesHidden]);
+
+  function focusModule(id: string) {
+    const idx = moduleSlideIndex[id];
+    if (idx !== undefined) {
+      setSlideIdx(idx);
+      scrollToSlide(idx);
+    }
+  }
 
   function setDesc(modId: string, stake: string, val: string) {
     setEditedDescs(prev => ({ ...prev, [modId]: { ...(prev[modId] ?? {}), [stake]: val } }));
@@ -408,18 +430,27 @@ export function XLPresentationEditor(props: Props) {
           {/* ── ARGS TAB ── */}
           {tab === "args" && (
             <div>
-              {moduleArgs.map((mod, mi) => (
+              {moduleArgs.map((mod) => {
+                const slideNum = (moduleSlideIndex[mod.id] ?? 0) + 1; // 1-based for display
+                return (
                 <div
                   key={mod.id}
                   className="mb-4 rounded-xl overflow-hidden"
                   style={{ border: `1px solid ${T.border}` }}
                 >
-                  <div
-                    className="px-3 py-2"
+                  {/* Module header — click to jump to that slide in preview */}
+                  <button
+                    className="w-full flex items-center justify-between px-3 py-2 text-left"
                     style={{ background: T.faint, borderBottom: `1px solid ${T.border}` }}
+                    onClick={() => focusModule(mod.id)}
+                    title="Ver en preview"
                   >
                     <span className="text-[11px] font-bold" style={{ color: T.text }}>{mod.name}</span>
-                  </div>
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded ml-2 flex-shrink-0"
+                      style={{ background: T.border, color: T.muted }}>
+                      slide {slideNum}
+                    </span>
+                  </button>
                   {mod.stakes.map(({ s, value, isEnhanced, isEdited }) => (
                     <div
                       key={s}
@@ -439,25 +470,27 @@ export function XLPresentationEditor(props: Props) {
                           </span>
                         )}
                         {isEdited && (
-                          <span className="text-[9px] font-semibold" style={{ color: "#F59E0B" }}>✏ Editado</span>
+                          <span className="text-[9px] font-semibold" style={{ color: "#F59E0B" }}>✏ editado</span>
                         )}
                       </div>
                       <textarea
                         value={value}
                         onChange={e => setDesc(mod.id, s, e.target.value)}
+                        onFocus={() => focusModule(mod.id)}
                         rows={3}
                         className="w-full text-[11px] leading-relaxed rounded-lg resize-none outline-none p-2"
                         style={{
                           background: T.bg,
                           color: T.text,
-                          border: `1px solid ${isEdited ? "#F59E0B40" : T.border}`,
+                          border: `1px solid ${isEdited ? "#F59E0B60" : T.border}`,
                           caretColor: T.text,
                         }}
                       />
                     </div>
                   ))}
                 </div>
-              ))}
+                );
+              })}
 
               {hasDescEdits && (
                 <button
