@@ -64,6 +64,44 @@ interface ModjoCall {
 }
 
 
+// Controlled number input that preserves intermediate states like "0." and "0,5"
+function HourInput({ value, onChange, unit, color }: { value: number; onChange: (v: number) => void; unit: string; color: string }) {
+  const [raw, setRaw] = useState(value === 0 ? "" : String(value));
+  // Sync external value changes (e.g. module switch) but don't clobber mid-typing
+  const prevModule = useRef(raw);
+  useEffect(() => {
+    const parsed = parseFloat(raw.replace(",", "."));
+    if (value === 0 && (raw === "" || isNaN(parsed))) return; // don't disrupt empty/mid-typing
+    if (!isNaN(parsed) && parsed === value) return; // already in sync
+    setRaw(value === 0 ? "" : String(value));
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <input
+        type="text" inputMode="decimal" pattern="[0-9]*[.,]?[0-9]*"
+        className="w-[58px] h-8 text-center text-[14px] font-bold tabular-nums rounded-xl border-2 bg-white focus:outline-none transition-colors"
+        style={{ borderColor: color + '40' }}
+        placeholder="0"
+        value={raw}
+        onChange={e => {
+          const str = e.target.value;
+          setRaw(str);
+          const v = parseFloat(str.replace(",", "."));
+          if (!isNaN(v) && v >= 0) onChange(v);
+          else if (str === "" || str === "0") onChange(0);
+        }}
+        onBlur={e => {
+          const v = parseFloat(e.target.value.replace(",", "."));
+          if (isNaN(v) || v < 0) { setRaw(""); onChange(0); }
+          else { setRaw(String(v)); onChange(v); }
+        }}
+      />
+      <span className="text-[10px] font-medium w-12 shrink-0" style={{ color: 'oklch(60% 0.005 250)' }}>{unit}</span>
+    </div>
+  );
+}
+
 export default function XLCoCreation() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -986,23 +1024,16 @@ export default function XLCoCreation() {
                             <Icon className="h-3.5 w-3.5" style={{ color: style.color }} />
                           </div>
                           <span className="text-[12px] font-medium flex-1" style={{ color: 'oklch(35% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
-                          <div className="flex items-baseline gap-1.5">
-                            <input
-                              type="number" step="0.1" min="0"
-                              className="w-[58px] h-8 text-center text-[14px] font-bold tabular-nums rounded-xl border-2 bg-white focus:outline-none transition-colors"
-                              style={{ borderColor: modColor + '40' }}
-                              value={val || ""}
-                              onChange={e => {
-                                const v = Math.max(0, parseFloat(e.target.value) || 0);
-                                setRoiConfig(prev => {
-                                  const ho = { ...(prev.hours_overrides ?? {}) };
-                                  ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
-                                  return { ...prev, hours_overrides: ho };
-                                });
-                              }}
-                            />
-                            <span className="text-[10px] font-medium" style={{ color: 'oklch(60% 0.005 250)' }}>{hUnit}</span>
-                          </div>
+                          <HourInput
+                            value={val}
+                            unit={hUnit}
+                            color={modColor}
+                            onChange={v => setRoiConfig(prev => {
+                              const ho = { ...(prev.hours_overrides ?? {}) };
+                              ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
+                              return { ...prev, hours_overrides: ho };
+                            })}
+                          />
                         </div>
                       );
                     })}
