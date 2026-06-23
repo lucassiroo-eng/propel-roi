@@ -739,11 +739,12 @@ function moduleSlide(detail: ModuleDetail, data: RoiSlideData, t: DeckI18n, lang
 
 // ── XL Slides (split slide 2 into 2+3) ──────────────
 
-function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number): string {
+function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number, extraHourDetails: ModuleDetail[] = []): string {
   const rawPer1 = data.annual_cost > 0 ? data.total_annual_savings / data.annual_cost : 0;
   const roiPer1 = rawPer1.toFixed(2).replace(".", ",");
   const toolDetails = details.filter(d => d.tool_override);
-  const hourDetails = details.filter(d => !d.tool_override);
+  // "ambos" hour details show in the hours column too
+  const hourDetails = [...details.filter(d => !d.tool_override), ...extraHourDetails];
   const totalH = hourDetails.reduce((s, d) => s + d.total_hours, 0);
   const toolTotal = toolDetails.reduce((s, d) => s + d.total_annual, 0);
   const hourTotal = hourDetails.reduce((s, d) => s + d.total_annual, 0);
@@ -957,7 +958,7 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   const hideToolSlides = isXL && (xlOptions?.hiddenSlideIds?.size ?? 0) > 0;
   const bothIds = xlOptions?.bothModeModules ?? new Set<string>();
 
-  // For "ambos" modules, rebuild hour details (without tool_override) for the extra hours slide
+  // For "ambos" modules: rebuild hour details without tool_override in BOTH input AND data
   let bothHourDetails: ModuleDetail[] = [];
   if (isXL && bothIds.size > 0) {
     const inputForHours: typeof input = {
@@ -969,7 +970,12 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
           : undefined,
       },
     };
-    bothHourDetails = buildDetails(inputForHours, data, uiLang, modLang)
+    // Also strip tool_override from data.modules so buildDetails doesn't skip them
+    const dataForHours: typeof data = {
+      ...data,
+      modules: data.modules.map((m: any) => bothIds.has(m.id) ? { ...m, tool_override: undefined } : m),
+    };
+    bothHourDetails = buildDetails(inputForHours, dataForHours, uiLang, modLang)
       .filter(d => bothIds.has(d.id) && !d.tool_override && d.rows.length > 0);
   }
 
@@ -980,8 +986,9 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
         + (hideToolSlides ? 0 : details.filter(d => d.tool_override).length))
     : (mode === "summary" ? 2 : 2 + details.length);
 
-  // Recalculate totals from actual rows (overrides buildRoiSlideData defaults)
-  const realTotal = details.reduce((s, d) => s + d.total_annual, 0);
+  // Recalculate totals — "ambos" modules count both tool + hours savings
+  const realTotal = details.reduce((s, d) => s + d.total_annual, 0)
+    + bothHourDetails.reduce((s, d) => s + d.total_annual, 0);
   const annualCost = input.annualCost ?? data.annual_cost ?? 0;
   const realRoiPct = annualCost > 0 ? Math.round(((realTotal - annualCost) / annualCost) * 100) : data.roi_percent;
   const realPayback = realTotal > 0 ? Math.max(1, Math.round((annualCost / realTotal) * 12)) : data.payback_months;
@@ -995,7 +1002,7 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   let slides: string;
   if (isXL) {
     slides = coverSlide(correctedData, t, uiLang)
-      + "\n\n" + xlSummarySlide2(correctedData, details, t, uiLang, totalSlides)
+      + "\n\n" + xlSummarySlide2(correctedData, details, t, uiLang, totalSlides, bothHourDetails)
       + "\n\n" + xlModuleListSlide3(correctedData, details, t, uiLang, totalSlides);
     if (mode === "full") {
       // Hour slides (standard hour modules + "ambos" hour slides)
