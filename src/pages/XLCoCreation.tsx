@@ -210,6 +210,8 @@ export default function XLCoCreation() {
   const [enhancedDescriptions, setEnhancedDescriptions] = useState<Record<string, Partial<Record<"employee" | "hr" | "manager", string[]>>> | null>(null);
   const [showPresEditor, setShowPresEditor] = useState(false);
   const [hiddenSlideIds, setHiddenSlideIds] = useState<Set<string>>(new Set());
+  // "both" mode: module shows tool inputs + hour inputs simultaneously
+  const [bothModeModules, setBothModeModules] = useState<Set<string>>(new Set());
 
   // Bundles
   const { data: bundles } = useQuery({
@@ -891,122 +893,165 @@ export default function XLCoCreation() {
 
                 // Reusable inputs card — flex-col so it can fill height
                 const modToolOvr = roiConfig.tool_overrides?.[currentModule];
-                const isToolMode = !!modToolOvr;
-                const inputsCardInner = (
-                  <>
-                    <div className="px-4 py-2 border-b border-black/[0.06] shrink-0 flex items-center gap-2" style={{ backgroundColor: lightBg }}>
-                      <p className="text-[9px] font-bold uppercase tracking-widest flex-1" style={{ color: modColor }}>Tiempo ahorrado con Factorial</p>
-                      <div className="inline-flex rounded-md border overflow-hidden" style={{ borderColor: modColor + '30' }}>
-                        <button
-                          type="button" title={t("express.type_hours", "Hours")}
-                          onClick={() => {
-                            if (!isToolMode) return;
-                            setRoiConfig(prev => {
-                              const to = { ...(prev.tool_overrides ?? {}) };
-                              delete to[currentModule];
-                              return { ...prev, tool_overrides: Object.keys(to).length ? to : undefined };
-                            });
-                          }}
-                          className="px-1.5 py-0.5 transition-colors"
-                          style={{ backgroundColor: !isToolMode ? modColor : 'transparent' }}
-                        >
-                          <Clock className="h-2.5 w-2.5" style={{ color: !isToolMode ? '#fff' : modColor }} />
-                        </button>
-                        <button
-                          type="button" title={t("express.type_tool", "Tool replaced")}
-                          onClick={() => {
-                            if (isToolMode) return;
-                            setRoiConfig(prev => ({
-                              ...prev,
-                              tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: { tool_name: "", annual_cost: 0 } },
-                            }));
-                          }}
-                          className="px-1.5 py-0.5 transition-colors"
-                          style={{ backgroundColor: isToolMode ? modColor : 'transparent' }}
-                        >
-                          <Wrench className="h-2.5 w-2.5" style={{ color: isToolMode ? '#fff' : modColor }} />
-                        </button>
-                      </div>
+                const isBothMode = bothModeModules.has(currentModule);
+                const isToolMode = !!modToolOvr && !isBothMode;
+                const isHoursMode = !modToolOvr;
+                // mode: "hours" | "tool" | "both"
+                const inputMode = isBothMode ? "both" : modToolOvr ? "tool" : "hours";
+
+                const setMode = (mode: "hours" | "tool" | "both") => {
+                  if (mode === "hours") {
+                    setBothModeModules(prev => { const n = new Set(prev); n.delete(currentModule); return n; });
+                    setRoiConfig(prev => {
+                      const to = { ...(prev.tool_overrides ?? {}) };
+                      delete to[currentModule];
+                      return { ...prev, tool_overrides: Object.keys(to).length ? to : undefined };
+                    });
+                  } else if (mode === "tool") {
+                    setBothModeModules(prev => { const n = new Set(prev); n.delete(currentModule); return n; });
+                    setRoiConfig(prev => ({
+                      ...prev,
+                      tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: modToolOvr ?? { tool_name: "", annual_cost: 0 } },
+                    }));
+                  } else { // both
+                    setBothModeModules(prev => new Set(prev).add(currentModule));
+                    setRoiConfig(prev => ({
+                      ...prev,
+                      tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: modToolOvr ?? { tool_name: "", annual_cost: 0 } },
+                    }));
+                  }
+                };
+
+                const toolInputs = modToolOvr ? (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Wrench className="h-3.5 w-3.5 shrink-0" style={{ color: modColor }} />
+                      <span className="text-[11px] font-semibold" style={{ color: 'oklch(35% 0.01 250)' }}>Herramienta reemplazada</span>
                     </div>
-                    <div className="flex-1 flex flex-col px-4 py-3 gap-2.5">
-                      {isToolMode ? (
-                        <div className="flex flex-col gap-2 py-1">
-                          <input
-                            type="text"
-                            placeholder={t("express.tool_name", "Tool name")}
-                            className="h-8 px-3 text-[12px] rounded-lg border-2 bg-white focus:outline-none w-full"
-                            style={{ borderColor: modColor + '40' }}
-                            value={modToolOvr.tool_name}
-                            onChange={e => {
-                              const name = e.target.value;
-                              setRoiConfig(prev => ({
-                                ...prev,
-                                tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: { ...prev.tool_overrides![currentModule], tool_name: name } },
-                              }));
-                            }}
-                          />
-                          <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Nombre de la herramienta"
+                      className="h-9 px-3 text-[13px] rounded-xl border-2 bg-white focus:outline-none w-full"
+                      style={{ borderColor: modColor + '50' }}
+                      value={modToolOvr.tool_name}
+                      onChange={e => {
+                        const name = e.target.value;
+                        setRoiConfig(prev => ({
+                          ...prev,
+                          tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: { ...prev.tool_overrides![currentModule], tool_name: name } },
+                        }));
+                      }}
+                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number" min={0} placeholder="0"
+                        className="flex-1 h-9 px-3 text-[14px] text-center font-bold tabular-nums rounded-xl border-2 bg-white focus:outline-none"
+                        style={{ borderColor: modColor + '50', color: modColor }}
+                        value={modToolOvr.annual_cost || ""}
+                        onChange={e => {
+                          const cost = Math.max(0, parseFloat(e.target.value) || 0);
+                          setRoiConfig(prev => ({
+                            ...prev,
+                            tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: { ...prev.tool_overrides![currentModule], annual_cost: cost } },
+                          }));
+                        }}
+                      />
+                      <span className="text-[12px] font-semibold shrink-0" style={{ color: 'oklch(55% 0.005 250)' }}>€/año</span>
+                    </div>
+                  </div>
+                ) : null;
+
+                const hourInputs = (
+                  <div className="flex flex-col gap-2">
+                    {inputMode === "both" && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <Clock className="h-3.5 w-3.5 shrink-0" style={{ color: modColor }} />
+                        <span className="text-[11px] font-semibold" style={{ color: 'oklch(35% 0.01 250)' }}>Horas ahorradas por tipo</span>
+                      </div>
+                    )}
+                    {(["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
+                      const style = STAKE_STYLE[sk];
+                      const Icon = style.icon;
+                      const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? 0;
+                      const entry = MODULE_HOURS.find(e => e.module_id === currentModule && e.stakeholder === sk);
+                      const scalesWith = entry?.scales_with ?? "employees";
+                      const hUnit = scalesWith === "onboardings" ? t("cocreation.h_hire", "h/hire") : scalesWith === "submitters" ? t("cocreation.h_submission", "h/subm.") : t("cocreation.hrs_month");
+                      return (
+                        <div key={sk} className="flex items-center gap-3">
+                          <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '15' }}>
+                            <Icon className="h-3.5 w-3.5" style={{ color: style.color }} />
+                          </div>
+                          <span className="text-[12px] font-medium flex-1" style={{ color: 'oklch(35% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
+                          <div className="flex items-baseline gap-1.5">
                             <input
-                              type="number" min={0} placeholder="0"
-                              className="flex-1 h-8 px-2 text-[13px] text-center font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none"
-                              style={{ borderColor: modColor + '40', color: modColor }}
-                              value={modToolOvr.annual_cost || ""}
+                              type="number" step="0.1" min="0"
+                              className="w-[58px] h-8 text-center text-[14px] font-bold tabular-nums rounded-xl border-2 bg-white focus:outline-none transition-colors"
+                              style={{ borderColor: modColor + '40' }}
+                              value={val || ""}
                               onChange={e => {
-                                const cost = Math.max(0, parseFloat(e.target.value) || 0);
-                                setRoiConfig(prev => ({
-                                  ...prev,
-                                  tool_overrides: { ...(prev.tool_overrides ?? {}), [currentModule]: { ...prev.tool_overrides![currentModule], annual_cost: cost } },
-                                }));
+                                const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                setRoiConfig(prev => {
+                                  const ho = { ...(prev.hours_overrides ?? {}) };
+                                  ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
+                                  return { ...prev, hours_overrides: ho };
+                                });
                               }}
                             />
-                            <span className="text-[11px] font-medium shrink-0" style={{ color: 'oklch(60% 0.005 250)' }}>€/{t("cocreation.per_year", "year")}</span>
+                            <span className="text-[10px] font-medium" style={{ color: 'oklch(60% 0.005 250)' }}>{hUnit}</span>
                           </div>
                         </div>
-                      ) : (
-                        (["employee", "hr", "manager"] as Stakeholder[]).map(sk => {
-                          const style = STAKE_STYLE[sk];
-                          const Icon = style.icon;
-                          const val = roiConfig.hours_overrides?.[currentModule]?.[sk] ?? 0;
-                          const entry = MODULE_HOURS.find(e => e.module_id === currentModule && e.stakeholder === sk);
-                          const scalesWith = entry?.scales_with ?? "employees";
-                          const hUnit = scalesWith === "onboardings" ? t("cocreation.h_hire", "h/hire") : scalesWith === "submitters" ? t("cocreation.h_submission", "h/subm.") : t("cocreation.hrs_month");
-                          return (
-                            <div key={sk} className="flex items-center gap-3">
-                              <div className="w-6 h-6 rounded-md flex items-center justify-center shrink-0" style={{ backgroundColor: style.color + '18' }}>
-                                <Icon className="h-3.5 w-3.5" style={{ color: style.color }} />
-                              </div>
-                              <span className="text-[12px] font-medium flex-1" style={{ color: 'oklch(35% 0.01 250)' }}>{t(STAKE_LABEL_KEY[sk])}</span>
-                              <div className="flex items-baseline gap-1.5">
-                                <input
-                                  type="number" step="0.1" min="0"
-                                  className="w-[54px] h-7 text-center text-[13px] font-bold tabular-nums rounded-lg border-2 bg-white focus:outline-none transition-colors"
-                                  style={{ borderColor: modColor + '40' }}
-                                  value={val || ""}
-                                  onChange={e => {
-                                    const v = Math.max(0, parseFloat(e.target.value) || 0);
-                                    setRoiConfig(prev => {
-                                      const ho = { ...(prev.hours_overrides ?? {}) };
-                                      ho[currentModule] = { ...(ho[currentModule] ?? {}), [sk]: v };
-                                      return { ...prev, hours_overrides: ho };
-                                    });
-                                  }}
-                                />
-                                <span className="text-[10px] font-medium" style={{ color: 'oklch(60% 0.005 250)' }}>{hUnit}</span>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                      {!isToolMode && currentModule === "core" && (
-                        <div className="pt-3 mt-1 border-t border-black/[0.06] flex items-center gap-2">
+                      );
+                    })}
+                  </div>
+                );
+
+                const inputsCardInner = (
+                  <>
+                    {/* Header with mode selector */}
+                    <div className="px-4 pt-3 pb-2 shrink-0" style={{ backgroundColor: lightBg }}>
+                      <p className="text-[9px] font-bold uppercase tracking-widest mb-2.5" style={{ color: modColor }}>Tiempo ahorrado con Factorial</p>
+                      {/* 3-mode selector */}
+                      <div className="grid grid-cols-3 gap-1 p-1 rounded-xl" style={{ background: 'rgba(0,0,0,0.05)' }}>
+                        {([
+                          { mode: "hours" as const, icon: <Clock className="h-3 w-3" />, label: "Horas" },
+                          { mode: "tool"  as const, icon: <Wrench className="h-3 w-3" />, label: "Herramienta" },
+                          { mode: "both"  as const, icon: <><Clock className="h-3 w-3" /><span className="text-[9px] font-black leading-none">+</span><Wrench className="h-3 w-3" /></>, label: "Ambos" },
+                        ]).map(({ mode, icon, label }) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            onClick={() => setMode(mode)}
+                            className="flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-center transition-all"
+                            style={{
+                              background: inputMode === mode ? '#fff' : 'transparent',
+                              color: inputMode === mode ? modColor : 'oklch(55% 0.005 250)',
+                              fontWeight: inputMode === mode ? 700 : 500,
+                              boxShadow: inputMode === mode ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
+                            }}
+                          >
+                            <span className="flex items-center gap-0.5">{icon}</span>
+                            <span className="text-[9px] leading-none">{label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Inputs */}
+                    <div className="flex-1 flex flex-col px-4 py-3 gap-3 overflow-y-auto">
+                      {(inputMode === "tool" || inputMode === "both") && toolInputs}
+                      {(inputMode === "both") && <div className="border-t border-black/[0.07]" />}
+                      {(inputMode === "hours" || inputMode === "both") && hourInputs}
+
+                      {inputMode !== "tool" && currentModule === "core" && (
+                        <div className="pt-2 mt-0.5 border-t border-black/[0.06] flex items-center gap-2">
                           <Label className="text-[12px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t("cocreation.onboardings_label")}</Label>
-                          <Input type="number" min={0} className="h-8 w-[70px] text-center font-bold tabular-nums rounded-lg border-2 text-[14px]" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                          <Input type="number" min={0} className="h-8 w-[70px] text-center font-bold tabular-nums rounded-xl border-2 text-[14px]" placeholder="0" value={roiConfig.onboardings_per_year || ""} onChange={e => setRoiConfig(p => ({ ...p, onboardings_per_year: Math.max(0, parseInt(e.target.value) || 0) }))} />
                         </div>
                       )}
-                      {!isToolMode && currentModule === "expenses" && (
-                        <div className="pt-3 mt-1 border-t border-black/[0.06] flex items-center gap-2">
+                      {inputMode !== "tool" && currentModule === "expenses" && (
+                        <div className="pt-2 mt-0.5 border-t border-black/[0.06] flex items-center gap-2">
                           <Label className="text-[12px] font-medium flex-1" style={{ color: 'oklch(44% 0.01 250)' }}>{t("cocreation.expense_submitters_label")}</Label>
-                          <Input type="number" min={0} className="h-8 w-[70px] text-center font-bold tabular-nums rounded-lg border-2 text-[14px]" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
+                          <Input type="number" min={0} className="h-8 w-[70px] text-center font-bold tabular-nums rounded-xl border-2 text-[14px]" placeholder="0" value={roiConfig.expense_submitters || ""} onChange={e => setRoiConfig(p => ({ ...p, expense_submitters: Math.max(0, parseInt(e.target.value) || 0) }))} />
                         </div>
                       )}
                     </div>
