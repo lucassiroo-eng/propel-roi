@@ -168,6 +168,7 @@ export default function AdminAnalytics() {
     const { data: sessions } = await supabase
       .from("roi_sessions")
       .select("id, status, flow_type, prospect_id, pae_id, roi_pct, roi_eur, updated_at, created_at")
+      .neq("flow_type", "xl_co_created") // XL sessions managed separately in XL Space
       .or("status.in.(generated,co_created,sent),roi_pct.gt.0");
 
     if (!sessions || sessions.length === 0) return;

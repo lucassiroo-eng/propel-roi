@@ -94,6 +94,7 @@ export default function Home() {
       let query = supabase
         .from("roi_sessions")
         .select("id, status, flow_type, roi_eur, roi_pct, payback_months, total_annual_benefit_eur, updated_at, pae_id, prospect_id, prospects(id, company_name, country, seats, sector, hubspot_deal_url)")
+        .neq("flow_type", "xl_co_created") // XL sessions only appear in XL Space
         .order("updated_at", { ascending: false });
       // Only filter by pae_id for non-admins — wait for isAdmin to resolve first
       if (!isAdmin) query = query.eq("pae_id", user!.id);
@@ -265,6 +266,8 @@ export default function Home() {
                     <button
                       onClick={() => latest.flow_type === "mini_roi"
                         ? navigate(`/mini-roi/${latest.id}`)
+                        : latest.flow_type === "xl_co_created"
+                        ? navigate(`/xl-co-creation?session=${latest.id}`)
                         : navigate(`/co-creation?session=${latest.id}`)
                       }
                       className="w-full px-5 py-4 text-left hover:bg-muted/20 transition-colors focus-visible:outline-none"
