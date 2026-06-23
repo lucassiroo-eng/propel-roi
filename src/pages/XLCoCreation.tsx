@@ -895,7 +895,7 @@ export default function XLCoCreation() {
                 const inputsCardInner = (
                   <>
                     <div className="px-4 py-2 border-b border-black/[0.06] shrink-0 flex items-center gap-2" style={{ backgroundColor: lightBg }}>
-                      <p className="text-[9px] font-bold uppercase tracking-widest flex-1" style={{ color: modColor }}>{t("cocreation.time_per_stakeholder")}</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest flex-1" style={{ color: modColor }}>Tiempo ahorrado con Factorial</p>
                       <div className="inline-flex rounded-md border overflow-hidden" style={{ borderColor: modColor + '30' }}>
                         <button
                           type="button" title={t("express.type_hours", "Hours")}
@@ -1019,7 +1019,7 @@ export default function XLCoCreation() {
                     <div className="flex-1 grid grid-cols-2 gap-6 min-h-0">
                       {/* Info card */}
                       <div className="rounded-xl flex flex-col justify-start px-6 py-6 gap-4" style={{ backgroundColor: modColor + '07', border: `1px solid ${modColor}18` }}>
-                        <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
+                        <span className="inline-flex self-start items-center text-[22px] font-black text-white px-4 py-1.5 rounded-lg tracking-tight leading-none" style={{ backgroundColor: modColor }}>
                           {modLabel}
                         </span>
                         <h2 className="text-[1.45rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
@@ -1107,7 +1107,7 @@ export default function XLCoCreation() {
                     <div className="shrink-0 grid gap-4" style={{ height: '48%', gridTemplateColumns: '1fr 1.1fr' }}>
                       {/* Module info */}
                       <div className="flex flex-col justify-center gap-2.5 pr-2">
-                        <span className="inline-flex self-start items-center text-[11px] font-bold text-white px-3 py-1 rounded-md tracking-wide" style={{ backgroundColor: modColor }}>
+                        <span className="inline-flex self-start items-center text-[22px] font-black text-white px-4 py-1.5 rounded-lg tracking-tight leading-none" style={{ backgroundColor: modColor }}>
                           {modLabel}
                         </span>
                         <h2 className="text-[1.35rem] font-extrabold leading-[1.18] tracking-tight" style={{ color: 'oklch(18% 0.015 250)' }}>
