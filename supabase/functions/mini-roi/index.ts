@@ -83,6 +83,11 @@ async function fetchHubspot(dealUrl: string): Promise<any> {
       result.industry = c.properties?.industry ?? "";
     }
   }
+  // Fallback: if company_name is still empty, derive from deal_name
+  // (deal names often follow "COMPANY - source" pattern)
+  if (!result.company_name && result.deal_name) {
+    result.company_name = result.deal_name.split(" - ")[0].split(" from ")[0].trim();
+  }
 
   // Notes (max 10 most recent)
   const notesAssoc = await fetch(`${HS_BASE}/crm/v3/objects/deals/${dealId}/associations/notes`, { headers: h });
@@ -500,7 +505,7 @@ function buildHtml(hs: any, analysis: any, roi: RoiResult, lang: string): string
   </div>
   <!-- Company -->
   <div style="margin-top:18px;">
-    <div style="font-size:27px;font-weight:800;color:#1A1A2E;letter-spacing:-.025em;line-height:1.1;">${esc(hs.company_name ?? hs.deal_name ?? "")}</div>
+    <div style="font-size:27px;font-weight:800;color:#1A1A2E;letter-spacing:-.025em;line-height:1.1;">${esc(hs.company_name || hs.deal_name || "—")}</div>
     <div style="font-size:12px;color:#8888AA;margin-top:5px;display:flex;gap:12px;flex-wrap:wrap;">
       ${hs.employees ? `<span><strong style="color:#1A1A2E;">${hs.employees}</strong> ${L.employees}</span>` : ""}
       ${hs.country ? `<span>${countryLabel(country)}</span>` : ""}
@@ -641,7 +646,7 @@ body { font-family: 'Inter', -apple-system, sans-serif; color: #1A1A2E; -webkit-
 
   <!-- Company -->
   <div style="margin-top:20px;">
-    <div style="font-size:28px;font-weight:800;color:#1A1A2E;letter-spacing:-.025em;line-height:1.1;">${esc(hs.company_name ?? hs.deal_name ?? "")}</div>
+    <div style="font-size:28px;font-weight:800;color:#1A1A2E;letter-spacing:-.025em;line-height:1.1;">${esc(hs.company_name || hs.deal_name || "—")}</div>
     <div style="font-size:12px;color:#6B6B8D;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;">
       ${hs.employees ? `<span><strong style="color:#1A1A2E;">${hs.employees}</strong> ${L.employees}</span>` : ""}
       ${hs.country ? `<span>${countryLabel(country)}</span>` : ""}
