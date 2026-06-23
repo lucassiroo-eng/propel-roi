@@ -946,6 +946,7 @@ function xlModuleListSlide3(data: RoiSlideData, details: ModuleDetail[], t: Deck
 
 export interface XLDeckOptions {
   hiddenSlideIds?: Set<string>;
+  bothModeModules?: Set<string>; // modules with tool + hours (generate 2 slides each)
 }
 
 export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode: "summary" | "full", xlOptions?: XLDeckOptions): string {
@@ -953,10 +954,30 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   const t = getI18n(uiLang);
   const details = buildDetails(input, data, uiLang, modLang).filter(d => d.total_annual > 0 && (d.tool_override || d.rows.length > 0));
   const isXL = !!xlOptions;
-  // In XL mode: hour slides always shown; tool slides can be hidden via hiddenSlideIds
   const hideToolSlides = isXL && (xlOptions?.hiddenSlideIds?.size ?? 0) > 0;
+  const bothIds = xlOptions?.bothModeModules ?? new Set<string>();
+
+  // For "ambos" modules, rebuild hour details (without tool_override) for the extra hours slide
+  let bothHourDetails: ModuleDetail[] = [];
+  if (isXL && bothIds.size > 0) {
+    const inputForHours: typeof input = {
+      ...input,
+      roiConfig: {
+        ...input.roiConfig,
+        tool_overrides: input.roiConfig.tool_overrides
+          ? Object.fromEntries(Object.entries(input.roiConfig.tool_overrides).filter(([k]) => !bothIds.has(k)))
+          : undefined,
+      },
+    };
+    bothHourDetails = buildDetails(inputForHours, data, uiLang, modLang)
+      .filter(d => bothIds.has(d.id) && !d.tool_override && d.rows.length > 0);
+  }
+
   const totalSlides = isXL
-    ? (mode === "summary" ? 3 : 3 + details.filter(d => !d.tool_override).length + (hideToolSlides ? 0 : details.filter(d => d.tool_override).length))
+    ? (mode === "summary" ? 3 : 3
+        + details.filter(d => !d.tool_override).length
+        + bothHourDetails.length
+        + (hideToolSlides ? 0 : details.filter(d => d.tool_override).length))
     : (mode === "summary" ? 2 : 2 + details.length);
 
   // Recalculate totals from actual rows (overrides buildRoiSlideData defaults)
@@ -977,16 +998,17 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
       + "\n\n" + xlSummarySlide2(correctedData, details, t, uiLang, totalSlides)
       + "\n\n" + xlModuleListSlide3(correctedData, details, t, uiLang, totalSlides);
     if (mode === "full") {
-      // Hour-based modules: ALWAYS included (detailed stakeholder slides)
+      // Hour slides (standard hour modules + "ambos" hour slides)
       const hourSlides = details.filter(d => !d.tool_override);
-      hourSlides.forEach((d, i) => {
+      const allHourSlides = [...hourSlides, ...bothHourDetails];
+      allHourSlides.forEach((d, i) => {
         slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, i + 4, totalSlides);
       });
-      // Tool replacement slides: optional, hidden when hiddenSlideIds has any entries
+      // Tool slides: optional toggle; includes "ambos" tool slides
       if (!hideToolSlides) {
         const toolSlides = details.filter(d => d.tool_override);
         toolSlides.forEach((d, i) => {
-          slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, hourSlides.length + i + 4, totalSlides);
+          slides += "\n\n" + moduleSlide(d, correctedData, t, uiLang, allHourSlides.length + i + 4, totalSlides);
         });
       }
     }

@@ -238,7 +238,7 @@ export default function XLCoCreation() {
     return g;
   }, [catSearch]);
 
-  // ROI calc
+  // ROI calc — "ambos" modules count tool cost + hours savings
   const roi = useMemo(() => {
     if (!selectedModules.length) return null;
     const { headcounts, hourly_costs } = roiConfig;
@@ -246,20 +246,24 @@ export default function XLCoCreation() {
     let mHrs = 0, mMon = 0, toolSavings = 0;
     for (const modId of selectedModules) {
       const toolOvr = roiConfig.tool_overrides?.[modId];
-      if (toolOvr) { toolSavings += toolOvr.annual_cost; continue; }
-      for (const sk of ["employee", "hr", "manager"] as Stakeholder[]) {
-        const h_override = roiConfig.hours_overrides?.[modId]?.[sk] ?? 0;
-        if (h_override === 0) continue;
-        const e = MODULE_HOURS.find(x => x.module_id === modId && x.stakeholder === sk);
-        const cnt = e ? getCountForEntry(e, mul) : headcounts[sk];
-        const h = h_override * cnt;
-        mHrs += h; mMon += h * hourly_costs[sk];
+      const isBoth = bothModeModules.has(modId);
+      if (toolOvr) toolSavings += toolOvr.annual_cost;
+      // count hours for "hours" mode OR "ambos" mode
+      if (!toolOvr || isBoth) {
+        for (const sk of ["employee", "hr", "manager"] as Stakeholder[]) {
+          const h_override = roiConfig.hours_overrides?.[modId]?.[sk] ?? 0;
+          if (h_override === 0) continue;
+          const e = MODULE_HOURS.find(x => x.module_id === modId && x.stakeholder === sk);
+          const cnt = e ? getCountForEntry(e, mul) : headcounts[sk];
+          const h = h_override * cnt;
+          mHrs += h; mMon += h * hourly_costs[sk];
+        }
       }
     }
     const ann = mMon * 12 + toolSavings;
     const c = annualCost;
     return { savings: ann, cost: c, pct: c > 0 ? ((ann - c) / c * 100) : 0, payback: ann > 0 ? (c / ann * 12) : 0, hrs: mHrs };
-  }, [selectedModules, roiConfig, annualCost]);
+  }, [selectedModules, roiConfig, annualCost, bothModeModules]);
 
   function coCreationRoiConfig(): RoiConfig {
     const ho = { ...(roiConfig.hours_overrides ?? {}) };
@@ -444,7 +448,7 @@ export default function XLCoCreation() {
         ...(type === "detail" && enhancedDescriptions ? { customDescriptions: enhancedDescriptions } : {}),
       };
       const data = buildRoiSlideData(input);
-      await generateDeckPdf(data, input, type === "summary" ? "summary" : "full", { hiddenSlideIds });
+      await generateDeckPdf(data, input, type === "summary" ? "summary" : "full", { hiddenSlideIds, bothModeModules });
       toast.success(t("express.pdf_downloaded"));
     } catch (err: any) { toast.error(err.message ?? "Error"); }
     finally { setDlPdf(null); }
@@ -1011,26 +1015,26 @@ export default function XLCoCreation() {
                     <div className="px-4 pt-3 pb-2 shrink-0" style={{ backgroundColor: lightBg }}>
                       <p className="text-[9px] font-bold uppercase tracking-widest mb-2.5" style={{ color: modColor }}>Tiempo ahorrado con Factorial</p>
                       {/* 3-mode selector */}
-                      <div className="grid grid-cols-3 gap-1 p-1 rounded-xl" style={{ background: 'rgba(0,0,0,0.05)' }}>
+                      <div className="flex gap-1.5">
                         {([
-                          { mode: "hours" as const, icon: <Clock className="h-3 w-3" />, label: "Horas" },
-                          { mode: "tool"  as const, icon: <Wrench className="h-3 w-3" />, label: "Herramienta" },
-                          { mode: "both"  as const, icon: <><Clock className="h-3 w-3" /><span className="text-[9px] font-black leading-none">+</span><Wrench className="h-3 w-3" /></>, label: "Ambos" },
+                          { mode: "hours" as const, icon: <Clock className="h-3.5 w-3.5" />, label: "Horas" },
+                          { mode: "tool"  as const, icon: <Wrench className="h-3.5 w-3.5" />, label: "Herramienta" },
+                          { mode: "both"  as const, icon: <><Clock className="h-3.5 w-3.5" /><span className="font-black text-[10px]">+</span><Wrench className="h-3.5 w-3.5" /></>, label: "Ambos" },
                         ]).map(({ mode, icon, label }) => (
                           <button
                             key={mode}
                             type="button"
                             onClick={() => setMode(mode)}
-                            className="flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg text-center transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all border"
                             style={{
-                              background: inputMode === mode ? '#fff' : 'transparent',
-                              color: inputMode === mode ? modColor : 'oklch(55% 0.005 250)',
-                              fontWeight: inputMode === mode ? 700 : 500,
-                              boxShadow: inputMode === mode ? '0 1px 4px rgba(0,0,0,0.12)' : 'none',
+                              background: inputMode === mode ? modColor : '#fff',
+                              color: inputMode === mode ? '#fff' : 'oklch(45% 0.01 250)',
+                              borderColor: inputMode === mode ? modColor : 'oklch(85% 0.005 250)',
+                              boxShadow: inputMode === mode ? `0 2px 6px ${modColor}40` : 'none',
                             }}
                           >
                             <span className="flex items-center gap-0.5">{icon}</span>
-                            <span className="text-[9px] leading-none">{label}</span>
+                            {label}
                           </button>
                         ))}
                       </div>
