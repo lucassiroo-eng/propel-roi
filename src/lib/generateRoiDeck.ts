@@ -880,8 +880,10 @@ function xlSummarySlide2(data: RoiSlideData, details: ModuleDetail[], t: DeckI18
 </div>`;
 }
 
-function xlModuleListSlide3(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number): string {
-  const totalH = details.filter(d => !d.tool_override).reduce((s, d) => s + d.total_hours, 0);
+function xlModuleListSlide3(data: RoiSlideData, details: ModuleDetail[], t: DeckI18n, lang: string, totalSlides: number, bothHourDetails: ModuleDetail[] = []): string {
+  const bothHourById = new Map(bothHourDetails.map(d => [d.id, d]));
+  const totalH = details.filter(d => !d.tool_override).reduce((s, d) => s + d.total_hours, 0)
+    + bothHourDetails.reduce((s, d) => s + d.total_hours, 0);
 
   const xl18nTitle: Record<string, string> = {
     es: "Detalle de ahorro por módulo", en: "Savings detail by module",
@@ -889,19 +891,41 @@ function xlModuleListSlide3(data: RoiSlideData, details: ModuleDetail[], t: Deck
     de: "Einsparungsdetail nach Modul", pt: "Detalhe de poupança por módulo",
   };
 
-  const fontSize = details.length > 9 ? "10px" : details.length > 7 ? "11px" : "12px";
-  const rowPad = details.length > 9 ? "5px 10px" : details.length > 7 ? "6px 12px" : "7px 12px";
+  const totalRowCount = details.length + bothHourDetails.length;
+  const fontSize = totalRowCount > 9 ? "10px" : totalRowCount > 7 ? "11px" : "12px";
+  const rowPad = totalRowCount > 9 ? "5px 10px" : totalRowCount > 7 ? "6px 12px" : "7px 12px";
+  const savFontSize = totalRowCount > 9 ? "11px" : "13px";
 
   const moduleRows = details.map(d => {
+    const desc = getModuleDesc(d.id, lang) || d.category_desc || d.name;
+    const hourDetail = bothHourById.get(d.id);
+
+    if (d.tool_override && hourDetail) {
+      // "Ambos" module — tool row + indented hours row
+      const toolLabel: Record<string, string> = { es: "herramienta", en: "tool", fr: "outil", it: "strumento", de: "Tool", pt: "ferramenta" };
+      const hoursLabel: Record<string, string> = { es: "horas", en: "hours", fr: "heures", it: "ore", de: "Stunden", pt: "horas" };
+      return `<tr>
+        <td style="padding:${rowPad}"><span class="mdot" style="background:${d.color}"></span><strong style="font-size:${fontSize}">${escHtml(d.name)}</strong> <span style="font-size:8px;color:#AEAEB8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">${toolLabel[lang] ?? toolLabel.es}</span></td>
+        <td style="color:#6C6C7D;font-size:${fontSize};padding:${rowPad}">${escHtml(desc)}</td>
+        <td style="font-size:10px;color:#6C6C7D;padding:${rowPad}">${escHtml(d.tool_override.tool_name || t.tool_label)}</td>
+        <td style="text-align:right;font-weight:700;font-size:${savFontSize};padding:${rowPad}">${fmtEur(d.total_annual)}</td>
+      </tr>
+      <tr style="background:#FAFAFA">
+        <td style="padding:${rowPad};padding-left:22px!important"><span style="font-size:8px;color:#AEAEB8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">↳ ${hoursLabel[lang] ?? hoursLabel.es}</span></td>
+        <td style="color:#AEAEB8;font-size:10px;padding:${rowPad}"></td>
+        <td style="text-align:center;font-weight:600;color:#6C6C7D;font-size:11px;padding:${rowPad}">${Math.round(hourDetail.total_hours * 10) / 10} h</td>
+        <td style="text-align:right;font-weight:700;font-size:${savFontSize};color:#6C6C7D;padding:${rowPad}">${fmtEur(hourDetail.total_annual)}</td>
+      </tr>`;
+    }
+
     const hCol = d.tool_override
       ? `<td style="font-size:10px;color:#6C6C7D;padding:${rowPad}">${escHtml(d.tool_override.tool_name || t.tool_label)}</td>`
       : `<td style="text-align:center;font-weight:600;color:#6C6C7D;padding:${rowPad}">${Math.round(d.total_hours * 10) / 10} h</td>`;
-    const desc = getModuleDesc(d.id, lang) || d.category_desc || d.name;
     return `<tr>
       <td style="padding:${rowPad}"><span class="mdot" style="background:${d.color}"></span><strong style="font-size:${fontSize}">${escHtml(d.name)}</strong></td>
       <td style="color:#6C6C7D;font-size:${fontSize};padding:${rowPad}">${escHtml(desc)}</td>
       ${hCol}
-      <td style="text-align:right;font-weight:700;font-size:${details.length > 9 ? '11px' : '13px'};padding:${rowPad}">${fmtEur(d.total_annual)}</td>
+      <td style="text-align:right;font-weight:700;font-size:${savFontSize};padding:${rowPad}">${fmtEur(d.total_annual)}</td>
     </tr>`;
   }).join("\n");
 
@@ -1003,7 +1027,7 @@ export function generateDeckHtml(data: RoiSlideData, input: RoiSlideInput, mode:
   if (isXL) {
     slides = coverSlide(correctedData, t, uiLang)
       + "\n\n" + xlSummarySlide2(correctedData, details, t, uiLang, totalSlides, bothHourDetails)
-      + "\n\n" + xlModuleListSlide3(correctedData, details, t, uiLang, totalSlides);
+      + "\n\n" + xlModuleListSlide3(correctedData, details, t, uiLang, totalSlides, bothHourDetails);
     if (mode === "full") {
       // Hour slides (standard hour modules + "ambos" hour slides)
       const hourSlides = details.filter(d => !d.tool_override);
