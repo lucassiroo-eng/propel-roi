@@ -352,17 +352,20 @@ interface RoiResult {
   hourly_costs: { employee: number; hr: number; manager: number };
 }
 
-function calculateRoi(hs: any, analysis: any, annualCostOverride?: number): RoiResult {
+function calculateRoi(
+  hs: any, analysis: any, annualCostOverride?: number,
+  headcountOverride?: { employee: number; hr: number; manager: number },
+  hourlyCostOverride?: { employee: number; hr: number; manager: number }
+): RoiResult {
   const emp = Math.max(1, hs.employees ?? 50);
   const hrCount = Math.max(1, Math.round(emp * 0.03));
   const mgrCount = Math.max(1, Math.round(emp * 0.07));
 
-  // Hourly costs by country (loaded cost including social charges)
   const HOURLY = { ES: 22, FR: 28, DE: 32, IT: 22, PT: 18, BR: 12, MX: 10 } as Record<string, number>;
   const country = (hs.country ?? "ES").substring(0, 2).toUpperCase();
   const baseHourly = HOURLY[country] ?? 22;
-  const hourly_costs = { employee: baseHourly, hr: Math.round(baseHourly * 1.15), manager: Math.round(baseHourly * 1.4) };
-  const headcounts = { employee: emp, hr: hrCount, manager: mgrCount };
+  const hourly_costs = hourlyCostOverride ?? { employee: baseHourly, hr: Math.round(baseHourly * 1.15), manager: Math.round(baseHourly * 1.4) };
+  const headcounts = headcountOverride ?? { employee: emp, hr: hrCount, manager: mgrCount };
 
   const toolMap: Record<string, number> = {};
   for (const tr of analysis.tool_replacements ?? []) {
@@ -744,7 +747,7 @@ Deno.serve(async (req) => {
 
     // ── html_only mode: regenerate from existing analysis + module overrides ──
     if (mode === "html_only") {
-      const { hs_data, existing_analysis, selected_modules, module_notes = {} } = body;
+      const { hs_data, existing_analysis, selected_modules, module_notes = {}, headcount_override, hourly_cost_override } = body;
       const stream = new ReadableStream({
         async start(controller) {
           const emit = (data: Record<string, unknown>) => {
@@ -824,7 +827,7 @@ Devuelve JSON exacto:
 
             emit({ step: "claude", status: "done", label: "Argumentación generada" });
 
-            const roi = calculateRoi(hs_data, filteredAnalysis, annual_cost_override ? Number(annual_cost_override) : undefined);
+            const roi = calculateRoi(hs_data, filteredAnalysis, annual_cost_override ? Number(annual_cost_override) : undefined, headcount_override, hourly_cost_override);
             emit({ step: "html", status: "running", label: "Generando documento..." });
             const html = buildHtml(hs_data, filteredAnalysis, roi, language);
             emit({ step: "html", status: "done", label: "Documento generado" });

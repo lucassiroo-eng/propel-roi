@@ -64,6 +64,8 @@ export default function MiniRoiPage() {
   const [moduleOverrides, setModuleOverrides] = useState<Record<string, ModuleOverride>>({});
   const [html, setHtml] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [headcountOvr, setHeadcountOvr] = useState<{ employee: number; hr: number; manager: number } | null>(null);
+  const [hourlyOvr, setHourlyOvr] = useState<{ employee: number; hr: number; manager: number } | null>(null);
   const [regenerating, setRegenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
@@ -132,6 +134,10 @@ export default function MiniRoiPage() {
           return;
         }
 
+        // Pre-populate headcount + hourly overrides from saved roi_data
+        if (d.roi_data?.headcounts) setHeadcountOvr(d.roi_data.headcounts);
+        if (d.roi_data?.hourly_costs) setHourlyOvr(d.roi_data.hourly_costs);
+
         // Has analysis but no HTML — mark dirty to show Regenerar
         if (!savedHtml && d.analysis) setIsDirty(true);
         setStep("result");
@@ -185,7 +191,10 @@ export default function MiniRoiPage() {
             setAnalysis(event.analysis ?? null);
             setHsData(event.company ?? null);
             setRoiData(event.roi_data ?? null);
-            setHtml(event.html ?? null);  // ← fix: capture the generated HTML
+            setHtml(event.html ?? null);
+            // Pre-populate headcount + hourly overrides
+            if (event.roi_data?.headcounts) setHeadcountOvr(event.roi_data.headcounts);
+            if (event.roi_data?.hourly_costs) setHourlyOvr(event.roi_data.hourly_costs);
             const ov: Record<string, ModuleOverride> = {};
             for (const m of event.analysis?.modules ?? []) ov[m.id] = { include: true, note: "" };
             setModuleOverrides(ov);
@@ -220,7 +229,7 @@ export default function MiniRoiPage() {
     }
     try {
       await callEdge(
-        { mode: "html_only", hs_data: hsData, existing_analysis: analysis, selected_modules, module_notes, annual_cost_override: annualCost ? Number(annualCost) : roiData?.annual_cost, language: docLang },
+        { mode: "html_only", hs_data: hsData, existing_analysis: analysis, selected_modules, module_notes, annual_cost_override: annualCost ? Number(annualCost) : roiData?.annual_cost, language: docLang, headcount_override: headcountOvr, hourly_cost_override: hourlyOvr },
         (event) => {
           if (event.step === "result") {
             setHtml(event.html ?? null);
@@ -753,27 +762,104 @@ export default function MiniRoiPage() {
           style={{ borderLeft: "1px solid oklch(90% 0.006 250)", background: "oklch(99% 0.003 250)" }}>
           <div className="flex-1 overflow-y-auto">
 
-            {/* Price section */}
+            {/* Price + Assumptions section */}
             <div className="px-4 pt-4 pb-3.5" style={{ borderBottom: "1px solid oklch(92% 0.005 250)" }}>
+              {/* Factorial price */}
               <p className="text-[9px] font-bold uppercase tracking-widest mb-2.5"
                 style={{ color: "oklch(58% 0.01 250)" }}>{t("mini_roi.price_section")}</p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mb-4">
                 <input
                   type="number"
                   value={annualCost || (roiData?.annual_cost ? String(roiData.annual_cost) : "")}
                   onChange={e => { setAnnualCost(e.target.value); markDirty(); }}
                   placeholder={roiData?.annual_cost ? String(roiData.annual_cost) : "Auto"}
                   className="flex-1 h-8 px-2.5 rounded-lg text-sm font-bold tabular-nums text-center outline-none transition-all"
-                  style={{
-                    background: "oklch(97% 0.003 250)",
-                    border: "1.5px solid oklch(88% 0.006 250)",
-                    color: "oklch(18% 0.015 250)",
-                  }}
+                  style={{ background: "oklch(97% 0.003 250)", border: "1.5px solid oklch(88% 0.006 250)", color: "oklch(18% 0.015 250)" }}
                   onFocus={e => (e.currentTarget.style.border = "1.5px solid oklch(50% 0.22 15)")}
                   onBlur={e => (e.currentTarget.style.border = "1.5px solid oklch(88% 0.006 250)")}
                 />
                 <span className="text-xs font-medium shrink-0" style={{ color: "oklch(58% 0.01 250)" }}>€/año</span>
               </div>
+
+              {/* Headcount + hourly costs */}
+              {(headcountOvr || roiData?.headcounts) && (() => {
+                const hc = headcountOvr ?? roiData?.headcounts ?? { employee: 0, hr: 0, manager: 0 };
+                const hy = hourlyOvr ?? roiData?.hourly_costs ?? { employee: 22, hr: 25, manager: 31 };
+
+                const rows: Array<{ key: "employee" | "hr" | "manager"; label: string; icon: string; color: string }> = [
+                  { key: "employee", label: "Empleados", icon: "👤", color: "#3B82F6" },
+                  { key: "hr",       label: "Admin RRHH", icon: "🛡", color: "#10B981" },
+                  { key: "manager",  label: "Managers",  icon: "💼", color: "#F59E0B" },
+                ];
+
+                return (
+                  <div>
+                    <p className="text-[9px] font-bold uppercase tracking-widest mb-2.5" style={{ color: "oklch(58% 0.01 250)" }}>Supuestos de cálculo</p>
+                    <div className="rounded-xl overflow-hidden" style={{ border: "1px solid oklch(91% 0.005 250)" }}>
+                      {/* Column headers */}
+                      <div className="grid grid-cols-[1fr_60px_64px] gap-2 px-3 py-1.5" style={{ background: "oklch(96% 0.004 250)", borderBottom: "1px solid oklch(91% 0.005 250)" }}>
+                        <span className="text-[9px] font-semibold" style={{ color: "oklch(62% 0.008 250)" }}>Tipo</span>
+                        <span className="text-[9px] font-semibold text-center" style={{ color: "oklch(62% 0.008 250)" }}>Pers.</span>
+                        <span className="text-[9px] font-semibold text-center" style={{ color: "oklch(62% 0.008 250)" }}>€/h</span>
+                      </div>
+
+                      {rows.map(({ key, label, icon, color }) => (
+                        <div key={key} className="grid grid-cols-[1fr_60px_64px] gap-2 items-center px-3 py-2.5"
+                          style={{ borderBottom: "1px solid oklch(93% 0.004 250)" }}>
+                          {/* Label */}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-md flex items-center justify-center text-[13px] shrink-0"
+                              style={{ background: color + "15" }}>{icon}</div>
+                            <span className="text-[11px] font-medium truncate" style={{ color: "oklch(28% 0.012 250)" }}>{label}</span>
+                          </div>
+
+                          {/* Persons */}
+                          <input
+                            type="number" min={0}
+                            className="h-7 rounded-lg text-center text-[12px] font-bold tabular-nums outline-none transition-all"
+                            style={{ background: "oklch(97.5% 0.003 250)", border: `1.5px solid oklch(88% 0.006 250)`, color }}
+                            value={hc[key] || ""}
+                            onChange={e => {
+                              const v = Math.max(0, parseInt(e.target.value) || 0);
+                              setHeadcountOvr(prev => ({ ...(prev ?? hc), [key]: v }));
+                              markDirty();
+                            }}
+                            onFocus={e => (e.currentTarget.style.borderColor = color)}
+                            onBlur={e => (e.currentTarget.style.borderColor = "oklch(88% 0.006 250)")}
+                          />
+
+                          {/* Hourly cost */}
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number" min={0}
+                              className="flex-1 h-7 rounded-lg text-center text-[12px] font-bold tabular-nums outline-none transition-all min-w-0"
+                              style={{ background: "oklch(97.5% 0.003 250)", border: `1.5px solid oklch(88% 0.006 250)`, color: "oklch(28% 0.012 250)" }}
+                              value={hy[key] || ""}
+                              onChange={e => {
+                                const v = Math.max(0, parseFloat(e.target.value) || 0);
+                                setHourlyOvr(prev => ({ ...(prev ?? hy), [key]: v }));
+                                markDirty();
+                              }}
+                              onFocus={e => (e.currentTarget.style.borderColor = color)}
+                              onBlur={e => (e.currentTarget.style.borderColor = "oklch(88% 0.006 250)")}
+                            />
+                            <span className="text-[9px] shrink-0" style={{ color: "oklch(62% 0.008 250)" }}>€</span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Total employees summary */}
+                      <div className="px-3 py-2 flex items-center justify-between"
+                        style={{ background: "oklch(96.5% 0.004 250)" }}>
+                        <span className="text-[10px] font-medium" style={{ color: "oklch(52% 0.008 250)" }}>Total personas</span>
+                        <span className="text-[11px] font-bold tabular-nums" style={{ color: "oklch(28% 0.012 250)" }}>
+                          {(hc.employee + hc.hr + hc.manager).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Modules section */}
