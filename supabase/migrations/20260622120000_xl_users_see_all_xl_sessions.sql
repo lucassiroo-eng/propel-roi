@@ -54,7 +54,8 @@ CREATE POLICY own_prospects_select ON prospects
           'andre.reis@factorial.co',
           'juan.ruiz@factorial.co',
           'lorena.tapia@factorial.co',
-          'gerard.ghneim@factorial.co'
+          'gerard.ghneim@factorial.co',
+          'factorial.partners@factorial.co'
         ])
     )
   );
