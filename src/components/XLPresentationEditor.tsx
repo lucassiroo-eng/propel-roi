@@ -46,6 +46,7 @@ interface Props {
   onClearEnhanced: () => void;
   onSaveDescriptions: (descs: Record<string, any>) => void;
   onHiddenChange: (ids: Set<string>) => void;
+  bothModeModules?: Set<string>;
   onClose: () => void;
 }
 
@@ -57,6 +58,7 @@ export function XLPresentationEditor(props: Props) {
     selectedCallIds, modjoSearch, searchingCalls, personalizing,
     onModjoSearch, onSearchCalls, onToggleCallId, onPersonalize,
     onClearEnhanced, onSaveDescriptions, onHiddenChange, onClose,
+    bothModeModules: bothModeProp = new Set<string>(),
   } = props;
 
   const [tab, setTab] = useState<Tab>("slides");
@@ -134,11 +136,11 @@ export function XLPresentationEditor(props: Props) {
   }
   function applyHidden() { onHiddenChange(new Set(localHidden)); }
 
-  // Editable argumentations — only hour-based modules (tool-override use a different slide format)
+  // Editable argumentations — hour-based modules + "Ambos" modules (they have an hours slide too)
   const moduleArgs = useMemo(() => {
     const base = getSavingsDescriptions(lang === "es" || lang === "en" ? lang : "es");
     return (input.configModules ?? [])
-      .filter(id => !toolModuleIds.includes(id)) // tool slides don't use stakeholder descriptions
+      .filter(id => !toolModuleIds.includes(id) || bothModeProp.has(id)) // include "Ambos" modules: they have hour slides
       .map(id => {
         const info = MODULE_INFO[id];
         const name = info ? getLocalized(info.label, lang) : id;
@@ -150,7 +152,7 @@ export function XLPresentationEditor(props: Props) {
         }).filter(r => r.value);
         return { id, name, stakes };
       }).filter(m => m.stakes.length > 0);
-  }, [input.configModules, lang, enhancedDescriptions, editedDescs, toolModuleIds]);
+  }, [input.configModules, lang, enhancedDescriptions, editedDescs, toolModuleIds, bothModeProp]);
 
   // Map module id → slide index (0-based) in XL mode:
   // 0=cover, 1=kpis, 2=list, 3+=hour slides, then tool slides

@@ -468,7 +468,7 @@ export default function XLCoCreation() {
       }
       queryClient.invalidateQueries({ queryKey: ["xl_roi_sessions"] });
     } catch (err: any) { console.error("Save failed:", err.message); }
-  }, [user, companyName, dealName, country, roiConfig, selectedModules, annualCost, roi, queryClient, step]);
+  }, [user, companyName, dealName, country, roiConfig, selectedModules, annualCost, roi, queryClient, step, bothModeModules]);
 
   // ── Auto-save when result is reached ──────────────────
   const autoSaved = useRef(false);
@@ -1519,6 +1519,7 @@ export default function XLCoCreation() {
           onClearEnhanced={() => setEnhancedDescriptions(null)}
           onSaveDescriptions={(descs) => setEnhancedDescriptions(descs)}
           onHiddenChange={setHiddenSlideIds}
+          bothModeModules={bothModeModules}
           onClose={() => setShowPresEditor(false)}
         />
       )}
