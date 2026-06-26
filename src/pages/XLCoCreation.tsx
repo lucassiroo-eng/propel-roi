@@ -168,6 +168,10 @@ export default function XLCoCreation() {
             onboardings_per_year: rc.onboardings_per_year,
             expense_submitters: rc.expense_submitters,
           });
+          // Restore "Ambos" mode modules
+          if (Array.isArray(rc.both_mode_modules) && rc.both_mode_modules.length > 0) {
+            setBothModeModules(new Set(rc.both_mode_modules));
+          }
         }
         setAnnualCost(sess.factorial_annual_cost_eur ?? 0);
         const customDescs = (sess as any).custom_descriptions;
@@ -440,7 +444,7 @@ export default function XLCoCreation() {
       selected_pains: [] as any,
       selected_modules: selectedModules as any,
       module_suggestions: [] as any,
-      roi_config: roiConfig as any,
+      roi_config: { ...roiConfig, both_mode_modules: Array.from(bothModeModules) } as any,
       factorial_annual_cost_eur: annualCost,
       roi_eur: Math.round(savings - annualCost),
       roi_pct: Math.round(roi?.pct ?? 0),
