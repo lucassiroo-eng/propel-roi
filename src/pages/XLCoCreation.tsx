@@ -40,6 +40,7 @@ import {
 import { generateDeckPdf } from "@/lib/generateRoiDeck";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { XLPresentationEditor } from "@/components/XLPresentationEditor";
+import { isXLUser } from "@/lib/xlSpace";
 import { GuidedTour, type TourStep } from "@/components/GuidedTour";
 import { DISCOVERY_QUESTIONS, MODULE_INFO, getLocalized, getQuestion } from "@/lib/discoveryQuestions";
 import type { ModuleSuggestion, RoiConfig } from "@/hooks/useWizardSession";
@@ -144,7 +145,8 @@ export default function XLCoCreation() {
           .eq("id", sid)
           .single();
         if (error || !sess || cancelled) return;
-        if (sess.pae_id !== user?.id && !isAdmin) {
+        // XL users can access any xl_co_created session from the team
+        if (sess.pae_id !== user?.id && !isAdmin && !isXLUser(user?.email)) {
           toast.error("Session not found");
           return;
         }
