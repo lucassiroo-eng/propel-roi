@@ -133,6 +133,9 @@ export default function AdminAnalytics() {
   const [dealStages, setDealStages] = useState<Record<string, { stage: string; closeDate: string | null; checking: boolean }>>({});
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalSelected, setModalSelected] = useState<Set<string>>(new Set());
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("pipeline_dismissed") ?? "[]")); } catch { return new Set(); }
+  });
   const [filterCountry, setFilterCountry] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
   const [filterUser, setFilterUser] = useState<string>("");
@@ -462,8 +465,10 @@ export default function AdminAnalytics() {
       const existing = map.get(key);
       if (!existing || item.roi_pct > existing.roi_pct) map.set(key, item);
     }
-    return Array.from(map.values()).sort((a, b) => b.roi_pct - a.roi_pct);
-  }, [pipelineGenerated, pipelineSent]);
+    return Array.from(map.values())
+      .filter(item => !dismissedIds.has(item.id))
+      .sort((a, b) => b.roi_pct - a.roi_pct);
+  }, [pipelineGenerated, pipelineSent, dismissedIds]);
 
   const WON_STAGES = new Set(["closedwon", "35118880", "1003800949", "12669405"]);
   const wonCount = pipelineSent.filter((i) => {
@@ -757,6 +762,24 @@ export default function AdminAnalytics() {
                           {item.pae_email && (
                             <span className="text-[10px] font-medium text-muted-foreground shrink-0 max-w-[80px] truncate" title={item.pae_email}>{item.pae_name}</span>
                           )}
+
+                          {/* Dismiss button */}
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              setDismissedIds(prev => {
+                                const next = new Set(prev);
+                                next.add(item.id);
+                                try { localStorage.setItem("pipeline_dismissed", JSON.stringify(Array.from(next))); } catch {}
+                                return next;
+                              });
+                              setModalSelected(prev => { const n = new Set(prev); n.delete(item.id); return n; });
+                            }}
+                            className="ml-1 h-5 w-5 rounded flex items-center justify-center text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+                            title="No mostrar más"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
                         </button>
                       );
                     })
