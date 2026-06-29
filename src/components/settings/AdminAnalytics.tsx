@@ -459,14 +459,16 @@ export default function AdminAnalytics() {
     const sentNames = new Set(pipelineSent.map((i) => i.company_name.trim().toLowerCase()));
     const map = new Map<string, PipelineItem>();
     for (const item of pipelineGenerated) {
-      const key = item.company_name.trim().toLowerCase();
-      if (sentNames.has(key)) continue;
+      const name = item.company_name.trim().toLowerCase();
+      // Sessions with no company name: use id as key so they each show individually
+      const key = (!name || name === "—") ? `id:${item.id}` : name;
+      if (sentNames.has(name) && name !== "—") continue; // skip if company already sent (but always show unnamed)
       const existing = map.get(key);
       if (!existing || item.roi_pct > existing.roi_pct) map.set(key, item);
     }
     return Array.from(map.values())
       .filter(item => !dismissedIds.has(item.id))
-      .sort((a, b) => b.roi_pct - a.roi_pct);
+      .sort((a, b) => b.updated_at.localeCompare(a.updated_at)); // sort by date, not ROI
   }, [pipelineGenerated, pipelineSent, dismissedIds]);
 
   const WON_STAGES = new Set(["closedwon", "35118880", "1003800949", "12669405"]);

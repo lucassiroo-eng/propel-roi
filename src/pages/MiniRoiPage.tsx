@@ -253,12 +253,13 @@ export default function MiniRoiPage() {
     if (!user || !hsData) return;
     setSaving(true);
     try {
-      // Find or create prospect
+      // Find own prospect for this company OR create one (pae_id required by RLS)
       const { data: existing } = await supabase.from("prospects")
-        .select("id").eq("company_name", hsData.company_name ?? "").limit(1).single();
+        .select("id").eq("pae_id", user.id).eq("company_name", hsData.company_name ?? "").limit(1).maybeSingle();
       let prospectId = existing?.id;
       if (!prospectId) {
         const { data: created } = await supabase.from("prospects").insert({
+          pae_id: user.id,                                       // ← required for RLS INSERT
           company_name: hsData.company_name ?? hsData.deal_name ?? "Desconocido",
           country: (hsData.country ?? "ES").substring(0, 2).toUpperCase(),
           seats: hsData.employees ?? 0,
