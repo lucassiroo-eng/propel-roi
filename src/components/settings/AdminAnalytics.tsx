@@ -92,7 +92,7 @@ function emailToShortName(email: string): string {
 interface PipelineItem {
   id: string;
   company_name: string;
-  flow_type: 'express' | 'co_created' | 'mini_roi' | null;
+  flow_type: 'express' | 'co_created' | 'mini_roi' | 'xl_co_created' | null;
   status: string;
   roi_pct: number;
   roi_eur: number;
@@ -171,8 +171,7 @@ export default function AdminAnalytics() {
     const { data: sessions } = await supabase
       .from("roi_sessions")
       .select("id, status, flow_type, prospect_id, pae_id, roi_pct, roi_eur, updated_at, created_at")
-      .neq("flow_type", "xl_co_created") // XL sessions managed separately in XL Space
-      .or("status.in.(generated,co_created,sent),roi_pct.gt.0");
+      .or("status.in.(generated,co_created,xl_co_created,sent),roi_pct.gt.0");
 
     if (!sessions || sessions.length === 0) return;
 
@@ -196,7 +195,7 @@ export default function AdminAnalytics() {
     const items: PipelineItem[] = sessions.map((s) => ({
       id: s.id,
       company_name: prospectMap.get(s.prospect_id)?.company_name ?? "—",
-      flow_type: (s.flow_type as 'express' | 'co_created' | 'mini_roi' | null) ?? null,
+      flow_type: (s.flow_type as 'express' | 'co_created' | 'mini_roi' | 'xl_co_created' | null) ?? null,
       status: s.status ?? "",
       roi_pct: s.roi_pct ?? 0,
       roi_eur: s.roi_eur ?? 0,
@@ -209,7 +208,7 @@ export default function AdminAnalytics() {
 
     setPipelineGenerated(
       items
-        .filter((i) => i.status !== "sent" && (["generated", "co_created"].includes(i.status) || i.roi_pct > 0))
+        .filter((i) => i.status !== "sent" && (["generated", "co_created", "xl_co_created"].includes(i.status) || i.roi_pct > 0))
         .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
     );
     setPipelineSent(
@@ -577,6 +576,10 @@ export default function AdminAnalytics() {
                             <td className="px-3 py-2.5 text-center">
                               {item.flow_type === "co_created" ? (
                                 <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }}>Co-creado</span>
+                              ) : item.flow_type === "xl_co_created" ? (
+                                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.04 290)", color: "oklch(38% 0.16 290)" }}>XL</span>
+                              ) : item.flow_type === "mini_roi" ? (
+                                <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(94% 0.04 145)", color: "oklch(38% 0.14 145)" }}>Asunciones</span>
                               ) : item.flow_type === "express" ? (
                                 <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded" style={{ backgroundColor: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" }}>Express</span>
                               ) : <span className="text-muted-foreground">—</span>}
@@ -661,7 +664,7 @@ export default function AdminAnalytics() {
             const countries = [...new Set(allItems.map(i => i.country).filter(Boolean))].sort();
             const types = [...new Set(allItems.map(i => i.flow_type).filter(Boolean))] as string[];
             const users = [...new Set(allItems.map(i => i.pae_email).filter(Boolean))].sort();
-            const typeLabel = (t: string) => t === "co_created" ? "Co-creado" : t === "mini_roi" ? "Asunciones" : t === "express" ? "Express" : t;
+            const typeLabel = (t: string) => t === "co_created" ? "Co-creado" : t === "mini_roi" ? "Asunciones" : t === "xl_co_created" ? "XL" : t === "express" ? "Express" : t;
 
             const filtered = allItems
               .filter(i => !filterCountry || i.country === filterCountry)
@@ -715,11 +718,13 @@ export default function AdminAnalytics() {
                   ) : (
                     filtered.map((item) => {
                       const checked = modalSelected.has(item.id);
-                      const typeLabel2 = item.flow_type === "co_created" ? "Co-creado" : item.flow_type === "mini_roi" ? "Asunciones" : item.flow_type === "express" ? "Express" : null;
+                      const typeLabel2 = item.flow_type === "co_created" ? "Co-creado" : item.flow_type === "mini_roi" ? "Asunciones" : item.flow_type === "xl_co_created" ? "XL" : item.flow_type === "express" ? "Express" : null;
                       const typeColor = item.flow_type === "co_created"
                         ? { bg: "oklch(94% 0.03 250)", color: "oklch(38% 0.12 250)" }
                         : item.flow_type === "mini_roi"
                         ? { bg: "oklch(94% 0.04 145)", color: "oklch(38% 0.14 145)" }
+                        : item.flow_type === "xl_co_created"
+                        ? { bg: "oklch(94% 0.04 290)", color: "oklch(38% 0.16 290)" }
                         : { bg: "oklch(95% 0.06 65)", color: "oklch(42% 0.14 65)" };
                       return (
                         <button
