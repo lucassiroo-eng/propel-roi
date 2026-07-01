@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { Users, Activity, FileCheck, Globe, TrendingUp, Target, Send, CheckSquare, Square, RefreshCw, GitBranch, Plus, ChevronDown, ChevronRight, Trophy, ArrowRight } from "lucide-react";
+import { Users, Activity, FileCheck, Globe, TrendingUp, Target, Send, CheckSquare, Square, RefreshCw, GitBranch, Plus, ChevronDown, ChevronRight, Trophy, ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const HUBSPOT_STAGE_LABELS: Record<string, string> = {
